@@ -27,7 +27,7 @@ export const PLATFORM_STATUS = [
   { label: 'Build',         status: 'good',    note: 'Clean production build' },
   { label: 'Tests',         status: 'missing', note: 'No test framework yet' },
   { label: 'Backend',       status: 'missing', note: 'localStorage only' },
-  { label: 'Deployment',    status: 'missing', note: 'Not yet deployed' },
+  { label: 'Deployment',    status: 'good',    note: 'Live at mrnednick.github.io/VibeOS' },
   { label: 'i18n',          status: 'planned', note: 'Planned — vue-i18n' },
 ] as const
 
@@ -61,15 +61,16 @@ export interface ModuleDetail {
 
 export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   dashboard: {
-    progress: 78,
-    milestone: 'Working command center with quick-launch — polish and widgets pending',
+    progress: 85,
+    milestone: 'Widgets connected to platform tasks, responsive grid shipped',
     shippedTasks: [
       { label: 'Module quick-launch → button in sidebar', date: '2026-05-26' },
       { label: 'Per-module detail panel with progress bars', date: '2026-05-26' },
       { label: 'All-tasks aggregated overview panel', date: '2026-05-26' },
+      { label: 'Stat cards redesigned as widgets with icons and progress bar', date: '2026-05-26' },
+      { label: 'Responsive layout: stat cards 2×2 on md, 1-col on sm', date: '2026-05-26' },
     ],
     nextTasks: [
-      { label: 'Responsive layout: stat cards 2×2 on md, 1-col on sm', priority: 'high' },
       { label: 'Currency widget: live exchange rates for favorite pairs', priority: 'medium' },
       { label: 'Add sprint/focus tracker widget', priority: 'medium' },
       { label: 'Interactive roadmap (check off items)', priority: 'low' },
@@ -102,11 +103,11 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Anchor links on headings with hash deep-link', date: '2026-05-26' },
       { label: 'Copy button on code blocks', date: '2026-05-26' },
       { label: 'Sidebar search (filter by label)', date: '2026-05-26' },
+      { label: 'Collapsible sidebar sections with toggle', date: '2026-05-26' },
     ],
     nextTasks: [
       { label: 'Responsive: sidebar as top dropdown on sm', priority: 'high' },
       { label: 'Full-text search across all docs', priority: 'medium' },
-      { label: 'Collapsible sidebar sections', priority: 'low' },
       { label: 'Last-updated timestamps per page (git-based)', priority: 'low' },
     ],
     improvements: [
@@ -124,8 +125,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   'task-manager': {
-    progress: 58,
-    milestone: 'Core features + inline editing shipped — identity and polish next',
+    progress: 65,
+    milestone: 'Core features + duplicate detection shipped — identity and polish next',
     shippedTasks: [
       { label: 'Create, toggle, delete tasks with localStorage persistence', date: '2026-05-26' },
       { label: 'Filter tabs: All / Active / Done', date: '2026-05-26' },
@@ -134,6 +135,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Priority levels: none / low / medium / high / urgent', date: '2026-05-26' },
       { label: 'Undo delete (4s toast with Undo button)', date: '2026-05-26' },
       { label: 'Keyboard nav: j/k move, space toggle, d delete, / focus', date: '2026-05-26' },
+      { label: 'Duplicate task detection with warning notification', date: '2026-05-26' },
     ],
     nextTasks: [
       { label: 'Responsive: full-width layout on all screens', priority: 'high' },

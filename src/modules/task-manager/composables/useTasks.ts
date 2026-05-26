@@ -27,6 +27,13 @@ export function useTasks() {
       notify.warning(`Task cannot exceed ${MAX_LENGTH} characters`)
       return
     }
+    const duplicate = store.tasks.some(
+      t => t.text.toLowerCase() === text.toLowerCase()
+    )
+    if (duplicate) {
+      notify.warning('This task already exists')
+      return
+    }
     store.addTask(text, inputPriority.value)
     inputText.value     = ''
     inputPriority.value = 'none'

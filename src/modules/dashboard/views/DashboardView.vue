@@ -446,9 +446,16 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 .panel-enter-from   { opacity: 0; transform: translateX(6px); }
 .panel-leave-to     { opacity: 0; }
 
-/* Responsive */
-@media (max-width: 720px) {
-  .dashboard__stats     { grid-template-columns: repeat(2, 1fr); }
+/* Responsive — md: 2×2 widget grid, stacked workspace */
+@media (max-width: 1279px) {
+  .dashboard__stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Responsive — sm: single column everything */
+@media (max-width: 767px) {
+  .dashboard__stats     { grid-template-columns: 1fr; }
   .dashboard__workspace { grid-template-columns: 1fr; }
+  .dashboard__header    { flex-direction: column; gap: 4px; }
+  .dashboard__version   { display: none; }
 }
 </style>

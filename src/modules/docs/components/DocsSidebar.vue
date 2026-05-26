@@ -12,6 +12,16 @@ const props = defineProps<Props>()
 const router = useRouter()
 
 const searchQuery = ref('')
+const collapsed = ref<Set<string>>(new Set())
+
+function toggleSection(id: string) {
+  if (collapsed.value.has(id)) {
+    collapsed.value.delete(id)
+  } else {
+    collapsed.value.add(id)
+  }
+  collapsed.value = new Set(collapsed.value)
+}
 
 const filteredSections = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -24,6 +34,10 @@ const filteredSections = computed(() => {
     ),
   })).filter(s => s.pages.length > 0)
 })
+
+// While searching, force-expand all sections so results are visible
+const isCollapsed = (id: string) =>
+  !searchQuery.value.trim() && collapsed.value.has(id)
 </script>
 
 <template>
@@ -43,16 +57,26 @@ const filteredSections = computed(() => {
       :key="section.id"
       class="docs-nav__section"
     >
-      <p class="docs-nav__label">{{ section.label }}</p>
       <button
-        v-for="page in section.pages"
-        :key="page.slug"
-        class="docs-nav__item"
-        :class="{ 'docs-nav__item--active': activeSlug === page.slug }"
-        @click="router.push(`/docs/${page.slug}`)"
+        class="docs-nav__label"
+        :class="{ 'docs-nav__label--collapsed': isCollapsed(section.id) }"
+        @click="toggleSection(section.id)"
       >
-        {{ page.label }}
+        <span>{{ section.label }}</span>
+        <span class="docs-nav__chevron">{{ isCollapsed(section.id) ? '›' : '⌄' }}</span>
       </button>
+
+      <div v-if="!isCollapsed(section.id)" class="docs-nav__pages">
+        <button
+          v-for="page in section.pages"
+          :key="page.slug"
+          class="docs-nav__item"
+          :class="{ 'docs-nav__item--active': activeSlug === page.slug }"
+          @click="router.push(`/docs/${page.slug}`)"
+        >
+          {{ page.label }}
+        </button>
+      </div>
     </div>
 
     <p v-if="filteredSections.length === 0" class="docs-nav__empty">No results</p>
@@ -90,12 +114,37 @@ const filteredSections = computed(() => {
 .docs-nav__section { display: flex; flex-direction: column; gap: 2px; }
 
 .docs-nav__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 3px 8px;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
-  margin: 0 0 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background var(--t-fast), color var(--t-fast);
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 2px;
+}
+.docs-nav__label:hover { background: var(--color-surface-elevated); color: var(--color-text-secondary); }
+.docs-nav__label--collapsed { color: var(--color-text-muted); }
+
+.docs-nav__chevron {
+  font-size: 14px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: transform var(--t-fast);
+}
+
+.docs-nav__pages {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .docs-nav__item {
