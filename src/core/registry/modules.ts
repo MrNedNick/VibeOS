@@ -96,4 +96,13 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     status: 'planned',
     description: 'Usage analytics and reports',
   },
+  {
+    id: 'games',
+    label: 'Games',
+    icon: '⊡',
+    path: '/games',
+    section: 'modules',
+    status: 'available',
+    description: '2048, Memory, Snake — pure CSS & Canvas',
+  },
 ]

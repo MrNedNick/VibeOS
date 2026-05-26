@@ -5,6 +5,7 @@ import { dashboardRoutes } from '@/modules/dashboard'
 import { taskManagerRoutes } from '@/modules/task-manager'
 import { docsRoutes } from '@/modules/docs'
 import { notesRoutes } from '@/modules/notes'
+import { gamesRoutes } from '@/modules/games'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -15,6 +16,7 @@ const routes: RouteRecordRaw[] = [
       ...taskManagerRoutes,
       ...docsRoutes,
       ...notesRoutes,
+      ...gamesRoutes,
     ],
   },
   {

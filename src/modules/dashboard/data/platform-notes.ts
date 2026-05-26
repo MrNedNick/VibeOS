@@ -337,16 +337,18 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   games: {
-    progress: 0,
-    milestone: 'Not started — lobby page + 3 games planned',
-    shippedTasks: [],
+    progress: 40,
+    milestone: 'Lobby + 2048 shipped — Memory and Snake next',
+    shippedTasks: [
+      { label: 'Game lobby at /games with cards for each game', date: '2026-05-27' },
+      { label: '2048 — CSS grid, merge logic, best score persistence', date: '2026-05-27' },
+      { label: 'Arrow keys + WASD + swipe gesture support', date: '2026-05-27' },
+      { label: 'Win / game-over overlays with continue / restart', date: '2026-05-27' },
+    ],
     nextTasks: [
-      { label: 'Write module spec in docs/modules/games.md', priority: 'high' },
-      { label: 'Build game lobby page at /games', priority: 'high' },
-      { label: 'Implement 2048 — CSS grid + merge animations', priority: 'high' },
-      { label: 'Implement Memory Cards — CSS 3D flip', priority: 'medium' },
+      { label: 'Implement Memory Cards — CSS 3D flip', priority: 'high' },
       { label: 'Implement Snake — canvas + game loop', priority: 'medium' },
-      { label: 'Add high score persistence per game (localStorage)', priority: 'medium' },
+      { label: 'Write module spec in docs/modules/games.md', priority: 'low' },
     ],
     improvements: [
       'Difficulty picker per game',
