@@ -277,6 +277,38 @@ Ideas for future modules using free/open APIs (no paid tier required):
 
 ---
 
+## Games module
+
+> **Added 2026-05-26.** A dedicated Games section inside VibeOS — classic games, beautifully implemented with consistent dark UI style.
+
+Each game is its own sub-route under `/games/[name]` with a shared game launcher/lobby page at `/games`.
+
+### Recommended games — ranked by fun-to-effort ratio
+
+| Game | Why it's great | Tech needed | Effort |
+|------|---------------|-------------|--------|
+| **2048** | Smooth tile animations, satisfying merge physics, pure CSS grid | Vue + CSS transitions | Low |
+| **Memory Cards** | Beautiful CSS flip animations, variable grid sizes, theme-able card backs | Vue + CSS 3D transforms | Low |
+| **Minesweeper** | Tension + logic, right-click flagging, auto-reveal flood-fill | Vue + CSS grid | Low |
+| **Snake** | Addictive, fits the dark terminal aesthetic perfectly | Canvas + `requestAnimationFrame` | Low-medium |
+| **Wordle clone** | Instantly recognizable, keyboard input, green/yellow/grey tiles | Vue + word list JSON | Medium |
+| **Tetris** | Most visually impressive, fits the VibeOS grid aesthetic | Canvas or CSS grid | Medium |
+| **Pong** | Minimal and elegant, optionally vs AI | Canvas | Medium |
+
+### Start with these 3 (best ROI)
+
+1. **2048** — no canvas needed, pure CSS grid + transitions, will look beautiful in dark theme
+2. **Memory Cards** — CSS 3D flip is visually stunning, dead simple logic
+3. **Snake** — retro terminal aesthetic is perfect for VibeOS brand
+
+### Shared architecture
+- Route: `/games` → lobby page with game grid
+- Each game: `/games/2048`, `/games/snake`, etc.
+- Shared: `useGameLoop` composable for canvas games, `useHighScore` for localStorage persistence
+- Each game should have: high score display, difficulty picker, keyboard shortcuts
+
+---
+
 ## Ideas Backlog
 
 ### Tasks

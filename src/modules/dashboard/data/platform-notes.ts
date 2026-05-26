@@ -334,4 +334,32 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
     ],
     notes: 'Blocked by cross-module event system. Build last, after other modules generate data.',
   },
+
+  games: {
+    progress: 0,
+    milestone: 'Not started — lobby page + 3 games planned',
+    shippedTasks: [],
+    nextTasks: [
+      { label: 'Write module spec in docs/modules/games.md', priority: 'high' },
+      { label: 'Build game lobby page at /games', priority: 'high' },
+      { label: 'Implement 2048 — CSS grid + merge animations', priority: 'high' },
+      { label: 'Implement Memory Cards — CSS 3D flip', priority: 'medium' },
+      { label: 'Implement Snake — canvas + game loop', priority: 'medium' },
+      { label: 'Add high score persistence per game (localStorage)', priority: 'medium' },
+    ],
+    improvements: [
+      'Difficulty picker per game',
+      'Global leaderboard view across games',
+      'Keyboard shortcut hint overlay',
+      'Sound effects toggle (Web Audio API)',
+    ],
+    techDebt: [],
+    ideas: [
+      'Wordle clone (keyboard + word dictionary)',
+      'Minesweeper (flood-fill reveal, right-click flag)',
+      'Tetris (canvas or CSS grid)',
+      'Pong vs AI',
+    ],
+    notes: 'Start with 2048 and Memory Cards — no canvas needed, pure CSS. Snake adds canvas pattern for future games.',
+  },
 }
