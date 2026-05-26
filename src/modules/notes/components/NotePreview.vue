@@ -34,14 +34,14 @@ const rendered = computed<string>(() => {
 }
 
 .note-preview__empty {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-muted);
   margin: 0;
 }
 
 /* ── Markdown typography (mirrors DocsView) ─────────────────── */
 .note-preview__content :deep(h1) {
-  font-size: 26px;
+  font-size: 27px;
   font-weight: 700;
   color: var(--color-text);
   margin: 0 0 10px;
@@ -50,7 +50,7 @@ const rendered = computed<string>(() => {
 }
 
 .note-preview__content :deep(h2) {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--color-text);
   margin: 32px 0 12px;
@@ -59,14 +59,14 @@ const rendered = computed<string>(() => {
 }
 
 .note-preview__content :deep(h3) {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--color-text);
   margin: 24px 0 8px;
 }
 
 .note-preview__content :deep(h4) {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-text-secondary);
   margin: 18px 0 6px;
@@ -75,7 +75,7 @@ const rendered = computed<string>(() => {
 }
 
 .note-preview__content :deep(p) {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.8;
   color: var(--color-text-secondary);
   margin: 0 0 14px;
@@ -86,7 +86,7 @@ const rendered = computed<string>(() => {
   padding-left: 22px;
   margin: 0 0 14px;
   color: var(--color-text-secondary);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.75;
 }
 
@@ -94,7 +94,7 @@ const rendered = computed<string>(() => {
 
 .note-preview__content :deep(code) {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 13.5px;
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   padding: 2px 5px;
@@ -115,7 +115,7 @@ const rendered = computed<string>(() => {
   background: none;
   border: none;
   padding: 0;
-  font-size: 12.5px;
+  font-size: 13.5px;
   line-height: 1.65;
 }
 
@@ -136,7 +136,7 @@ const rendered = computed<string>(() => {
   width: 100%;
   border-collapse: collapse;
   margin: 0 0 16px;
-  font-size: 13.5px;
+  font-size: 14.5px;
 }
 
 .note-preview__content :deep(th),
@@ -151,7 +151,7 @@ const rendered = computed<string>(() => {
   background: var(--color-surface-elevated);
   font-weight: 600;
   color: var(--color-text);
-  font-size: 12.5px;
+  font-size: 13.5px;
 }
 
 .note-preview__content :deep(hr) {

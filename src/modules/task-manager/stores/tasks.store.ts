@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { storageKey } from '@/core/utils/storage'
 import { generateId } from '@/core/utils/id'
-import type { Task, TaskFilter } from '../types'
+import type { Task, TaskFilter, TaskPriority } from '../types'
 
 const STORAGE_KEY = storageKey('task-manager', 'tasks')
 
@@ -25,8 +25,8 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     totalCount.value === 0 ? 0 : Math.round((doneCount.value / totalCount.value) * 100)
   )
 
-  function addTask(text: string) {
-    tasks.value.push({ id: generateId(), text: text.trim(), done: false, createdAt: Date.now() })
+  function addTask(text: string, priority: TaskPriority = 'none') {
+    tasks.value.push({ id: generateId(), text: text.trim(), done: false, priority, createdAt: Date.now() })
   }
 
   function toggleTask(id: string) {

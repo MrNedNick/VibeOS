@@ -4,11 +4,17 @@ import { generateId } from '@/core/utils/id'
 
 export type NotificationType = 'success' | 'error' | 'warning' | 'info'
 
+export interface NotificationAction {
+  label: string
+  fn: () => void
+}
+
 export interface Notification {
   id: string
   type: NotificationType
   message: string
   duration: number
+  action?: NotificationAction
 }
 
 const DEFAULT_DURATION = 3500
@@ -16,9 +22,14 @@ const DEFAULT_DURATION = 3500
 export const useNotificationsStore = defineStore('core:notifications', () => {
   const items = ref<Notification[]>([])
 
-  function push(type: NotificationType, message: string, duration = DEFAULT_DURATION): string {
+  function push(
+    type: NotificationType,
+    message: string,
+    duration = DEFAULT_DURATION,
+    action?: NotificationAction,
+  ): string {
     const id = generateId()
-    items.value.push({ id, type, message, duration })
+    items.value.push({ id, type, message, duration, action })
     if (duration > 0) setTimeout(() => dismiss(id), duration)
     return id
   }

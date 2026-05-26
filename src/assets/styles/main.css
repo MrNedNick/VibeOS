@@ -22,9 +22,20 @@
   --color-text-muted:       #80808a;   /* was #52525b — visible but clearly secondary */
   --color-text-inverse:     #09090b;
 
-  /* Typography */
+  /* Typography — fonts */
   --font-sans: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Typography — size scale (bump all values +1 here to shift the whole UI) */
+  --text-2xs:  12px;   /* tiny: priority dots, version strings, kbd hints */
+  --text-xs:   13px;   /* x-small: dates, metadata, mono snippets */
+  --text-sm:   14px;   /* small: section labels, sidebar items, badges */
+  --text-base: 15px;   /* base: normal body content */
+  --text-md:   16px;   /* medium: slightly prominent body */
+  --text-lg:   18px;   /* large: body default — matches body { font-size } */
+  --text-xl:   20px;   /* xl: sub-headings */
+  --text-2xl:  24px;   /* 2xl: headings */
+  --text-3xl:  27px;   /* 3xl: page titles */
 
   /* Radius */
   --radius-xs: 4px;
@@ -88,7 +99,7 @@ html, body, #app { height: 100%; }
 
 body {
   font-family: var(--font-sans);
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.65;
   color: var(--color-text);
   background: var(--color-bg);

@@ -4,10 +4,16 @@ import TaskItem from './TaskItem.vue'
 
 interface Props {
   tasks: Task[]
+  focusedId?: string | null
 }
 
 defineProps<Props>()
-const emit = defineEmits<{ toggle: [id: string]; delete: [id: string]; edit: [id: string, text: string] }>()
+const emit = defineEmits<{
+  toggle: [id: string]
+  delete: [id: string]
+  edit:   [id: string, text: string]
+  focus:  [id: string]
+}>()
 </script>
 
 <template>
@@ -17,6 +23,8 @@ const emit = defineEmits<{ toggle: [id: string]; delete: [id: string]; edit: [id
         v-for="task in tasks"
         :key="task.id"
         :task="task"
+        :focused="task.id === focusedId"
+        @click="emit('focus', task.id)"
         @toggle="emit('toggle', $event)"
         @delete="emit('delete', $event)"
         @edit="(id, text) => emit('edit', id, text)"
@@ -40,11 +48,11 @@ const emit = defineEmits<{ toggle: [id: string]; delete: [id: string]; edit: [id
   gap: 8px;
   padding: 48px 0;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .task-list__empty-icon {
-  font-size: 28px;
+  font-size: 29px;
   opacity: 0.2;
 }
 

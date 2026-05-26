@@ -133,14 +133,14 @@ function goToFirst() {
 }
 
 .docs-home h1 {
-  font-size: 30px;
+  font-size: 31px;
   font-weight: 700;
   color: var(--color-text);
   margin: 0;
 }
 
 .docs-home__sub {
-  font-size: 16px;
+  font-size: 17px;
   color: var(--color-text-secondary);
   margin: 0;
   max-width: 520px;
@@ -160,7 +160,7 @@ function goToFirst() {
 }
 
 .docs-home__section-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -184,20 +184,20 @@ function goToFirst() {
 .docs-home__link:hover { border-color: var(--color-accent); }
 
 .docs-home__link-label {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .docs-home__link-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-muted);
   line-height: 1.4;
 }
 
 .docs-home__start {
   width: fit-content;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-accent);
   background: none;
@@ -215,8 +215,8 @@ function goToFirst() {
   padding: 48px 0;
 }
 
-.docs-missing__title { font-size: 20px; font-weight: 600; color: var(--color-text); margin: 0; }
-.docs-missing__sub   { font-size: 15px; color: var(--color-text-muted); margin: 0; }
+.docs-missing__title { font-size: 21px; font-weight: 600; color: var(--color-text); margin: 0; }
+.docs-missing__sub   { font-size: 16px; color: var(--color-text-muted); margin: 0; }
 .docs-missing__sub code {
   font-family: var(--font-mono);
   background: var(--color-surface-elevated);
@@ -228,7 +228,7 @@ function goToFirst() {
 .doc-article { min-width: 0; }
 
 .doc-content :deep(h1) {
-  font-size: 32px;
+  font-size: 33px;
   font-weight: 700;
   color: var(--color-text);
   margin: 0 0 10px;
@@ -237,7 +237,7 @@ function goToFirst() {
 }
 
 .doc-content :deep(h2) {
-  font-size: 23px;
+  font-size: 24px;
   font-weight: 600;
   color: var(--color-text);
   margin: 36px 0 14px;
@@ -247,14 +247,14 @@ function goToFirst() {
 }
 
 .doc-content :deep(h3) {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--color-text);
   margin: 28px 0 10px;
 }
 
 .doc-content :deep(h4) {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text-secondary);
   margin: 22px 0 8px;
@@ -263,7 +263,7 @@ function goToFirst() {
 }
 
 .doc-content :deep(p) {
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.8;
   color: var(--color-text-secondary);
   margin: 0 0 16px;
@@ -274,7 +274,7 @@ function goToFirst() {
   padding-left: 22px;
   margin: 0 0 16px;
   color: var(--color-text-secondary);
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.75;
 }
 
@@ -283,7 +283,7 @@ function goToFirst() {
 
 .doc-content :deep(code) {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 15px;
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   padding: 2px 6px;
@@ -304,7 +304,7 @@ function goToFirst() {
   background: none;
   border: none;
   padding: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.65;
 }
 
@@ -319,14 +319,14 @@ function goToFirst() {
 .doc-content :deep(blockquote p) {
   margin: 0;
   color: var(--color-text);
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .doc-content :deep(table) {
   width: 100%;
   border-collapse: collapse;
   margin: 0 0 20px;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .doc-content :deep(th),
@@ -342,7 +342,7 @@ function goToFirst() {
   background: var(--color-surface-elevated);
   font-weight: 600;
   color: var(--color-text);
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .doc-content :deep(hr) {
@@ -379,7 +379,7 @@ function goToFirst() {
   position: absolute;
   top: 10px;
   right: 10px;
-  font-size: 11px;
+  font-size: 12px;
   font-family: var(--font-mono);
   font-weight: 500;
   color: var(--color-text-muted);

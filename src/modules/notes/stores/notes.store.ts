@@ -8,7 +8,11 @@ export const useNotesStore = defineStore('notes:notes', () => {
   const notes = useStorage<Note[]>(storageKey('notes', 'notes'), [])
 
   const sortedNotes = computed(() =>
-    [...notes.value].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    [...notes.value].sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1
+      if (!a.pinned && b.pinned) return 1
+      return b.updatedAt.localeCompare(a.updatedAt)
+    })
   )
 
   function createNote(): string {
@@ -35,5 +39,10 @@ export const useNotesStore = defineStore('notes:notes', () => {
     if (idx !== -1) notes.value.splice(idx, 1)
   }
 
-  return { notes, sortedNotes, createNote, updateContent, deleteNote }
+  function togglePin(id: string): void {
+    const note = notes.value.find(n => n.id === id)
+    if (note) note.pinned = !note.pinned
+  }
+
+  return { notes, sortedNotes, createNote, updateContent, deleteNote, togglePin }
 })

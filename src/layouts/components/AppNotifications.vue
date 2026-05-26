@@ -24,6 +24,11 @@ const ICONS: Record<string, string> = {
         >
           <span class="notif__icon">{{ ICONS[n.type] }}</span>
           <span class="notif__msg">{{ n.message }}</span>
+          <button
+            v-if="n.action"
+            class="notif__action"
+            @click="n.action.fn(); store.dismiss(n.id)"
+          >{{ n.action.label }}</button>
           <button class="notif__close" :aria-label="`Dismiss: ${n.message}`" @click="store.dismiss(n.id)">✕</button>
         </div>
       </TransitionGroup>
@@ -52,7 +57,7 @@ const ICONS: Record<string, string> = {
   max-width: 380px;
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   pointer-events: all;
   background: var(--color-surface-elevated);
@@ -69,12 +74,23 @@ const ICONS: Record<string, string> = {
 .notif--warning .notif__icon { color: var(--color-warning); }
 .notif--info    .notif__icon { color: var(--color-info);    }
 
-.notif__icon { font-size: 12px; flex-shrink: 0; font-family: var(--font-mono); }
+.notif__icon { font-size: 13px; flex-shrink: 0; font-family: var(--font-mono); }
 .notif__msg  { flex: 1; color: var(--color-text); }
+
+.notif__action {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-accent);
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  transition: background var(--t-fast);
+}
+.notif__action:hover { background: var(--color-accent-muted); }
 
 .notif__close {
   color: var(--color-text-muted);
-  font-size: 10px;
+  font-size: 11px;
   flex-shrink: 0;
   opacity: 0.6;
   transition: opacity var(--t-fast);

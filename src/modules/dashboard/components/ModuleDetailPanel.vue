@@ -181,7 +181,7 @@ const statusInfo = STATUS_MAP[mod.status]
 }
 
 .detail__icon {
-  font-size: 22px;
+  font-size: 23px;
   flex-shrink: 0;
   padding-top: 2px;
 }
@@ -189,7 +189,7 @@ const statusInfo = STATUS_MAP[mod.status]
 .detail__title-group { flex: 1; min-width: 0; }
 
 .detail__name {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-text);
   margin: 0 0 3px;
@@ -197,7 +197,7 @@ const statusInfo = STATUS_MAP[mod.status]
 }
 
 .detail__desc {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-secondary);
   margin: 0;
 }
@@ -211,7 +211,7 @@ const statusInfo = STATUS_MAP[mod.status]
 }
 
 .detail__status {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -224,7 +224,7 @@ const statusInfo = STATUS_MAP[mod.status]
 .detail__status--muted   { background: var(--color-surface-elevated); color: var(--color-text-muted); }
 
 .detail__open-btn {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-accent);
   padding: 0;
@@ -245,13 +245,13 @@ const statusInfo = STATUS_MAP[mod.status]
 }
 
 .detail__progress-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-text-secondary);
 }
 
 .detail__progress-pct {
-  font-size: 12px;
+  font-size: 13px;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
 }
@@ -273,7 +273,7 @@ const statusInfo = STATUS_MAP[mod.status]
 .detail__progress-fill--accent { background: var(--color-accent); }
 
 .detail__milestone {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   font-style: italic;
   margin: 0;
@@ -302,7 +302,7 @@ const statusInfo = STATUS_MAP[mod.status]
 }
 
 .live-stat__value {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 700;
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
@@ -312,7 +312,7 @@ const statusInfo = STATUS_MAP[mod.status]
 .live-stat__value--accent  { color: var(--color-accent); }
 
 .live-stat__label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -322,7 +322,7 @@ const statusInfo = STATUS_MAP[mod.status]
 .detail__section { display: flex; flex-direction: column; gap: 8px; }
 
 .detail__section-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -340,12 +340,12 @@ const statusInfo = STATUS_MAP[mod.status]
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .task-row__num {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   width: 14px;
   flex-shrink: 0;
@@ -353,7 +353,7 @@ const statusInfo = STATUS_MAP[mod.status]
 }
 
 .task-row__priority {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -376,7 +376,7 @@ const statusInfo = STATUS_MAP[mod.status]
 .task-row--shipped:hover { opacity: 1; }
 
 .task-row__check {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-success);
   width: 14px;
   flex-shrink: 0;
@@ -388,7 +388,7 @@ const statusInfo = STATUS_MAP[mod.status]
 }
 
 .task-row__date {
-  font-size: 11px;
+  font-size: 12px;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   flex-shrink: 0;
@@ -410,7 +410,7 @@ const statusInfo = STATUS_MAP[mod.status]
   flex-direction: column;
   gap: 4px;
   padding-left: 16px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-secondary);
   line-height: 1.5;
 }
@@ -429,11 +429,11 @@ const statusInfo = STATUS_MAP[mod.status]
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .debt-row__sev {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -450,7 +450,7 @@ const statusInfo = STATUS_MAP[mod.status]
 
 /* Notes */
 .detail__notes {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   font-style: italic;
   padding: 10px 12px;

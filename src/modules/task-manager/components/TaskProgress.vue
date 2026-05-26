@@ -34,7 +34,7 @@ defineProps<Props>()
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-secondary);
 }
 
@@ -43,7 +43,7 @@ defineProps<Props>()
 
 .task-progress__pct {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
 }
 

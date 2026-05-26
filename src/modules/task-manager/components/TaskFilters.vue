@@ -65,7 +65,7 @@ function getCount(id: TaskFilter): number {
   align-items: center;
   gap: 6px;
   padding: 5px 12px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--color-text-secondary);
   border-radius: var(--radius-xs);

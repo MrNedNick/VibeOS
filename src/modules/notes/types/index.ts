@@ -3,6 +3,7 @@ export interface Note {
   content: string
   createdAt: string
   updatedAt: string
+  pinned?: boolean
 }
 
 export function deriveTitle(content: string): string {

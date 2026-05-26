@@ -237,20 +237,20 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 }
 
 .dashboard__title {
-  font-size: 26px;
+  font-size: 27px;
   font-weight: 700;
   color: var(--color-text);
   margin: 0;
 }
 
 .dashboard__date {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--color-text-muted);
   margin: 3px 0 0;
 }
 
 .dashboard__version {
-  font-size: 13px;
+  font-size: 14px;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
 }
@@ -290,7 +290,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
   cursor: pointer;
   transition: background var(--t-fast), color var(--t-fast);
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   user-select: none;
 }
@@ -318,7 +318,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 }
 
 .mod-row__icon {
-  font-size: 14px;
+  font-size: 15px;
   width: 18px;
   text-align: center;
   flex-shrink: 0;
@@ -327,7 +327,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 .mod-row__name { flex: 1; }
 
 .mod-row__count {
-  font-size: 12px;
+  font-size: 13px;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   background: var(--color-surface-elevated);
@@ -356,7 +356,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 
 .mod-row__launch {
   opacity: 0;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-accent);
   flex-shrink: 0;
   padding: 1px 5px;
@@ -377,7 +377,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 }
 
 .health-compact__label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -389,13 +389,13 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-secondary);
   padding: 3px 0;
 }
 
 .health-compact__dot {
-  font-size: 11px;
+  font-size: 12px;
   font-family: var(--font-mono);
   width: 14px;
   text-align: center;

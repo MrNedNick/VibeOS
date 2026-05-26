@@ -48,7 +48,7 @@ function handleTab(e: KeyboardEvent) {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.8;
   padding: 24px 28px;
   caret-color: var(--color-accent);

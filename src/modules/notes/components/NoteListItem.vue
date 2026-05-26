@@ -8,6 +8,8 @@ const props = defineProps<{
   active: boolean
 }>()
 
+const emit = defineEmits<{ pin: [id: string] }>()
+
 const title = computed(() => deriveTitle(props.note.content))
 
 const excerpt = computed(() => {
@@ -32,7 +34,15 @@ const date = computed(() => {
   <div class="note-item" :class="{ 'note-item--active': active }">
     <div class="note-item__header">
       <span class="note-item__title">{{ title }}</span>
-      <span class="note-item__date">{{ date }}</span>
+      <div class="note-item__meta">
+        <button
+          class="note-item__pin"
+          :class="{ 'note-item__pin--active': note.pinned }"
+          :title="note.pinned ? 'Unpin note' : 'Pin note'"
+          @click.stop="emit('pin', note.id)"
+        >◈</button>
+        <span class="note-item__date">{{ date }}</span>
+      </div>
     </div>
     <p v-if="excerpt" class="note-item__excerpt">{{ excerpt }}</p>
     <p v-else class="note-item__empty">Empty note</p>
@@ -57,14 +67,32 @@ const date = computed(() => {
 
 .note-item__header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 3px;
 }
 
+.note-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.note-item__pin {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity var(--t-fast), color var(--t-fast);
+  line-height: 1;
+  padding: 1px;
+}
+.note-item:hover .note-item__pin { opacity: 1; }
+.note-item__pin--active { opacity: 1; color: var(--color-accent); }
+
 .note-item__title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
   overflow: hidden;
@@ -79,14 +107,14 @@ const date = computed(() => {
 }
 
 .note-item__date {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
 .note-item__excerpt,
 .note-item__empty {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-muted);
   margin: 0;
   overflow: hidden;

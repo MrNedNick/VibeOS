@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useNotes } from '../composables/useNotes'
+import { useNotesStore } from '../stores/notes.store'
+import { deriveTitle } from '../types'
 import NoteList from '../components/NoteList.vue'
 import NoteEditor from '../components/NoteEditor.vue'
 import NotePreview from '../components/NotePreview.vue'
@@ -10,6 +12,26 @@ const {
   filteredNotes, selectedNote,
   selectNote, newNote, debouncedSave, deleteNote,
 } = useNotes()
+
+const notesStore = useNotesStore()
+
+// Word count + reading time
+const wordCount = computed(() => {
+  const text = selectedNote.value?.content ?? ''
+  return text.trim() ? text.trim().split(/\s+/).length : 0
+})
+const readingTime = computed(() => Math.max(1, Math.ceil(wordCount.value / 200)))
+
+// Export as .md file
+function downloadNote() {
+  if (!selectedNote.value) return
+  const title = deriveTitle(selectedNote.value.content).replace(/[^\w\s-]/g, '').trim() || 'note'
+  const blob  = new Blob([selectedNote.value.content], { type: 'text/markdown' })
+  const url   = URL.createObjectURL(blob)
+  const a     = Object.assign(document.createElement('a'), { href: url, download: `${title}.md` })
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 const noteListRef = ref<InstanceType<typeof NoteList>>()
 
@@ -53,6 +75,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       :search-query="searchQuery"
       @select="selectNote"
       @new="newNote"
+      @pin="notesStore.togglePin"
       @update:search-query="searchQuery = $event"
     />
 
@@ -71,12 +94,23 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           >{{ m }}</button>
         </div>
 
-        <button
-          v-if="selectedNote"
-          class="notes-toolbar__delete"
-          title="Delete note"
-          @click="deleteNote(selectedNote!.id)"
-        >Delete</button>
+        <div class="notes-toolbar__right">
+          <span v-if="selectedNote && wordCount > 0" class="notes-toolbar__stats">
+            {{ wordCount }} words · {{ readingTime }} min
+          </span>
+          <button
+            v-if="selectedNote"
+            class="notes-toolbar__action"
+            title="Download as .md"
+            @click="downloadNote"
+          >↓ export</button>
+          <button
+            v-if="selectedNote"
+            class="notes-toolbar__delete"
+            title="Delete note"
+            @click="deleteNote(selectedNote!.id)"
+          >Delete</button>
+        </div>
       </div>
 
       <!-- Panes -->
@@ -139,7 +173,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .notes-toolbar__mode {
   padding: 4px 12px;
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--color-text-secondary);
   text-transform: capitalize;
@@ -156,8 +190,33 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   color: var(--color-accent);
 }
 
+.notes-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.notes-toolbar__stats {
+  font-size: 13px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  padding: 0 8px;
+}
+
+.notes-toolbar__action {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.notes-toolbar__action:hover {
+  background: var(--color-surface-elevated);
+  color: var(--color-accent);
+}
+
 .notes-toolbar__delete {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--color-text-muted);
   padding: 4px 10px;
   border-radius: var(--radius-sm);
@@ -193,14 +252,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .notes-empty__title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--color-text-secondary);
   margin: 0;
 }
 
 .notes-empty__sub {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-muted);
   margin: 0;
 }
@@ -211,7 +270,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   background: var(--color-accent);
   color: #fff;
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   transition: opacity var(--t-fast);
 }

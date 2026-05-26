@@ -178,7 +178,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 }
 
 .all-tasks__title {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-text);
   margin: 0 0 3px;
@@ -186,13 +186,13 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 }
 
 .all-tasks__sub {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-secondary);
   margin: 0;
 }
 
 .all-tasks__total {
-  font-size: 12px;
+  font-size: 13px;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   flex-shrink: 0;
@@ -219,7 +219,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 .priority-pill--muted   { background: var(--color-surface-elevated); border: 1px solid var(--color-border); }
 
 .priority-pill__count {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -229,7 +229,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 .priority-pill--muted   .priority-pill__count { color: var(--color-text-secondary); }
 
 .priority-pill__label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -240,7 +240,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 .all-tasks__section { display: flex; flex-direction: column; gap: 8px; }
 
 .all-tasks__section-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -258,12 +258,12 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .task-row__num {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   width: 14px;
   flex-shrink: 0;
@@ -271,7 +271,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 }
 
 .task-row__priority {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -295,13 +295,13 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-.task-row__module-icon { font-size: 11px; }
+.task-row__module-icon { font-size: 12px; }
 
 /* Shipped section */
 .all-tasks__shipped-header {
@@ -313,7 +313,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 .all-tasks__section-label--success { color: var(--color-success); }
 
 .all-tasks__shipped-toggle {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   transition: color var(--t-fast);
 }
@@ -327,7 +327,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 .task-row--shipped:hover { opacity: 1; }
 
 .task-row__check {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-success);
   width: 14px;
   flex-shrink: 0;
@@ -339,7 +339,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 }
 
 .task-row__date {
-  font-size: 11px;
+  font-size: 12px;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   flex-shrink: 0;

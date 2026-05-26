@@ -33,7 +33,7 @@ const {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   border-radius: var(--radius-sm);
   transition: background var(--t-fast), color var(--t-fast), opacity var(--t-fast);
@@ -43,7 +43,7 @@ const {
 .ui-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* Sizes */
-.ui-btn--sm { height: 28px; padding: 0 10px; font-size: 12px; }
+.ui-btn--sm { height: 28px; padding: 0 10px; font-size: 13px; }
 .ui-btn--md { height: 34px; padding: 0 14px; }
 
 /* Variants */

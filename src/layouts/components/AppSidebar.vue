@@ -108,7 +108,7 @@ function navigate(mod: ModuleMeta) {
 .sidebar__logo { flex-shrink: 0; display: flex; align-items: center; }
 
 .sidebar__brand-name {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--color-text);
   white-space: nowrap;
@@ -135,7 +135,7 @@ function navigate(mod: ModuleMeta) {
 .sidebar__group { display: flex; flex-direction: column; gap: 2px; }
 
 .sidebar__section-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -156,7 +156,7 @@ function navigate(mod: ModuleMeta) {
   border-radius: var(--radius-sm);
   transition: background var(--t-fast), color var(--t-fast);
   color: var(--color-text-secondary);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   overflow: hidden;
   white-space: nowrap;
@@ -177,7 +177,7 @@ function navigate(mod: ModuleMeta) {
 .sidebar__item--disabled { cursor: default; opacity: 0.4; }
 
 .sidebar__icon {
-  font-size: 16px;
+  font-size: 17px;
   width: 22px;
   text-align: center;
   flex-shrink: 0;
@@ -189,7 +189,7 @@ function navigate(mod: ModuleMeta) {
 .sidebar--collapsed .sidebar__soon { opacity: 0; width: 0; overflow: hidden; }
 
 .sidebar__soon {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;

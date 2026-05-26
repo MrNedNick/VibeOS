@@ -5,6 +5,7 @@ import { UiButton } from '@/ui'
 
 interface Props {
   task: Task
+  focused?: boolean
 }
 
 const props = defineProps<Props>()
@@ -38,7 +39,7 @@ function cancelEdit() {
 </script>
 
 <template>
-  <div class="task-item" :class="{ 'task-item--done': task.done, 'task-item--editing': isEditing }">
+  <div class="task-item" :class="{ 'task-item--done': task.done, 'task-item--editing': isEditing, 'task-item--focused': focused }">
     <button
       class="task-item__check"
       :aria-label="task.done ? 'Mark as active' : 'Mark as done'"
@@ -51,22 +52,30 @@ function cancelEdit() {
       </Transition>
     </button>
 
-    <input
-      v-if="isEditing"
-      ref="editInputRef"
-      v-model="editText"
-      class="task-item__edit-input"
-      maxlength="120"
-      @keydown.enter="commitEdit"
-      @keydown.esc="cancelEdit"
-      @blur="commitEdit"
-    />
-    <span
-      v-else
-      class="task-item__text"
-      :title="task.done ? '' : 'Double-click to edit'"
-      @dblclick="startEdit"
-    >{{ task.text }}</span>
+    <template v-if="isEditing">
+      <input
+        ref="editInputRef"
+        v-model="editText"
+        class="task-item__edit-input"
+        maxlength="120"
+        @keydown.enter="commitEdit"
+        @keydown.esc="cancelEdit"
+        @blur="commitEdit"
+      />
+    </template>
+    <template v-else>
+      <span
+        v-if="task.priority && task.priority !== 'none'"
+        class="task-item__priority"
+        :class="`task-item__priority--${task.priority}`"
+        :title="task.priority"
+      />
+      <span
+        class="task-item__text"
+        :title="task.done ? '' : 'Double-click to edit'"
+        @dblclick="startEdit"
+      >{{ task.text }}</span>
+    </template>
 
     <UiButton
       variant="danger"
@@ -97,6 +106,7 @@ function cancelEdit() {
 .task-item:hover { border-color: var(--color-border-subtle); background: var(--color-surface-elevated); }
 .task-item:hover .task-item__delete { opacity: 1; }
 .task-item--editing { border-color: var(--color-accent); background: var(--color-surface-elevated); }
+.task-item--focused:not(.task-item--editing) { border-color: var(--color-accent); outline: 2px solid var(--color-accent-muted); }
 
 /* Checkbox */
 .task-item__check {
@@ -122,10 +132,22 @@ function cancelEdit() {
   border-color: var(--color-success);
 }
 
+/* Priority dot */
+.task-item__priority {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.task-item__priority--low    { background: #4ade80; }
+.task-item__priority--medium { background: var(--color-warning); }
+.task-item__priority--high   { background: #f97316; }
+.task-item__priority--urgent { background: var(--color-danger); }
+
 /* Text */
 .task-item__text {
   flex: 1;
-  font-size: 16px;
+  font-size: 17px;
   color: var(--color-text);
   word-break: break-word;
   transition: color var(--t);
@@ -141,7 +163,7 @@ function cancelEdit() {
 /* Edit input */
 .task-item__edit-input {
   flex: 1;
-  font-size: 16px;
+  font-size: 17px;
   font-family: inherit;
   color: var(--color-text);
   background: transparent;

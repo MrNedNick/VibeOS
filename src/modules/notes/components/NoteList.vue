@@ -12,6 +12,7 @@ defineProps<{
 const emit = defineEmits<{
   select: [id: string]
   new: []
+  pin: [id: string]
   'update:searchQuery': [value: string]
 }>()
 
@@ -23,8 +24,8 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
   <aside class="note-list">
     <!-- Header -->
     <div class="note-list__header">
-      <span class="note-list__title">Notes</span>
-      <button class="note-list__new" title="New note" @click="emit('new')">+</button>
+      <span class="note-list__title">Notes <span class="note-list__count">{{ notes.length }}</span></span>
+      <button class="note-list__new" title="New note (⌘N)" @click="emit('new')">+</button>
     </div>
 
     <!-- Search -->
@@ -47,6 +48,7 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
         :note="note"
         :active="note.id === selectedId"
         @click="emit('select', note.id)"
+        @pin="emit('pin', $event)"
       />
       <div v-if="notes.length === 0" class="note-list__empty">
         <span v-if="searchQuery">No results</span>
@@ -78,13 +80,26 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
 }
 
 .note-list__title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-list__count {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  padding: 1px 5px;
+  border-radius: 99px;
 }
 
 .note-list__new {
-  font-size: 18px;
+  font-size: 19px;
   line-height: 1;
   width: 26px;
   height: 26px;
@@ -113,7 +128,7 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text);
   outline: none;
 }
@@ -131,7 +146,7 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
 
 .note-list__empty {
   padding: 24px 14px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   text-align: center;
 }

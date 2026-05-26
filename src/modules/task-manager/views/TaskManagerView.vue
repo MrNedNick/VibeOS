@@ -121,20 +121,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .tm-view__title {
-  font-size: 26px;
+  font-size: 27px;
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
 }
 
 .tm-view__subtitle {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--color-text-muted);
   margin: 2px 0 0;
 }
 
 .tm-view__hint {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   opacity: 0.5;
   font-family: var(--font-mono);

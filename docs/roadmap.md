@@ -102,6 +102,37 @@ Most immediately useful: Currency (already specced) → GitHub stats → HN feed
 
 ---
 
+## ⚡ HIGH PRIORITY — Design & visual identity
+
+> **Added 2026-05-26.** The platform works well technically but needs a proper design pass before it looks like a real product.
+
+### What needs to happen
+
+**Logo & brand identity**
+- The current `//` text logo is a placeholder — design a real logotype or icon mark
+- Define a consistent brand personality: is VibeOS minimal/corporate or playful/hacker?
+- Choose a secondary accent color (or stick to mono with single accent)
+
+**Global UI polish**
+- Sidebar: improve visual hierarchy, active state, icons (currently unicode glyphs)
+- Header / app bar: more deliberate spacing and weight
+- Typography: consider a proper heading/body size contrast rather than just bumping px
+- Spacing: audit padding/gap values for consistency — many are one-off
+- Module headers: each module's header area should feel intentional, not boilerplate
+
+**Component library**
+- Standardize button variants: primary / secondary / ghost / destructive
+- Input fields: consistent height, border, focus ring across all modules
+- Cards / panels: define a single card pattern instead of per-module one-offs
+- Eventually extract to a `src/ui/` design system (some already there: `UiButton`)
+
+**CSS architecture**
+- All font-size values are still hardcoded in components — they should use `--text-*` scale variables from `main.css`
+- Audit components to gradually replace hardcoded px with `--text-*` variables
+- Add spacing scale variables: `--space-1` through `--space-8`
+
+---
+
 ## ⚡ HIGH PRIORITY — Responsive design
 
 > **Rule (added 2026-05-26):** Every new component and module must include responsive styles from day one. See `CLAUDE.md` for the full rule and checklist.
@@ -132,6 +163,33 @@ Most immediately useful: Currency (already specced) → GitHub stats → HN feed
 ### Phase 3 — Mac Studio Display optimization *(later)*
 - Content max-width increases to `1200px` for `xl`
 - Wider sidebar option for large displays
+
+---
+
+## Deployment — free hosting
+
+> **Added 2026-05-26.** Target: live on the internet, zero cost, permanent URL.
+
+### Options (all free, all good for a Vite SPA)
+
+| Service | Notes | Custom domain | Verdict |
+|---------|-------|---------------|---------|
+| **GitHub Pages** | Free forever, deploys from `gh-pages` branch or `docs/` folder, GitHub Actions CI | Yes (free) | ✓ Best for open-source |
+| **Vercel** | Instant deploy on every push, preview URLs per PR, generous free tier | Yes (free) | ✓ Best DX overall |
+| **Netlify** | Similar to Vercel, slightly older | Yes (free) | Good fallback |
+| **Cloudflare Pages** | Fast CDN, unlimited bandwidth | Yes (free) | Good if already using CF |
+
+**Recommendation: Vercel** — zero config for Vite, preview deployments per PR, custom domain in 1 click, never need to think about it again.
+
+### What to do
+1. Push repo to GitHub (already planned)
+2. Connect repo to Vercel (vercel.com → "New Project" → import GitHub repo)
+3. Build command: `npm run build` / Output dir: `dist`
+4. Done — every push to `main` auto-deploys
+
+For GitHub Pages (alternative):
+- Add `.github/workflows/deploy.yml` with `actions/upload-pages-artifact@v3` + `actions/deploy-pages@v4`
+- Set `base: '/VibeOS/'` in `vite.config.ts` (important for sub-path routing)
 
 ---
 

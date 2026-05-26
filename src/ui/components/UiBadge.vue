@@ -19,7 +19,7 @@ const { variant = 'default' } = defineProps<Props>()
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   border-radius: 99px;
   line-height: 1;

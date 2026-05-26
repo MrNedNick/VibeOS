@@ -1,17 +1,48 @@
 <script setup lang="ts">
+import type { TaskPriority } from '../types'
 import { UiInput, UiButton } from '@/ui'
 
 interface Props {
   modelValue: string
+  priority?: TaskPriority
   maxLength?: number
   loading?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), { maxLength: 120, loading: false })
+const props = withDefaults(defineProps<Props>(), {
+  priority: 'none',
+  maxLength: 120,
+  loading: false,
+})
+
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  'update:priority':  [value: TaskPriority]
   submit: []
 }>()
+
+const PRIORITY_LABEL: Record<TaskPriority, string> = {
+  none:   '—',
+  low:    'L',
+  medium: 'M',
+  high:   'H',
+  urgent: '!',
+}
+
+const PRIORITY_TITLE: Record<TaskPriority, string> = {
+  none:   'No priority (click to cycle)',
+  low:    'Low priority',
+  medium: 'Medium priority',
+  high:   'High priority',
+  urgent: 'Urgent',
+}
+
+const PRIORITY_CYCLE: TaskPriority[] = ['none', 'low', 'medium', 'high', 'urgent']
+
+function cyclePriority() {
+  const idx = PRIORITY_CYCLE.indexOf(props.priority)
+  emit('update:priority', PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length])
+}
 
 const charCount = () => props.modelValue.length
 const isNearLimit = () => charCount() > props.maxLength * 0.85
@@ -20,6 +51,13 @@ const isOverLimit = () => charCount() > props.maxLength
 
 <template>
   <div class="task-input">
+    <button
+      class="priority-btn"
+      :class="`priority-btn--${priority}`"
+      :title="PRIORITY_TITLE[priority]"
+      @click="cyclePriority"
+    >{{ PRIORITY_LABEL[priority] }}</button>
+
     <div class="task-input__field">
       <UiInput
         :model-value="modelValue"
@@ -33,17 +71,14 @@ const isOverLimit = () => charCount() > props.maxLength
         v-if="isNearLimit()"
         class="task-input__counter"
         :class="{ 'task-input__counter--over': isOverLimit() }"
-      >
-        {{ charCount() }}/{{ maxLength }}
-      </span>
+      >{{ charCount() }}/{{ maxLength }}</span>
     </div>
+
     <UiButton
       :disabled="!modelValue.trim() || isOverLimit()"
       :loading="loading"
       @click="emit('submit')"
-    >
-      Add
-    </UiButton>
+    >Add</UiButton>
   </div>
 </template>
 
@@ -64,11 +99,34 @@ const isOverLimit = () => charCount() > props.maxLength
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   font-family: var(--font-mono);
   pointer-events: none;
 }
-
 .task-input__counter--over { color: var(--color-danger); }
+
+/* Priority button */
+.priority-btn {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-muted);
+  background: var(--color-surface-elevated);
+  transition: all var(--t-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.priority-btn:hover { border-color: var(--color-text-muted); color: var(--color-text); }
+
+.priority-btn--low    { border-color: #4ade80; color: #4ade80; background: rgba(74,222,128,.08); }
+.priority-btn--medium { border-color: var(--color-warning); color: var(--color-warning); background: rgba(240,160,48,.08); }
+.priority-btn--high   { border-color: #f97316; color: #f97316; background: rgba(249,115,22,.08); }
+.priority-btn--urgent { border-color: var(--color-danger); color: var(--color-danger); background: rgba(240,96,96,.12); }
 </style>

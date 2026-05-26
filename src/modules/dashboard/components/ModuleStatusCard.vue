@@ -63,10 +63,10 @@ const STATUS_LABEL: Record<string, string> = {
   margin-bottom: 2px;
 }
 
-.mod-card__icon { font-size: 18px; }
+.mod-card__icon { font-size: 19px; }
 
 .mod-card__status {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -82,14 +82,14 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 .mod-card__name {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
 }
 
 .mod-card__desc {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.5;
@@ -111,14 +111,14 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 .mod-card__stat-value {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
 .mod-card__stat-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
