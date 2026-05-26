@@ -1,0 +1,122 @@
+/* ─── Design tokens ─────────────────────────────────────────────── */
+:root {
+  /* Colors — Dark theme (default) */
+  --color-bg:               #0a0a0a;
+  --color-surface:          #141414;
+  --color-surface-elevated: #1e1e22;
+  --color-border:           #2a2a30;
+  --color-border-subtle:    #1e1e24;
+
+  --color-accent:           #4f8ef7;
+  --color-accent-hover:     #3b7ef0;
+  --color-accent-muted:     rgba(79, 142, 247, 0.12);
+
+  --color-success:          #34d058;
+  --color-danger:           #f06060;
+  --color-warning:          #f0a030;
+  --color-info:             #4f8ef7;
+
+  /* Text — improved contrast for dark mode */
+  --color-text:             #f0f0f4;
+  --color-text-secondary:   #c4c4cc;   /* was #a1a1aa — much more readable */
+  --color-text-muted:       #80808a;   /* was #52525b — visible but clearly secondary */
+  --color-text-inverse:     #09090b;
+
+  /* Typography */
+  --font-sans: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius:    8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow:    0 4px 14px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.7);
+
+  /* Easing */
+  --ease:        cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:    cubic-bezier(0, 0, 0.2, 1);
+
+  /* Transitions */
+  --t-fast:   120ms var(--ease);
+  --t:        200ms var(--ease);
+  --t-slow:   300ms var(--ease);
+
+  /* Layout */
+  --sidebar-width:      220px;
+  --sidebar-collapsed:  56px;
+  --header-height:      52px;
+  --content-max-width:  960px;
+  --content-padding:    28px;
+}
+
+/* Light theme overrides */
+[data-theme='light'] {
+  --color-bg:               #f0f0f5;
+  --color-surface:          #ffffff;
+  --color-surface-elevated: #f6f6fa;
+  --color-border:           #dcdce4;
+  --color-border-subtle:    #ebebf0;
+
+  --color-accent:           #2563eb;
+  --color-accent-hover:     #1d4ed8;
+  --color-accent-muted:     rgba(37, 99, 235, 0.1);
+
+  --color-success:          #16a34a;
+  --color-danger:           #dc2626;
+  --color-warning:          #d97706;
+
+  --color-text:             #0d0d12;
+  --color-text-secondary:   #44444e;   /* was #71717a — better contrast on light */
+  --color-text-muted:       #88888f;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow:    0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #app { height: 100%; }
+
+body {
+  font-family: var(--font-sans);
+  font-size: 15px;           /* was 14px — meaningfully improves readability */
+  line-height: 1.65;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button { cursor: pointer; font-family: inherit; border: none; background: none; }
+input, textarea { font-family: inherit; }
+a { color: var(--color-accent); text-decoration: none; }
+a:hover { color: var(--color-accent-hover); }
+
+/* ─── Heading rhythm ─────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+/* ─── Focus ring ─────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}

@@ -1,0 +1,325 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { marked } from 'marked'
+import { useDocs } from '../composables/useDocs'
+import DocsSidebar from '../components/DocsSidebar.vue'
+
+const router = useRouter()
+const { DOC_REGISTRY, currentSlug, currentPage, currentContent } = useDocs()
+
+// Configure marked for clean output
+marked.use({ gfm: true })
+
+const renderedHtml = computed<string>(() => {
+  if (!currentContent.value) return ''
+  const result = marked.parse(currentContent.value)
+  return typeof result === 'string' ? result : ''
+})
+
+const firstPage = DOC_REGISTRY[0]?.pages[0]
+
+function goToFirst() {
+  if (firstPage) router.push(`/docs/${firstPage.slug}`)
+}
+</script>
+
+<template>
+  <div class="docs-layout">
+    <!-- Sidebar nav -->
+    <aside class="docs-layout__nav">
+      <DocsSidebar :sections="DOC_REGISTRY" :active-slug="currentSlug" />
+    </aside>
+
+    <!-- Content -->
+    <main class="docs-layout__content">
+
+      <!-- No page selected → show index -->
+      <div v-if="!currentSlug" class="docs-home">
+        <h1>Documentation</h1>
+        <p class="docs-home__sub">Architecture decisions, patterns, and module guides for this platform.</p>
+        <div class="docs-home__grid">
+          <div
+            v-for="section in DOC_REGISTRY"
+            :key="section.id"
+            class="docs-home__section"
+          >
+            <h3 class="docs-home__section-title">{{ section.label }}</h3>
+            <button
+              v-for="page in section.pages"
+              :key="page.slug"
+              class="docs-home__link"
+              @click="router.push(`/docs/${page.slug}`)"
+            >
+              <span class="docs-home__link-label">{{ page.label }}</span>
+              <span v-if="page.description" class="docs-home__link-desc">{{ page.description }}</span>
+            </button>
+          </div>
+        </div>
+        <button class="docs-home__start" @click="goToFirst">
+          Start reading →
+        </button>
+      </div>
+
+      <!-- Doc page not found -->
+      <div v-else-if="!currentPage || !currentContent" class="docs-missing">
+        <p class="docs-missing__title">Page not found</p>
+        <p class="docs-missing__sub">No documentation found for <code>{{ currentSlug }}</code></p>
+        <button class="docs-home__start" @click="router.push('/docs')">Back to index</button>
+      </div>
+
+      <!-- Rendered markdown -->
+      <article v-else class="doc-article">
+        <div class="doc-content" v-html="renderedHtml" />
+      </article>
+
+    </main>
+  </div>
+</template>
+
+<style scoped>
+.docs-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.docs-layout__nav {
+  padding-top: 4px;
+}
+
+/* Home index */
+.docs-home {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.docs-home h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.docs-home__sub {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  max-width: 520px;
+  line-height: 1.6;
+}
+
+.docs-home__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.docs-home__section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.docs-home__section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin: 0 0 6px;
+}
+
+.docs-home__link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--t-fast);
+}
+
+.docs-home__link:hover { border-color: var(--color-accent); }
+
+.docs-home__link-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.docs-home__link-desc {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.docs-home__start {
+  width: fit-content;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.docs-home__start:hover { text-decoration: underline; }
+
+/* Missing */
+.docs-missing {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 48px 0;
+}
+
+.docs-missing__title { font-size: 18px; font-weight: 600; color: var(--color-text); margin: 0; }
+.docs-missing__sub   { font-size: 13px; color: var(--color-text-muted); margin: 0; }
+.docs-missing__sub code {
+  font-family: var(--font-mono);
+  background: var(--color-surface-elevated);
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+}
+
+/* Rendered markdown ─────────────────────────────────────────── */
+.doc-article { min-width: 0; }
+
+.doc-content :deep(h1) {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 10px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.doc-content :deep(h2) {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 36px 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+  letter-spacing: -0.01em;
+}
+
+.doc-content :deep(h3) {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 28px 0 10px;
+}
+
+.doc-content :deep(h4) {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 22px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.doc-content :deep(p) {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  margin: 0 0 16px;
+}
+
+.doc-content :deep(ul),
+.doc-content :deep(ol) {
+  padding-left: 22px;
+  margin: 0 0 16px;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.doc-content :deep(li) { margin-bottom: 6px; }
+.doc-content :deep(li > p) { margin-bottom: 4px; }
+
+.doc-content :deep(code) {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  color: var(--color-text);
+}
+
+.doc-content :deep(pre) {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  overflow-x: auto;
+  margin: 0 0 20px;
+}
+
+.doc-content :deep(pre code) {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.doc-content :deep(blockquote) {
+  border-left: 3px solid var(--color-accent);
+  padding: 10px 18px;
+  margin: 0 0 18px;
+  background: var(--color-accent-muted);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.doc-content :deep(blockquote p) {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 15px;
+}
+
+.doc-content :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 20px;
+  font-size: 14px;
+}
+
+.doc-content :deep(th),
+.doc-content :deep(td) {
+  padding: 9px 14px;
+  border: 1px solid var(--color-border);
+  text-align: left;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.doc-content :deep(th) {
+  background: var(--color-surface-elevated);
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.doc-content :deep(hr) {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 28px 0;
+}
+
+.doc-content :deep(a) { color: var(--color-accent); }
+.doc-content :deep(a:hover) { text-decoration: underline; color: var(--color-accent-hover); }
+
+.doc-content :deep(strong) { color: var(--color-text); font-weight: 600; }
+.doc-content :deep(em) { color: var(--color-text-secondary); font-style: italic; }
+</style>
