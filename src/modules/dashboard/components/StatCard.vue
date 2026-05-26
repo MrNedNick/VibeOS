@@ -1,56 +1,129 @@
 <script setup lang="ts">
 interface Props {
+  icon?: string
   label: string
   value: string | number
   sub?: string
+  progress?: number      // 0–100, renders a mini bar
   accent?: boolean
+  clickable?: boolean
 }
+
 defineProps<Props>()
+defineEmits<{ click: [] }>()
 </script>
 
 <template>
-  <div class="stat-card" :class="{ 'stat-card--accent': accent }">
-    <span class="stat-card__value">{{ value }}</span>
-    <span class="stat-card__label">{{ label }}</span>
-    <span v-if="sub" class="stat-card__sub">{{ sub }}</span>
+  <div
+    class="widget"
+    :class="{
+      'widget--accent':    accent,
+      'widget--clickable': clickable,
+    }"
+    @click="$emit('click')"
+  >
+    <div class="widget__header">
+      <span class="widget__label">{{ label }}</span>
+      <span v-if="icon" class="widget__icon">{{ icon }}</span>
+    </div>
+
+    <span class="widget__value">{{ value }}</span>
+
+    <div v-if="progress !== undefined" class="widget__bar">
+      <div
+        class="widget__bar-fill"
+        :class="{ 'widget__bar-fill--accent': accent }"
+        :style="{ width: `${Math.min(100, progress)}%` }"
+      />
+    </div>
+
+    <span v-if="sub" class="widget__sub">{{ sub }}</span>
   </div>
 </template>
 
 <style scoped>
-.stat-card {
+.widget {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 16px 18px;
+  gap: 6px;
+  padding: 16px 18px 14px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   min-width: 0;
+  transition: border-color var(--t-fast), background var(--t-fast);
 }
 
-.stat-card--accent { border-color: var(--color-accent); background: var(--color-accent-muted); }
+.widget--clickable {
+  cursor: pointer;
+  user-select: none;
+}
+.widget--clickable:hover {
+  border-color: var(--color-accent);
+  background: var(--color-surface-elevated);
+}
+.widget--clickable:active { opacity: 0.85; }
 
-.stat-card__value {
+.widget--accent {
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+.widget__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.widget__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.widget__icon {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  line-height: 1;
+}
+.widget--accent .widget__icon { color: var(--color-accent); opacity: 0.7; }
+
+.widget__value {
   font-size: 31px;
   font-weight: 700;
   color: var(--color-text);
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  margin-top: 2px;
 }
-.stat-card--accent .stat-card__value { color: var(--color-accent); }
+.widget--accent .widget__value { color: var(--color-accent); }
 
-.stat-card__label {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.widget__bar {
+  height: 3px;
+  background: var(--color-border);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 2px;
 }
 
-.stat-card__sub {
-  font-size: 13px;
+.widget__bar-fill {
+  height: 100%;
+  background: var(--color-text-muted);
+  border-radius: 99px;
+  transition: width 600ms var(--ease-out);
+}
+.widget__bar-fill--accent { background: var(--color-accent); }
+
+.widget__sub {
+  font-size: 12px;
   color: var(--color-text-muted);
   font-family: var(--font-mono);
-  margin-top: 4px;
 }
 </style>

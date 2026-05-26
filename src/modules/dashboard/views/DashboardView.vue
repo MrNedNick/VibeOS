@@ -83,6 +83,16 @@ const aggregatedShipped = computed<AggregatedShipped[]>(() => {
   return result.sort((a, b) => b.date.localeCompare(a.date))
 })
 
+// ── Platform-level task stats (from MODULE_DETAILS — not task manager) ──
+const platformTotalTasks = computed(() =>
+  aggregatedTasks.value.length + aggregatedShipped.value.length
+)
+const platformProgress = computed(() =>
+  platformTotalTasks.value === 0
+    ? 0
+    : Math.round((aggregatedShipped.value.length / platformTotalTasks.value) * 100)
+)
+
 // ── Top-level stats ─────────────────────────────────────────────
 const availableCount = computed(() =>
   PLATFORM_MODULES.filter(m => m.status === 'available').length
@@ -103,28 +113,41 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
       <span class="dashboard__version">v0.1.0 · VibeOS</span>
     </div>
 
-    <!-- Stats strip ─────────────────────────────────────────────── -->
+    <!-- Widget strip ────────────────────────────────────────────── -->
     <div class="dashboard__stats">
       <StatCard
-        label="Active modules"
+        icon="◎"
+        label="Modules"
         :value="`${availableCount} / ${PLATFORM_MODULES.length}`"
-        sub="of total"
+        :sub="`${PLATFORM_MODULES.length - availableCount} planned`"
+        clickable
+        @click="selectedId = OVERVIEW_ID"
       />
       <StatCard
-        label="Tasks"
-        :value="tasksStore.totalCount"
-        :sub="`${tasksStore.activeCount} remaining`"
+        icon="≡"
+        label="Platform tasks"
+        :value="aggregatedTasks.length"
+        :sub="`${aggregatedShipped.length} shipped ✓`"
+        clickable
+        @click="selectedId = OVERVIEW_ID"
       />
       <StatCard
-        label="Task progress"
-        :value="`${tasksStore.progress}%`"
-        :accent="tasksStore.progress > 0"
-        sub="completion"
+        icon="◈"
+        label="Progress"
+        :value="`${platformProgress}%`"
+        :sub="`${aggregatedShipped.length} of ${platformTotalTasks} done`"
+        :progress="platformProgress"
+        :accent="platformProgress > 0"
+        clickable
+        @click="selectedId = OVERVIEW_ID"
       />
       <StatCard
+        icon="§"
         label="Doc pages"
         :value="TOTAL_DOC_PAGES"
         sub="pages written"
+        clickable
+        @click="selectedId = 'docs'"
       />
     </div>
 
