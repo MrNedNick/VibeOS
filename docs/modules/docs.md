@@ -89,10 +89,17 @@ This means:
 
 ## Planned Improvements
 
-- **Search** — full-text search across all docs
-- **Last updated** — git-based timestamps per doc page
-- **Collapsible sidebar sections** — for when doc count grows
-- **Print / export** — export a doc as PDF
+### High priority
+- **Responsive** — on `sm`: sidebar collapses to a top dropdown / hamburger; content takes full width
+
+### Medium priority
+- **Full-text search** — search bar in DocsSidebar; filter pages by content (all docs in memory already); highlight matches
+
+### Low priority
+- **Table of contents** — auto-generate from headings in current doc; sticky sidebar on right
+- **Last-updated timestamps** — git-based, inject at build time via Vite plugin
+- **Collapsible sidebar sections** — toggle sections in DocsSidebar when doc count grows
+- **Print / export** — export current doc as PDF using `window.print()` + print stylesheet
 
 ## Shipped Improvements
 

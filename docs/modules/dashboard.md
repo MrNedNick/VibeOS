@@ -55,11 +55,18 @@ When a backend is added in the future, these can be migrated to an API call via 
 
 ## Planned Improvements
 
-- **Interactive roadmap** — check off items as they're completed
-- **Drag-to-prioritize** — reorder roadmap items
-- **Recent activity** — last N actions across all modules (requires event log)
-- **Build stats** — bundle size, TS errors count (from build output)
-- **Sprint tracker** — simple current-sprint widget
+### High priority
+- **Responsive layout** — stat cards go 2×2 on `md`, 1-column on `sm`; detail panel stacks below list on `sm`
+
+### Medium priority
+- **Currency widget** — live rates for 3–5 favorite pairs; uses Frankfurter API; self-contained `DashboardWidget.vue` inside Currency module
+- **Sprint/focus tracker** — simple "today's focus" text area saved to localStorage
+- **Interactive roadmap** — check off nextTasks items from the dashboard directly
+
+### Low priority
+- **Recent activity feed** — last N events across modules (requires cross-module event system)
+- **Build stats** — bundle size, TS errors count (from CI/build output)
+- **Drag-to-prioritize** — reorder roadmap items within the detail panel
 
 ## Shipped Improvements
 

@@ -81,20 +81,22 @@ Prioritized features for the next development sessions:
 
 ---
 
-## Responsive design plan
+## ⚡ HIGH PRIORITY — Responsive design
 
 > **Rule (added 2026-05-26):** Every new component and module must include responsive styles from day one. See `CLAUDE.md` for the full rule and checklist.
+>
+> **Priority level: HIGH** — Must be done before any new module development begins.
 
 ### Target devices
 
-| Breakpoint | Device | Width |
-|------------|--------|-------|
-| `xl` | Mac Studio Display (27" 5K) | ≥ 1920px |
-| `lg` | MacBook Pro 14"/16" (default) | 1280–1919px |
-| `md` | iPad / small laptop | 768–1279px |
-| `sm` | Mobile (iPhone) | < 768px |
+| Breakpoint | Device | Width | Owner priority |
+|------------|--------|-------|---------------|
+| `xl` | Mac Studio Display (27" 5K) | ≥ 1920px | Primary |
+| `lg` | MacBook Pro 14"/16" (default) | 1280–1919px | Primary |
+| `md` | iPad / small laptop | 768–1279px | Secondary |
+| `sm` | Mobile (iPhone) | < 768px | Required |
 
-### Phase 1 — Layout foundation *(do this before next feature sprint)*
+### Phase 1 — Layout foundation *(HIGH — do before next feature sprint)*
 - CSS breakpoint variables in `main.css`
 - Sidebar: collapses to icon-only on `md`, becomes bottom tab bar on `sm`
 - AppLayout: stacks vertically on `sm`
@@ -122,6 +124,77 @@ Prioritized features for the next development sessions:
 - **Error boundaries** — Global error handler, app-level fallbacks
 - **Test suite** — Vitest + Vue Test Utils for unit/component tests
 - **Theme per app** — Allow app-level accent color customization
+
+---
+
+## Currency module (planned)
+
+**Route:** `/currency`  
+**Status:** Planned  
+**API:** [Frankfurter](https://www.frankfurter.app/) — completely free, no API key, ECB data, no rate limits
+
+### Purpose
+Live exchange rate viewer. Select currency pairs, see real-time rates, track favorites. Dashboard widget shows top pairs at a glance.
+
+### Planned features
+- Currency pair selector (from / to) with search
+- Live rate display with last-updated timestamp
+- Favorite pairs saved to localStorage
+- Multi-pair view (watch several rates at once)
+- Simple rate history sparkline (7d / 30d)
+- Dashboard widget: top 3–5 favorite pairs
+
+### Data model
+```typescript
+interface CurrencyPair {
+  base: string      // 'USD'
+  target: string    // 'EUR'
+  rate: number
+  updatedAt: string
+}
+
+interface CurrencyState {
+  favorites: CurrencyPair[]
+  lastFetch: Record<string, number>  // base → timestamp
+}
+```
+
+### API endpoints (Frankfurter, no key needed)
+```
+GET https://api.frankfurter.app/latest?from=USD&to=EUR,RUB,GBP
+GET https://api.frankfurter.app/2024-01-01..?from=USD&to=EUR   // history
+GET https://api.frankfurter.app/currencies                       // all currencies
+```
+
+### Dashboard widget
+Compact card on Dashboard showing 3–5 favorite pairs with colored up/down indicators. Updates on widget mount.
+
+---
+
+## Open API ideas backlog
+
+Ideas for future modules using free/open APIs (no paid tier required):
+
+| Idea | API | Key needed | Complexity |
+|------|-----|-----------|------------|
+| **Weather widget** | OpenWeatherMap free | Yes (free) | Low |
+| **Crypto prices** | CoinGecko | No | Low |
+| **GitHub stats** | GitHub REST API | No (public) | Medium |
+| **Hacker News feed** | HN Algolia API | No | Low |
+| **Dev jokes widget** | JokeAPI | No | Trivial |
+| **NASA photo of the day** | NASA APOD | Yes (free) | Low |
+| **IP / geo info** | ip-api.com | No | Low |
+| **Random Wikipedia** | Wikipedia API | No | Low |
+| **QR code generator** | goqr.me | No | Trivial |
+| **Color palette** | TheColorAPI | No | Low |
+| **Public holidays** | Nager.Date API | No | Low |
+| **World time / timezone** | worldtimeapi.org | No | Low |
+
+**Most immediately useful for developers:**
+1. GitHub stats (commits, open PRs, stars on repos)
+2. Hacker News top stories feed
+3. Weather widget (location-based)
+4. Crypto prices (BTC/ETH/SOL quick view)
 
 ---
 

@@ -61,6 +61,15 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     description: 'Visual project workflow board',
   },
   {
+    id: 'currency',
+    label: 'Currency',
+    icon: '◎',
+    path: '/currency',
+    section: 'modules',
+    status: 'planned',
+    description: 'Live exchange rates via free API',
+  },
+  {
     id: 'ai-playground',
     label: 'Studio',
     icon: '⚡',

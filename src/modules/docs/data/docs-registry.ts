@@ -76,6 +76,12 @@ export const DOC_REGISTRY: DocSection[] = [
         filePath: '/docs/modules/notes.md',
         description: 'Markdown notes module with live preview',
       },
+      {
+        slug: 'modules/currency',
+        label: 'Currency',
+        filePath: '/docs/modules/currency.md',
+        description: 'Live exchange rates module — spec and API design',
+      },
     ],
   },
 ]

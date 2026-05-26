@@ -118,19 +118,24 @@ Original was a vanilla JS monolith (`App.vue` with 400+ lines). Refactored to:
 
 ## Planned Improvements
 
-### Near-term (Next Sprint)
-- **Product name + branding** — logo, color, typography identity
-- **Localization** — see section below
-- **Visual polish** — task text font treatment, hover states, micro-animations
+### High priority
+- **Responsive layout** — full-width on all screens, touch-friendly tap targets (≥ 44px)
+- **Priority levels** — `low / medium / high / urgent` as color-coded dot on each task; single `priority` field in Task type; no new dependencies
+- **Undo last delete** — save deleted task in a ref, show 4s toast with "Undo" action button; `cancelRef = setTimeout(...)` pattern
 
-### Medium-term
-- Due dates with visual urgency indicators
-- Priority levels (visual color coding)
-- Keyboard-first navigation (j/k for navigation, space to toggle, d to delete)
-- Undo last delete (with timeout)
+### Medium priority
+- **Keyboard navigation** — j/k move focus between tasks, space to toggle, d to delete, / to focus input
+- **Due dates** — date field in Task type, calendar input, urgency color (red = overdue, orange = today)
+- **Product name + branding** — unique name, logo, accent color
+
+### Low priority
+- **Localization (vue-i18n)** — EN + RU, task-manager is reference impl
+- **Task drag-to-reorder** — native HTML5 DnD or @vueuse/core
+- **Export** — CSV, JSON, plain text download
 
 ### Shipped
-- **Task inline editing (2026-05-26)** — double-click active task text to edit in-place; `Enter` commits, `Esc` cancels; implemented in `TaskItem.vue` with `isEditing` ref + `updateTask` store action
+- **Task inline editing (2026-05-26)** — double-click active task text to edit in-place; `Enter` commits, `Esc` cancels
+- **Inline edit input font (2026-05-26)** — edit input inherits font and size (16px) from task text
 
 ### Long-term / Ideas
 - Recurring tasks (daily, weekly)

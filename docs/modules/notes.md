@@ -140,6 +140,22 @@ Shortcuts are registered in `NotesView.vue` via `window.addEventListener('keydow
 
 ---
 
+## Planned Improvements
+
+### High priority
+- **Responsive** — on `sm`: single-pane only (no split), note list slides in from left as overlay
+- **Word count + reading time** — computed from `selectedNote.content`; display in toolbar (e.g. `234 words · 1 min read`); zero new dependencies
+
+### Medium priority
+- **Export as .md file** — `Blob` + `<a download>` click; single function, ~5 lines
+- **Pinned notes** — add `pinned: boolean` to Note type, sort pinned first, pin button on `NoteListItem` hover
+- **Note templates** — dropdown with presets: daily standup, meeting notes, idea dump
+
+### Low priority
+- **Code block syntax highlighting** — `highlight.js` or `prism.js` in preview; add after other items
+- **Tag system** — `tags: string[]` on Note, tag filter in NoteList sidebar header
+- **Note drag-to-reorder** — native HTML5 DnD on NoteListItem
+
 ## Known Limitations (v1)
 
 - No folder/notebook organization
