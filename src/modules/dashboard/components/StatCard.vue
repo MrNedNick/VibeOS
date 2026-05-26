@@ -31,7 +31,7 @@ defineProps<Props>()
 .stat-card--accent { border-color: var(--color-accent); background: var(--color-accent-muted); }
 
 .stat-card__value {
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 700;
   color: var(--color-text);
   line-height: 1;
@@ -40,7 +40,7 @@ defineProps<Props>()
 .stat-card--accent .stat-card__value { color: var(--color-accent); }
 
 .stat-card__label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-secondary);
   font-weight: 500;
   text-transform: uppercase;
@@ -48,7 +48,7 @@ defineProps<Props>()
 }
 
 .stat-card__sub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   font-family: var(--font-mono);
   margin-top: 4px;

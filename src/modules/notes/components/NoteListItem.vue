@@ -64,7 +64,7 @@ const date = computed(() => {
 }
 
 .note-item__title {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
   overflow: hidden;
@@ -79,14 +79,14 @@ const date = computed(() => {
 }
 
 .note-item__date {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
 .note-item__excerpt,
 .note-item__empty {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   margin: 0;
   overflow: hidden;

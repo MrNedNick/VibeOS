@@ -89,12 +89,17 @@ This means:
 
 ## Planned Improvements
 
-- **Anchor links** — auto-generated heading anchors for deep-linking
 - **Search** — full-text search across all docs
 - **Last updated** — git-based timestamps per doc page
-- **Copy code button** — one-click copy for code blocks
 - **Collapsible sidebar sections** — for when doc count grows
 - **Print / export** — export a doc as PDF
+
+## Shipped Improvements
+
+| Date | Feature | Details |
+|------|---------|---------|
+| 2026-05-26 | Anchor links on headings | Custom `marked` renderer adds `id` attribute + `.anchor-link` `#` element to every heading; appears on hover via CSS |
+| 2026-05-26 | Copy button on code blocks | Injected via `watch(renderedHtml)` + `nextTick`; `data-copy-attached` attribute prevents duplicate injection; `navigator.clipboard.writeText` |
 
 ---
 

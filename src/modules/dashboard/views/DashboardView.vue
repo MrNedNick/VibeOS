@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
 import { TOTAL_DOC_PAGES } from '@/modules/docs/data/docs-registry'
@@ -10,6 +11,7 @@ import AllTasksPanel, { type AggregatedTask } from '../components/AllTasksPanel.
 
 const OVERVIEW_ID = '__overview__'
 
+const router = useRouter()
 const tasksStore = useTasksStore()
 
 const today = computed(() =>
@@ -138,7 +140,14 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
         >
           <span class="mod-row__icon">{{ mod.icon }}</span>
           <span class="mod-row__name">{{ mod.label }}</span>
+          <button
+            v-if="mod.status === 'available'"
+            class="mod-row__launch"
+            title="Open app"
+            @click.stop="router.push(mod.path)"
+          >→</button>
           <span
+            v-else
             class="mod-row__indicator"
             :class="`mod-row__indicator--${mod.status}`"
           />
@@ -207,20 +216,20 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 }
 
 .dashboard__title {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--color-text);
   margin: 0;
 }
 
 .dashboard__date {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-muted);
   margin: 3px 0 0;
 }
 
 .dashboard__version {
-  font-size: 12px;
+  font-size: 13px;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
 }
@@ -260,7 +269,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
   cursor: pointer;
   transition: background var(--t-fast), color var(--t-fast);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   user-select: none;
 }
@@ -297,7 +306,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 .mod-row__name { flex: 1; }
 
 .mod-row__count {
-  font-size: 11px;
+  font-size: 12px;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   background: var(--color-surface-elevated);
@@ -324,6 +333,18 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 .mod-row__indicator--wip       { background: var(--color-warning); }
 .mod-row__indicator--planned   { background: var(--color-border); }
 
+.mod-row__launch {
+  opacity: 0;
+  font-size: 12px;
+  color: var(--color-accent);
+  flex-shrink: 0;
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  transition: opacity var(--t-fast), background var(--t-fast);
+}
+.mod-row:hover .mod-row__launch { opacity: 1; }
+.mod-row__launch:hover { background: var(--color-accent-muted); }
+
 /* Health compact */
 .health-compact {
   margin-top: 16px;
@@ -335,7 +356,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 }
 
 .health-compact__label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -347,13 +368,13 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-secondary);
   padding: 3px 0;
 }
 
 .health-compact__dot {
-  font-size: 10px;
+  font-size: 11px;
   font-family: var(--font-mono);
   width: 14px;
   text-align: center;

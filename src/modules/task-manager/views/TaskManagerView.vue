@@ -55,6 +55,7 @@ const { inputText, submitTask, removeTask, clearCompleted, store, MAX_LENGTH } =
       :tasks="store.filteredTasks"
       @toggle="store.toggleTask"
       @delete="removeTask"
+      @edit="store.updateTask"
     />
   </div>
 </template>
@@ -76,14 +77,14 @@ const { inputText, submitTask, removeTask, clearCompleted, store, MAX_LENGTH } =
 }
 
 .tm-view__title {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
 }
 
 .tm-view__subtitle {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--color-text-muted);
   margin: 2px 0 0;
 }

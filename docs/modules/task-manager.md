@@ -127,8 +127,10 @@ Original was a vanilla JS monolith (`App.vue` with 400+ lines). Refactored to:
 - Due dates with visual urgency indicators
 - Priority levels (visual color coding)
 - Keyboard-first navigation (j/k for navigation, space to toggle, d to delete)
-- Task text inline editing (double-click to edit)
 - Undo last delete (with timeout)
+
+### Shipped
+- **Task inline editing (2026-05-26)** — double-click active task text to edit in-place; `Enter` commits, `Esc` cancels; implemented in `TaskItem.vue` with `isEditing` ref + `updateTask` store action
 
 ### Long-term / Ideas
 - Recurring tasks (daily, weekly)

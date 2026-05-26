@@ -127,13 +127,16 @@ defineStore('notes:notes', ...)
 
 ---
 
-## Keyboard Shortcuts (v1)
+## Keyboard Shortcuts (v2)
 
 | Key | Action |
 |-----|--------|
 | Tab | Insert 2 spaces at cursor |
+| ⌘N | Create a new note |
+| ⌘F | Focus the search input |
+| ⌘⇧P | Toggle preview mode (split ↔ preview) |
 
-Planned (future): `⌘N` new note, `⌘F` focus search, `⌘⇧P` toggle preview.
+Shortcuts are registered in `NotesView.vue` via `window.addEventListener('keydown')` with `onMounted`/`onUnmounted` lifecycle hooks. `NoteList` exposes `focusSearch()` via `defineExpose`.
 
 ---
 

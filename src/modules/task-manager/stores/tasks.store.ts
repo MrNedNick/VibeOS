@@ -39,6 +39,11 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     if (idx > -1) tasks.value.splice(idx, 1)
   }
 
+  function updateTask(id: string, text: string) {
+    const task = tasks.value.find(t => t.id === id)
+    if (task) task.text = text.trim()
+  }
+
   function clearDone() {
     tasks.value = tasks.value.filter(t => !t.done)
   }
@@ -57,6 +62,7 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     progress,
     addTask,
     toggleTask,
+    updateTask,
     deleteTask,
     clearDone,
     setFilter,

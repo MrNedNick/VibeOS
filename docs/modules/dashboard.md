@@ -57,10 +57,15 @@ When a backend is added in the future, these can be migrated to an API call via 
 
 - **Interactive roadmap** — check off items as they're completed
 - **Drag-to-prioritize** — reorder roadmap items
-- **Module quick-launch** — click a module card to navigate
 - **Recent activity** — last N actions across all modules (requires event log)
 - **Build stats** — bundle size, TS errors count (from build output)
 - **Sprint tracker** — simple current-sprint widget
+
+## Shipped Improvements
+
+| Date | Feature | Details |
+|------|---------|---------|
+| 2026-05-26 | Module quick-launch | `→` button appears on hover in the module list for `available` modules; `@click.stop` navigates via `useRouter` without selecting the detail panel |
 
 ---
 

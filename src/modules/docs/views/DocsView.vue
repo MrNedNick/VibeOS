@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { marked } from 'marked'
 import { useDocs } from '../composables/useDocs'
@@ -8,14 +8,48 @@ import DocsSidebar from '../components/DocsSidebar.vue'
 const router = useRouter()
 const { DOC_REGISTRY, currentSlug, currentPage, currentContent } = useDocs()
 
-// Configure marked for clean output
-marked.use({ gfm: true })
+// Anchor links for headings
+marked.use({
+  gfm: true,
+  renderer: {
+    heading({ text, depth }: { text: string; depth: number }): string {
+      const id = text
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+      return `<h${depth} id="${id}"><a class="anchor-link" href="#${id}">#</a>${text}</h${depth}>\n`
+    },
+  },
+})
 
 const renderedHtml = computed<string>(() => {
   if (!currentContent.value) return ''
   const result = marked.parse(currentContent.value)
   return typeof result === 'string' ? result : ''
 })
+
+// Copy buttons for code blocks
+const docContentRef = ref<HTMLElement>()
+
+watch(renderedHtml, async () => {
+  await nextTick()
+  if (!docContentRef.value) return
+  docContentRef.value.querySelectorAll<HTMLElement>('pre:not([data-copy-attached])').forEach(pre => {
+    pre.setAttribute('data-copy-attached', '')
+    const btn = document.createElement('button')
+    btn.className = 'copy-btn'
+    btn.textContent = 'copy'
+    btn.addEventListener('click', () => {
+      const code = pre.querySelector('code')?.textContent ?? ''
+      navigator.clipboard.writeText(code)
+      btn.textContent = 'copied!'
+      setTimeout(() => { btn.textContent = 'copy' }, 2000)
+    })
+    pre.appendChild(btn)
+  })
+}, { immediate: true })
 
 const firstPage = DOC_REGISTRY[0]?.pages[0]
 
@@ -70,7 +104,7 @@ function goToFirst() {
 
       <!-- Rendered markdown -->
       <article v-else class="doc-article">
-        <div class="doc-content" v-html="renderedHtml" />
+        <div ref="docContentRef" class="doc-content" v-html="renderedHtml" />
       </article>
 
     </main>
@@ -99,14 +133,14 @@ function goToFirst() {
 }
 
 .docs-home h1 {
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 700;
   color: var(--color-text);
   margin: 0;
 }
 
 .docs-home__sub {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-text-secondary);
   margin: 0;
   max-width: 520px;
@@ -150,20 +184,20 @@ function goToFirst() {
 .docs-home__link:hover { border-color: var(--color-accent); }
 
 .docs-home__link-label {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .docs-home__link-desc {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-muted);
   line-height: 1.4;
 }
 
 .docs-home__start {
   width: fit-content;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-accent);
   background: none;
@@ -181,8 +215,8 @@ function goToFirst() {
   padding: 48px 0;
 }
 
-.docs-missing__title { font-size: 18px; font-weight: 600; color: var(--color-text); margin: 0; }
-.docs-missing__sub   { font-size: 13px; color: var(--color-text-muted); margin: 0; }
+.docs-missing__title { font-size: 20px; font-weight: 600; color: var(--color-text); margin: 0; }
+.docs-missing__sub   { font-size: 15px; color: var(--color-text-muted); margin: 0; }
 .docs-missing__sub code {
   font-family: var(--font-mono);
   background: var(--color-surface-elevated);
@@ -194,7 +228,7 @@ function goToFirst() {
 .doc-article { min-width: 0; }
 
 .doc-content :deep(h1) {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--color-text);
   margin: 0 0 10px;
@@ -203,7 +237,7 @@ function goToFirst() {
 }
 
 .doc-content :deep(h2) {
-  font-size: 20px;
+  font-size: 23px;
   font-weight: 600;
   color: var(--color-text);
   margin: 36px 0 14px;
@@ -213,14 +247,14 @@ function goToFirst() {
 }
 
 .doc-content :deep(h3) {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 600;
   color: var(--color-text);
   margin: 28px 0 10px;
 }
 
 .doc-content :deep(h4) {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-text-secondary);
   margin: 22px 0 8px;
@@ -229,7 +263,7 @@ function goToFirst() {
 }
 
 .doc-content :deep(p) {
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.8;
   color: var(--color-text-secondary);
   margin: 0 0 16px;
@@ -240,7 +274,7 @@ function goToFirst() {
   padding-left: 22px;
   margin: 0 0 16px;
   color: var(--color-text-secondary);
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.75;
 }
 
@@ -249,7 +283,7 @@ function goToFirst() {
 
 .doc-content :deep(code) {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 14px;
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   padding: 2px 6px;
@@ -270,7 +304,7 @@ function goToFirst() {
   background: none;
   border: none;
   padding: 0;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -292,7 +326,7 @@ function goToFirst() {
   width: 100%;
   border-collapse: collapse;
   margin: 0 0 20px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .doc-content :deep(th),
@@ -308,7 +342,7 @@ function goToFirst() {
   background: var(--color-surface-elevated);
   font-weight: 600;
   color: var(--color-text);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .doc-content :deep(hr) {
@@ -322,4 +356,41 @@ function goToFirst() {
 
 .doc-content :deep(strong) { color: var(--color-text); font-weight: 600; }
 .doc-content :deep(em) { color: var(--color-text-secondary); font-style: italic; }
+
+/* Anchor links on headings */
+.doc-content :deep(.anchor-link) {
+  opacity: 0;
+  margin-right: 6px;
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: opacity var(--t-fast);
+  user-select: none;
+}
+.doc-content :deep(h1:hover .anchor-link),
+.doc-content :deep(h2:hover .anchor-link),
+.doc-content :deep(h3:hover .anchor-link),
+.doc-content :deep(h4:hover .anchor-link) { opacity: 1; }
+
+/* Copy button on code blocks */
+.doc-content :deep(pre) { position: relative; }
+
+.doc-content :deep(.copy-btn) {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  padding: 3px 8px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--t-fast), color var(--t-fast);
+}
+.doc-content :deep(pre:hover .copy-btn) { opacity: 1; }
+.doc-content :deep(.copy-btn:hover) { color: var(--color-accent); border-color: var(--color-accent); }
 </style>

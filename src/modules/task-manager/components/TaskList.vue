@@ -7,7 +7,7 @@ interface Props {
 }
 
 defineProps<Props>()
-const emit = defineEmits<{ toggle: [id: string]; delete: [id: string] }>()
+const emit = defineEmits<{ toggle: [id: string]; delete: [id: string]; edit: [id: string, text: string] }>()
 </script>
 
 <template>
@@ -19,6 +19,7 @@ const emit = defineEmits<{ toggle: [id: string]; delete: [id: string] }>()
         :task="task"
         @toggle="emit('toggle', $event)"
         @delete="emit('delete', $event)"
+        @edit="(id, text) => emit('edit', id, text)"
       />
     </TransitionGroup>
 

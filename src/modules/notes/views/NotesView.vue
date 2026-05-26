@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useNotes } from '../composables/useNotes'
 import NoteList from '../components/NoteList.vue'
 import NoteEditor from '../components/NoteEditor.vue'
@@ -11,6 +11,8 @@ const {
   selectNote, newNote, debouncedSave, deleteNote,
 } = useNotes()
 
+const noteListRef = ref<InstanceType<typeof NoteList>>()
+
 function onContentUpdate(value: string) {
   if (selectedId.value) debouncedSave(selectedId.value, value)
 }
@@ -20,6 +22,24 @@ watch(filteredNotes, (notes) => {
     selectedId.value = notes[0].id
   }
 }, { immediate: true })
+
+function onKeydown(e: KeyboardEvent) {
+  const meta = e.metaKey || e.ctrlKey
+  if (!meta) return
+  if (e.key === 'n') {
+    e.preventDefault()
+    newNote()
+  } else if (e.key === 'f') {
+    e.preventDefault()
+    noteListRef.value?.focusSearch()
+  } else if (e.shiftKey && e.key === 'P') {
+    e.preventDefault()
+    mode.value = mode.value === 'preview' ? 'split' : 'preview'
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
@@ -27,6 +47,7 @@ watch(filteredNotes, (notes) => {
 
     <!-- Note list (left) -->
     <NoteList
+      ref="noteListRef"
       :notes="filteredNotes"
       :selected-id="selectedId"
       :search-query="searchQuery"
@@ -118,7 +139,7 @@ watch(filteredNotes, (notes) => {
 .notes-toolbar__mode {
   padding: 4px 12px;
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--color-text-secondary);
   text-transform: capitalize;
@@ -136,7 +157,7 @@ watch(filteredNotes, (notes) => {
 }
 
 .notes-toolbar__delete {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--color-text-muted);
   padding: 4px 10px;
   border-radius: var(--radius-sm);

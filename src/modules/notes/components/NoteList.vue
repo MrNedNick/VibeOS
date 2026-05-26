@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { Note } from '../types'
 import NoteListItem from './NoteListItem.vue'
 
@@ -13,6 +14,9 @@ const emit = defineEmits<{
   new: []
   'update:searchQuery': [value: string]
 }>()
+
+const searchInputRef = ref<HTMLInputElement>()
+defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
 </script>
 
 <template>
@@ -26,6 +30,7 @@ const emit = defineEmits<{
     <!-- Search -->
     <div class="note-list__search-wrap">
       <input
+        ref="searchInputRef"
         class="note-list__search"
         type="search"
         placeholder="Search…"

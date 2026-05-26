@@ -37,6 +37,16 @@ This prevents scope creep and ensures every app has clear intent before code is 
 
 Nothing currently in active sprint. VibeOS foundation (Dashboard, Docs, Tasks, Notes) is complete.
 
+### Recently shipped (2026-05-26)
+
+| Feature | Module | Details |
+|---------|--------|---------|
+| Module quick-launch button | Dashboard | `→` button on hover navigates directly to any available module |
+| Copy button on code blocks | Docs | Appears on hover over `<pre>`, uses `navigator.clipboard` |
+| Anchor links on headings | Docs | `#` link appears on hover, updates URL hash for deep-linking |
+| Keyboard shortcuts | Notes | `⌘N` new note · `⌘F` focus search · `⌘⇧P` toggle preview mode |
+| Inline task editing | Tasks | Double-click any active task text to edit in-place; `Enter` to save, `Esc` to cancel |
+
 ---
 
 ## Next
@@ -68,6 +78,37 @@ Prioritized features for the next development sessions:
 - Auto-save with 300ms debounce ✓
 - Persisted to localStorage ✓
 - Fullbleed workspace layout ✓
+
+---
+
+## Responsive design plan
+
+> **Rule (added 2026-05-26):** Every new component and module must include responsive styles from day one. See `CLAUDE.md` for the full rule and checklist.
+
+### Target devices
+
+| Breakpoint | Device | Width |
+|------------|--------|-------|
+| `xl` | Mac Studio Display (27" 5K) | ≥ 1920px |
+| `lg` | MacBook Pro 14"/16" (default) | 1280–1919px |
+| `md` | iPad / small laptop | 768–1279px |
+| `sm` | Mobile (iPhone) | < 768px |
+
+### Phase 1 — Layout foundation *(do this before next feature sprint)*
+- CSS breakpoint variables in `main.css`
+- Sidebar: collapses to icon-only on `md`, becomes bottom tab bar on `sm`
+- AppLayout: stacks vertically on `sm`
+- Content padding scales: 32px → 20px → 14px
+
+### Phase 2 — Per-module responsive *(per module, when built or polished)*
+- Dashboard: stat cards 2×2 on `md`, 1-column on `sm`
+- Notes: hide preview on `sm`, collapsible note list on `sm`
+- Docs: sidebar becomes top dropdown on `sm`
+- Tasks: already flexible, minor padding adjustments only
+
+### Phase 3 — Mac Studio Display optimization *(later)*
+- Content max-width increases to `1200px` for `xl`
+- Wider sidebar option for large displays
 
 ---
 

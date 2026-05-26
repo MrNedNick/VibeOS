@@ -49,11 +49,11 @@
   --t-slow:   300ms var(--ease);
 
   /* Layout */
-  --sidebar-width:      220px;
-  --sidebar-collapsed:  56px;
-  --header-height:      52px;
-  --content-max-width:  960px;
-  --content-padding:    28px;
+  --sidebar-width:      248px;
+  --sidebar-collapsed:  58px;
+  --header-height:      56px;
+  --content-max-width:  1000px;
+  --content-padding:    32px;
 }
 
 /* Light theme overrides */
@@ -88,7 +88,7 @@ html, body, #app { height: 100%; }
 
 body {
   font-family: var(--font-sans);
-  font-size: 15px;           /* was 14px — meaningfully improves readability */
+  font-size: 17px;
   line-height: 1.65;
   color: var(--color-text);
   background: var(--color-bg);

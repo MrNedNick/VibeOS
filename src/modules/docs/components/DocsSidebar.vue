@@ -41,7 +41,7 @@ const router = useRouter()
 .docs-nav__section { display: flex; flex-direction: column; gap: 2px; }
 
 .docs-nav__label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -54,7 +54,7 @@ const router = useRouter()
   width: 100%;
   padding: 6px 10px;
   text-align: left;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--color-text-secondary);
   border-radius: var(--radius-sm);

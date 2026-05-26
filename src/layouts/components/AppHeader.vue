@@ -90,12 +90,12 @@ const currentModule = computed(() =>
 }
 
 .header-title__icon {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-text-secondary);
 }
 
 .header-title__label {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
 }
