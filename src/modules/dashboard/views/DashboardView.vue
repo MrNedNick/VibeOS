@@ -7,7 +7,7 @@ import { TOTAL_DOC_PAGES } from '@/modules/docs/data/docs-registry'
 import { MODULE_DETAILS, PLATFORM_STATUS } from '../data/platform-notes'
 import StatCard from '../components/StatCard.vue'
 import ModuleDetailPanel from '../components/ModuleDetailPanel.vue'
-import AllTasksPanel, { type AggregatedTask } from '../components/AllTasksPanel.vue'
+import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '../components/AllTasksPanel.vue'
 
 const OVERVIEW_ID = '__overview__'
 
@@ -61,6 +61,26 @@ const aggregatedTasks = computed<AggregatedTask[]>(() => {
     }
   }
   return result
+})
+
+// ── Aggregated shipped tasks across all modules ─────────────────
+const aggregatedShipped = computed<AggregatedShipped[]>(() => {
+  const result: AggregatedShipped[] = []
+  for (const mod of PLATFORM_MODULES) {
+    const detail = MODULE_DETAILS[mod.id]
+    if (!detail) continue
+    for (const task of detail.shippedTasks) {
+      result.push({
+        label:       task.label,
+        date:        task.date,
+        moduleId:    mod.id,
+        moduleLabel: mod.label,
+        moduleIcon:  mod.icon,
+      })
+    }
+  }
+  // Sort newest first
+  return result.sort((a, b) => b.date.localeCompare(a.date))
 })
 
 // ── Top-level stats ─────────────────────────────────────────────
@@ -179,6 +199,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
             v-if="selectedId === OVERVIEW_ID"
             key="__overview__"
             :tasks="aggregatedTasks"
+            :shipped-tasks="aggregatedShipped"
           />
 
           <!-- Per-module detail -->

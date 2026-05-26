@@ -81,6 +81,27 @@ Prioritized features for the next development sessions:
 
 ---
 
+## Medium priority
+
+Features worth building after the "Next" sprint:
+
+### Open API widgets *(medium — pick any one for a quick win)*
+
+| Widget | API | Key | Effort |
+|--------|-----|-----|--------|
+| **Currency rates** | Frankfurter | No | Low — spec written |
+| **GitHub stats** | GitHub REST | No (public) | Medium |
+| **Hacker News feed** | HN Algolia | No | Low |
+| **Weather** | OpenWeatherMap | Free key | Low |
+| **Crypto prices** | CoinGecko | No | Low |
+| **Dev jokes** | JokeAPI | No | Trivial |
+| **NASA photo** | NASA APOD | Free key | Low |
+| **World time** | worldtimeapi.org | No | Low |
+
+Most immediately useful: Currency (already specced) → GitHub stats → HN feed → Weather.
+
+---
+
 ## ⚡ HIGH PRIORITY — Responsive design
 
 > **Rule (added 2026-05-26):** Every new component and module must include responsive styles from day one. See `CLAUDE.md` for the full rule and checklist.

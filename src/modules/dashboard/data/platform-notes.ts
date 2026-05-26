@@ -43,10 +43,16 @@ export interface ModuleDebt {
   severity: 'high' | 'medium' | 'low'
 }
 
+export interface ShippedTask {
+  label: string
+  date: string   // 'YYYY-MM-DD'
+}
+
 export interface ModuleDetail {
   progress: number          // editorial: how feature-complete is this module (0–100)
   milestone: string         // one-line current state
   nextTasks: NextTask[]
+  shippedTasks: ShippedTask[]
   improvements: string[]
   techDebt: ModuleDebt[]
   ideas: string[]
@@ -57,6 +63,11 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   dashboard: {
     progress: 78,
     milestone: 'Working command center with quick-launch — polish and widgets pending',
+    shippedTasks: [
+      { label: 'Module quick-launch → button in sidebar', date: '2026-05-26' },
+      { label: 'Per-module detail panel with progress bars', date: '2026-05-26' },
+      { label: 'All-tasks aggregated overview panel', date: '2026-05-26' },
+    ],
     nextTasks: [
       { label: 'Responsive layout: stat cards 2×2 on md, 1-col on sm', priority: 'high' },
       { label: 'Currency widget: live exchange rates for favorite pairs', priority: 'medium' },
@@ -86,6 +97,12 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   docs: {
     progress: 88,
     milestone: 'Working viewer with anchor links and copy buttons shipped',
+    shippedTasks: [
+      { label: 'Markdown viewer with syntax highlighting styles', date: '2026-05-26' },
+      { label: 'Anchor links on headings with hash deep-link', date: '2026-05-26' },
+      { label: 'Copy button on code blocks', date: '2026-05-26' },
+      { label: 'Sidebar search (filter by label)', date: '2026-05-26' },
+    ],
     nextTasks: [
       { label: 'Responsive: sidebar as top dropdown on sm', priority: 'high' },
       { label: 'Full-text search across all docs', priority: 'medium' },
@@ -109,12 +126,18 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   'task-manager': {
     progress: 58,
     milestone: 'Core features + inline editing shipped — identity and polish next',
+    shippedTasks: [
+      { label: 'Create, toggle, delete tasks with localStorage persistence', date: '2026-05-26' },
+      { label: 'Filter tabs: All / Active / Done', date: '2026-05-26' },
+      { label: 'Progress bar with live stats', date: '2026-05-26' },
+      { label: 'Inline task editing (double-click)', date: '2026-05-26' },
+      { label: 'Priority levels: none / low / medium / high / urgent', date: '2026-05-26' },
+      { label: 'Undo delete (4s toast with Undo button)', date: '2026-05-26' },
+      { label: 'Keyboard nav: j/k move, space toggle, d delete, / focus', date: '2026-05-26' },
+    ],
     nextTasks: [
       { label: 'Responsive: full-width layout on all screens', priority: 'high' },
       { label: 'Choose product name and define visual identity', priority: 'high' },
-      { label: 'Priority levels: low / medium / high / urgent (color dots)', priority: 'medium' },
-      { label: 'Undo last delete (4s timeout toast with undo button)', priority: 'medium' },
-      { label: 'Keyboard navigation (j/k move, space toggle, d delete)', priority: 'medium' },
       { label: 'Due dates with visual urgency indicators', priority: 'medium' },
       { label: 'Add localization (vue-i18n) — EN + RU', priority: 'low' },
       { label: 'Task drag-to-reorder', priority: 'low' },
@@ -147,6 +170,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   kanban: {
     progress: 0,
     milestone: 'Not started — write specification before any implementation',
+    shippedTasks: [],
     nextTasks: [
       { label: 'Write full module specification in docs/', priority: 'high' },
       { label: 'Define data model: Board, Column, Card types', priority: 'high' },
@@ -175,11 +199,17 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   notes: {
     progress: 72,
     milestone: 'v1 + hotkeys shipped — polish and export features next',
+    shippedTasks: [
+      { label: 'Three-pane workspace: list / editor / preview', date: '2026-05-26' },
+      { label: 'Live markdown preview with marked', date: '2026-05-26' },
+      { label: 'Auto-save with 300ms debounce', date: '2026-05-26' },
+      { label: 'Keyboard shortcuts: ⌘N new, ⌘F search, ⌘⇧P toggle preview', date: '2026-05-26' },
+      { label: 'Pin notes to top of list', date: '2026-05-26' },
+      { label: 'Word count + reading time in toolbar', date: '2026-05-26' },
+      { label: 'Export note as .md file download', date: '2026-05-26' },
+    ],
     nextTasks: [
       { label: 'Responsive: collapse note list on sm, single-pane mode', priority: 'high' },
-      { label: 'Word count + reading time in toolbar', priority: 'medium' },
-      { label: 'Export note as .md file download', priority: 'medium' },
-      { label: 'Pinned / starred notes at top of list', priority: 'medium' },
       { label: 'Code block syntax highlighting in preview', priority: 'low' },
       { label: 'Tag system for note organization', priority: 'low' },
       { label: 'Note drag-to-reorder in the list', priority: 'low' },
@@ -208,6 +238,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   'ai-playground': {
     progress: 0,
     milestone: 'Not started — requires API key infrastructure',
+    shippedTasks: [],
     nextTasks: [
       { label: 'Write module specification in docs/', priority: 'high' },
       { label: 'Set up Anthropic SDK integration pattern', priority: 'high' },
@@ -233,6 +264,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   'form-builder': {
     progress: 0,
     milestone: 'Not started — most complex UX module',
+    shippedTasks: [],
     nextTasks: [
       { label: 'Write module specification in docs/', priority: 'high' },
       { label: 'Research drag-and-drop builder approach', priority: 'high' },
@@ -256,6 +288,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   currency: {
     progress: 0,
     milestone: 'Not started — spec written, API chosen (Frankfurter, no key)',
+    shippedTasks: [],
     nextTasks: [
       { label: 'Write full module spec in docs/modules/currency.md', priority: 'high' },
       { label: 'Implement currency pair selector with search', priority: 'high' },
@@ -282,6 +315,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   analytics: {
     progress: 0,
     milestone: 'Not started — needs cross-module event system first',
+    shippedTasks: [],
     nextTasks: [
       { label: 'Write module specification in docs/', priority: 'high' },
       { label: 'Define cross-module event tracking strategy', priority: 'high' },

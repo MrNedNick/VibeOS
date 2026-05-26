@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 export interface AggregatedTask {
   label: string
@@ -9,7 +9,18 @@ export interface AggregatedTask {
   moduleIcon: string
 }
 
-const props = defineProps<{ tasks: AggregatedTask[] }>()
+export interface AggregatedShipped {
+  label: string
+  date: string
+  moduleId: string
+  moduleLabel: string
+  moduleIcon: string
+}
+
+const props = defineProps<{
+  tasks: AggregatedTask[]
+  shippedTasks?: AggregatedShipped[]
+}>()
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 } as const
 const PRIORITY_COLOR = { high: 'danger', medium: 'warning', low: 'muted' } as const
@@ -24,6 +35,10 @@ const rest = computed(() => sorted.value.slice(5))
 const highCount   = computed(() => props.tasks.filter(t => t.priority === 'high').length)
 const mediumCount = computed(() => props.tasks.filter(t => t.priority === 'medium').length)
 const lowCount    = computed(() => props.tasks.filter(t => t.priority === 'low').length)
+
+const shippedExpanded = ref(false)
+const shippedPreview = computed(() => props.shippedTasks?.slice(0, 3) ?? [])
+const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 </script>
 
 <template>
@@ -95,6 +110,50 @@ const lowCount    = computed(() => props.tasks.filter(t => t.priority === 'low')
             {{ task.moduleLabel }}
           </span>
         </div>
+      </div>
+    </div>
+
+    <!-- Shipped -->
+    <div v-if="shippedTasks && shippedTasks.length" class="all-tasks__section">
+      <div class="all-tasks__shipped-header">
+        <p class="all-tasks__section-label all-tasks__section-label--success">
+          Shipped ✓ ({{ shippedTasks.length }})
+        </p>
+        <button
+          v-if="shippedRest.length"
+          class="all-tasks__shipped-toggle"
+          @click="shippedExpanded = !shippedExpanded"
+        >{{ shippedExpanded ? 'Show less' : 'Show all' }}</button>
+      </div>
+      <div class="task-list">
+        <div
+          v-for="(task, i) in shippedPreview"
+          :key="i"
+          class="task-row task-row--shipped"
+        >
+          <span class="task-row__check">✓</span>
+          <span class="task-row__label task-row__label--shipped">{{ task.label }}</span>
+          <span class="task-row__module">
+            <span class="task-row__module-icon">{{ task.moduleIcon }}</span>
+            {{ task.moduleLabel }}
+          </span>
+          <span class="task-row__date">{{ task.date }}</span>
+        </div>
+        <template v-if="shippedExpanded">
+          <div
+            v-for="(task, i) in shippedRest"
+            :key="`rest-${i}`"
+            class="task-row task-row--shipped"
+          >
+            <span class="task-row__check">✓</span>
+            <span class="task-row__label task-row__label--shipped">{{ task.label }}</span>
+            <span class="task-row__module">
+              <span class="task-row__module-icon">{{ task.moduleIcon }}</span>
+              {{ task.moduleLabel }}
+            </span>
+            <span class="task-row__date">{{ task.date }}</span>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -243,4 +302,47 @@ const lowCount    = computed(() => props.tasks.filter(t => t.priority === 'low')
 }
 
 .task-row__module-icon { font-size: 11px; }
+
+/* Shipped section */
+.all-tasks__shipped-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.all-tasks__section-label--success { color: var(--color-success); }
+
+.all-tasks__shipped-toggle {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  transition: color var(--t-fast);
+}
+.all-tasks__shipped-toggle:hover { color: var(--color-text-secondary); }
+
+.task-row--shipped {
+  opacity: 0.65;
+  border-color: transparent;
+  background: transparent;
+}
+.task-row--shipped:hover { opacity: 1; }
+
+.task-row__check {
+  font-size: 11px;
+  color: var(--color-success);
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.task-row__label--shipped {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.task-row__date {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 </style>

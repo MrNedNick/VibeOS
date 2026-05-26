@@ -94,6 +94,22 @@ const statusInfo = STATUS_MAP[mod.status]
       </div>
     </div>
 
+    <!-- Shipped Tasks -->
+    <div v-if="detail.shippedTasks.length" class="detail__section">
+      <p class="detail__section-label detail__section-label--success">Shipped ✓</p>
+      <div class="task-list">
+        <div
+          v-for="(task, i) in detail.shippedTasks"
+          :key="i"
+          class="task-row task-row--shipped"
+        >
+          <span class="task-row__check">✓</span>
+          <span class="task-row__label task-row__label--shipped">{{ task.label }}</span>
+          <span class="task-row__date">{{ task.date }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Next Tasks -->
     <div v-if="detail.nextTasks.length" class="detail__section">
       <p class="detail__section-label">Next tasks</p>
@@ -351,6 +367,36 @@ const statusInfo = STATUS_MAP[mod.status]
 .task-row__priority--warning { background: rgba(240, 160, 48, 0.12);  color: var(--color-warning); }
 .task-row__priority--muted   { background: var(--color-surface-elevated); color: var(--color-text-muted);
                                 border: 1px solid var(--color-border); }
+
+.task-row--shipped {
+  opacity: 0.6;
+  border-color: transparent;
+  background: transparent;
+}
+.task-row--shipped:hover { opacity: 1; }
+
+.task-row__check {
+  font-size: 11px;
+  color: var(--color-success);
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.task-row__label--shipped {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.task-row__date {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.detail__section-label--success { color: var(--color-success); }
 
 .task-row__label {
   flex: 1;
