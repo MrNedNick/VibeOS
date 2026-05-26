@@ -60,6 +60,41 @@ export function useTasks() {
     notify.info(`Cleared ${count} completed task${count === 1 ? '' : 's'}`)
   }
 
+  function exportTasks(format: 'csv' | 'json') {
+    const tasks = store.tasks
+    if (tasks.length === 0) {
+      notify.warning('No tasks to export')
+      return
+    }
+
+    let content: string
+    let filename: string
+    let type: string
+
+    if (format === 'json') {
+      content = JSON.stringify(tasks, null, 2)
+      filename = 'tasks.json'
+      type = 'application/json'
+    } else {
+      const header = 'id,text,done,priority,createdAt'
+      const rows = tasks.map(t =>
+        [t.id, `"${t.text.replace(/"/g, '""')}"`, t.done, t.priority, t.createdAt].join(',')
+      )
+      content = [header, ...rows].join('\n')
+      filename = 'tasks.csv'
+      type = 'text/csv'
+    }
+
+    const blob = new Blob([content], { type })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+    notify.info(`Exported ${tasks.length} task${tasks.length === 1 ? '' : 's'} as ${format.toUpperCase()}`)
+  }
+
   return {
     inputText,
     inputPriority,
@@ -67,6 +102,7 @@ export function useTasks() {
     submitTask,
     removeTask,
     clearCompleted,
+    exportTasks,
     store,
     MAX_LENGTH,
   }

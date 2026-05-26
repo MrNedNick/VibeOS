@@ -1,10 +1,46 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { marked } from 'marked'
+import hljs from 'highlight.js/lib/core'
+import javascript from 'highlight.js/lib/languages/javascript'
+import typescript from 'highlight.js/lib/languages/typescript'
+import python from 'highlight.js/lib/languages/python'
+import bash from 'highlight.js/lib/languages/bash'
+import json from 'highlight.js/lib/languages/json'
+import css from 'highlight.js/lib/languages/css'
+import xml from 'highlight.js/lib/languages/xml'
+import markdown from 'highlight.js/lib/languages/markdown'
+import 'highlight.js/styles/github-dark.css'
+
+hljs.registerLanguage('javascript', javascript)
+hljs.registerLanguage('js', javascript)
+hljs.registerLanguage('typescript', typescript)
+hljs.registerLanguage('ts', typescript)
+hljs.registerLanguage('python', python)
+hljs.registerLanguage('py', python)
+hljs.registerLanguage('bash', bash)
+hljs.registerLanguage('sh', bash)
+hljs.registerLanguage('json', json)
+hljs.registerLanguage('css', css)
+hljs.registerLanguage('html', xml)
+hljs.registerLanguage('xml', xml)
+hljs.registerLanguage('markdown', markdown)
+hljs.registerLanguage('md', markdown)
 
 const props = defineProps<{ content: string }>()
 
-marked.use({ gfm: true })
+marked.use({
+  gfm: true,
+  renderer: {
+    code({ text, lang }: { text: string; lang?: string }) {
+      const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
+      const highlighted = language === 'plaintext'
+        ? text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        : hljs.highlight(text, { language }).value
+      return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`
+    },
+  },
+})
 
 const rendered = computed<string>(() => {
   if (!props.content.trim()) return ''
@@ -112,11 +148,17 @@ const rendered = computed<string>(() => {
 }
 
 .note-preview__content :deep(pre code) {
-  background: none;
+  background: transparent;
   border: none;
   padding: 0;
   font-size: 13.5px;
   line-height: 1.65;
+}
+
+/* Override hljs background to blend with our surface */
+.note-preview__content :deep(.hljs) {
+  background: transparent;
+  padding: 0;
 }
 
 .note-preview__content :deep(blockquote) {

@@ -9,7 +9,7 @@ import { UiButton } from '@/ui'
 
 const {
   inputText, inputPriority,
-  submitTask, removeTask, clearCompleted,
+  submitTask, removeTask, clearCompleted, exportTasks,
   store, MAX_LENGTH,
 } = useTasks()
 
@@ -58,12 +58,28 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <span class="tm-view__hint">· j/k navigate · space toggle · d delete · / focus input</span>
         </p>
       </div>
-      <UiButton
-        v-if="store.doneCount > 0"
-        variant="ghost"
-        size="sm"
-        @click="clearCompleted"
-      >Clear completed</UiButton>
+      <div class="tm-view__actions">
+        <UiButton
+          v-if="store.totalCount > 0"
+          variant="ghost"
+          size="sm"
+          title="Export as JSON"
+          @click="exportTasks('json')"
+        >↓ JSON</UiButton>
+        <UiButton
+          v-if="store.totalCount > 0"
+          variant="ghost"
+          size="sm"
+          title="Export as CSV"
+          @click="exportTasks('csv')"
+        >↓ CSV</UiButton>
+        <UiButton
+          v-if="store.doneCount > 0"
+          variant="ghost"
+          size="sm"
+          @click="clearCompleted"
+        >Clear completed</UiButton>
+      </div>
     </div>
 
     <!-- Input -->
@@ -131,6 +147,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   font-size: 15px;
   color: var(--color-text-muted);
   margin: 2px 0 0;
+}
+
+.tm-view__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .tm-view__hint {

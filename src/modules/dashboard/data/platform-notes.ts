@@ -96,18 +96,18 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   docs: {
-    progress: 88,
-    milestone: 'Working viewer with anchor links and copy buttons shipped',
+    progress: 92,
+    milestone: 'Full-text content search with snippets shipped',
     shippedTasks: [
       { label: 'Markdown viewer with syntax highlighting styles', date: '2026-05-26' },
       { label: 'Anchor links on headings with hash deep-link', date: '2026-05-26' },
       { label: 'Copy button on code blocks', date: '2026-05-26' },
       { label: 'Sidebar search (filter by label)', date: '2026-05-26' },
       { label: 'Collapsible sidebar sections with toggle', date: '2026-05-26' },
+      { label: 'Full-text search across all docs with context snippet', date: '2026-05-26' },
     ],
     nextTasks: [
       { label: 'Responsive: sidebar as top dropdown on sm', priority: 'high' },
-      { label: 'Full-text search across all docs', priority: 'medium' },
       { label: 'Last-updated timestamps per page (git-based)', priority: 'low' },
     ],
     improvements: [
@@ -125,8 +125,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   'task-manager': {
-    progress: 65,
-    milestone: 'Core features + duplicate detection shipped — identity and polish next',
+    progress: 70,
+    milestone: 'Export (CSV / JSON) shipped — identity and polish next',
     shippedTasks: [
       { label: 'Create, toggle, delete tasks with localStorage persistence', date: '2026-05-26' },
       { label: 'Filter tabs: All / Active / Done', date: '2026-05-26' },
@@ -136,6 +136,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Undo delete (4s toast with Undo button)', date: '2026-05-26' },
       { label: 'Keyboard nav: j/k move, space toggle, d delete, / focus', date: '2026-05-26' },
       { label: 'Duplicate task detection with warning notification', date: '2026-05-26' },
+      { label: 'Export tasks to CSV / JSON download', date: '2026-05-26' },
     ],
     nextTasks: [
       { label: 'Responsive: full-width layout on all screens', priority: 'high' },
@@ -143,7 +144,6 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Due dates with visual urgency indicators', priority: 'medium' },
       { label: 'Add localization (vue-i18n) — EN + RU', priority: 'low' },
       { label: 'Task drag-to-reorder', priority: 'low' },
-      { label: 'Export tasks to CSV / JSON', priority: 'low' },
     ],
     improvements: [
       'Priority levels with color-coded badges (no new dependencies needed)',
@@ -156,7 +156,6 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
     techDebt: [
       { label: 'Tasks have no reorder — creation order only', severity: 'medium' },
       { label: 'localStorage schema has no version field', severity: 'medium' },
-      { label: 'No duplicate task detection on submit', severity: 'low' },
     ],
     ideas: [
       'Recurring tasks (daily, weekly patterns)',
@@ -199,8 +198,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   notes: {
-    progress: 72,
-    milestone: 'v1 + hotkeys shipped — polish and export features next',
+    progress: 78,
+    milestone: 'Syntax-highlighted code blocks in preview shipped',
     shippedTasks: [
       { label: 'Three-pane workspace: list / editor / preview', date: '2026-05-26' },
       { label: 'Live markdown preview with marked', date: '2026-05-26' },
@@ -209,10 +208,10 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Pin notes to top of list', date: '2026-05-26' },
       { label: 'Word count + reading time in toolbar', date: '2026-05-26' },
       { label: 'Export note as .md file download', date: '2026-05-26' },
+      { label: 'Code block syntax highlighting in preview (highlight.js)', date: '2026-05-26' },
     ],
     nextTasks: [
       { label: 'Responsive: collapse note list on sm, single-pane mode', priority: 'high' },
-      { label: 'Code block syntax highlighting in preview', priority: 'low' },
       { label: 'Tag system for note organization', priority: 'low' },
       { label: 'Note drag-to-reorder in the list', priority: 'low' },
     ],

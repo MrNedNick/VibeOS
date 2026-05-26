@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DocSection } from '../data/docs-registry'
+import { DOC_FILES } from '../composables/useDocs'
 
 interface Props {
   sections: DocSection[]
@@ -23,16 +24,50 @@ function toggleSection(id: string) {
   collapsed.value = new Set(collapsed.value)
 }
 
+function extractSnippet(content: string, query: string): string {
+  const lower = content.toLowerCase()
+  const idx = lower.indexOf(query)
+  if (idx === -1) return ''
+  const start = Math.max(0, idx - 25)
+  const end = Math.min(content.length, idx + 55)
+  let snippet = content.slice(start, end).replace(/\n+/g, ' ').replace(/#+\s*/g, '').trim()
+  if (start > 0) snippet = '…' + snippet
+  if (end < content.length) snippet += '…'
+  return snippet
+}
+
+interface FilteredPage {
+  slug: string
+  label: string
+  filePath: string
+  description?: string
+  snippet?: string
+}
+
 const filteredSections = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return props.sections
-  return props.sections.map(section => ({
-    ...section,
-    pages: section.pages.filter(p =>
-      p.label.toLowerCase().includes(q) ||
-      (p.description?.toLowerCase().includes(q) ?? false)
-    ),
-  })).filter(s => s.pages.length > 0)
+
+  return props.sections.map(section => {
+    const pages: FilteredPage[] = []
+    for (const p of section.pages) {
+      const titleMatch =
+        p.label.toLowerCase().includes(q) ||
+        (p.description?.toLowerCase().includes(q) ?? false)
+
+      if (titleMatch) {
+        pages.push(p)
+        continue
+      }
+
+      // Fall through to content search
+      const content = DOC_FILES[p.filePath]
+      if (content && content.toLowerCase().includes(q)) {
+        pages.push({ ...p, snippet: extractSnippet(content, q) })
+      }
+    }
+    return { ...section, pages }
+  }).filter(s => s.pages.length > 0)
 })
 
 // While searching, force-expand all sections so results are visible
@@ -74,7 +109,10 @@ const isCollapsed = (id: string) =>
           :class="{ 'docs-nav__item--active': activeSlug === page.slug }"
           @click="router.push(`/docs/${page.slug}`)"
         >
-          {{ page.label }}
+          <span class="docs-nav__item-label">{{ page.label }}</span>
+          <span v-if="(page as FilteredPage).snippet" class="docs-nav__snippet">
+            {{ (page as FilteredPage).snippet }}
+          </span>
         </button>
       </div>
     </div>
@@ -148,23 +186,42 @@ const isCollapsed = (id: string) =>
 }
 
 .docs-nav__item {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   width: 100%;
   padding: 6px 10px;
   text-align: left;
+  border-radius: var(--radius-sm);
+  transition: background var(--t-fast), color var(--t-fast);
+  gap: 2px;
+}
+
+.docs-nav__item-label {
   font-size: 15px;
   font-weight: 500;
   color: var(--color-text-secondary);
-  border-radius: var(--radius-sm);
-  transition: background var(--t-fast), color var(--t-fast);
+  transition: color var(--t-fast);
 }
 
-.docs-nav__item:hover { background: var(--color-surface-elevated); color: var(--color-text); }
+.docs-nav__snippet {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.4;
+}
+
+.docs-nav__item:hover { background: var(--color-surface-elevated); }
+.docs-nav__item:hover .docs-nav__item-label { color: var(--color-text); }
 
 .docs-nav__item--active {
   background: var(--color-accent-muted);
-  color: var(--color-accent);
 }
+.docs-nav__item--active .docs-nav__item-label { color: var(--color-accent); }
 
 .docs-nav__empty {
   font-size: 14px;

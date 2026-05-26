@@ -3,7 +3,7 @@ import { useRoute } from 'vue-router'
 import { DOC_REGISTRY, findDocPage } from '../data/docs-registry'
 
 // Eagerly load all markdown files at build time
-const DOC_FILES = import.meta.glob('/docs/**/*.md', {
+export const DOC_FILES = import.meta.glob('/docs/**/*.md', {
   query: '?raw',
   import: 'default',
   eager: true,
