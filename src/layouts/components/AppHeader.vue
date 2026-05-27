@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUiStore } from '@/core/stores/ui.store'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
+import { UiIcon } from '@/ui'
 
 const route = useRoute()
 const uiStore = useUiStore()
@@ -19,6 +20,7 @@ const currentModule = computed(() =>
     <!-- Sidebar toggle -->
     <button
       class="header-btn"
+      :title="uiStore.sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
       :aria-label="uiStore.sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
       @click="uiStore.toggleSidebar"
     >
@@ -31,7 +33,13 @@ const currentModule = computed(() =>
 
     <!-- Module title -->
     <div class="header-title">
-      <span v-if="currentModule" class="header-title__icon">{{ currentModule.icon }}</span>
+      <UiIcon
+        v-if="currentModule"
+        :name="currentModule.icon"
+        :size="16"
+        :stroke-width="1.75"
+        class="header-title__icon"
+      />
       <span class="header-title__label">{{ currentModule?.label ?? 'VibeOS' }}</span>
     </div>
 
@@ -40,6 +48,7 @@ const currentModule = computed(() =>
     <!-- Theme toggle -->
     <button
       class="header-btn"
+      :title="uiStore.isDark ? 'Switch to light' : 'Switch to dark'"
       :aria-label="uiStore.isDark ? 'Switch to light theme' : 'Switch to dark theme'"
       @click="uiStore.toggleTheme"
     >
@@ -90,7 +99,6 @@ const currentModule = computed(() =>
 }
 
 .header-title__icon {
-  font-size: 17px;
   color: var(--color-text-secondary);
 }
 

@@ -101,13 +101,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <button
             v-if="selectedNote"
             class="notes-toolbar__action"
-            title="Download as .md"
+            title="Download note as .md file"
             @click="downloadNote"
           >↓ export</button>
           <button
             v-if="selectedNote"
             class="notes-toolbar__delete"
-            title="Delete note"
+            title="Delete this note permanently"
             @click="deleteNote(selectedNote!.id)"
           >Delete</button>
         </div>
@@ -129,8 +129,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
       <!-- Empty state -->
       <div v-else class="notes-empty">
-        <p class="notes-empty__title">No note selected</p>
-        <p class="notes-empty__sub">Select a note from the list or create a new one</p>
+        <p class="notes-empty__title">Nothing open.</p>
+        <p class="notes-empty__sub">Pick a note from the list, or start fresh.</p>
         <button class="notes-empty__btn" @click="newNote">New note</button>
       </div>
 

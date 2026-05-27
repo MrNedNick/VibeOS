@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
+import NotFoundView from '@/modules/not-found/NotFoundView.vue'
 import { dashboardRoutes } from '@/modules/dashboard'
 import { taskManagerRoutes } from '@/modules/task-manager'
 import { docsRoutes } from '@/modules/docs'
@@ -17,11 +18,8 @@ const routes: RouteRecordRaw[] = [
       ...docsRoutes,
       ...notesRoutes,
       ...gamesRoutes,
+      { path: '/:pathMatch(.*)*', component: NotFoundView },
     ],
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/',
   },
 ]
 

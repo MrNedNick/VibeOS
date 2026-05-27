@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UiIcon } from '@/ui'
+
 interface Props {
   icon?: string
   label: string
@@ -24,7 +26,9 @@ defineEmits<{ click: [] }>()
   >
     <div class="widget__header">
       <span class="widget__label">{{ label }}</span>
-      <span v-if="icon" class="widget__icon">{{ icon }}</span>
+      <span v-if="icon" class="widget__icon">
+        <UiIcon :name="icon" :size="14" :stroke-width="1.75" />
+      </span>
     </div>
 
     <span class="widget__value">{{ value }}</span>
@@ -88,10 +92,10 @@ defineEmits<{ click: [] }>()
 }
 
 .widget__icon {
-  font-size: 15px;
   color: var(--color-text-muted);
   flex-shrink: 0;
-  line-height: 1;
+  display: flex;
+  align-items: center;
 }
 .widget--accent .widget__icon { color: var(--color-accent); opacity: 0.7; }
 

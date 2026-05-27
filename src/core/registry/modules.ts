@@ -16,7 +16,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    icon: '◈',
+    icon: 'LayoutDashboard',
     path: '/',
     section: 'platform',
     status: 'available',
@@ -25,7 +25,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'docs',
     label: 'Docs',
-    icon: '✎',
+    icon: 'BookOpen',
     path: '/docs',
     section: 'platform',
     status: 'available',
@@ -34,7 +34,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'settings',
     label: 'Settings',
-    icon: '◷',
+    icon: 'Settings2',
     path: '/settings',
     section: 'platform',
     status: 'planned',
@@ -43,7 +43,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'about',
     label: 'About',
-    icon: '◐',
+    icon: 'User',
     path: '/about',
     section: 'platform',
     status: 'planned',
@@ -54,7 +54,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'task-manager',
     label: 'Tasks',
-    icon: '✓',
+    icon: 'CheckSquare',
     path: '/tasks',
     section: 'modules',
     status: 'available',
@@ -63,7 +63,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'notes',
     label: 'Notes',
-    icon: '◻',
+    icon: 'NotebookPen',
     path: '/notes',
     section: 'modules',
     status: 'available',
@@ -72,7 +72,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'kanban',
     label: 'Board',
-    icon: '▦',
+    icon: 'Kanban',
     path: '/kanban',
     section: 'modules',
     status: 'planned',
@@ -81,7 +81,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'ai-playground',
     label: 'Studio',
-    icon: '⚡',
+    icon: 'Zap',
     path: '/ai',
     section: 'modules',
     status: 'planned',
@@ -90,7 +90,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'snippets',
     label: 'Snippets',
-    icon: '⌥',
+    icon: 'Braces',
     path: '/snippets',
     section: 'modules',
     status: 'planned',
@@ -99,7 +99,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'habits',
     label: 'Habits',
-    icon: '✦',
+    icon: 'Target',
     path: '/habits',
     section: 'modules',
     status: 'planned',
@@ -108,7 +108,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'games',
     label: 'Games',
-    icon: '⊡',
+    icon: 'Gamepad2',
     path: '/games',
     section: 'modules',
     status: 'available',

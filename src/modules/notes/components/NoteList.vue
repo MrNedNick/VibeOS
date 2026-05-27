@@ -51,8 +51,8 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
         @pin="emit('pin', $event)"
       />
       <div v-if="notes.length === 0" class="note-list__empty">
-        <span v-if="searchQuery">No results</span>
-        <span v-else>No notes yet</span>
+        <span v-if="searchQuery">Nothing found for "{{ searchQuery }}"</span>
+        <span v-else>No notes yet — create one with ⌘N</span>
       </div>
     </div>
   </aside>

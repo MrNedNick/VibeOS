@@ -54,8 +54,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     <div class="tm-view__header">
       <div>
         <h1 class="tm-view__title">Task Manager</h1>
-        <p class="tm-view__subtitle">{{ store.totalCount }} task{{ store.totalCount === 1 ? '' : 's' }}
-          <span class="tm-view__hint">· j/k navigate · space toggle · d delete · / focus input</span>
+        <p class="tm-view__subtitle">
+          <span v-if="store.totalCount > 0">{{ store.activeCount }} remaining · {{ store.doneCount }} done</span>
+          <span v-else>No tasks yet — start your list</span>
+          <span class="tm-view__hint">j/k · space · d · /</span>
         </p>
       </div>
       <div class="tm-view__actions">
@@ -63,22 +65,23 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           v-if="store.totalCount > 0"
           variant="ghost"
           size="sm"
-          title="Export as JSON"
+          title="Download tasks as JSON"
           @click="exportTasks('json')"
         >↓ JSON</UiButton>
         <UiButton
           v-if="store.totalCount > 0"
           variant="ghost"
           size="sm"
-          title="Export as CSV"
+          title="Download tasks as CSV"
           @click="exportTasks('csv')"
         >↓ CSV</UiButton>
         <UiButton
           v-if="store.doneCount > 0"
           variant="ghost"
           size="sm"
+          title="Remove all completed tasks from the list"
           @click="clearCompleted"
-        >Clear completed</UiButton>
+        >Clear done</UiButton>
       </div>
     </div>
 

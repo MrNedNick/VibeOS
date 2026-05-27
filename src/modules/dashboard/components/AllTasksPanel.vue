@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { UiIcon } from '@/ui'
 
 export interface AggregatedTask {
   label: string
@@ -84,7 +85,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
           </span>
           <span class="task-row__label">{{ task.label }}</span>
           <span class="task-row__module">
-            <span class="task-row__module-icon">{{ task.moduleIcon }}</span>
+            <UiIcon :name="task.moduleIcon" :size="12" :stroke-width="1.75" />
             {{ task.moduleLabel }}
           </span>
         </div>
@@ -106,7 +107,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
           </span>
           <span class="task-row__label">{{ task.label }}</span>
           <span class="task-row__module">
-            <span class="task-row__module-icon">{{ task.moduleIcon }}</span>
+            <UiIcon :name="task.moduleIcon" :size="12" :stroke-width="1.75" />
             {{ task.moduleLabel }}
           </span>
         </div>
@@ -134,7 +135,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
           <span class="task-row__check">✓</span>
           <span class="task-row__label task-row__label--shipped">{{ task.label }}</span>
           <span class="task-row__module">
-            <span class="task-row__module-icon">{{ task.moduleIcon }}</span>
+            <UiIcon :name="task.moduleIcon" :size="12" :stroke-width="1.75" />
             {{ task.moduleLabel }}
           </span>
           <span class="task-row__date">{{ task.date }}</span>
@@ -301,7 +302,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
   white-space: nowrap;
 }
 
-.task-row__module-icon { font-size: 12px; }
+.task-row__module-icon { display: flex; align-items: center; }
 
 /* Shipped section */
 .all-tasks__shipped-header {

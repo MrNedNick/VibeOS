@@ -8,6 +8,7 @@ import { MODULE_DETAILS, PLATFORM_STATUS } from '../data/platform-notes'
 import StatCard from '../components/StatCard.vue'
 import ModuleDetailPanel from '../components/ModuleDetailPanel.vue'
 import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '../components/AllTasksPanel.vue'
+import { UiIcon } from '@/ui'
 
 const OVERVIEW_ID = '__overview__'
 
@@ -116,7 +117,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
     <!-- Widget strip ────────────────────────────────────────────── -->
     <div class="dashboard__stats">
       <StatCard
-        icon="◎"
+        icon="Package"
         label="Modules"
         :value="`${availableCount} / ${PLATFORM_MODULES.length}`"
         :sub="`${PLATFORM_MODULES.length - availableCount} planned`"
@@ -124,7 +125,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
         @click="selectedId = OVERVIEW_ID"
       />
       <StatCard
-        icon="≡"
+        icon="List"
         label="Platform tasks"
         :value="aggregatedTasks.length"
         :sub="`${aggregatedShipped.length} shipped ✓`"
@@ -132,7 +133,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
         @click="selectedId = OVERVIEW_ID"
       />
       <StatCard
-        icon="◈"
+        icon="TrendingUp"
         label="Progress"
         :value="`${platformProgress}%`"
         :sub="`${aggregatedShipped.length} of ${platformTotalTasks} done`"
@@ -142,7 +143,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
         @click="selectedId = OVERVIEW_ID"
       />
       <StatCard
-        icon="§"
+        icon="FileText"
         label="Doc pages"
         :value="TOTAL_DOC_PAGES"
         sub="pages written"
@@ -163,7 +164,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
           :class="{ 'mod-row--active': selectedId === OVERVIEW_ID }"
           @click="selectedId = OVERVIEW_ID"
         >
-          <span class="mod-row__icon">≡</span>
+          <span class="mod-row__icon"><UiIcon name="List" :size="15" :stroke-width="1.75" /></span>
           <span class="mod-row__name">All Tasks</span>
           <span class="mod-row__count">{{ aggregatedTasks.length }}</span>
         </div>
@@ -181,7 +182,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
           }"
           @click="selectedId = mod.id"
         >
-          <span class="mod-row__icon">{{ mod.icon }}</span>
+          <span class="mod-row__icon"><UiIcon :name="mod.icon" :size="15" :stroke-width="1.75" /></span>
           <span class="mod-row__name">{{ mod.label }}</span>
           <button
             v-if="mod.status === 'available'"
@@ -341,10 +342,12 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 }
 
 .mod-row__icon {
-  font-size: 15px;
   width: 18px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  color: inherit;
 }
 
 .mod-row__name { flex: 1; }

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PLATFORM_MODULES, type ModuleMeta } from '@/core/registry/modules'
 import { useUiStore } from '@/core/stores/ui.store'
+import { UiIcon } from '@/ui'
 
 const route  = useRoute()
 const router = useRouter()
@@ -48,9 +49,12 @@ function navigate(mod: ModuleMeta) {
           :key="mod.id"
           class="sidebar__item"
           :class="{ 'sidebar__item--active': isActive(mod) }"
+          :title="mod.description"
           @click="navigate(mod)"
         >
-          <span class="sidebar__icon">{{ mod.icon }}</span>
+          <span class="sidebar__icon">
+            <UiIcon :name="mod.icon" :size="17" :stroke-width="1.6" />
+          </span>
           <span class="sidebar__label">{{ mod.label }}</span>
         </button>
       </div>
@@ -67,9 +71,12 @@ function navigate(mod: ModuleMeta) {
             'sidebar__item--disabled': mod.status !== 'available',
           }"
           :disabled="mod.status !== 'available'"
+          :title="mod.status === 'available' ? mod.description : `${mod.label} — coming soon`"
           @click="navigate(mod)"
         >
-          <span class="sidebar__icon">{{ mod.icon }}</span>
+          <span class="sidebar__icon">
+            <UiIcon :name="mod.icon" :size="17" :stroke-width="1.6" />
+          </span>
           <span class="sidebar__label">{{ mod.label }}</span>
           <span v-if="mod.status !== 'available'" class="sidebar__soon">soon</span>
         </button>
@@ -177,10 +184,12 @@ function navigate(mod: ModuleMeta) {
 .sidebar__item--disabled { cursor: default; opacity: 0.4; }
 
 .sidebar__icon {
-  font-size: 17px;
   width: 22px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  color: inherit;
 }
 
 .sidebar__label { flex: 1; overflow: hidden; text-overflow: ellipsis; }

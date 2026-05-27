@@ -71,7 +71,7 @@ function goToFirst() {
       <!-- No page selected → show index -->
       <div v-if="!currentSlug" class="docs-home">
         <h1>Documentation</h1>
-        <p class="docs-home__sub">Architecture decisions, patterns, and module guides for this platform.</p>
+        <p class="docs-home__sub">How VibeOS is built — architecture decisions, patterns, and module specs.</p>
         <div class="docs-home__grid">
           <div
             v-for="section in DOC_REGISTRY"
@@ -97,9 +97,9 @@ function goToFirst() {
 
       <!-- Doc page not found -->
       <div v-else-if="!currentPage || !currentContent" class="docs-missing">
-        <p class="docs-missing__title">Page not found</p>
-        <p class="docs-missing__sub">No documentation found for <code>{{ currentSlug }}</code></p>
-        <button class="docs-home__start" @click="router.push('/docs')">Back to index</button>
+        <p class="docs-missing__title">This page doesn't exist yet.</p>
+        <p class="docs-missing__sub">No doc found for <code>{{ currentSlug }}</code> — maybe it's in the backlog.</p>
+        <button class="docs-home__start" @click="router.push('/docs')">← Back to index</button>
       </div>
 
       <!-- Rendered markdown -->

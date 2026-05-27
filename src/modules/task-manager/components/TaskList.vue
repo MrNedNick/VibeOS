@@ -33,7 +33,8 @@ const emit = defineEmits<{
 
     <div v-if="tasks.length === 0" class="task-list__empty">
       <span class="task-list__empty-icon">✓</span>
-      <p>No tasks here</p>
+      <p class="task-list__empty-title">Inbox zero.</p>
+      <p class="task-list__empty-sub">Add something above to get started.</p>
     </div>
   </div>
 </template>
@@ -45,15 +46,28 @@ const emit = defineEmits<{
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   padding: 48px 0;
   color: var(--color-text-muted);
-  font-size: 14px;
 }
 
 .task-list__empty-icon {
-  font-size: 29px;
-  opacity: 0.2;
+  font-size: 28px;
+  opacity: 0.18;
+  margin-bottom: 6px;
+}
+
+.task-list__empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.task-list__empty-sub {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
 }
 
 /* List animations */

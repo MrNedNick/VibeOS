@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import AppSidebar from './components/AppSidebar.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppNotifications from './components/AppNotifications.vue'
+import AppErrorBoundary from './components/AppErrorBoundary.vue'
 import { useUiStore } from '@/core/stores/ui.store'
 
 const uiStore = useUiStore()
@@ -17,11 +18,13 @@ const isFullbleed = computed(() => !!route.meta.fullbleed)
     <div class="app-main">
       <AppHeader />
       <main class="app-content" :class="{ 'app-content--fullbleed': isFullbleed }">
-        <router-view v-slot="{ Component }">
-          <Transition name="page" mode="out-in">
-            <component :is="Component" />
-          </Transition>
-        </router-view>
+        <AppErrorBoundary>
+          <router-view v-slot="{ Component }">
+            <Transition name="page" mode="out-in">
+              <component :is="Component" />
+            </Transition>
+          </router-view>
+        </AppErrorBoundary>
       </main>
     </div>
     <AppNotifications />

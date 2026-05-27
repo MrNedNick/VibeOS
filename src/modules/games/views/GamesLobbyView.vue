@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { UiIcon } from '@/ui'
 
 const router = useRouter()
 
@@ -8,7 +9,7 @@ const GAMES = [
     id: '2048',
     label: '2048',
     description: 'Slide tiles and merge matching numbers to reach 2048.',
-    icon: '⊞',
+    icon: 'Grid2X2',
     path: '/games/2048',
     status: 'available' as const,
   },
@@ -16,7 +17,7 @@ const GAMES = [
     id: 'memory',
     label: 'Memory',
     description: 'Flip cards and find all matching pairs.',
-    icon: '◈',
+    icon: 'Layers',
     path: '/games/memory',
     status: 'soon' as const,
   },
@@ -24,7 +25,7 @@ const GAMES = [
     id: 'snake',
     label: 'Snake',
     description: 'Eat food, grow longer, avoid the walls.',
-    icon: '≈',
+    icon: 'Wind',
     path: '/games/snake',
     status: 'soon' as const,
   },
@@ -35,7 +36,7 @@ const GAMES = [
   <div class="lobby">
     <div class="lobby__header">
       <h1 class="lobby__title">Games</h1>
-      <p class="lobby__sub">Short diversions, built with pure CSS and Canvas</p>
+      <p class="lobby__sub">Take a break. You deserve it.</p>
     </div>
 
     <div class="lobby__grid">
@@ -49,7 +50,9 @@ const GAMES = [
         }"
         @click="game.status === 'available' && router.push(game.path)"
       >
-        <div class="game-card__icon">{{ game.icon }}</div>
+        <div class="game-card__icon">
+          <UiIcon :name="game.icon" :size="24" :stroke-width="1.5" />
+        </div>
         <div class="game-card__body">
           <div class="game-card__name">{{ game.label }}</div>
           <div class="game-card__desc">{{ game.description }}</div>
@@ -119,7 +122,6 @@ const GAMES = [
 }
 
 .game-card__icon {
-  font-size: 26px;
   width: 44px;
   height: 44px;
   display: flex;
@@ -129,6 +131,7 @@ const GAMES = [
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+  color: var(--color-text-secondary);
 }
 
 .game-card__body {
