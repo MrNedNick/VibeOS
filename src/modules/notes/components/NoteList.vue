@@ -52,7 +52,7 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
       />
       <div v-if="notes.length === 0" class="note-list__empty">
         <span v-if="searchQuery">Nothing found for "{{ searchQuery }}"</span>
-        <span v-else>No notes yet — create one with ⌘N</span>
+        <span v-else>No notes yet. Start with ⌘N — plans, ideas, or today's journal.</span>
       </div>
     </div>
   </aside>

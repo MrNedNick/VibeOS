@@ -58,9 +58,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       />
 
       <div v-else class="snippets-empty">
-        <p class="snippets-empty__title">Your code vault is empty.</p>
-        <p class="snippets-empty__sub">Save a snippet to have it here whenever you need it.</p>
-        <button class="snippets-empty__btn" @click="newSnippet">New snippet</button>
+        <p class="snippets-empty__title">Code vault is empty.</p>
+        <p class="snippets-empty__sub">Save the patterns you keep rewriting. Find them in seconds with ⌘F.</p>
+        <button class="snippets-empty__btn" @click="newSnippet">Add first snippet</button>
       </div>
     </div>
   </div>

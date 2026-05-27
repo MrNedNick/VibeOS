@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
 import NotFoundView from '@/modules/not-found/NotFoundView.vue'
+import WelcomeView from '@/modules/welcome/WelcomeView.vue'
 import { dashboardRoutes } from '@/modules/dashboard'
 import { taskManagerRoutes } from '@/modules/task-manager'
 import { docsRoutes } from '@/modules/docs'
@@ -19,6 +20,11 @@ import { trainingRoutes } from '@/modules/training'
 import { analyticsRoutes } from '@/modules/analytics'
 
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/welcome',
+    component: WelcomeView,
+    meta: { title: 'Welcome' },
+  },
   {
     path: '/',
     component: AppLayout,
