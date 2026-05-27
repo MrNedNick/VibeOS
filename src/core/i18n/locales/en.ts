@@ -1,6 +1,8 @@
 export const en = {
   nav: {
     system: 'System',
+    life: 'Life',
+    work: 'Work',
     apps: 'Apps',
     soon: 'soon',
     wip: 'wip',
@@ -17,6 +19,10 @@ export const en = {
     snippets: 'Snippets',
     habits: 'Habits',
     games: 'Games',
+    goals: 'Goals',
+    learning: 'Learning',
+    training: 'Training',
+    analytics: 'Analytics',
   },
   header: {
     search: 'Search…',
@@ -134,7 +140,7 @@ export const en = {
   },
   about: {
     title: 'About',
-    subtitle: 'An engineering productivity workspace built with Vue 3.',
+    subtitle: 'A personal life operating system built with Vue 3.',
     stack: 'Tech Stack',
     modules: 'Shipped Modules',
     github: 'View on GitHub',

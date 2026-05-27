@@ -1,12 +1,15 @@
 export type TaskFilter   = 'all' | 'active' | 'done'
 export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
+export type TaskCategory = 'work' | 'learning' | 'training' | 'personal' | 'goal'
 
 export interface Task {
   id: string
   text: string
   done: boolean
   priority: TaskPriority
-  dueDate?: string   // 'YYYY-MM-DD'
+  category?: TaskCategory
+  dueDate?: string       // 'YYYY-MM-DD'
+  linkedGoalId?: string
   createdAt: number
 }
 

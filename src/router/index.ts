@@ -13,6 +13,10 @@ import { kanbanRoutes } from '@/modules/kanban'
 import { studioRoutes } from '@/modules/ai-playground'
 import { settingsRoutes } from '@/modules/settings'
 import { aboutRoutes } from '@/modules/about'
+import { goalsRoutes } from '@/modules/goals'
+import { learningRoutes } from '@/modules/learning'
+import { trainingRoutes } from '@/modules/training'
+import { analyticsRoutes } from '@/modules/analytics'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -30,6 +34,10 @@ const routes: RouteRecordRaw[] = [
       ...studioRoutes,
       ...settingsRoutes,
       ...aboutRoutes,
+      ...goalsRoutes,
+      ...learningRoutes,
+      ...trainingRoutes,
+      ...analyticsRoutes,
       { path: '/:pathMatch(.*)*', component: NotFoundView },
     ],
   },

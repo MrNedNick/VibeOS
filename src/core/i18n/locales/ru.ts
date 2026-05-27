@@ -3,6 +3,8 @@ import type { Messages } from './en'
 export const ru: Messages = {
   nav: {
     system: 'Система',
+    life: 'Жизнь',
+    work: 'Работа',
     apps: 'Приложения',
     soon: 'скоро',
     wip: 'разработка',
@@ -19,6 +21,10 @@ export const ru: Messages = {
     snippets: 'Сниппеты',
     habits: 'Привычки',
     games: 'Игры',
+    goals: 'Цели',
+    learning: 'Обучение',
+    training: 'Тренировки',
+    analytics: 'Аналитика',
   },
   header: {
     search: 'Поиск…',
@@ -136,7 +142,7 @@ export const ru: Messages = {
   },
   about: {
     title: 'О проекте',
-    subtitle: 'Рабочее пространство для инженеров, построенное на Vue 3.',
+    subtitle: 'Персональная операционная система для жизни, построенная на Vue 3.',
     stack: 'Стек технологий',
     modules: 'Модули',
     github: 'Открыть на GitHub',
