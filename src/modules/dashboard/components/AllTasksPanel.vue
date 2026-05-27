@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { UiIcon } from '@/ui'
+import { useLocale } from '@/core/i18n'
 
 export interface AggregatedTask {
   label: string
@@ -22,6 +23,8 @@ const props = defineProps<{
   tasks: AggregatedTask[]
   shippedTasks?: AggregatedShipped[]
 }>()
+
+const i18n = useLocale()
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 } as const
 const PRIORITY_COLOR = { high: 'danger', medium: 'warning', low: 'muted' } as const
@@ -48,31 +51,31 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
     <!-- Header -->
     <div class="all-tasks__header">
       <div class="all-tasks__title-group">
-        <h2 class="all-tasks__title">All Tasks</h2>
-        <p class="all-tasks__sub">Across all modules — sorted by priority</p>
+        <h2 class="all-tasks__title">{{ i18n.t('allTasksPanel.title') }}</h2>
+        <p class="all-tasks__sub">{{ i18n.t('allTasksPanel.subtitle') }}</p>
       </div>
-      <span class="all-tasks__total">{{ tasks.length }} total</span>
+      <span class="all-tasks__total">{{ i18n.t('allTasksPanel.total', { n: tasks.length }) }}</span>
     </div>
 
     <!-- Priority breakdown -->
     <div class="priority-strip">
       <div class="priority-pill priority-pill--danger">
         <span class="priority-pill__count">{{ highCount }}</span>
-        <span class="priority-pill__label">high</span>
+        <span class="priority-pill__label">{{ i18n.t('allTasksPanel.high') }}</span>
       </div>
       <div class="priority-pill priority-pill--warning">
         <span class="priority-pill__count">{{ mediumCount }}</span>
-        <span class="priority-pill__label">medium</span>
+        <span class="priority-pill__label">{{ i18n.t('allTasksPanel.medium') }}</span>
       </div>
       <div class="priority-pill priority-pill--muted">
         <span class="priority-pill__count">{{ lowCount }}</span>
-        <span class="priority-pill__label">low</span>
+        <span class="priority-pill__label">{{ i18n.t('allTasksPanel.low') }}</span>
       </div>
     </div>
 
     <!-- Top 5 -->
     <div class="all-tasks__section">
-      <p class="all-tasks__section-label">Top 5</p>
+      <p class="all-tasks__section-label">{{ i18n.t('allTasksPanel.top5') }}</p>
       <div class="task-list">
         <div
           v-for="(task, i) in top5"
@@ -94,7 +97,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 
     <!-- Rest -->
     <div v-if="rest.length" class="all-tasks__section">
-      <p class="all-tasks__section-label">Remaining ({{ rest.length }})</p>
+      <p class="all-tasks__section-label">{{ i18n.t('allTasksPanel.remaining', { n: rest.length }) }}</p>
       <div class="task-list">
         <div
           v-for="(task, i) in rest"
@@ -118,13 +121,13 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
     <div v-if="shippedTasks && shippedTasks.length" class="all-tasks__section">
       <div class="all-tasks__shipped-header">
         <p class="all-tasks__section-label all-tasks__section-label--success">
-          Shipped ✓ ({{ shippedTasks.length }})
+          {{ i18n.t('allTasksPanel.shipped') }} ✓ ({{ shippedTasks.length }})
         </p>
         <button
           v-if="shippedRest.length"
           class="all-tasks__shipped-toggle"
           @click="shippedExpanded = !shippedExpanded"
-        >{{ shippedExpanded ? 'Show less' : 'Show all' }}</button>
+        >{{ shippedExpanded ? i18n.t('allTasksPanel.showLess') : i18n.t('allTasksPanel.showAll') }}</button>
       </div>
       <div class="task-list">
         <div

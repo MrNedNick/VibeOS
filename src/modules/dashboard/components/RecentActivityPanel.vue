@@ -2,8 +2,10 @@
 import { computed } from 'vue'
 import { useEventBus } from '@/core/events'
 import type { PlatformEvent } from '@/core/events'
+import { useLocale } from '@/core/i18n'
 
 const bus = useEventBus()
+const i18n = useLocale()
 
 const events = computed(() => bus.recent(12))
 
@@ -22,19 +24,19 @@ function formatTime(iso: string): string {
 
 function describeEvent(e: PlatformEvent): { icon: string; text: string } {
   switch (e.type) {
-    case 'task:created':    return { icon: '+', text: `Task added — "${e.label}"` }
-    case 'task:completed':  return { icon: '✓', text: `Task done — "${e.label}"` }
-    case 'task:deleted':    return { icon: '×', text: `Task removed — "${e.label}"` }
-    case 'habit:checked':   return { icon: '●', text: `Habit checked — "${e.habitName}"` }
-    case 'habit:unchecked': return { icon: '○', text: `Habit unchecked — "${e.habitName}"` }
-    case 'note:created':    return { icon: '¶', text: `Note created — "${e.title}"` }
-    case 'note:deleted':    return { icon: '¶', text: `Note deleted — "${e.title}"` }
-    case 'snippet:created': return { icon: '{}', text: `Snippet — "${e.title}" (${e.language})` }
-    case 'card:created':    return { icon: '□', text: `Card added — "${e.title}"` }
-    case 'card:moved':      return { icon: '→', text: `Card moved — "${e.title}" → ${e.toColumnId}` }
-    case 'studio:run':      return { icon: '⚡', text: `Studio run — ${e.model.split('-')[1]} · ${e.inputTokens + e.outputTokens} tok` }
-    case 'game:score':      return { icon: '♟', text: `${e.game} — score ${e.score}` }
-    default:                return { icon: '·', text: 'Activity' }
+    case 'task:created':    return { icon: '+', text: `${i18n.t('recentActivity.taskAdded')} — "${e.label}"` }
+    case 'task:completed':  return { icon: '✓', text: `${i18n.t('recentActivity.taskDone')} — "${e.label}"` }
+    case 'task:deleted':    return { icon: '×', text: `${i18n.t('recentActivity.taskRemoved')} — "${e.label}"` }
+    case 'habit:checked':   return { icon: '●', text: `${i18n.t('recentActivity.habitChecked')} — "${e.habitName}"` }
+    case 'habit:unchecked': return { icon: '○', text: `${i18n.t('recentActivity.habitUnchecked')} — "${e.habitName}"` }
+    case 'note:created':    return { icon: '¶', text: `${i18n.t('recentActivity.noteCreated')} — "${e.title}"` }
+    case 'note:deleted':    return { icon: '¶', text: `${i18n.t('recentActivity.noteDeleted')} — "${e.title}"` }
+    case 'snippet:created': return { icon: '{}', text: `${i18n.t('recentActivity.snippet')} — "${e.title}" (${e.language})` }
+    case 'card:created':    return { icon: '□', text: `${i18n.t('recentActivity.cardAdded')} — "${e.title}"` }
+    case 'card:moved':      return { icon: '→', text: `${i18n.t('recentActivity.cardMoved')} — "${e.title}" → ${e.toColumnId}` }
+    case 'studio:run':      return { icon: '⚡', text: `${i18n.t('recentActivity.studioRun')} — ${e.model.split('-')[1]} · ${e.inputTokens + e.outputTokens} tok` }
+    case 'game:score':      return { icon: '♟', text: `${i18n.t('recentActivity.gameScore')} — ${e.game} ${e.score}` }
+    default:                return { icon: '·', text: i18n.t('recentActivity.activity') }
   }
 }
 
@@ -59,11 +61,11 @@ function iconColor(e: PlatformEvent): string {
 
 <template>
   <div class="activity">
-    <p class="activity__heading">Recent Activity</p>
+    <p class="activity__heading">{{ i18n.t('recentActivity.title') }}</p>
 
     <div v-if="events.length === 0" class="activity__empty">
-      <p>No activity yet.</p>
-      <p class="activity__empty-sub">Start using modules and events will appear here.</p>
+      <p>{{ i18n.t('recentActivity.empty') }}</p>
+      <p class="activity__empty-sub">{{ i18n.t('recentActivity.emptySub') }}</p>
     </div>
 
     <ul v-else class="activity__list">
@@ -84,7 +86,7 @@ function iconColor(e: PlatformEvent): string {
       v-if="events.length > 0"
       class="activity__clear"
       @click="bus.clear()"
-    >Clear</button>
+    >{{ i18n.t('recentActivity.clear') }}</button>
   </div>
 </template>
 

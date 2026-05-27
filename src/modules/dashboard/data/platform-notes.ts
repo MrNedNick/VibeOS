@@ -22,14 +22,14 @@ export const TECH_DEBT: TechDebtItem[] = [
 ]
 
 export const PLATFORM_STATUS = [
-  { label: 'Architecture',  status: 'good',    note: 'Layered, module-based, consistent' },
-  { label: 'TypeScript',    status: 'good',    note: 'Strict mode, 0 errors' },
-  { label: 'Build',         status: 'good',    note: 'Clean production build' },
-  { label: 'Deployment',    status: 'good',    note: 'Live at mrnednick.github.io/VibeOS' },
-  { label: 'i18n',          status: 'good',    note: 'EN + RU, custom Pinia store, 90+ keys' },
-  { label: 'Tests',         status: 'missing', note: 'Vitest planned in S5' },
-  { label: 'Backend',       status: 'planned', note: 'Supabase sync planned in S3' },
-  { label: 'Identity',      status: 'planned', note: 'Logo, vibe-paks, landing — active S1' },
+  { labelKey: 'platformHealth.architecture', status: 'good',    note: 'Layered, module-based, consistent' },
+  { labelKey: 'platformHealth.typescript',   status: 'good',    note: 'Strict mode, 0 errors' },
+  { labelKey: 'platformHealth.build',        status: 'good',    note: 'Clean production build' },
+  { labelKey: 'platformHealth.deployment',   status: 'good',    note: 'Live at mrnednick.github.io/VibeOS' },
+  { labelKey: 'platformHealth.i18n',         status: 'good',    note: 'EN + RU, custom Pinia store, 90+ keys' },
+  { labelKey: 'platformHealth.tests',        status: 'missing', note: 'Vitest planned in S5' },
+  { labelKey: 'platformHealth.backend',      status: 'planned', note: 'Supabase sync planned in S3' },
+  { labelKey: 'platformHealth.identity',     status: 'planned', note: 'Logo, vibe-paks, landing — active S1' },
 ] as const
 
 // ─── Per-module detail data ───────────────────────────────────────

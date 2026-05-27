@@ -205,14 +205,14 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
           <p class="health-compact__label">{{ i18n.t('dashboard.health') }}</p>
           <div
             v-for="item in PLATFORM_STATUS"
-            :key="item.label"
+            :key="item.labelKey"
             class="health-compact__row"
           >
             <span
               class="health-compact__dot"
               :class="`health-compact__dot--${item.status}`"
             >{{ STATUS_ICONS[item.status] }}</span>
-            <span class="health-compact__text">{{ item.label }}</span>
+            <span class="health-compact__text">{{ i18n.t(item.labelKey) }}</span>
           </div>
         </div>
       </div>

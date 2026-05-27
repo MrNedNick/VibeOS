@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import type { ModuleMeta } from '@/core/registry/modules'
 import type { ModuleDetail } from '../data/platform-notes'
 import { UiIcon } from '@/ui'
+import { useLocale } from '@/core/i18n'
 
 interface LiveStats {
   totalCount: number
@@ -19,17 +20,30 @@ interface Props {
 
 const { mod, detail, liveStats } = defineProps<Props>()
 const router = useRouter()
+const i18n = useLocale()
 
 const STATUS_MAP = {
-  available: { label: 'Active',   color: 'success' },
-  wip:       { label: 'In Progress', color: 'warning' },
-  planned:   { label: 'Planned',  color: 'muted' },
+  available: { key: 'dashboardDetail.statusActive',  color: 'success' },
+  wip:       { key: 'dashboardDetail.statusWip',     color: 'warning' },
+  planned:   { key: 'dashboardDetail.statusPlanned', color: 'muted' },
 } as const
 
 const PRIORITY_COLOR = { high: 'danger', medium: 'warning', low: 'muted' } as const
 const SEVERITY_COLOR = { high: 'danger', medium: 'warning', low: 'muted' } as const
 
 const statusInfo = STATUS_MAP[mod.status]
+
+function modDesc(modId: string): string {
+  const key = `moduleDesc.${modId}`
+  const t = i18n.t(key)
+  return t === key ? mod.description : t
+}
+
+function modMilestone(modId: string): string {
+  const key = `moduleMilestone.${modId}`
+  const t = i18n.t(key)
+  return t === key ? detail.milestone : t
+}
 </script>
 
 <template>
@@ -39,19 +53,19 @@ const statusInfo = STATUS_MAP[mod.status]
     <div class="detail__header">
       <span class="detail__icon"><UiIcon :name="mod.icon" :size="22" :stroke-width="1.6" /></span>
       <div class="detail__title-group">
-        <h2 class="detail__name">{{ mod.label }}</h2>
-        <p class="detail__desc">{{ mod.description }}</p>
+        <h2 class="detail__name">{{ i18n.t('modules.' + mod.id) === 'modules.' + mod.id ? mod.label : i18n.t('modules.' + mod.id) }}</h2>
+        <p class="detail__desc">{{ modDesc(mod.id) }}</p>
       </div>
       <div class="detail__header-right">
         <span class="detail__status" :class="`detail__status--${statusInfo.color}`">
-          {{ statusInfo.label }}
+          {{ i18n.t(statusInfo.key) }}
         </span>
         <button
           v-if="mod.status === 'available'"
           class="detail__open-btn"
           @click="router.push(mod.path)"
         >
-          Open module →
+          {{ i18n.t('dashboardDetail.openModule') }} →
         </button>
       </div>
     </div>
@@ -59,7 +73,7 @@ const statusInfo = STATUS_MAP[mod.status]
     <!-- Module progress -->
     <div class="detail__progress-section">
       <div class="detail__progress-row">
-        <span class="detail__progress-label">Module completeness</span>
+        <span class="detail__progress-label">{{ i18n.t('dashboardDetail.completeness') }}</span>
         <span class="detail__progress-pct">{{ detail.progress }}%</span>
       </div>
       <div class="detail__progress-bar">
@@ -69,35 +83,35 @@ const statusInfo = STATUS_MAP[mod.status]
           :style="{ width: `${detail.progress}%` }"
         />
       </div>
-      <p class="detail__milestone">{{ detail.milestone }}</p>
+      <p class="detail__milestone">{{ modMilestone(mod.id) }}</p>
     </div>
 
     <!-- Live usage stats (task-manager only for now) -->
     <div v-if="liveStats && mod.status === 'available'" class="detail__live-stats">
-      <p class="detail__section-label">Live stats</p>
+      <p class="detail__section-label">{{ i18n.t('dashboardDetail.liveStats') }}</p>
       <div class="live-stats">
         <div class="live-stat">
           <span class="live-stat__value">{{ liveStats.totalCount }}</span>
-          <span class="live-stat__label">total tasks</span>
+          <span class="live-stat__label">{{ i18n.t('dashboardDetail.totalTasks') }}</span>
         </div>
         <div class="live-stat">
           <span class="live-stat__value live-stat__value--success">{{ liveStats.doneCount }}</span>
-          <span class="live-stat__label">done</span>
+          <span class="live-stat__label">{{ i18n.t('dashboardDetail.done') }}</span>
         </div>
         <div class="live-stat">
           <span class="live-stat__value">{{ liveStats.activeCount }}</span>
-          <span class="live-stat__label">remaining</span>
+          <span class="live-stat__label">{{ i18n.t('dashboardDetail.remaining') }}</span>
         </div>
         <div class="live-stat">
           <span class="live-stat__value live-stat__value--accent">{{ liveStats.progress }}%</span>
-          <span class="live-stat__label">progress</span>
+          <span class="live-stat__label">{{ i18n.t('dashboardDetail.progress') }}</span>
         </div>
       </div>
     </div>
 
     <!-- Shipped Tasks -->
     <div v-if="detail.shippedTasks.length" class="detail__section">
-      <p class="detail__section-label detail__section-label--success">Shipped ✓</p>
+      <p class="detail__section-label detail__section-label--success">{{ i18n.t('dashboardDetail.shipped') }} ✓</p>
       <div class="task-list">
         <div
           v-for="(task, i) in detail.shippedTasks"
@@ -113,7 +127,7 @@ const statusInfo = STATUS_MAP[mod.status]
 
     <!-- Next Tasks -->
     <div v-if="detail.nextTasks.length" class="detail__section">
-      <p class="detail__section-label">Next tasks</p>
+      <p class="detail__section-label">{{ i18n.t('dashboardDetail.nextTasks') }}</p>
       <div class="task-list">
         <div
           v-for="(task, i) in detail.nextTasks"
@@ -131,7 +145,7 @@ const statusInfo = STATUS_MAP[mod.status]
 
     <!-- Planned Improvements -->
     <div v-if="detail.improvements.length" class="detail__section">
-      <p class="detail__section-label">Planned improvements</p>
+      <p class="detail__section-label">{{ i18n.t('dashboardDetail.improvements') }}</p>
       <ul class="detail__list">
         <li v-for="(item, i) in detail.improvements" :key="i">{{ item }}</li>
       </ul>
@@ -139,7 +153,7 @@ const statusInfo = STATUS_MAP[mod.status]
 
     <!-- Tech Debt -->
     <div v-if="detail.techDebt.length" class="detail__section">
-      <p class="detail__section-label">Technical debt</p>
+      <p class="detail__section-label">{{ i18n.t('dashboardDetail.techDebt') }}</p>
       <div class="debt-list">
         <div v-for="(item, i) in detail.techDebt" :key="i" class="debt-row">
           <span class="debt-row__sev" :class="`debt-row__sev--${SEVERITY_COLOR[item.severity]}`">
@@ -152,7 +166,7 @@ const statusInfo = STATUS_MAP[mod.status]
 
     <!-- Ideas -->
     <div v-if="detail.ideas.length" class="detail__section">
-      <p class="detail__section-label">Ideas</p>
+      <p class="detail__section-label">{{ i18n.t('dashboardDetail.ideas') }}</p>
       <ul class="detail__list detail__list--muted">
         <li v-for="(item, i) in detail.ideas" :key="i">{{ item }}</li>
       </ul>
