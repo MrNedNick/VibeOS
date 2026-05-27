@@ -11,7 +11,6 @@ const GAMES = [
     description: 'Slide tiles and merge matching numbers to reach 2048.',
     icon: 'Grid2X2',
     path: '/games/2048',
-    status: 'available' as const,
   },
   {
     id: 'memory',
@@ -19,7 +18,6 @@ const GAMES = [
     description: 'Flip cards and find all matching pairs.',
     icon: 'Layers',
     path: '/games/memory',
-    status: 'available' as const,
   },
   {
     id: 'snake',
@@ -27,7 +25,6 @@ const GAMES = [
     description: 'Eat food, grow longer, avoid the walls.',
     icon: 'Wind',
     path: '/games/snake',
-    status: 'soon' as const,
   },
 ]
 </script>
@@ -43,12 +40,8 @@ const GAMES = [
       <div
         v-for="game in GAMES"
         :key="game.id"
-        class="game-card"
-        :class="{
-          'game-card--available': game.status === 'available',
-          'game-card--soon': game.status === 'soon',
-        }"
-        @click="game.status === 'available' && router.push(game.path)"
+        class="game-card game-card--available"
+        @click="router.push(game.path)"
       >
         <div class="game-card__icon">
           <UiIcon :name="game.icon" :size="24" :stroke-width="1.5" />
@@ -57,8 +50,7 @@ const GAMES = [
           <div class="game-card__name">{{ game.label }}</div>
           <div class="game-card__desc">{{ game.description }}</div>
         </div>
-        <span v-if="game.status === 'soon'" class="game-card__badge">soon</span>
-        <span v-else class="game-card__arrow">→</span>
+        <span class="game-card__arrow">→</span>
       </div>
     </div>
   </div>
