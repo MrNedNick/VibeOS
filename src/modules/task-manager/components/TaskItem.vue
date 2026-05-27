@@ -82,6 +82,13 @@ function cancelEdit() {
         @dblclick="startEdit"
       >{{ task.text }}</span>
 
+      <!-- Category badge -->
+      <span
+        v-if="task.category"
+        class="task-item__cat"
+        :class="`task-item__cat--${task.category}`"
+      >{{ task.category }}</span>
+
       <!-- Due date badge -->
       <span
         v-if="task.dueDate && !task.done"
@@ -186,6 +193,26 @@ function cancelEdit() {
   padding: 0;
   min-width: 0;
 }
+
+/* Category badge */
+.task-item__cat {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+}
+.task-item__cat--work     { color: #3b82f6; background: rgba(59,130,246,.1); border-color: rgba(59,130,246,.25); }
+.task-item__cat--learning { color: #8b5cf6; background: rgba(139,92,246,.1); border-color: rgba(139,92,246,.25); }
+.task-item__cat--training { color: #f97316; background: rgba(249,115,22,.1); border-color: rgba(249,115,22,.25); }
+.task-item__cat--personal { color: #10b981; background: rgba(16,185,129,.1); border-color: rgba(16,185,129,.25); }
+.task-item__cat--goal     { color: var(--color-accent); background: var(--color-accent-muted); border-color: var(--color-accent-muted); }
 
 /* Due date badge */
 .task-item__due {

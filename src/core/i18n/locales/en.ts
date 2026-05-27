@@ -77,6 +77,12 @@ export const en = {
     priorityMedium: 'Medium priority',
     priorityHigh: 'High priority',
     priorityUrgent: 'Urgent',
+    catAll: 'All',
+    catWork: 'Work',
+    catLearning: 'Learning',
+    catTraining: 'Training',
+    catPersonal: 'Personal',
+    catGoal: 'Goal',
   },
   habits: {
     title: 'Habits',

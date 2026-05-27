@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { useTasksStore } from '../stores/tasks.store'
 import { useNotificationsStore } from '@/core/stores/notifications.store'
-import type { Task, TaskPriority } from '../types'
+import type { Task, TaskPriority, TaskCategory } from '../types'
 
 const MAX_LENGTH = 120
 
@@ -13,6 +13,7 @@ export function useTasks() {
 
   const inputText       = ref('')
   const inputPriority   = ref<TaskPriority>('none')
+  const inputCategory   = ref<TaskCategory | undefined>(undefined)
   let   lastDeleted: Task | null = null
 
   function cyclePriority() {
@@ -34,9 +35,10 @@ export function useTasks() {
       notify.warning('This task already exists')
       return
     }
-    store.addTask(text, inputPriority.value)
+    store.addTask(text, inputPriority.value, undefined, inputCategory.value)
     inputText.value     = ''
     inputPriority.value = 'none'
+    inputCategory.value = undefined
   }
 
   function removeTask(id: string) {
@@ -98,6 +100,7 @@ export function useTasks() {
   return {
     inputText,
     inputPriority,
+    inputCategory,
     cyclePriority,
     submitTask,
     removeTask,

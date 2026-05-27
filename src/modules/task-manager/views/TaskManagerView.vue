@@ -10,11 +10,22 @@ import { UiButton } from '@/ui'
 
 const i18n = useLocale()
 
+import type { TaskCategory } from '../types'
+
 const {
-  inputText, inputPriority,
+  inputText, inputPriority, inputCategory,
   submitTask, removeTask, clearCompleted, exportTasks,
   store, MAX_LENGTH,
 } = useTasks()
+
+const CATEGORIES: { val: TaskCategory | 'all'; labelKey: string }[] = [
+  { val: 'all',      labelKey: 'tasks.catAll'      },
+  { val: 'work',     labelKey: 'tasks.catWork'     },
+  { val: 'learning', labelKey: 'tasks.catLearning' },
+  { val: 'training', labelKey: 'tasks.catTraining' },
+  { val: 'personal', labelKey: 'tasks.catPersonal' },
+  { val: 'goal',     labelKey: 'tasks.catGoal'     },
+]
 
 const focusedId    = ref<string | null>(null)
 const taskInputRef = ref<InstanceType<typeof TaskInput>>()
@@ -108,13 +119,36 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       :done-count="store.doneCount"
     />
 
-    <!-- Filters -->
+    <!-- Status filters -->
     <TaskFilters
       v-model="store.filter"
       :total-count="store.totalCount"
       :active-count="store.activeCount"
       :done-count="store.doneCount"
     />
+
+    <!-- Category filter chips -->
+    <div class="tm-view__cats">
+      <button
+        v-for="cat in CATEGORIES"
+        :key="cat.val"
+        class="tm-view__cat"
+        :class="{ 'tm-view__cat--active': store.categoryFilter === cat.val }"
+        @click="store.setCategoryFilter(cat.val)"
+      >{{ i18n.t(cat.labelKey) }}</button>
+    </div>
+
+    <!-- New task category selector (only when input has text) -->
+    <div v-if="inputText.trim()" class="tm-view__input-cats">
+      <span class="tm-view__input-cat-label">Category:</span>
+      <button
+        v-for="cat in CATEGORIES.slice(1)"
+        :key="`in-${cat.val}`"
+        class="tm-view__cat tm-view__cat--sm"
+        :class="{ 'tm-view__cat--active': inputCategory === cat.val }"
+        @click="inputCategory = (inputCategory === cat.val ? undefined : cat.val as TaskCategory)"
+      >{{ i18n.t(cat.labelKey) }}</button>
+    </div>
 
     <!-- List -->
     <TaskList
@@ -170,5 +204,47 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   color: var(--color-text-muted);
   opacity: 0.5;
   font-family: var(--font-mono);
+}
+
+/* Category chips */
+.tm-view__cats,
+.tm-view__input-cats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.tm-view__input-cats { margin-top: -10px; }
+
+.tm-view__input-cat-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-right: 2px;
+}
+
+.tm-view__cat {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.tm-view__cat--sm { font-size: 12px; padding: 3px 8px; }
+
+.tm-view__cat:hover:not(.tm-view__cat--active) {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+}
+
+.tm-view__cat--active {
+  background: var(--color-accent-muted);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 </style>

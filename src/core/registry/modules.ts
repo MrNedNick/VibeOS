@@ -152,6 +152,6 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     path: '/games',
     section: 'work',
     status: 'available',
-    description: 'Take a break — 2048, Memory, Snake',
+    description: 'Take a break — Minesweeper, Memory, Snake',
   },
 ]

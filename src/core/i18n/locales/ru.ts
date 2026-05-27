@@ -79,6 +79,12 @@ export const ru: Messages = {
     priorityMedium: 'Средний приоритет',
     priorityHigh: 'Высокий приоритет',
     priorityUrgent: 'Срочно',
+    catAll: 'Все',
+    catWork: 'Работа',
+    catLearning: 'Обучение',
+    catTraining: 'Тренировки',
+    catPersonal: 'Личное',
+    catGoal: 'Цель',
   },
   habits: {
     title: 'Привычки',
