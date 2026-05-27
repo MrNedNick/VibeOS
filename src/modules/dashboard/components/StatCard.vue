@@ -50,7 +50,7 @@ defineEmits<{ click: [] }>()
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 16px 18px 14px;
+  padding: 18px 20px 16px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -81,11 +81,11 @@ defineEmits<{ click: [] }>()
 }
 
 .widget__label {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -100,12 +100,12 @@ defineEmits<{ click: [] }>()
 .widget--accent .widget__icon { color: var(--color-accent); opacity: 0.7; }
 
 .widget__value {
-  font-size: 31px;
+  font-size: 30px;
   font-weight: 700;
   color: var(--color-text);
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 .widget--accent .widget__value { color: var(--color-accent); }
 
