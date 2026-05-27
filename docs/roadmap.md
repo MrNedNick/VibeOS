@@ -153,8 +153,56 @@ Use event bus to track milestones ("Created 100 tasks", "Played all games"). Gam
 ### Currency
 Demoted from standalone module to a Dashboard widget. Standalone converter could come back later.
 
+### Backend-connected module ideas (researched 2026-05-27)
+
+Prioritized by portfolio value and safety (free tier / no surprise bills).
+
+#### Tier 1 — Recommended (100% free, high portfolio value)
+
+| Module | API / Backend | Free tier | Why |
+|--------|--------------|-----------|-----|
+| **Weather widget** | OpenWeatherMap | 1,000 calls/day free forever | Classic portfolio widget. Show current weather + 3-day forecast on Dashboard. API key stored locally in Settings. |
+| **Analytics dashboard** | Plausible or built-in | Self-host or build custom | Track VibeOS usage internally via event bus — heatmap of daily usage, module popularity, session duration. No external API needed. |
+| **Bookmarks / Read later** | Built-in (localStorage → Supabase) | Free | Paste URL → fetch OG metadata → save with tags. Demonstrates data modeling. |
+| **GitHub activity** | GitHub REST API | 5,000 req/hour unauthenticated | Show recent commits, PRs, contribution graph. No key needed for public repos. |
+
+#### Tier 2 — Good (free tier with limits, watch usage)
+
+| Module | API / Backend | Free tier | Why |
+|--------|--------------|-----------|-----|
+| **Maps / Location** | Leaflet + OpenStreetMap | Completely free (no API key) | Interactive map widget. No tiles fee — OSM is open. Leaflet is 42kb. |
+| **World clock** | Built-in (Intl API) | Free, no API | Show multiple timezones. Uses browser's `Intl.DateTimeFormat`. Zero API cost. |
+| **Dev jokes / Quotes** | JokeAPI / ZenQuotes | Free, no key | Tiny motivational widget. ~1 call/session. |
+| **Pomodoro with sync** | Supabase (S3) | 500MB free tier | Timer + session log synced to Supabase. Demonstrates real-time backend. |
+
+#### Tier 3 — Future / requires caution
+
+| Module | API / Backend | Cost concern | Notes |
+|--------|--------------|-------------|-------|
+| **AI Studio (current)** | Anthropic API | Pay-per-use | Already built. Haiku is cheapest (~$0.001/req). Key required, cost warning shown. |
+| **Spotify Now Playing** | Spotify Web API | Free but OAuth required | Personal touch widget. Needs Spotify account + OAuth flow (S3 dep). |
+| **Currency rates** | ExchangeRate-API | 1,500 req/month free | Dashboard widget, not standalone module. Low priority. |
+
+#### Recommended database options
+
+| Option | Free tier | Best for |
+|--------|-----------|----------|
+| **Supabase** (already chosen for S3) | 500MB, 50K rows, 2 projects | Auth + Postgres + Realtime. Best portfolio value. |
+| **Turso (libSQL)** | 9GB storage, 500M reads/month | Edge-native SQLite. If Supabase feels heavy. |
+| **PlanetScale** | Discontinued free tier | ~~Not recommended~~ |
+| **Neon (Postgres)** | 512MB, 1 project | Serverless Postgres. Good alternative to Supabase. |
+| **localStorage** (current) | Unlimited | Offline-first. Current approach. Works for portfolio demo. |
+
+#### Safety rules for backend modules
+- Every external API must have a free tier or be completely free
+- API keys stored only in browser localStorage, never in code
+- Cost warnings shown in UI before any paid API call
+- Default to lowest-cost model/tier
+- No auto-refresh patterns that burn API quota
+- All modules must work offline with graceful degradation
+
 ### Other open APIs (low-priority widgets)
-GitHub stats, Hacker News feed, weather, crypto prices, NASA APOD, dev jokes, world time.
+GitHub stats, Hacker News feed, crypto prices, NASA APOD, dev jokes, world time.
 
 ### Read later / Bookmarks
 Mini-Pocket: paste URL → fetch metadata (oembed / OG tags) → save with tags. Fits "personal OS" angle.
@@ -212,3 +260,22 @@ Every new component and module must include responsive styles from day one. See 
 | 2026-05-27 | i18n without vue-i18n — custom Pinia store | Zero new dependencies; `t(key, vars?)` + `pluralRu()` cover all needs; reactive via computed `messages` |
 | 2026-05-27 | Snippets retained as standalone module | Unique developer daily value (syntax highlighting, language filter, tag search) vs Notes text; not redundant |
 | 2026-05-26 | Sidebar sections: System / Apps | Cleaner than Platform/Modules; matches VibeOS OS metaphor |
+| 2026-05-27 | Dashboard icon fix: UiIcon replaces raw text in 3 components | ModuleDetailPanel, AllTasksPanel, ModuleStatusCard all had `{{ mod.icon }}` instead of `<UiIcon>` |
+| 2026-05-27 | Full Russian translation for dashboard UI | 80+ i18n keys added for module descriptions, milestones, section labels, activity events |
+| 2026-05-27 | Kanban add-card uses modal overlay instead of inline textarea | Modal with title, description, column, priority, due date — consistent with platform UI |
+| 2026-05-27 | Studio model IDs updated to Claude 4.6 (Opus, Sonnet) + Haiku 4.5 | Stay current with latest model versions |
+| 2026-05-27 | Studio shows clear API key requirement + cost warning when no key set | User must understand costs before using any paid API |
+| 2026-05-27 | Backend module research: Weather (OpenWeatherMap), Maps (Leaflet+OSM), Analytics (built-in) as top picks | All free, high portfolio value, no surprise bills |
+
+---
+
+## Open decisions
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Snippets module | Keep for now, decide later | User unclear on value. Module is 100% complete. Will revisit after more usage. |
+| Habits improvements | Planned but not urgent | Current state is good. Keep as-is except already-planned event bus achievements. |
+| Games additions | Low priority | Current three games are solid. Tetris or Minesweeper next if time allows. |
+| Settings future features | Roadmap items | Account, shortcuts, theme packs, notifications, data export/import, privacy prefs — all planned for S3+ |
+| Documentation translation | In progress | Russian translation support added for dashboard. Docs content itself is English-only; Russian doc summaries planned. |
+| Weather widget | Approved for implementation | OpenWeatherMap free tier, 1000 calls/day. Will add to Dashboard as widget. |

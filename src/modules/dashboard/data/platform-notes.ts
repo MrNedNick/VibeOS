@@ -142,18 +142,26 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
     nextTasks: [
       { label: 'API keys panel (Anthropic, OpenWeather) for Studio + widgets', priority: 'high' },
       { label: 'Vibe-pak / accent color picker in Appearance (S1)', priority: 'high' },
+      { label: 'Notification preferences (toasts, sounds, frequency)', priority: 'medium' },
+      { label: 'Privacy & data preferences section', priority: 'medium' },
     ],
     improvements: [
       'Vibe-pak + accent color + font picker in Appearance',
       'Per-app accent override',
       'API key storage abstraction (encrypted in localStorage)',
+      'Account section with profile (S3 Supabase dep)',
+      'Custom keyboard shortcuts editor',
+      'Data import from JSON backup',
+      'Notification toggle per module',
     ],
     techDebt: [],
     ideas: [
       'Settings sync via Supabase when logged in',
       'Profile photo + display name',
+      'Data export/import between devices via QR code',
+      'Reset individual module data (not just clear all)',
     ],
-    notes: 'Core settings fully functional. Remaining gap: API keys panel (unblocks Studio production use) and vibe-paks picker.',
+    notes: 'Core settings fully functional. Remaining gap: API keys panel (unblocks Studio production use) and vibe-paks picker. Future: account, notifications, privacy, data import.',
   },
 
   about: {
@@ -386,7 +394,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       'Import from GitHub gists',
       'Export all snippets as a JSON backup',
     ],
-    notes: 'Fully shipped. Retained over currency — unique developer daily value. Fits "personal OS for devs" angle.',
+    notes: 'Fully shipped. Retained for now — unique developer value. Open decision: user is evaluating whether to keep or remove. Will decide after more usage.',
   },
 
   habits: {
