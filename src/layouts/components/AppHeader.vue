@@ -2,11 +2,13 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUiStore } from '@/core/stores/ui.store'
+import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { UiIcon } from '@/ui'
 
 const route = useRoute()
 const uiStore = useUiStore()
+const palette = useCommandPaletteStore()
 
 const currentModule = computed(() =>
   PLATFORM_MODULES.find(m =>
@@ -44,6 +46,18 @@ const currentModule = computed(() =>
     </div>
 
     <div class="header-spacer" />
+
+    <!-- Command palette trigger -->
+    <button
+      class="header-search"
+      title="Command palette (⌘K)"
+      aria-label="Open command palette"
+      @click="palette.open"
+    >
+      <UiIcon name="Search" :size="14" :stroke-width="1.75" />
+      <span class="header-search__text">Search…</span>
+      <kbd class="header-search__kbd">⌘K</kbd>
+    </button>
 
     <!-- Theme toggle -->
     <button
@@ -109,4 +123,44 @@ const currentModule = computed(() =>
 }
 
 .header-spacer { flex: 1; }
+
+.header-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color var(--t-fast), color var(--t-fast);
+}
+
+.header-search:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.header-search__text {
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.header-search__kbd {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  padding: 1px 5px;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 767px) {
+  .header-search__text,
+  .header-search__kbd { display: none; }
+  .header-search { padding: 5px 7px; }
+}
 </style>

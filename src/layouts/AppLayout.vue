@@ -1,15 +1,28 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import AppSidebar from './components/AppSidebar.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppNotifications from './components/AppNotifications.vue'
 import AppErrorBoundary from './components/AppErrorBoundary.vue'
+import CommandPalette from './components/CommandPalette.vue'
 import { useUiStore } from '@/core/stores/ui.store'
+import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
 
 const uiStore = useUiStore()
+const palette = useCommandPaletteStore()
 const route = useRoute()
 const isFullbleed = computed(() => !!route.meta.fullbleed)
+
+function onKeydown(e: KeyboardEvent) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault()
+    palette.toggle()
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
@@ -28,6 +41,7 @@ const isFullbleed = computed(() => !!route.meta.fullbleed)
       </main>
     </div>
     <AppNotifications />
+    <CommandPalette />
   </div>
 </template>
 
