@@ -112,6 +112,42 @@ export interface LearningPlanCompletedEvent {
   timestamp: string
 }
 
+export interface TrainingWorkoutLoggedEvent {
+  type: 'training:workout:logged'
+  planId: string | null
+  planTitle: string
+  duration: number
+  timestamp: string
+}
+
+export interface TrainingPlanCreatedEvent {
+  type: 'training:plan:created'
+  planId: string
+  title: string
+  timestamp: string
+}
+
+export interface GoalCreatedEvent {
+  type: 'goal:created'
+  goalId: string
+  title: string
+  timestamp: string
+}
+
+export interface GoalCompletedEvent {
+  type: 'goal:completed'
+  goalId: string
+  title: string
+  timestamp: string
+}
+
+export interface GoalMilestoneCompletedEvent {
+  type: 'goal:milestone:completed'
+  goalId: string
+  milestoneTitle: string
+  timestamp: string
+}
+
 export type PlatformEvent =
   | TaskCreatedEvent
   | TaskCompletedEvent
@@ -128,5 +164,10 @@ export type PlatformEvent =
   | LearningSessionCompletedEvent
   | LearningPlanCreatedEvent
   | LearningPlanCompletedEvent
+  | TrainingWorkoutLoggedEvent
+  | TrainingPlanCreatedEvent
+  | GoalCreatedEvent
+  | GoalCompletedEvent
+  | GoalMilestoneCompletedEvent
 
 export type PlatformEventType = PlatformEvent['type']

@@ -67,9 +67,8 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'Target',
     path: '/goals',
     section: 'life',
-    status: 'planned',
-    sprint: 'S4',
-    description: 'Life goals, milestones, and progress tracking',
+    status: 'available',
+    description: 'Life goals with milestones, progress tracking and target dates',
   },
   {
     id: 'habits',
@@ -95,9 +94,8 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'Dumbbell',
     path: '/training',
     section: 'life',
-    status: 'planned',
-    sprint: 'S5',
-    description: 'Workout plans, session logs, and fitness progress',
+    status: 'available',
+    description: 'Training plans, workout logs, streaks and fitness progress',
   },
   {
     id: 'analytics',
