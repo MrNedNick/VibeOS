@@ -8,6 +8,7 @@ import { docsRoutes } from '@/modules/docs'
 import { notesRoutes } from '@/modules/notes'
 import { gamesRoutes } from '@/modules/games'
 import { snippetsRoutes } from '@/modules/snippets'
+import { habitsRoutes } from '@/modules/habits'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -20,6 +21,7 @@ const routes: RouteRecordRaw[] = [
       ...notesRoutes,
       ...gamesRoutes,
       ...snippetsRoutes,
+      ...habitsRoutes,
       { path: '/:pathMatch(.*)*', component: NotFoundView },
     ],
   },

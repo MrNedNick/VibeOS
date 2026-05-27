@@ -102,7 +102,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'Target',
     path: '/habits',
     section: 'modules',
-    status: 'planned',
+    status: 'available',
     description: 'Daily check-offs and streak heatmap',
   },
   {
