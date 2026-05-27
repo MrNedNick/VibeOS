@@ -3,18 +3,27 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUiStore } from '@/core/stores/ui.store'
 import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
+import { useLocale } from '@/core/i18n'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { UiIcon } from '@/ui'
 
 const route = useRoute()
 const uiStore = useUiStore()
 const palette = useCommandPaletteStore()
+const i18n = useLocale()
 
 const currentModule = computed(() =>
   PLATFORM_MODULES.find(m =>
     m.path === '/' ? route.path === '/' : route.path.startsWith(m.path)
   )
 )
+
+const moduleLabel = computed(() => {
+  if (!currentModule.value) return 'VibeOS'
+  const key = `modules.${currentModule.value.id}`
+  const translated = i18n.t(key)
+  return translated === key ? currentModule.value.label : translated
+})
 </script>
 
 <template>
@@ -22,8 +31,8 @@ const currentModule = computed(() =>
     <!-- Sidebar toggle -->
     <button
       class="header-btn"
-      :title="uiStore.sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
-      :aria-label="uiStore.sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
+      :title="uiStore.sidebarOpen ? i18n.t('header.collapseSidebar') : i18n.t('header.expandSidebar')"
+      :aria-label="uiStore.sidebarOpen ? i18n.t('header.collapseSidebar') : i18n.t('header.expandSidebar')"
       @click="uiStore.toggleSidebar"
     >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -42,7 +51,7 @@ const currentModule = computed(() =>
         :stroke-width="1.75"
         class="header-title__icon"
       />
-      <span class="header-title__label">{{ currentModule?.label ?? 'VibeOS' }}</span>
+      <span class="header-title__label">{{ moduleLabel }}</span>
     </div>
 
     <div class="header-spacer" />
@@ -55,15 +64,25 @@ const currentModule = computed(() =>
       @click="palette.open"
     >
       <UiIcon name="Search" :size="14" :stroke-width="1.75" />
-      <span class="header-search__text">Search…</span>
+      <span class="header-search__text">{{ i18n.t('header.search') }}</span>
       <kbd class="header-search__kbd">⌘K</kbd>
+    </button>
+
+    <!-- Locale toggle -->
+    <button
+      class="header-btn header-btn--locale"
+      :title="i18n.t('header.langToggleAria')"
+      :aria-label="i18n.t('header.langToggleAria')"
+      @click="i18n.toggleLocale"
+    >
+      <span class="header-locale-label">{{ i18n.t('header.langToggle') }}</span>
     </button>
 
     <!-- Theme toggle -->
     <button
       class="header-btn"
-      :title="uiStore.isDark ? 'Switch to light' : 'Switch to dark'"
-      :aria-label="uiStore.isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+      :title="uiStore.isDark ? i18n.t('header.switchToLight') : i18n.t('header.switchToDark')"
+      :aria-label="uiStore.isDark ? i18n.t('header.switchToLightAria') : i18n.t('header.switchToDarkAria')"
       @click="uiStore.toggleTheme"
     >
       <svg v-if="uiStore.isDark" width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -106,15 +125,32 @@ const currentModule = computed(() =>
   color: var(--color-text);
 }
 
+.header-btn--locale {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  width: auto;
+  padding: 0 8px;
+  height: 28px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+.header-btn--locale:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+.header-locale-label { line-height: 1; }
+
 .header-title {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.header-title__icon {
-  color: var(--color-text-secondary);
-}
+.header-title__icon { color: var(--color-text-secondary); }
 
 .header-title__label {
   font-size: 17px;
@@ -136,7 +172,6 @@ const currentModule = computed(() =>
   cursor: pointer;
   transition: border-color var(--t-fast), color var(--t-fast);
 }
-
 .header-search:hover {
   border-color: var(--color-accent);
   color: var(--color-text);
@@ -162,5 +197,6 @@ const currentModule = computed(() =>
   .header-search__text,
   .header-search__kbd { display: none; }
   .header-search { padding: 5px 7px; }
+  .header-btn--locale { display: none; }
 }
 </style>

@@ -1,14 +1,22 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useHabitsStore } from '../stores/habits.store'
+import { useLocale } from '@/core/i18n'
 import HabitCard from '../components/HabitCard.vue'
 
 const store = useHabitsStore()
+const i18n = useLocale()
 
 const showForm = ref(false)
 const newName = ref('')
 const newEmoji = ref('')
 const nameInputRef = ref<HTMLInputElement>()
+
+const todayLabel = computed(() =>
+  new Date().toLocaleDateString(i18n.localeCode, {
+    weekday: 'long', day: 'numeric', month: 'long',
+  })
+)
 
 function openForm() {
   showForm.value = true
@@ -40,27 +48,24 @@ function onKeydown(e: KeyboardEvent) {
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
-
-const todayLabel = new Date().toLocaleDateString('en-GB', {
-  weekday: 'long', day: 'numeric', month: 'long',
-})
 </script>
 
 <template>
   <div class="habits">
     <div class="habits__header">
       <div>
-        <h1 class="habits__title">Habits</h1>
+        <h1 class="habits__title">{{ i18n.t('habits.title') }}</h1>
         <p class="habits__date">{{ todayLabel }}</p>
       </div>
-      <button class="habits__add-btn" title="Add habit (N)" @click="openForm">+ Add habit</button>
+      <button class="habits__add-btn" :title="i18n.t('habits.addBtn') + ' (N)'" @click="openForm">
+        {{ i18n.t('habits.addBtn') }}
+      </button>
     </div>
 
     <!-- New habit form -->
     <div v-if="showForm" class="habits__form" @keydown="onFormKeydown">
       <input
         v-model="newEmoji"
-        ref="emojiInput"
         class="habits__form-emoji"
         placeholder="⭐"
         maxlength="2"
@@ -69,12 +74,12 @@ const todayLabel = new Date().toLocaleDateString('en-GB', {
         v-model="newName"
         ref="nameInputRef"
         class="habits__form-name"
-        placeholder="Habit name"
+        :placeholder="i18n.t('habits.namePlaceholder')"
         maxlength="60"
       />
       <div class="habits__form-actions">
-        <button class="habits__form-save" @click="submitForm">Add</button>
-        <button class="habits__form-cancel" @click="cancelForm">Cancel</button>
+        <button class="habits__form-save" @click="submitForm">{{ i18n.t('habits.formSave') }}</button>
+        <button class="habits__form-cancel" @click="cancelForm">{{ i18n.t('habits.formCancel') }}</button>
       </div>
     </div>
 
@@ -87,15 +92,16 @@ const todayLabel = new Date().toLocaleDateString('en-GB', {
         :done-today="store.isCompletedToday(habit.id)"
         @toggle="store.toggleToday"
         @delete="store.deleteHabit"
+        @update="store.updateHabit"
       />
     </div>
 
     <!-- Empty state -->
     <div v-else-if="!showForm" class="habits__empty">
       <div class="habits__empty-icon">📋</div>
-      <p class="habits__empty-title">No habits tracked yet.</p>
-      <p class="habits__empty-sub">Add something you want to do every day — the heatmap will do the motivating.</p>
-      <button class="habits__empty-btn" @click="openForm">Add your first habit</button>
+      <p class="habits__empty-title">{{ i18n.t('habits.emptyTitle') }}</p>
+      <p class="habits__empty-sub">{{ i18n.t('habits.emptySub') }}</p>
+      <button class="habits__empty-btn" @click="openForm">{{ i18n.t('habits.emptyBtn') }}</button>
     </div>
   </div>
 </template>
@@ -140,7 +146,6 @@ const todayLabel = new Date().toLocaleDateString('en-GB', {
   flex-shrink: 0;
   transition: opacity var(--t-fast);
 }
-
 .habits__add-btn:hover { opacity: 0.88; }
 
 /* New habit form */
@@ -175,7 +180,6 @@ const todayLabel = new Date().toLocaleDateString('en-GB', {
   border: none;
   outline: none;
 }
-
 .habits__form-name::placeholder { color: var(--color-text-muted); }
 
 .habits__form-actions {
@@ -194,7 +198,6 @@ const todayLabel = new Date().toLocaleDateString('en-GB', {
   cursor: pointer;
   transition: opacity var(--t-fast);
 }
-
 .habits__form-save:hover { opacity: 0.88; }
 
 .habits__form-cancel {
@@ -207,7 +210,6 @@ const todayLabel = new Date().toLocaleDateString('en-GB', {
   cursor: pointer;
   transition: background var(--t-fast);
 }
-
 .habits__form-cancel:hover { background: var(--color-border); }
 
 /* Grid */
@@ -228,10 +230,7 @@ const todayLabel = new Date().toLocaleDateString('en-GB', {
   text-align: center;
 }
 
-.habits__empty-icon {
-  font-size: 40px;
-  line-height: 1;
-}
+.habits__empty-icon { font-size: 40px; line-height: 1; }
 
 .habits__empty-title {
   font-size: 19px;
@@ -259,10 +258,8 @@ const todayLabel = new Date().toLocaleDateString('en-GB', {
   cursor: pointer;
   transition: opacity var(--t-fast);
 }
-
 .habits__empty-btn:hover { opacity: 0.88; }
 
-/* Responsive */
 @media (max-width: 767px) {
   .habits__header { flex-direction: column; gap: 12px; }
   .habits__add-btn { align-self: flex-start; }

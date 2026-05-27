@@ -5,7 +5,10 @@ import TaskInput from '../components/TaskInput.vue'
 import TaskFilters from '../components/TaskFilters.vue'
 import TaskList from '../components/TaskList.vue'
 import TaskProgress from '../components/TaskProgress.vue'
+import { useLocale } from '@/core/i18n'
 import { UiButton } from '@/ui'
+
+const i18n = useLocale()
 
 const {
   inputText, inputPriority,
@@ -53,10 +56,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     <!-- Header row -->
     <div class="tm-view__header">
       <div>
-        <h1 class="tm-view__title">Task Manager</h1>
+        <h1 class="tm-view__title">{{ i18n.t('tasks.title') }}</h1>
         <p class="tm-view__subtitle">
-          <span v-if="store.totalCount > 0">{{ store.activeCount }} remaining · {{ store.doneCount }} done</span>
-          <span v-else>No tasks yet — start your list</span>
+          <span v-if="store.totalCount > 0">
+            {{ i18n.t('tasks.remaining', { n: store.activeCount }) }} · {{ i18n.t('tasks.done', { n: store.doneCount }) }}
+          </span>
+          <span v-else>{{ i18n.t('tasks.empty') }}</span>
           <span class="tm-view__hint">j/k · space · d · /</span>
         </p>
       </div>
@@ -81,7 +86,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           size="sm"
           title="Remove all completed tasks from the list"
           @click="clearCompleted"
-        >Clear done</UiButton>
+        >{{ i18n.t('tasks.clearDone') }}</UiButton>
       </div>
     </div>
 

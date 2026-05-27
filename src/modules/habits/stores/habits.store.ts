@@ -29,6 +29,13 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     }
   }
 
+  function updateHabit(id: string, name: string, emoji?: string): void {
+    const habit = habits.value.find(h => h.id === id)
+    if (!habit) return
+    if (name.trim()) habit.name = name.trim()
+    if (emoji !== undefined) habit.emoji = emoji.trim() || '⭐'
+  }
+
   function deleteHabit(id: string): void {
     const idx = habits.value.findIndex(h => h.id === id)
     if (idx !== -1) habits.value.splice(idx, 1)
@@ -39,5 +46,5 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     return habit ? habit.completedDates.includes(todayStr()) : false
   }
 
-  return { habits, createHabit, toggleToday, deleteHabit, isCompletedToday }
+  return { habits, createHabit, updateHabit, toggleToday, deleteHabit, isCompletedToday }
 })

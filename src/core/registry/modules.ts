@@ -37,7 +37,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'Settings2',
     path: '/settings',
     section: 'platform',
-    status: 'planned',
+    status: 'wip',
     description: 'Appearance, account, keys, data, shortcuts',
   },
   {
@@ -46,7 +46,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'User',
     path: '/about',
     section: 'platform',
-    status: 'planned',
+    status: 'wip',
     description: 'Who built this — links, bio, stack',
   },
 

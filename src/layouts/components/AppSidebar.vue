@@ -3,11 +3,13 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PLATFORM_MODULES, type ModuleMeta } from '@/core/registry/modules'
 import { useUiStore } from '@/core/stores/ui.store'
+import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 
 const route  = useRoute()
 const router = useRouter()
 const uiStore = useUiStore()
+const i18n = useLocale()
 
 const platformModules = computed(() => PLATFORM_MODULES.filter(m => m.section === 'platform'))
 const featureModules  = computed(() => PLATFORM_MODULES.filter(m => m.section === 'modules'))
@@ -18,8 +20,15 @@ function isActive(mod: ModuleMeta): boolean {
 }
 
 function navigate(mod: ModuleMeta) {
-  if (mod.status !== 'available') return
+  if (mod.status !== 'available' && mod.status !== 'wip') return
   router.push(mod.path)
+}
+
+function modLabel(mod: ModuleMeta): string {
+  const key = `modules.${mod.id}`
+  const translated = i18n.t(key)
+  // fallback to original label if key not found
+  return translated === key ? mod.label : translated
 }
 </script>
 
@@ -43,42 +52,47 @@ function navigate(mod: ModuleMeta) {
 
       <!-- System section -->
       <div class="sidebar__group">
-        <p class="sidebar__section-label">System</p>
+        <p class="sidebar__section-label">{{ i18n.t('nav.system') }}</p>
         <button
           v-for="mod in platformModules"
           :key="mod.id"
           class="sidebar__item"
-          :class="{ 'sidebar__item--active': isActive(mod) }"
+          :class="{
+            'sidebar__item--active':   isActive(mod),
+            'sidebar__item--disabled': mod.status !== 'available' && mod.status !== 'wip',
+          }"
           :title="mod.description"
           @click="navigate(mod)"
         >
           <span class="sidebar__icon">
             <UiIcon :name="mod.icon" :size="17" :stroke-width="1.6" />
           </span>
-          <span class="sidebar__label">{{ mod.label }}</span>
+          <span class="sidebar__label">{{ modLabel(mod) }}</span>
+          <span v-if="mod.status === 'wip'" class="sidebar__soon sidebar__soon--wip">{{ i18n.t('nav.wip') }}</span>
+          <span v-else-if="mod.status === 'planned'" class="sidebar__soon">{{ i18n.t('nav.soon') }}</span>
         </button>
       </div>
 
       <!-- Apps section -->
       <div class="sidebar__group">
-        <p class="sidebar__section-label">Apps</p>
+        <p class="sidebar__section-label">{{ i18n.t('nav.apps') }}</p>
         <button
           v-for="mod in featureModules"
           :key="mod.id"
           class="sidebar__item"
           :class="{
             'sidebar__item--active':   isActive(mod),
-            'sidebar__item--disabled': mod.status !== 'available',
+            'sidebar__item--disabled': mod.status !== 'available' && mod.status !== 'wip',
           }"
-          :disabled="mod.status !== 'available'"
-          :title="mod.status === 'available' ? mod.description : `${mod.label} — coming soon`"
+          :disabled="mod.status !== 'available' && mod.status !== 'wip'"
+          :title="mod.status === 'available' || mod.status === 'wip' ? mod.description : `${mod.label} — coming soon`"
           @click="navigate(mod)"
         >
           <span class="sidebar__icon">
             <UiIcon :name="mod.icon" :size="17" :stroke-width="1.6" />
           </span>
-          <span class="sidebar__label">{{ mod.label }}</span>
-          <span v-if="mod.status !== 'available'" class="sidebar__soon">soon</span>
+          <span class="sidebar__label">{{ modLabel(mod) }}</span>
+          <span v-if="mod.status !== 'available' && mod.status !== 'wip'" class="sidebar__soon">{{ i18n.t('nav.soon') }}</span>
         </button>
       </div>
 
@@ -207,5 +221,10 @@ function navigate(mod: ModuleMeta) {
   padding: 2px 5px;
   border-radius: var(--radius-xs);
   flex-shrink: 0;
+}
+
+.sidebar__soon--wip {
+  color: var(--color-warning);
+  background: rgba(240, 160, 48, 0.1);
 }
 </style>

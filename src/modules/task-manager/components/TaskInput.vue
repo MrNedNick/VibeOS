@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { TaskPriority } from '../types'
+import { useLocale } from '@/core/i18n'
 import { UiInput, UiButton } from '@/ui'
+
+const i18n = useLocale()
 
 interface Props {
   modelValue: string
@@ -29,13 +32,13 @@ const PRIORITY_LABEL: Record<TaskPriority, string> = {
   urgent: '!',
 }
 
-const PRIORITY_TITLE: Record<TaskPriority, string> = {
-  none:   'No priority (click to cycle)',
-  low:    'Low priority',
-  medium: 'Medium priority',
-  high:   'High priority',
-  urgent: 'Urgent',
-}
+const PRIORITY_TITLE = (p: TaskPriority) => ({
+  none:   i18n.t('tasks.priorityNone'),
+  low:    i18n.t('tasks.priorityLow'),
+  medium: i18n.t('tasks.priorityMedium'),
+  high:   i18n.t('tasks.priorityHigh'),
+  urgent: i18n.t('tasks.priorityUrgent'),
+}[p] ?? p)
 
 const PRIORITY_CYCLE: TaskPriority[] = ['none', 'low', 'medium', 'high', 'urgent']
 
@@ -54,14 +57,14 @@ const isOverLimit = () => charCount() > props.maxLength
     <button
       class="priority-btn"
       :class="`priority-btn--${priority}`"
-      :title="PRIORITY_TITLE[priority]"
+      :title="PRIORITY_TITLE(priority)"
       @click="cyclePriority"
     >{{ PRIORITY_LABEL[priority] }}</button>
 
     <div class="task-input__field">
       <UiInput
         :model-value="modelValue"
-        placeholder="Add a new task…"
+        :placeholder="i18n.t('tasks.inputPlaceholder')"
         :maxlength="maxLength + 10"
         autofocus
         @update:model-value="emit('update:modelValue', $event)"
@@ -78,7 +81,7 @@ const isOverLimit = () => charCount() > props.maxLength
       :disabled="!modelValue.trim() || isOverLimit()"
       :loading="loading"
       @click="emit('submit')"
-    >Add</UiButton>
+    >{{ i18n.t('tasks.inputAdd') }}</UiButton>
   </div>
 </template>
 

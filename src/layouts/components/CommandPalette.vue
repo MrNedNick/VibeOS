@@ -3,12 +3,14 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
 import { useUiStore } from '@/core/stores/ui.store'
+import { useLocale } from '@/core/i18n'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { UiIcon } from '@/ui'
 
 const palette = useCommandPaletteStore()
 const uiStore = useUiStore()
 const router  = useRouter()
+const i18n    = useLocale()
 
 const query    = ref('')
 const selIdx   = ref(0)
@@ -25,30 +27,34 @@ interface Command {
 }
 
 const commands = computed<Command[]>(() => [
-  // Navigate to each available module
+  // Navigate to each available or wip module
   ...PLATFORM_MODULES
-    .filter(m => m.status === 'available')
-    .map(m => ({
-      id:     `nav:${m.id}`,
-      label:  m.label,
-      icon:   m.icon,
-      group:  'Go to',
-      action: () => { router.push(m.path); palette.close() },
-    })),
+    .filter(m => m.status === 'available' || m.status === 'wip')
+    .map(m => {
+      const key = `modules.${m.id}`
+      const translated = i18n.t(key)
+      return {
+        id:     `nav:${m.id}`,
+        label:  translated === key ? m.label : translated,
+        icon:   m.icon,
+        group:  i18n.t('palette.gotoGroup'),
+        action: () => { router.push(m.path); palette.close() },
+      }
+    }),
 
   // System
   {
     id:     'system:theme',
-    label:  uiStore.isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme',
+    label:  uiStore.isDark ? i18n.t('palette.themeLight') : i18n.t('palette.themeDark'),
     icon:   uiStore.isDark ? 'Sun' : 'Moon',
-    group:  'System',
+    group:  i18n.t('palette.systemGroup'),
     action: () => { uiStore.toggleTheme(); palette.close() },
   },
   {
     id:     'system:sidebar',
-    label:  uiStore.sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar',
+    label:  uiStore.sidebarOpen ? i18n.t('palette.collapseSidebar') : i18n.t('palette.expandSidebar'),
     icon:   'PanelLeft',
-    group:  'System',
+    group:  i18n.t('palette.systemGroup'),
     action: () => { uiStore.toggleSidebar() },
   },
 ])
@@ -145,7 +151,7 @@ function onKeydown(e: KeyboardEvent) {
               ref="inputRef"
               v-model="query"
               class="palette__input"
-              placeholder="Type a command or search…"
+              :placeholder="i18n.t('palette.placeholder')"
               autocomplete="off"
               spellcheck="false"
             />
@@ -178,15 +184,15 @@ function onKeydown(e: KeyboardEvent) {
             </template>
 
             <div v-else class="palette__empty">
-              No results for "{{ query }}"
+              {{ i18n.t('palette.noResults') }} "{{ query }}"
             </div>
           </div>
 
           <!-- Footer -->
           <div class="palette__footer">
-            <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-            <span><kbd>↵</kbd> select</span>
-            <span><kbd>Esc</kbd> close</span>
+            <span><kbd>↑</kbd><kbd>↓</kbd> {{ i18n.t('palette.footerNav') }}</span>
+            <span><kbd>↵</kbd> {{ i18n.t('palette.footerSelect') }}</span>
+            <span><kbd>Esc</kbd> {{ i18n.t('palette.footerClose') }}</span>
           </div>
 
         </div>

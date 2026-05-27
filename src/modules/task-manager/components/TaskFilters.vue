@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TaskFilter } from '../types'
+import { useLocale } from '@/core/i18n'
 import { UiBadge } from '@/ui'
 
 interface Props {
@@ -11,17 +12,14 @@ interface Props {
 
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'update:modelValue': [value: TaskFilter] }>()
+const i18n = useLocale()
 
-interface Tab {
-  id: TaskFilter
-  label: string
-  count: number
-}
+interface Tab { id: TaskFilter; labelKey: string }
 
 const tabs: Tab[] = [
-  { id: 'all',    label: 'All',    count: 0 },
-  { id: 'active', label: 'Active', count: 0 },
-  { id: 'done',   label: 'Done',   count: 0 },
+  { id: 'all',    labelKey: 'tasks.filterAll'    },
+  { id: 'active', labelKey: 'tasks.filterActive' },
+  { id: 'done',   labelKey: 'tasks.filterDone'   },
 ]
 
 function getCount(id: TaskFilter): number {
@@ -32,7 +30,7 @@ function getCount(id: TaskFilter): number {
 </script>
 
 <template>
-  <div class="task-filters" role="tablist" aria-label="Filter tasks">
+  <div class="task-filters" role="tablist" :aria-label="i18n.t('tasks.filterAll')">
     <button
       v-for="tab in tabs"
       :key="tab.id"
@@ -42,7 +40,7 @@ function getCount(id: TaskFilter): number {
       :aria-selected="modelValue === tab.id"
       @click="emit('update:modelValue', tab.id)"
     >
-      {{ tab.label }}
+      {{ i18n.t(tab.labelKey) }}
       <UiBadge :variant="modelValue === tab.id ? 'accent' : 'default'">
         {{ getCount(tab.id) }}
       </UiBadge>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import AppSidebar from './components/AppSidebar.vue'
 import AppHeader from './components/AppHeader.vue'
@@ -12,8 +12,27 @@ import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
 const uiStore = useUiStore()
 const palette = useCommandPaletteStore()
 const route = useRoute()
-const isFullbleed = computed(() => !!route.meta.fullbleed)
 
+// ── Fullbleed state ───────────────────────────────────────────────────
+// We decouple isFullbleed from the route so we can delay the class removal
+// until AFTER the leave animation, preventing layout shifts between
+// fullbleed (Notes/Snippets) and padded (Habits/Tasks) views.
+const isFullbleed = ref(!!route.meta.fullbleed)
+
+watch(
+  () => route.meta.fullbleed,
+  (newVal) => {
+    // Going TO fullbleed: apply immediately (content expands, no jank)
+    if (newVal) isFullbleed.value = true
+    // Going FROM fullbleed: handled by @after-leave below
+  }
+)
+
+function onAfterLeave() {
+  isFullbleed.value = !!route.meta.fullbleed
+}
+
+// ── Command Palette shortcut ──────────────────────────────────────────
 function onKeydown(e: KeyboardEvent) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault()
@@ -33,7 +52,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <main class="app-content" :class="{ 'app-content--fullbleed': isFullbleed }">
         <AppErrorBoundary>
           <router-view v-slot="{ Component }">
-            <Transition name="page" mode="out-in">
+            <Transition name="page" mode="out-in" @after-leave="onAfterLeave">
               <component :is="Component" />
             </Transition>
           </router-view>
@@ -71,9 +90,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   overflow: hidden;
 }
 
-/* Page transition */
-.page-enter-active,
-.page-leave-active { transition: opacity var(--t-fast), transform var(--t-fast); }
-.page-enter-from   { opacity: 0; transform: translateY(4px); }
-.page-leave-to     { opacity: 0; transform: translateY(-4px); }
+/* Page transition — opacity only, no translateY which causes layout-shift
+   when switching between fullbleed and padded views */
+.page-enter-active { transition: opacity 160ms var(--ease); }
+.page-leave-active { transition: opacity 100ms var(--ease); }
+.page-enter-from   { opacity: 0; }
+.page-leave-to     { opacity: 0; }
 </style>

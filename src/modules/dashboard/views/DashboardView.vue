@@ -8,15 +8,17 @@ import { MODULE_DETAILS, PLATFORM_STATUS } from '../data/platform-notes'
 import StatCard from '../components/StatCard.vue'
 import ModuleDetailPanel from '../components/ModuleDetailPanel.vue'
 import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '../components/AllTasksPanel.vue'
+import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 
 const OVERVIEW_ID = '__overview__'
 
 const router = useRouter()
 const tasksStore = useTasksStore()
+const i18n = useLocale()
 
 const today = computed(() =>
-  new Date().toLocaleDateString('en-GB', {
+  new Date().toLocaleDateString(i18n.localeCode, {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
 )
@@ -108,7 +110,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
     <!-- Header ──────────────────────────────────────────────────── -->
     <div class="dashboard__header">
       <div>
-        <h1 class="dashboard__title">Project Control</h1>
+        <h1 class="dashboard__title">{{ i18n.t('dashboard.title') }}</h1>
         <p class="dashboard__date">{{ today }}</p>
       </div>
       <span class="dashboard__version">v0.1.0 · VibeOS</span>
@@ -118,25 +120,25 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
     <div class="dashboard__stats">
       <StatCard
         icon="Package"
-        label="Modules"
+        :label="i18n.t('dashboard.statModules')"
         :value="`${availableCount} / ${PLATFORM_MODULES.length}`"
-        :sub="`${PLATFORM_MODULES.length - availableCount} planned`"
+        :sub="i18n.t('dashboard.planned', { n: PLATFORM_MODULES.length - availableCount })"
         clickable
         @click="selectedId = OVERVIEW_ID"
       />
       <StatCard
         icon="List"
-        label="Platform tasks"
+        :label="i18n.t('dashboard.statTasks')"
         :value="aggregatedTasks.length"
-        :sub="`${aggregatedShipped.length} shipped ✓`"
+        :sub="i18n.t('dashboard.shippedCount', { n: aggregatedShipped.length })"
         clickable
         @click="selectedId = OVERVIEW_ID"
       />
       <StatCard
         icon="TrendingUp"
-        label="Progress"
+        :label="i18n.t('dashboard.statProgress')"
         :value="`${platformProgress}%`"
-        :sub="`${aggregatedShipped.length} of ${platformTotalTasks} done`"
+        :sub="i18n.t('dashboard.progressOf', { done: aggregatedShipped.length, total: platformTotalTasks })"
         :progress="platformProgress"
         :accent="platformProgress > 0"
         clickable
@@ -144,9 +146,9 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
       />
       <StatCard
         icon="FileText"
-        label="Doc pages"
+        :label="i18n.t('dashboard.statDocs')"
         :value="TOTAL_DOC_PAGES"
-        sub="pages written"
+        :sub="i18n.t('dashboard.pagesWritten')"
         clickable
         @click="selectedId = 'docs'"
       />
@@ -165,7 +167,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
           @click="selectedId = OVERVIEW_ID"
         >
           <span class="mod-row__icon"><UiIcon name="List" :size="15" :stroke-width="1.75" /></span>
-          <span class="mod-row__name">All Tasks</span>
+          <span class="mod-row__name">{{ i18n.t('dashboard.allTasks') }}</span>
           <span class="mod-row__count">{{ aggregatedTasks.length }}</span>
         </div>
 
@@ -183,7 +185,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
           @click="selectedId = mod.id"
         >
           <span class="mod-row__icon"><UiIcon :name="mod.icon" :size="15" :stroke-width="1.75" /></span>
-          <span class="mod-row__name">{{ mod.label }}</span>
+          <span class="mod-row__name">{{ i18n.t('modules.' + mod.id) === 'modules.' + mod.id ? mod.label : i18n.t('modules.' + mod.id) }}</span>
           <button
             v-if="mod.status === 'available'"
             class="mod-row__launch"
@@ -199,7 +201,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 
         <!-- Platform health (compact) ─────────────────────────── -->
         <div class="health-compact">
-          <p class="health-compact__label">Platform health</p>
+          <p class="health-compact__label">{{ i18n.t('dashboard.health') }}</p>
           <div
             v-for="item in PLATFORM_STATUS"
             :key="item.label"

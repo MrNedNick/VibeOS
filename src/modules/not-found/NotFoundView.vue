@@ -1,23 +1,23 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useLocale } from '@/core/i18n'
 
 const router = useRouter()
+const i18n = useLocale()
 </script>
 
 <template>
   <div class="not-found">
     <div class="not-found__card">
       <div class="not-found__code">404</div>
-      <h1 class="not-found__title">This route doesn't exist in VibeOS yet.</h1>
-      <p class="not-found__sub">
-        Maybe it's coming in a future sprint — or the URL just has a typo.
-      </p>
+      <h1 class="not-found__title">{{ i18n.t('notFound.title') }}</h1>
+      <p class="not-found__sub">{{ i18n.t('notFound.sub') }}</p>
       <div class="not-found__actions">
         <button class="not-found__btn not-found__btn--primary" @click="router.push('/')">
-          Go to Dashboard
+          {{ i18n.t('notFound.toDashboard') }}
         </button>
         <button class="not-found__btn" @click="router.back()">
-          Go back
+          {{ i18n.t('notFound.back') }}
         </button>
       </div>
     </div>
@@ -82,18 +82,13 @@ const router = useRouter()
   cursor: pointer;
   transition: background var(--t-fast), color var(--t-fast);
 }
-
-.not-found__btn:hover {
-  background: var(--color-border);
-  color: var(--color-text);
-}
+.not-found__btn:hover { background: var(--color-border); color: var(--color-text); }
 
 .not-found__btn--primary {
   background: var(--color-accent);
   color: #fff;
   border-color: var(--color-accent);
 }
-
 .not-found__btn--primary:hover {
   background: var(--color-accent-hover);
   border-color: var(--color-accent-hover);
