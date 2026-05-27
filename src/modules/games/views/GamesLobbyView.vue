@@ -19,7 +19,7 @@ const GAMES = [
     description: 'Flip cards and find all matching pairs.',
     icon: 'Layers',
     path: '/games/memory',
-    status: 'soon' as const,
+    status: 'available' as const,
   },
   {
     id: 'snake',

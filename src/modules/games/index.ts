@@ -11,4 +11,9 @@ export const gamesRoutes: RouteRecordRaw[] = [
     name: 'game-2048',
     component: () => import('./views/Game2048View.vue'),
   },
+  {
+    path: '/games/memory',
+    name: 'game-memory',
+    component: () => import('./views/GameMemoryView.vue'),
+  },
 ]
