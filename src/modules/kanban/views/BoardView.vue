@@ -40,24 +40,38 @@ function onDrop(colId: BoardColumnId) {
   dragDepth.value  = { backlog: 0, 'in-progress': 0, done: 0 }
 }
 
-// ── Add card ────────────────────────────────────────────────────────
-const addingToCol  = ref<BoardColumnId | null>(null)
-const newCardTitle = ref('')
-const addInputRef  = ref<HTMLTextAreaElement | null>(null)
+// ── Add card (modal) ────────────────────────────────────────────────
+const showAddModal     = ref(false)
+const modalCol         = ref<BoardColumnId>('backlog')
+const modalTitle       = ref('')
+const modalDesc        = ref('')
+const modalPriority    = ref<CardPriority>('none')
+const modalDueDate     = ref('')
+const modalTitleRef    = ref<HTMLInputElement | null>(null)
 
 async function startAdd(colId: BoardColumnId) {
-  addingToCol.value = colId; newCardTitle.value = ''
-  await nextTick(); addInputRef.value?.focus()
+  modalCol.value      = colId
+  modalTitle.value    = ''
+  modalDesc.value     = ''
+  modalPriority.value = 'none'
+  modalDueDate.value  = ''
+  showAddModal.value  = true
+  await nextTick(); modalTitleRef.value?.focus()
 }
+
 function confirmAdd() {
-  if (addingToCol.value && newCardTitle.value.trim())
-    store.addCard(addingToCol.value, newCardTitle.value.trim())
-  addingToCol.value = null; newCardTitle.value = ''
+  if (!modalTitle.value.trim()) return
+  const id = store.addCard(modalCol.value, modalTitle.value.trim(), modalDueDate.value || undefined)
+  if (modalDesc.value.trim()) store.updateCard(id, { description: modalDesc.value.trim() })
+  if (modalPriority.value !== 'none') store.updateCard(id, { priority: modalPriority.value })
+  showAddModal.value = false
 }
-function cancelAdd() { addingToCol.value = null; newCardTitle.value = '' }
-function onAddKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); confirmAdd() }
+
+function cancelAdd() { showAddModal.value = false }
+
+function onModalKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') cancelAdd()
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); confirmAdd() }
 }
 
 // ── Edit card title ─────────────────────────────────────────────────
@@ -264,27 +278,12 @@ const totalCards = computed(() => store.cards.length)
               </div>
             </div>
 
-            <div v-if="store.cardsForColumn(col.id).length === 0 && addingToCol !== col.id" class="board-col__empty">
+            <div v-if="store.cardsForColumn(col.id).length === 0" class="board-col__empty">
               <span>{{ i18n.t('kanban.emptyCol') }}</span>
-            </div>
-
-            <div v-if="addingToCol === col.id" class="board-card board-card--new">
-              <textarea
-                ref="addInputRef"
-                v-model="newCardTitle"
-                class="board-card__new-input"
-                :placeholder="i18n.t('kanban.addPlaceholder')"
-                rows="2"
-                @keydown="onAddKeydown"
-              />
-              <div class="board-card__new-actions">
-                <button class="board-card__new-confirm" @click="confirmAdd">{{ i18n.t('kanban.addConfirm') }}</button>
-                <button class="board-card__new-cancel" @click="cancelAdd">✕</button>
-              </div>
             </div>
           </div>
 
-          <button v-if="addingToCol !== col.id" class="board-col__add-btn" @click="startAdd(col.id)">
+          <button class="board-col__add-btn" @click="startAdd(col.id)">
             + {{ i18n.t('kanban.addCard') }}
           </button>
         </div>
@@ -326,6 +325,78 @@ const totalCards = computed(() => store.cards.length)
         </div>
       </Transition>
     </div>
+
+    <!-- ── Add card modal ──────────────────────────────── -->
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div v-if="showAddModal" class="modal-backdrop" @mousedown.self="cancelAdd">
+          <div class="modal" @keydown="onModalKeydown">
+            <div class="modal__header">
+              <h2 class="modal__title">{{ i18n.t('kanban.modalTitle') }}</h2>
+              <button class="modal__close" @click="cancelAdd">✕</button>
+            </div>
+
+            <div class="modal__body">
+              <input
+                ref="modalTitleRef"
+                v-model="modalTitle"
+                class="modal__input"
+                :placeholder="i18n.t('kanban.addPlaceholder')"
+                @keydown.enter.prevent="confirmAdd"
+              />
+
+              <textarea
+                v-model="modalDesc"
+                class="modal__textarea"
+                :placeholder="i18n.t('kanban.modalDescPlaceholder')"
+                rows="3"
+              />
+
+              <div class="modal__row">
+                <div class="modal__field">
+                  <label class="modal__label">{{ i18n.t('kanban.modalColumn') }}</label>
+                  <select v-model="modalCol" class="modal__select">
+                    <option v-for="col in BOARD_COLUMNS" :key="col.id" :value="col.id">
+                      {{ colLabel(col.id) }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="modal__field">
+                  <label class="modal__label">{{ i18n.t('kanban.modalPriority') }}</label>
+                  <select v-model="modalPriority" class="modal__select">
+                    <option value="none">{{ i18n.t('kanban.priorityNone') }}</option>
+                    <option value="low">{{ i18n.t('kanban.priorityLow') }}</option>
+                    <option value="medium">{{ i18n.t('kanban.priorityMedium') }}</option>
+                    <option value="high">{{ i18n.t('kanban.priorityHigh') }}</option>
+                    <option value="urgent">{{ i18n.t('kanban.priorityUrgent') }}</option>
+                  </select>
+                </div>
+
+                <div class="modal__field">
+                  <label class="modal__label">{{ i18n.t('kanban.modalDueDate') }}</label>
+                  <input type="date" v-model="modalDueDate" class="modal__date-input" />
+                </div>
+              </div>
+            </div>
+
+            <div class="modal__footer">
+              <button class="modal__btn modal__btn--secondary" @click="cancelAdd">
+                {{ i18n.t('kanban.modalCancel') }}
+              </button>
+              <button
+                class="modal__btn modal__btn--primary"
+                :disabled="!modalTitle.trim()"
+                @click="confirmAdd"
+              >
+                {{ i18n.t('kanban.modalCreate') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
   </div>
 </template>
 
@@ -512,10 +583,8 @@ const totalCards = computed(() => store.cards.length)
 }
 .board-card:active { cursor: grabbing; }
 .board-card--dragging { opacity: 0.4; }
-.board-card--new {
-  cursor: default;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px var(--color-accent-muted);
+.board-card--expanded {
+  border-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
 }
 
 .board-card__priority-strip {
@@ -623,30 +692,169 @@ const totalCards = computed(() => store.cards.length)
   padding-top: 2px;
 }
 
-/* New card form */
-.board-card__new-input {
-  font-size: 14px; color: var(--color-text);
-  background: transparent; border: none; outline: none;
-  padding: 10px 10px 4px 14px;
-  width: 100%; resize: none; font-family: inherit; line-height: 1.5;
+/* ── Add card modal ──────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
-.board-card__new-actions {
-  display: flex; align-items: center; gap: 6px; padding: 4px 10px 8px 14px;
+
+.modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
 }
-.board-card__new-confirm {
-  padding: 4px 12px; background: var(--color-accent); color: #fff;
-  border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
-  transition: opacity var(--t-fast);
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--color-border);
 }
-.board-card__new-confirm:hover { opacity: 0.85; }
-.board-card__new-cancel {
-  font-size: 13px; color: var(--color-text-muted); padding: 4px 8px;
-  border-radius: var(--radius-sm); transition: color var(--t-fast), background var(--t-fast);
+
+.modal__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
 }
-.board-card__new-cancel:hover {
+
+.modal__close {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.modal__close:hover {
   color: var(--color-danger);
   background: color-mix(in srgb, var(--color-danger) 8%, transparent);
 }
+
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 22px;
+}
+
+.modal__input {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color var(--t-fast);
+}
+.modal__input:focus { border-color: var(--color-accent); }
+
+.modal__textarea {
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.5;
+  transition: border-color var(--t-fast);
+}
+.modal__textarea:focus { border-color: var(--color-accent); }
+
+.modal__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.modal__select,
+.modal__date-input {
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--t-fast);
+}
+.modal__select:focus,
+.modal__date-input:focus { border-color: var(--color-accent); }
+
+.modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.modal__btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity var(--t-fast), background var(--t-fast);
+  cursor: pointer;
+}
+
+.modal__btn--secondary {
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+}
+.modal__btn--secondary:hover { background: var(--color-bg); }
+
+.modal__btn--primary {
+  color: #fff;
+  background: var(--color-accent);
+}
+.modal__btn--primary:hover:not(:disabled) { opacity: 0.88; }
+.modal__btn--primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Modal transition */
+.modal-fade-enter-active { transition: opacity 160ms var(--ease); }
+.modal-fade-enter-active .modal { transition: transform 160ms var(--ease), opacity 160ms var(--ease); }
+.modal-fade-leave-active { transition: opacity 120ms var(--ease); }
+.modal-fade-leave-active .modal { transition: transform 120ms var(--ease), opacity 120ms var(--ease); }
+.modal-fade-enter-from { opacity: 0; }
+.modal-fade-enter-from .modal { transform: scale(0.96) translateY(8px); opacity: 0; }
+.modal-fade-leave-to { opacity: 0; }
+.modal-fade-leave-to .modal { transform: scale(0.96) translateY(4px); opacity: 0; }
 
 /* ── Task import panel ───────────────────────────────────── */
 .task-panel {
