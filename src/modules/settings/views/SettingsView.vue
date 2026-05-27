@@ -55,7 +55,7 @@ const SHORTCUTS = [
   { keys: ['Enter'],           scope: 'Palette',   desc: 'Select result' },
   { keys: ['⌘', 'N'],         scope: 'Notes',     desc: 'New note' },
   { keys: ['⌘', 'F'],         scope: 'Notes',     desc: 'Focus search' },
-  { keys: ['⌘', '⇧', 'P'],   scope: 'Notes',     desc: 'Toggle preview / split' },
+  { keys: ['⌘', '⇧', 'P'],   scope: 'Notes',     desc: 'Toggle edit / preview' },
   { keys: ['⌘', 'N'],         scope: 'Snippets',  desc: 'New snippet' },
   { keys: ['⌘', 'F'],         scope: 'Snippets',  desc: 'Focus search' },
   { keys: ['j', '↓'],         scope: 'Tasks',     desc: 'Focus next task' },

@@ -3,6 +3,10 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
+import { useGoalsStore } from '@/modules/goals/stores/goals.store'
+import { useLearningStore } from '@/modules/learning/stores/learning.store'
+import { useTrainingStore } from '@/modules/training/stores/training.store'
+import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { TOTAL_DOC_PAGES } from '@/modules/docs/data/docs-registry'
 import { MODULE_DETAILS, PLATFORM_STATUS } from '../data/platform-notes'
 import StatCard from '../components/StatCard.vue'
@@ -16,7 +20,18 @@ const OVERVIEW_ID = '__overview__'
 
 const router = useRouter()
 const tasksStore = useTasksStore()
+const goalsStore = useGoalsStore()
+const learningStore = useLearningStore()
+const trainingStore = useTrainingStore()
+const habitsStore = useHabitsStore()
 const i18n = useLocale()
+
+const todayHabits = computed(() => {
+  const today = new Date().toISOString().split('T')[0]
+  const total = habitsStore.habits.length
+  const done  = habitsStore.habits.filter(h => h.completedDates.includes(today)).length
+  return { total, done }
+})
 
 const today = computed(() =>
   new Date().toLocaleDateString(i18n.localeCode, {
@@ -103,6 +118,7 @@ const availableCount = computed(() =>
 )
 
 const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', planned: '◷' }
+const APP_VERSION = __APP_VERSION__
 </script>
 
 <template>
@@ -114,7 +130,7 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
         <h1 class="dashboard__title">{{ i18n.t('dashboard.title') }}</h1>
         <p class="dashboard__date">{{ today }}</p>
       </div>
-      <span class="dashboard__version">v0.1.0 · VibeOS</span>
+      <span class="dashboard__version">v{{ APP_VERSION }} · VibeOS</span>
     </div>
 
     <!-- Widget strip ────────────────────────────────────────────── -->
@@ -153,6 +169,44 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
         clickable
         @click="selectedId = 'docs'"
       />
+    </div>
+
+    <!-- Life module stats ───────────────────────────────────────── -->
+    <div class="dashboard__life-stats">
+      <div class="life-stat" @click="router.push('/habits')">
+        <span class="life-stat__icon">●</span>
+        <div class="life-stat__info">
+          <span class="life-stat__value">{{ todayHabits.done }}/{{ todayHabits.total }}</span>
+          <span class="life-stat__label">Habits today</span>
+        </div>
+        <div
+          class="life-stat__bar"
+          :style="{ '--pct': todayHabits.total > 0 ? `${Math.round(todayHabits.done/todayHabits.total*100)}%` : '0%' }"
+        />
+      </div>
+      <div class="life-stat" @click="router.push('/goals')">
+        <span class="life-stat__icon">🎯</span>
+        <div class="life-stat__info">
+          <span class="life-stat__value">{{ goalsStore.activeGoals.length }}</span>
+          <span class="life-stat__label">Active goals</span>
+        </div>
+      </div>
+      <div class="life-stat" @click="router.push('/learning')">
+        <span class="life-stat__icon">📚</span>
+        <div class="life-stat__info">
+          <span class="life-stat__value">{{ learningStore.todayItems.length }}</span>
+          <span class="life-stat__label">Learning today</span>
+        </div>
+        <span v-if="learningStore.todayItems.some(i => i.logged)" class="life-stat__done">{{ learningStore.todayItems.filter(i => i.logged).length }} done</span>
+      </div>
+      <div class="life-stat" @click="router.push('/training')">
+        <span class="life-stat__icon">💪</span>
+        <div class="life-stat__info">
+          <span class="life-stat__value">{{ trainingStore.todayItems.length }}</span>
+          <span class="life-stat__label">Training today</span>
+        </div>
+        <span v-if="trainingStore.todayItems.some(i => i.logged)" class="life-stat__done">{{ trainingStore.todayItems.filter(i => i.logged).length }} done</span>
+      </div>
     </div>
 
     <!-- Workspace: module list + detail panel ───────────────────── -->
@@ -290,6 +344,69 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
+}
+
+/* Life stats strip */
+.dashboard__life-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.life-stat {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color var(--t-fast);
+  position: relative;
+  overflow: hidden;
+}
+.life-stat:hover { border-color: var(--color-accent); }
+
+.life-stat__icon { font-size: 20px; flex-shrink: 0; }
+
+.life-stat__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.life-stat__value {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.life-stat__label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.life-stat__done {
+  font-size: 11px;
+  color: var(--color-success);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.life-stat__bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: var(--pct, 0%);
+  height: 2px;
+  background: var(--color-accent);
+  border-radius: 0 99px 99px 0;
+  transition: width 0.4s ease;
 }
 
 /* Workspace */
@@ -473,14 +590,16 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
 
 /* Responsive — md: 2×2 widget grid, stacked workspace */
 @media (max-width: 1279px) {
-  .dashboard__stats { grid-template-columns: repeat(2, 1fr); }
+  .dashboard__stats      { grid-template-columns: repeat(2, 1fr); }
+  .dashboard__life-stats { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* Responsive — sm: single column everything */
 @media (max-width: 767px) {
-  .dashboard__stats     { grid-template-columns: 1fr; }
-  .dashboard__workspace { grid-template-columns: 1fr; }
-  .dashboard__header    { flex-direction: column; gap: 4px; }
-  .dashboard__version   { display: none; }
+  .dashboard__stats      { grid-template-columns: 1fr; }
+  .dashboard__life-stats { grid-template-columns: repeat(2, 1fr); }
+  .dashboard__workspace  { grid-template-columns: 1fr; }
+  .dashboard__header     { flex-direction: column; gap: 4px; }
+  .dashboard__version    { display: none; }
 }
 </style>
