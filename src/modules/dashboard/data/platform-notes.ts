@@ -269,8 +269,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   kanban: {
-    progress: 70,
-    milestone: 'Core board live — drag-and-drop, 3 columns, inline edit, priorities',
+    progress: 90,
+    milestone: 'S4 differentiators shipped — timeline swimlanes + task import + due dates',
     shippedTasks: [
       { label: 'Board module at /kanban — 3-column layout (Backlog / In Progress / Done)', date: '2026-05-27' },
       { label: 'Native HTML5 drag-and-drop cards between columns', date: '2026-05-27' },
@@ -283,23 +283,25 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'localStorage persistence via useStorage', date: '2026-05-27' },
       { label: 'Event bus integration: card added → snippet:created, card moved to Done → task:completed', date: '2026-05-27' },
       { label: 'Responsive: 2-col on md, 1-col on sm', date: '2026-05-27' },
+      { label: 'Timeline swimlane view — rows = overdue/today/tomorrow/this-week/later/no-date', date: '2026-05-27' },
+      { label: '2D drag-and-drop in timeline: dropping sets both column AND due date simultaneously', date: '2026-05-27' },
+      { label: 'Kanban ↔ Timeline view toggle (persisted in localStorage)', date: '2026-05-27' },
+      { label: 'Card due dates: inline date picker in expanded card, badge with overdue/today/later styling', date: '2026-05-27' },
+      { label: 'Task import panel: slide-in panel lists active tasks, import as board card with link', date: '2026-05-27' },
+      { label: 'Auto-complete linked Task when card moves to Done (lazy store import, no circular deps)', date: '2026-05-27' },
+      { label: 'Source task indicator on imported cards', date: '2026-05-27' },
     ],
     nextTasks: [
-      { label: 'Decide: unify cards with Tasks store (one entity, two views)', priority: 'high' },
-      { label: 'Time-based swimlanes (rows = days/sprints) — the main differentiator', priority: 'high' },
-      { label: 'WIP limits per column with visual warning', priority: 'medium' },
-      { label: 'Card due dates + overdue indicator', priority: 'medium' },
       { label: 'Drag to reorder within a column', priority: 'medium' },
-      { label: 'Labels / color tags', priority: 'low' },
+      { label: 'WIP limits per column with visual warning', priority: 'medium' },
+      { label: 'Labels / color tags on cards', priority: 'low' },
     ],
     improvements: [
-      'Swimlane rows per day/week (unique differentiator)',
-      'Unified store with Tasks (same card appears in both views)',
       'Drag within column for reordering',
       'Column WIP limits with visual overflow indicator',
     ],
     techDebt: [
-      { label: 'Cards are a separate entity from Tasks — should be unified in S4', severity: 'medium' },
+      { label: 'No drag-to-reorder within a column — only cross-column/row drag', severity: 'low' },
     ],
     ideas: [
       'Sprint planning view (group cards into time-boxed sprints)',

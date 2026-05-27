@@ -85,6 +85,7 @@ Order:
 ## Recently shipped (history)
 
 ### 2026-05-27
+- **Board swimlanes + task unification** — S4 differentiator: Timeline view with date-based swimlane rows (overdue / today / tomorrow / this-week / later / no-date) × status columns; 2D drag-and-drop sets both column and due date; Kanban ↔ Timeline toggle (persisted); task import panel (slide-in, links card to source task, auto-completes task on Done); due date badge with urgency styling; inline date picker in expanded card
 - **i18n system** — custom Pinia store (zero new deps), EN + RU locales, 90+ translated keys, `pluralRu()` helper for Russian declension
 - **Settings module** at `/settings` — Appearance tab: theme + language toggles working; stub sections for Keyboard / Data / Account
 - **About page** at `/about` — VibeOS logo SVG, 7-item tech stack grid, version row, GitHub link, responsive
