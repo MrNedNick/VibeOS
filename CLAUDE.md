@@ -1,5 +1,22 @@
 # VibeOS — Project Instructions for Claude
 
+## Strategy & sprint plan
+
+Before starting any non-trivial work, read:
+- `docs/strategy.md` — positioning, architecture decisions, per-module direction
+- `docs/roadmap.md` — current sprint plan (S1 → S5)
+
+Active sprint and priority are encoded in each task subject as `[S1·P0]`, `[S2·P1]`, etc. Pick tasks in sprint order (S1 → S2 → S3 → S4 → S5) and within a sprint follow the `metadata.order` field. Don't pull from a later sprint while earlier-sprint tasks are still open unless explicitly redirected.
+
+**Sprint shorthand:**
+- **S1 — Identity:** positioning, logo, vibe-paks, Lucide icons, copy pass, landing, README
+- **S2 — Wow:** Command Palette ⌘K, Settings module, event bus, Dashboard redesign, About
+- **S3 — Backend:** schema migrations, Supabase auth/sync, error boundaries + 404
+- **S4 — Module depth:** Tasks (Today/Focus/Streaks), Notes (backlinks/journal), Board, Studio, Snippets, Habits
+- **S5 — Polish:** Vitest + CI gate
+
+---
+
 ## Auto-commit rule
 
 After every successful implementation of a task or group of related tasks:

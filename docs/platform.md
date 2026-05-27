@@ -1,17 +1,19 @@
 # VibeOS — Platform Overview
 
-**VibeOS** is a modular engineering workspace built with Vue 3 — a single codebase containing multiple independent apps. Designed as a real product, not a demo. Built in the vibe coding era with AI-assisted development.
+**VibeOS** is a personal operating system for the vibe-coding era — a single codebase containing multiple independent apps under one OS-style shell. Built in Vue 3 with AI-assisted development. Designed to be lived in, not just demoed.
+
+See `docs/strategy.md` for positioning, sprint plan and architectural direction.
 
 ---
 
 ## Vision
 
-Build a platform that feels like a real product suite — not a collection of demos.
+A public personal setup that ties together the tools the author actually uses — tasks, notes, board, snippets, games, AI — under one keyboard and one switchable aesthetic.
 
-Each app should be:
+Each app must be:
 - Independently useful
 - Architecturally consistent
-- Visually polished
+- Visually polished — and reskinnable via vibe-paks
 - Production-ready in its own right
 
 The platform demonstrates mastery of:
@@ -19,7 +21,9 @@ The platform demonstrates mastery of:
 - TypeScript and type safety
 - State management patterns (Pinia)
 - Composable-driven development
-- Reusable UI systems
+- Reusable UI + theme systems (vibe-paks)
+- Cross-module messaging (event bus)
+- Offline-first storage with optional cloud sync (Supabase)
 - AI-assisted development workflows (Claude)
 
 ---
@@ -40,12 +44,13 @@ The platform demonstrates mastery of:
 
 **Product name:** VibeOS  
 **Version:** 0.1.0  
-**Active apps:** Dashboard, Docs, Tasks, Notes  
+**Active apps:** Dashboard, Docs, Tasks, Notes, Games (2048)  
 **Architecture:** ✅ Clean and layered  
 **TypeScript:** ✅ Strict mode, 0 errors  
-**Tests:** ❌ Not yet implemented  
-**Backend:** ❌ localStorage only  
-**Deployment:** ❌ Not yet deployed
+**Tests:** ❌ Not yet implemented (S5)  
+**Backend:** ❌ localStorage only (S3 — Supabase planned)  
+**Deployment:** ✅ Live at mrnednick.github.io/VibeOS  
+**Active sprint:** S1 — Identity (positioning, logo, vibe-paks, landing, README)
 
 ---
 
@@ -63,16 +68,20 @@ The platform demonstrates mastery of:
 
 ## App Roadmap
 
-| App | Status | Description |
-|-----|--------|-------------|
-| Dashboard | ✅ Active | Platform overview and module control center |
-| Docs | ✅ Active | In-app markdown documentation viewer |
-| Tasks | ✅ Active | Task creation, filtering, persistence |
-| Notes | ✅ Active | Markdown notes with live split preview |
-| Board | 🔜 Planned | Visual workflow board with drag-and-drop |
-| Studio | 🔜 Planned | Claude API experiments and prompt builder |
-| Forms | 🔜 Planned | Drag-and-drop form designer |
-| Insights | 🔜 Planned | Usage tracking and metrics |
+| App | Status | Sprint | Description |
+|-----|--------|--------|-------------|
+| Dashboard | ✅ Active | S2 redesign | Live home screen — clock, weather, Today tasks, activity feed |
+| Docs | ✅ Active | — | In-app markdown documentation viewer |
+| Tasks (→ *Stride*) | ✅ Active | S4 product features | Today view + Focus mode (Pomodoro) + Streaks |
+| Notes (→ *Inkwell/Slate*) | ✅ Active | S4 product features | Markdown + `[[backlinks]]` + daily journal |
+| Games | ✅ Active | S4 expand | 2048 done; Memory + Snake next |
+| Settings | 🔜 S2 | — | Appearance / Account / Keys / Data / Shortcuts / About |
+| About | 🔜 S2 | — | Personal portfolio anchor at `/about` |
+| Board | 🔜 S4 | — | Time-based swimlanes (rows = days, cols = statuses), unified with Tasks |
+| Studio | 🔜 S4 | — | Prompt Lab — parallel model comparison (Opus / Sonnet / Haiku) |
+| Snippets | 🔜 S4 | — | Code vault with syntax highlighting + tags + search |
+| Habits | 🔜 S4 | — | Daily check-offs + streak heatmap |
+| Currency | 🔁 Demoted | — | Now a Dashboard widget, not a standalone module |
 
 ---
 
@@ -88,11 +97,25 @@ The platform demonstrates mastery of:
 
 ## Branding
 
-| Token | Value |
-|-------|-------|
-| Product name | VibeOS |
-| Logo mark | `//` (double slash — universal code comment symbol) |
-| Accent color | `#4f8ef7` |
-| Font | Geist (headings + body) + JetBrains Mono (code) |
-| Brand tone | Precise · Composed · Alive |
-| Tagline direction | *Your engineering workspace* |
+> **S1 work in progress.** The values below are placeholders being replaced this sprint. See task #2 (positioning) and task #3 (logo + accent) in the task list.
+
+| Token | Value (current) | Direction (S1) |
+|-------|-----------------|----------------|
+| Product name | VibeOS | unchanged |
+| Logo mark | `//` (placeholder) | Blinking block cursor `▮` (recommended) |
+| Accent color | `#4f8ef7` | Pick a unique accent (not Vercel default) |
+| Font | Geist + JetBrains Mono | Consider a more distinct heading mono |
+| Icon system | Unicode glyphs | Lucide via lucide-vue-next |
+| Brand tone | Precise · Composed · Alive | unchanged |
+| Tagline | *Your engineering workspace* | *Personal OS for the vibe-coding era* (working) |
+
+### Vibe-paks (multi-theme system)
+
+VibeOS ships with switchable visual moods, each a complete CSS variable override:
+
+| Pack | Status | Mood |
+|------|--------|------|
+| Terminal Dark | ✅ current default | Dark, blue accent, dev-native |
+| Brutalist | 🔜 S1 | White bg, 2px black borders, mono everywhere |
+| Soft Glass | 🔜 later | Backdrop blur, pastels, soft shadows |
+| CRT Retro | 🔜 later | Green phosphor, scanlines, flicker |
