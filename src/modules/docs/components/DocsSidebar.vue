@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DocSection } from '../data/docs-registry'
 import { DOC_FILES } from '../composables/useDocs'
+import { useLocale } from '@/core/i18n'
 
 interface Props {
   sections: DocSection[]
@@ -11,6 +12,8 @@ interface Props {
 
 const props = defineProps<Props>()
 const router = useRouter()
+const i18n = useLocale()
+const isRu = computed(() => i18n.locale === 'ru')
 
 const searchQuery = ref('')
 const collapsed = ref<Set<string>>(new Set())
@@ -39,8 +42,10 @@ function extractSnippet(content: string, query: string): string {
 interface FilteredPage {
   slug: string
   label: string
+  labelRu: string
   filePath: string
   description?: string
+  descriptionRu?: string
   snippet?: string
 }
 
@@ -53,7 +58,9 @@ const filteredSections = computed(() => {
     for (const p of section.pages) {
       const titleMatch =
         p.label.toLowerCase().includes(q) ||
-        (p.description?.toLowerCase().includes(q) ?? false)
+        p.labelRu.toLowerCase().includes(q) ||
+        (p.description?.toLowerCase().includes(q) ?? false) ||
+        (p.descriptionRu?.toLowerCase().includes(q) ?? false)
 
       if (titleMatch) {
         pages.push(p)
@@ -82,7 +89,7 @@ const isCollapsed = (id: string) =>
         v-model="searchQuery"
         class="docs-nav__search"
         type="search"
-        placeholder="Search docs…"
+        :placeholder="i18n.t('docs.searchPlaceholder')"
         aria-label="Search documentation"
       />
     </div>
@@ -97,7 +104,7 @@ const isCollapsed = (id: string) =>
         :class="{ 'docs-nav__label--collapsed': isCollapsed(section.id) }"
         @click="toggleSection(section.id)"
       >
-        <span>{{ section.label }}</span>
+        <span>{{ isRu ? section.labelRu : section.label }}</span>
         <span class="docs-nav__chevron">{{ isCollapsed(section.id) ? '›' : '⌄' }}</span>
       </button>
 
@@ -109,7 +116,8 @@ const isCollapsed = (id: string) =>
           :class="{ 'docs-nav__item--active': activeSlug === page.slug }"
           @click="router.push(`/docs/${page.slug}`)"
         >
-          <span class="docs-nav__item-label">{{ page.label }}</span>
+          <span class="docs-nav__item-label">{{ isRu ? page.labelRu : page.label }}</span>
+          <span v-if="isRu && page.descriptionRu" class="docs-nav__desc">{{ page.descriptionRu }}</span>
           <span v-if="(page as FilteredPage).snippet" class="docs-nav__snippet">
             {{ (page as FilteredPage).snippet }}
           </span>
@@ -117,7 +125,7 @@ const isCollapsed = (id: string) =>
       </div>
     </div>
 
-    <p v-if="filteredSections.length === 0" class="docs-nav__empty">No results</p>
+    <p v-if="filteredSections.length === 0" class="docs-nav__empty">{{ i18n.t('docs.noResults') }}</p>
   </nav>
 </template>
 
@@ -202,6 +210,12 @@ const isCollapsed = (id: string) =>
   font-weight: 500;
   color: var(--color-text-secondary);
   transition: color var(--t-fast);
+}
+
+.docs-nav__desc {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.3;
 }
 
 .docs-nav__snippet {

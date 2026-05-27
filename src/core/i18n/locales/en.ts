@@ -213,6 +213,11 @@ export const en = {
     errorCors: 'Request blocked — browser CORS policy.',
     errorCorsHint: 'Anthropic API may not allow direct browser requests. Try running VibeOS via a local proxy or check the docs.',
   },
+  docs: {
+    title: 'Documentation',
+    searchPlaceholder: 'Search docs…',
+    noResults: 'No results',
+  },
   dashboardDetail: {
     openModule: 'Open module',
     completeness: 'Module completeness',

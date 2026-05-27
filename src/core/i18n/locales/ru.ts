@@ -215,6 +215,11 @@ export const ru: Messages = {
     errorCors: 'Запрос заблокирован — политика CORS браузера.',
     errorCorsHint: 'Anthropic API может не разрешать прямые запросы из браузера. Попробуйте запустить VibeOS через локальный прокси.',
   },
+  docs: {
+    title: 'Документация',
+    searchPlaceholder: 'Поиск по документации…',
+    noResults: 'Ничего не найдено',
+  },
   dashboardDetail: {
     openModule: 'Открыть модуль',
     completeness: 'Готовность модуля',
