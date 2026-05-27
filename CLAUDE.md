@@ -81,6 +81,19 @@ Do not ship UI without checking at least `lg` and `sm` breakpoints.
 
 ---
 
+## Version bump rule
+
+Every time a new feature is built **and deployed**, bump the version in `package.json`:
+
+- **Patch** (`0.x.Y` → `0.x.Y+1`): small fix, visual tweak, copy change
+- **Minor** (`0.X.0` → `0.X+1.0`): new module shipped, significant feature added
+- **Major** (`X.0.0`): reserved for production launch / full auth + backend live
+
+Update `package.json` `"version"` field as part of the same commit that ships the feature.
+This makes it immediately visible in the browser (About page, footer, or console) whether the latest deploy is live.
+
+---
+
 ## General coding conventions
 
 - Module structure: `types → store → composable → components → view`

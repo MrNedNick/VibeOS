@@ -86,9 +86,8 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'BookOpen',
     path: '/learning',
     section: 'life',
-    status: 'planned',
-    sprint: 'S5',
-    description: 'Structured learning plans and daily session tracking',
+    status: 'available',
+    description: 'Structured learning plans, daily sessions, streaks and progress tracking',
   },
   {
     id: 'training',

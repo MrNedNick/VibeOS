@@ -290,3 +290,197 @@ All AI features are user-initiated (button click), never automatic.
 - External integrations: Notion, Readwise, Kindle highlights? Long-term future — out of scope for v1.
 - Social/sharing: show learning progress on a public profile? Possible portfolio feature — defer past S5.
 - Learning plan templates: pre-built plans for common topics (TypeScript in 4 weeks, basic Spanish, etc.)? Good for empty state onboarding — add as demo content first.
+
+---
+
+## Research: Modern Effective Learning Systems
+
+> Research pass: 2026-05-27. Informs MVP decisions below.
+
+---
+
+### 1. Learning Psychology Fundamentals
+
+These are the patterns that actually work, backed by cognitive science:
+
+**Spaced Repetition**
+Information recalled after a gap sticks longer than cramming. The forgetting curve (Ebbinghaus) shows retention drops fast without review. The fix: review at increasing intervals (1d → 3d → 7d → 14d → 30d). Best example: Anki. For VibeOS v1, we don't need a full SR engine — just showing "you haven't reviewed this topic in 7 days" is enough to trigger it.
+
+**Chunking**
+Break knowledge into small, discrete units. 20 minutes of focused learning on one concept > 60 minutes of scattered reading. Our `minutesPerSession` field already enforces this. The key UX implication: don't let users set sessions > 60 min — that's not learning, that's procrastination with extra steps.
+
+**Retrieval Practice (Testing Effect)**
+Recalling information from memory beats re-reading by 2–3× for long-term retention. Even simple prompts — "what did I learn yesterday?" — activate this. Our `notes` field in `LearningSession` does this passively: users who write session notes are doing retrieval practice.
+
+**Interleaving**
+Mixing topics/skills within a session is harder but produces deeper mastery than blocked practice (topic-by-topic). Relevant for future multi-plan views: show "you're studying TypeScript — maybe also do 10 min of algorithms today."
+
+**The 2-Minute Rule + Identity Anchoring (James Clear / Atomic Habits)**
+Habits form when the action is frictionless and tied to identity. "I am a person who learns every day" is more powerful than "I have a 20-min TypeScript task." Our Habits integration directly supports this — a learning plan that becomes a daily habit turns into identity, not obligation.
+
+**Progress Effect / Goal Gradient**
+Motivation increases as people approach a goal (proven in lab and app data — Duolingo, fitness trackers). A progress ring showing 60% completion pulls harder than 10%. Show progress prominently, especially when the user is 70%+ done.
+
+---
+
+### 2. What Works in Successful Learning Products
+
+**Duolingo** — streak mechanics, micro-sessions (5 min), gamification, daily notification. Weakness: gamification becomes the goal, not learning.
+
+**Anki** — spaced repetition as core mechanic, community decks. Strength: the most effective retention tool ever made. Weakness: horrible UX, high friction to start.
+
+**Khan Academy** — mastery-based progression, topic tree, video + practice. Strength: clear structure. Weakness: too school-like for adult self-learners.
+
+**Brilliant** — problem-first learning, interleaving, no passive video. Strength: forces active engagement. Weakness: narrow topic coverage.
+
+**Readwise** — daily review of highlights. Strength: turns passive reading into active retention. Lightweight.
+
+**Key patterns extracted:**
+1. **Streak + consistency > volume** — showing up matters more than session length
+2. **One thing per day** — decision fatigue kills learning; tell the user exactly what to do today
+3. **Fast session logging** — if logging takes > 30 seconds, people skip it
+4. **Visible progress** — a progress ring, heatmap, or streak counter as the main visual anchor
+5. **Low-friction start** — "Start session" should be one tap, not a setup flow
+
+---
+
+### 3. Why Most Learning Apps Fail
+
+- **Too much content, too little structure.** Users get overwhelmed choosing what to study.
+- **No daily anchor.** Without a habit/reminder, the app gets opened once a week.
+- **Passive content consumption.** Watching videos feels like learning but isn't.
+- **No feedback loop.** Users don't know if they're actually improving.
+- **Feature creep kills simplicity.** The moment you add quizzes, flashcards, videos, forums, the UX collapses.
+
+VibeOS avoids all of these by design: the user defines the plan, we give them a daily task, they log it in 30 seconds, and the heatmap shows the result.
+
+---
+
+### 4. How AI Can Improve This Workflow
+
+**Without AI (MVP):**
+The system already works — user creates a plan, logs sessions, sees progress. This is the baseline. AI is an enhancement, not a requirement.
+
+**AI Layer 1 — Plan Generation (S6):**
+User says: "I want to learn arrays in JavaScript in 2 weeks with 20 min/day." AI generates:
+- Week 1: Basics (declaration, indexing, length, iteration)
+- Week 2: Methods (map, filter, reduce, splice), mini-project
+- Suggested resources (MDN, javascript.info, Eloquent JavaScript chapter)
+- Creates the `LearningPlan` pre-filled in the form
+
+Prompt pattern: `Generate a structured learning path for: [topic], level: [beginner/intermediate], duration: [N weeks], daily time: [M min]. Output: weekly breakdown + resource list.`
+
+**AI Layer 2 — Session Debrief (S6):**
+After logging a session with notes, AI can:
+- Extract 3 key concepts the user mentioned
+- Generate 1 follow-up question to test recall tomorrow
+- Suggest what to focus on next session
+
+**AI Layer 3 — Weekly Review (S6):**
+On Sunday, AI analyzes the week's sessions and generates: "You studied 4/5 days. Strong on X, gaps in Y. Suggestion for next week: ..."
+
+**Key constraint:** All AI is user-initiated. No background calls, no auto-suggestions on load. User taps a button, AI responds. This keeps API costs predictable and UX uncluttered.
+
+---
+
+### 5. MVP Approach for VibeOS
+
+**Principle: build the logging habit before building features.**
+
+The most important thing is that the user actually logs sessions. Everything else (AI, spaced repetition, quizzes) is useless if the user doesn't open the module daily.
+
+**MVP (S5) — what to ship:**
+1. Create a learning plan (topic, minutes/day, duration, emoji)
+2. Dashboard widget: "Today: [topic] — 20 min" with Start button
+3. Session log form: actual time, notes (optional), rating
+4. Progress ring + streak counter per plan
+5. Habits auto-create when plan is created
+6. Session history as a simple list (not calendar yet)
+
+**What to defer post-MVP:**
+- Custom day selection (ship weekdays-only first)
+- Resources checklist (add in v1.1)
+- Full heatmap calendar (add in v1.1)
+- Spaced repetition engine (S6 or later)
+- Quizzes / interactive exercises (much later)
+- Session calendar grid (nice-to-have)
+- AI plan generation (S6)
+
+**Critical UX decisions:**
+- Session logging must be under 5 taps from anywhere in the app
+- Progress ring is the hero element in each plan card — make it beautiful
+- Streak counter must be prominent — this is the #1 retention mechanic
+- Empty state: pre-seed demo account with 2 active plans (TypeScript + Spanish basics) so first-time visitors immediately understand the value
+
+---
+
+### 6. Architecture Direction
+
+**S5 MVP — localStorage first:**
+- No backend dependency
+- Full offline capability
+- Same pattern as Habits and Tasks modules
+- localStorage key: `platform:learning:plans` / `platform:learning:sessions`
+
+**S6+ — Supabase sync:**
+- Migrate to Supabase tables (schema already designed above)
+- Real-time sync across devices
+- Data survives device changes
+
+**State shape (Pinia store):**
+```ts
+interface LearningState {
+  plans: LearningPlan[]
+  sessions: LearningSession[]
+  resources: LearningResource[]
+  activeSessionTimer?: { planId: string; startedAt: number }
+}
+```
+
+**No external library needed for MVP.** All state is managed in-memory + localStorage. The spaced repetition algorithm, if ever added, is ~50 lines of TypeScript (SM-2 algorithm) — no library required.
+
+---
+
+### 7. Portfolio / Shareability Potential
+
+This module has strong portfolio signal because it solves a real, personal problem in a measurable way.
+
+**What makes it stand out:**
+- AI-generated learning plans with real educational structure
+- Cross-module data flow: Learning → Habits → Dashboard → Analytics
+- Real UX challenge: how do you make daily study feel light, not heavy?
+- Measurable outcomes: streaks, hours logged, plan completion rates
+
+**Shareability path (post-S5):**
+- Public learning profile URL: `vibeos.app/u/[username]/learning`
+- "I'm learning TypeScript — 60% complete, 18-day streak" share card
+- Exported learning plan as a markdown template (others can import)
+- Community plan templates: "Front-end dev in 90 days" starter packs
+
+**Differentiator vs. existing tools:**
+Most learning apps are just content platforms (Coursera, Udemy). VibeOS is a *tracking + accountability* layer — you bring your own resources (any book, any course, any YouTube channel), we just make sure you show up every day. This is more like a personal coach than a course platform. That's the pitch.
+
+---
+
+### 8. Roadmap Additions (for `docs/roadmap.md`)
+
+**S5 — Learning module delivery order:**
+1. Data model + store + localStorage persistence
+2. LearningView + create plan form
+3. PlanDetailView + progress ring
+4. SessionLogForm (the core action)
+5. Dashboard widget (TodayLearning)
+6. Habits auto-link on plan creation
+7. Session history list
+8. Heatmap + streak (v1.1 if time allows)
+
+**S6 additions (AI layer):**
+- AI plan generation from natural language input
+- Session debrief summary
+- Weekly progress review prompt
+
+**Post-S7 (future):**
+- Spaced repetition review queue
+- Public learning profile
+- Plan templates / community sharing
+- Mobile push notification for daily study reminder

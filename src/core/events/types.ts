@@ -90,6 +90,28 @@ export interface GameScoreEvent {
   timestamp: string
 }
 
+export interface LearningSessionCompletedEvent {
+  type: 'learning:session:completed'
+  planId: string
+  planTitle: string
+  minutes: number
+  timestamp: string
+}
+
+export interface LearningPlanCreatedEvent {
+  type: 'learning:plan:created'
+  planId: string
+  title: string
+  timestamp: string
+}
+
+export interface LearningPlanCompletedEvent {
+  type: 'learning:plan:completed'
+  planId: string
+  title: string
+  timestamp: string
+}
+
 export type PlatformEvent =
   | TaskCreatedEvent
   | TaskCompletedEvent
@@ -103,5 +125,8 @@ export type PlatformEvent =
   | CardMovedEvent
   | StudioRunEvent
   | GameScoreEvent
+  | LearningSessionCompletedEvent
+  | LearningPlanCreatedEvent
+  | LearningPlanCompletedEvent
 
 export type PlatformEventType = PlatformEvent['type']
