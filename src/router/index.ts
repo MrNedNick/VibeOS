@@ -7,6 +7,7 @@ import { taskManagerRoutes } from '@/modules/task-manager'
 import { docsRoutes } from '@/modules/docs'
 import { notesRoutes } from '@/modules/notes'
 import { gamesRoutes } from '@/modules/games'
+import { snippetsRoutes } from '@/modules/snippets'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -18,6 +19,7 @@ const routes: RouteRecordRaw[] = [
       ...docsRoutes,
       ...notesRoutes,
       ...gamesRoutes,
+      ...snippetsRoutes,
       { path: '/:pathMatch(.*)*', component: NotFoundView },
     ],
   },

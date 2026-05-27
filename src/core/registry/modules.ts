@@ -93,7 +93,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'Braces',
     path: '/snippets',
     section: 'modules',
-    status: 'planned',
+    status: 'available',
     description: 'Code vault with syntax highlighting and tags',
   },
   {
