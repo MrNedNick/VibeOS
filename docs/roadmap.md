@@ -84,7 +84,14 @@ Order:
 
 ## Recently shipped (history)
 
-### 2026-05-27
+### 2026-05-27 (session 3 — fast wins)
+- **README.md** — complete portfolio README: modules table, tech stack, architecture decisions, keyboard shortcuts, sprint plan, run instructions
+- **Event bus hardening** — correct `card:created` / `card:moved` event types (kanban was wrongly firing `snippet:created`); new `studio:run` event type replaces `game:score` hack; `snippet:created` now wired in snippets store; Recent Activity panel handles all new types with distinct icons + colors
+- **Settings → Data section** — export all localStorage as dated JSON backup; clear-all with 5s confirm-or-cancel dialog; both actions fully functional
+- **Settings → Keyboard shortcuts** — full cheatsheet table with `<kbd>` pill styling covering all 15 global shortcuts across all modules
+- **Settings + About → `available`** — both modules promoted from `wip` to `available` in registry
+- **Tasks due dates** — `dueDate?: string` on Task type; `setDueDate()` action; overdue (red) / today (amber) / upcoming (muted) badge on each task item; propagated through TaskList → TaskManagerView
+- **About page v2** — shipped modules list (7 modules with icons + descriptions), quick stats row (modules count, TS errors, zero extra deps, bundle size), live site link
 - **Board swimlanes + task unification** — S4 differentiator: Timeline view with date-based swimlane rows (overdue / today / tomorrow / this-week / later / no-date) × status columns; 2D drag-and-drop sets both column and due date; Kanban ↔ Timeline toggle (persisted); task import panel (slide-in, links card to source task, auto-completes task on Done); due date badge with urgency styling; inline date picker in expanded card
 - **i18n system** — custom Pinia store (zero new deps), EN + RU locales, 90+ translated keys, `pluralRu()` helper for Russian declension
 - **Settings module** at `/settings` — Appearance tab: theme + language toggles working; stub sections for Keyboard / Data / Account
@@ -200,6 +207,8 @@ Every new component and module must include responsive styles from day one. See 
 | 2026-05-26 | Dashboard at `/` (not `/dashboard`) | Home page should be the platform overview |
 | 2026-05-26 | Notes: textarea + marked, no editor lib | Zero bundle cost, full control |
 | 2026-05-26 | Platform rebranded to VibeOS | Developer culture identity; Geist font |
+| 2026-05-27 | `card:created` / `card:moved` / `studio:run` event types added | Correct semantics; kanban was emitting `snippet:created` for cards which polluted the activity feed |
+| 2026-05-27 | Tasks `dueDate` field as `string` (`YYYY-MM-DD`), no Date object | Consistent with Board cards; string compare works for overdue/today classification without a date library |
 | 2026-05-27 | i18n without vue-i18n — custom Pinia store | Zero new dependencies; `t(key, vars?)` + `pluralRu()` cover all needs; reactive via computed `messages` |
 | 2026-05-27 | Snippets retained as standalone module | Unique developer daily value (syntax highlighting, language filter, tag search) vs Notes text; not redundant |
 | 2026-05-26 | Sidebar sections: System / Apps | Cleaner than Platform/Modules; matches VibeOS OS metaphor |

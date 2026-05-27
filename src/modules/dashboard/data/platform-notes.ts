@@ -128,42 +128,45 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   settings: {
-    progress: 40,
-    milestone: 'Appearance tab live — theme + language toggles working',
+    progress: 85,
+    milestone: 'Appearance + Keyboard cheatsheet + Data export/clear fully functional',
     shippedTasks: [
       { label: 'Settings view at /settings with Appearance section', date: '2026-05-27' },
       { label: 'Theme toggle: dark / light with instant preview', date: '2026-05-27' },
       { label: 'Language picker: EN / RU switch', date: '2026-05-27' },
-      { label: 'Stub sections for Keyboard / Data / Account with "coming soon" state', date: '2026-05-27' },
+      { label: 'Keyboard shortcuts cheatsheet — full table with <kbd> styling', date: '2026-05-27' },
+      { label: 'Data export: download all localStorage as dated JSON backup', date: '2026-05-27' },
+      { label: 'Clear all data with 5s confirm dialog + auto-cancel', date: '2026-05-27' },
+      { label: 'Marked available in module registry (no more wip badge)', date: '2026-05-27' },
     ],
     nextTasks: [
-      { label: 'Migrate vibe-pak picker from temporary header location', priority: 'high' },
       { label: 'API keys panel (Anthropic, OpenWeather) for Studio + widgets', priority: 'high' },
-      { label: 'Data export / import / clear panel', priority: 'medium' },
-      { label: 'Global shortcuts map view', priority: 'medium' },
+      { label: 'Vibe-pak / accent color picker in Appearance (S1)', priority: 'high' },
     ],
     improvements: [
       'Vibe-pak + accent color + font picker in Appearance',
       'Per-app accent override',
       'API key storage abstraction (encrypted in localStorage)',
-      'Export entire OS state as a backup JSON',
     ],
     techDebt: [],
     ideas: [
       'Settings sync via Supabase when logged in',
       'Profile photo + display name',
     ],
-    notes: 'Appearance foundation done. Next: API keys panel (unblocks Studio) and data export.',
+    notes: 'Core settings fully functional. Remaining gap: API keys panel (unblocks Studio production use) and vibe-paks picker.',
   },
 
   about: {
-    progress: 65,
-    milestone: 'Core view live — logo, tech stack, GitHub link',
+    progress: 82,
+    milestone: 'Shipped modules list, quick stats, live site link, stack grid',
     shippedTasks: [
       { label: 'About page at /about with VibeOS logo SVG', date: '2026-05-27' },
       { label: 'Tech stack grid: Vue 3, Vite, Pinia, Router, Lucide, marked, highlight.js', date: '2026-05-27' },
-      { label: 'Version row with GitHub link', date: '2026-05-27' },
+      { label: 'Version row with GitHub + live site links', date: '2026-05-27' },
       { label: 'Responsive: single-column on mobile', date: '2026-05-27' },
+      { label: 'Shipped modules list with icons and descriptions', date: '2026-05-27' },
+      { label: 'Quick stats row: modules, TS errors, dependencies, bundle size', date: '2026-05-27' },
+      { label: 'Marked available in module registry (no more wip badge)', date: '2026-05-27' },
     ],
     nextTasks: [
       { label: 'Personal card: name, role, short bio', priority: 'high' },
@@ -171,7 +174,6 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Optional resume PDF link', priority: 'low' },
     ],
     improvements: [
-      'Footer link from landing page',
       '"Made with" credits listing the tools that built VibeOS',
     ],
     techDebt: [],
@@ -180,12 +182,12 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       'Short timeline of projects',
       'Now / currently working on section',
     ],
-    notes: 'Foundation done. Needs personal bio + links to complete portfolio anchor purpose.',
+    notes: 'Foundation solid. One remaining gap: personal bio + social links to complete portfolio anchor purpose.',
   },
 
   'task-manager': {
-    progress: 65,
-    milestone: 'Foundation strong — S4 lifts to "real product" (Stride)',
+    progress: 72,
+    milestone: 'Foundation solid + due dates; S4 Today/Focus/Streaks still pending',
     shippedTasks: [
       { label: 'Create, toggle, delete tasks with localStorage persistence', date: '2026-05-26' },
       { label: 'Filter tabs: All / Active / Done', date: '2026-05-26' },
@@ -196,13 +198,17 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Keyboard nav: j/k move, space toggle, d delete, / focus', date: '2026-05-26' },
       { label: 'Duplicate task detection with warning notification', date: '2026-05-26' },
       { label: 'Export tasks to CSV / JSON download', date: '2026-05-26' },
+      { label: 'Due date field: dueDate?: string on Task type', date: '2026-05-27' },
+      { label: 'Due date badge on task items: overdue (red), today (amber), upcoming (muted)', date: '2026-05-27' },
+      { label: 'setDueDate() action on tasks store + propagation through TaskList', date: '2026-05-27' },
     ],
     nextTasks: [
       { label: 'S4: Today view (filter by due == today)', priority: 'high' },
       { label: 'S4: Focus mode with Pomodoro timer', priority: 'high' },
       { label: 'S4: Streak counter + heatmap (≥1 done/day)', priority: 'high' },
-      { label: 'S4: Natural-language input via chrono-node', priority: 'medium' },
+      { label: 'S4: Natural-language input ("tomorrow" → sets dueDate)', priority: 'medium' },
       { label: 'S4: Lock in product name (recommended: Stride)', priority: 'high' },
+      { label: 'Date picker in task add input', priority: 'medium' },
       { label: 'Task drag-to-reorder', priority: 'low' },
     ],
     improvements: [
@@ -281,7 +287,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Card count per column + total count in header', date: '2026-05-27' },
       { label: 'Drag-over column highlight with depth counter (no false triggers)', date: '2026-05-27' },
       { label: 'localStorage persistence via useStorage', date: '2026-05-27' },
-      { label: 'Event bus integration: card added → snippet:created, card moved to Done → task:completed', date: '2026-05-27' },
+      { label: 'Event bus: card added → card:created, card moved → card:moved, Done → task:completed', date: '2026-05-27' },
       { label: 'Responsive: 2-col on md, 1-col on sm', date: '2026-05-27' },
       { label: 'Timeline swimlane view — rows = overdue/today/tomorrow/this-week/later/no-date', date: '2026-05-27' },
       { label: '2D drag-and-drop in timeline: dropping sets both column AND due date simultaneously', date: '2026-05-27' },
@@ -313,8 +319,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   'ai-playground': {
-    progress: 65,
-    milestone: 'Core Prompt Lab live — model selector, system prompt, history',
+    progress: 70,
+    milestone: 'Core Prompt Lab live + studio:run event wired to activity feed',
     shippedTasks: [
       { label: 'Studio module at /ai — prompt input + response output two-pane layout', date: '2026-05-27' },
       { label: 'Model selector: Opus / Sonnet / Haiku with visual differentiation', date: '2026-05-27' },
@@ -325,6 +331,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Run history — last 20 runs, searchable, click to restore', date: '2026-05-27' },
       { label: 'Keyboard shortcut ⌘↵ to run', date: '2026-05-27' },
       { label: 'CORS error with helpful hint message', date: '2026-05-27' },
+      { label: 'studio:run event emitted on each successful run — visible in Recent Activity', date: '2026-05-27' },
     ],
     nextTasks: [
       { label: 'Parallel run: same prompt → Opus + Sonnet + Haiku side-by-side', priority: 'high' },
@@ -354,7 +361,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
 
   snippets: {
     progress: 100,
-    milestone: 'Full module shipped — list, detail, filter, copy, tags, syntax highlighting',
+    milestone: 'Full module shipped — list, detail, filter, copy, tags, syntax highlighting, event bus',
     shippedTasks: [
       { label: 'Snippets module at /snippets — list + detail two-pane layout', date: '2026-05-27' },
       { label: 'Data model: Snippet { id, title, language, code, tags, createdAt }', date: '2026-05-27' },
@@ -362,6 +369,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Language filter bar + tag filter', date: '2026-05-27' },
       { label: 'One-click copy button per snippet', date: '2026-05-27' },
       { label: 'Create / edit / delete snippets with localStorage persistence', date: '2026-05-27' },
+      { label: 'snippet:created event emitted on create — visible in Recent Activity', date: '2026-05-27' },
     ],
     nextTasks: [
       { label: 'Import from GitHub gists', priority: 'low' },
