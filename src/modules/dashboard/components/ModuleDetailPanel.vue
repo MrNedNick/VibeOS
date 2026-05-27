@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import type { ModuleMeta } from '@/core/registry/modules'
 import type { ModuleDetail } from '../data/platform-notes'
+import { UiIcon } from '@/ui'
 
 interface LiveStats {
   totalCount: number
@@ -36,7 +37,7 @@ const statusInfo = STATUS_MAP[mod.status]
 
     <!-- Header -->
     <div class="detail__header">
-      <span class="detail__icon">{{ mod.icon }}</span>
+      <span class="detail__icon"><UiIcon :name="mod.icon" :size="22" :stroke-width="1.6" /></span>
       <div class="detail__title-group">
         <h2 class="detail__name">{{ mod.label }}</h2>
         <p class="detail__desc">{{ mod.description }}</p>
@@ -181,9 +182,11 @@ const statusInfo = STATUS_MAP[mod.status]
 }
 
 .detail__icon {
-  font-size: 23px;
   flex-shrink: 0;
   padding-top: 2px;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-secondary);
 }
 
 .detail__title-group { flex: 1; min-width: 0; }

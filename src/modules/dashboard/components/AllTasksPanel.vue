@@ -149,7 +149,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
             <span class="task-row__check">✓</span>
             <span class="task-row__label task-row__label--shipped">{{ task.label }}</span>
             <span class="task-row__module">
-              <span class="task-row__module-icon">{{ task.moduleIcon }}</span>
+              <UiIcon :name="task.moduleIcon" :size="12" :stroke-width="1.75" />
               {{ task.moduleLabel }}
             </span>
             <span class="task-row__date">{{ task.date }}</span>

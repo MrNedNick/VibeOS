@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ModuleMeta } from '@/core/registry/modules'
+import { UiIcon } from '@/ui'
 
 interface StatItem { label: string; value: string | number }
 
@@ -20,7 +21,7 @@ const STATUS_LABEL: Record<string, string> = {
 <template>
   <div class="mod-card" :class="`mod-card--${module.status}`">
     <div class="mod-card__top">
-      <span class="mod-card__icon">{{ module.icon }}</span>
+      <span class="mod-card__icon"><UiIcon :name="module.icon" :size="20" :stroke-width="1.6" /></span>
       <span class="mod-card__status">{{ STATUS_LABEL[module.status] }}</span>
     </div>
     <p class="mod-card__name">{{ module.label }}</p>
@@ -63,7 +64,7 @@ const STATUS_LABEL: Record<string, string> = {
   margin-bottom: 2px;
 }
 
-.mod-card__icon { font-size: 19px; }
+.mod-card__icon { display: flex; align-items: center; color: var(--color-text-secondary); }
 
 .mod-card__status {
   font-size: 12px;
