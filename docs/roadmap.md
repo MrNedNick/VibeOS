@@ -99,6 +99,7 @@ Order:
 - **Dashboard Recent Activity** — live feed of last 12 events next to the All Tasks overview
 - **Notes "Today" button** — opens or creates a daily journal note (`# YYYY-MM-DD`), always idempotent
 - **localStorage schema versioning** — `useStorage(key, default, { version, migrate })` with automatic migration on version mismatch
+- **Studio module** at `/ai` — Prompt Lab v1: model selector (Opus/Sonnet/Haiku), API key stored locally, system prompt, response meta (tokens + duration), copy, run history (last 20, searchable), ⌘↵ shortcut
 
 ### 2026-05-26
 - Module quick-launch `→` button in Dashboard hover

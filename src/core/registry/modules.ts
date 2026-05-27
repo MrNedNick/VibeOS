@@ -84,8 +84,8 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'Zap',
     path: '/ai',
     section: 'modules',
-    status: 'planned',
-    description: 'Prompt Lab — Opus / Sonnet / Haiku in parallel',
+    status: 'available',
+    description: 'Prompt Lab — Opus / Sonnet / Haiku, API key stored locally',
   },
   {
     id: 'snippets',
