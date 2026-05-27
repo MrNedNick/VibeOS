@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import { useNotesStore } from '../stores/notes.store'
 import { deriveTitle } from '../types'
 
-type EditorMode = 'edit' | 'split' | 'preview'
+type EditorMode = 'edit' | 'preview'
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -10,7 +10,7 @@ export function useNotes() {
   const store = useNotesStore()
 
   const selectedId = ref<string | null>(null)
-  const mode = ref<EditorMode>('split')
+  const mode = ref<EditorMode>('edit')
   const searchQuery = ref('')
 
   const filteredNotes = computed(() => {
@@ -40,7 +40,7 @@ export function useNotes() {
   function todayNote(): void {
     const id = store.openOrCreateToday()
     selectedId.value = id
-    mode.value = 'split'
+    mode.value = 'edit'
   }
 
   function debouncedSave(id: string, content: string): void {

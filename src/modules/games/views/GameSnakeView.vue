@@ -64,10 +64,9 @@ function tick() {
   const head = snake[0]
   const next: Pos = { x: head.x + DX[dir], y: head.y + DY[dir] }
 
-  // Wall collision
-  if (next.x < 0 || next.x >= COLS || next.y < 0 || next.y >= ROWS) {
-    endGame(); return
-  }
+  // Wrap through walls
+  next.x = ((next.x % COLS) + COLS) % COLS
+  next.y = ((next.y % ROWS) + ROWS) % ROWS
   // Self collision (skip last tail cell — it will move away)
   for (let i = 0; i < snake.length - 1; i++) {
     if (snake[i].x === next.x && snake[i].y === next.y) { endGame(); return }
@@ -290,7 +289,7 @@ onUnmounted(() => {
         <p class="game__hint">
           <span v-if="gameState === 'idle'">Press any arrow key to start</span>
           <span v-else-if="gameState === 'running' && paused">Paused</span>
-          <span v-else-if="gameState === 'running'">Eat the green dot — don't hit the walls</span>
+          <span v-else-if="gameState === 'running'">Eat the green dot — walls wrap around</span>
           <span v-else>Game over</span>
         </p>
       </div>
@@ -314,7 +313,7 @@ onUnmounted(() => {
       <Transition name="overlay">
         <div v-if="gameState === 'idle'" class="overlay">
           <p class="overlay__title">Snake</p>
-          <p class="overlay__sub">Eat food, grow longer, avoid the walls.</p>
+          <p class="overlay__sub">Eat food, grow longer, wrap through walls.</p>
           <button class="btn-overlay" @click="startGame">Play</button>
         </div>
       </Transition>

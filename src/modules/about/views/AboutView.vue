@@ -14,22 +14,26 @@ const STACK = [
 ]
 
 const MODULES = [
-  { id: 'task-manager', label: 'Tasks',    desc: 'Priority tasks, keyboard nav, CSV/JSON export',         icon: '✓' },
+  { id: 'task-manager', label: 'Tasks',    desc: 'Priority tasks, keyboard nav, CSV/JSON export',           icon: '✓' },
   { id: 'notes',        label: 'Notes',    desc: 'Markdown with live preview, daily journal, pin + export', icon: '¶' },
-  { id: 'kanban',       label: 'Board',    desc: 'Swimlane timeline, drag-and-drop, task import',          icon: '□' },
-  { id: 'ai-playground',label: 'Studio',   desc: 'Prompt Lab — Opus / Sonnet / Haiku, run history',        icon: '⚡' },
-  { id: 'snippets',     label: 'Snippets', desc: 'Code vault — syntax highlight, tags, search',            icon: '{}' },
-  { id: 'habits',       label: 'Habits',   desc: 'Daily check-offs, streak tracking, heatmap',             icon: '●' },
-  { id: 'games',        label: 'Games',    desc: '2048 · Memory Cards · Snake',                            icon: '♟' },
+  { id: 'kanban',       label: 'Board',    desc: 'Swimlane timeline, drag-and-drop, task import',            icon: '□' },
+  { id: 'ai-playground',label: 'Studio',   desc: 'Prompt Lab — Opus / Sonnet / Haiku, run history',         icon: '⚡' },
+  { id: 'snippets',     label: 'Snippets', desc: 'Code vault — syntax highlight, tags, search',              icon: '{}' },
+  { id: 'habits',       label: 'Habits',   desc: 'Daily check-offs, streak tracking, heatmap',               icon: '●' },
+  { id: 'games',        label: 'Games',    desc: 'Minesweeper · Memory Cards · Snake',                       icon: '♟' },
+  { id: 'goals',        label: 'Goals',    desc: 'Goal tracking with milestones and progress',               icon: '🎯' },
+  { id: 'learning',     label: 'Learning', desc: 'Study plans, session logs, streaks and progress rings',   icon: '📚' },
+  { id: 'training',     label: 'Training', desc: 'Workout plans, session logs, streaks and distance',        icon: '💪' },
 ]
 
 const STATS = [
-  { label: 'Modules',        value: '9' },
+  { label: 'Modules',        value: '12' },
   { label: 'TypeScript',     value: '0 errors' },
   { label: 'Dependencies',   value: '0 extra' },
   { label: 'Bundle size',    value: '~380 KB' },
 ]
 
+const APP_VERSION   = __APP_VERSION__
 const GITHUB_URL    = 'https://github.com/MrNedNick/VibeOS'
 const LIVE_SITE_URL = 'https://mrnednick.github.io/VibeOS'
 </script>
@@ -55,7 +59,7 @@ const LIVE_SITE_URL = 'https://mrnednick.github.io/VibeOS'
     <!-- Meta row ────────────────────────────────────────────── -->
     <div class="about__meta">
       <span class="about__version-label">{{ i18n.t('about.version') }}</span>
-      <span class="about__version-value">v0.1.0</span>
+      <span class="about__version-value">v{{ APP_VERSION }}</span>
       <span class="about__sep">·</span>
       <a :href="GITHUB_URL" class="about__link" target="_blank" rel="noopener noreferrer">
         GitHub ↗

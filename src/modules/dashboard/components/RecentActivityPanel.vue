@@ -36,6 +36,14 @@ function describeEvent(e: PlatformEvent): { icon: string; text: string } {
     case 'card:moved':      return { icon: '→', text: `${i18n.t('recentActivity.cardMoved')} — "${e.title}" → ${e.toColumnId}` }
     case 'studio:run':      return { icon: '⚡', text: `${i18n.t('recentActivity.studioRun')} — ${e.model.split('-')[1]} · ${e.inputTokens + e.outputTokens} tok` }
     case 'game:score':      return { icon: '♟', text: `${i18n.t('recentActivity.gameScore')} — ${e.game} ${e.score}` }
+    case 'learning:session:completed': return { icon: '📖', text: `${i18n.t('recentActivity.learningSessionLogged')} — "${e.planTitle}" · ${e.minutes}min` }
+    case 'learning:plan:created':      return { icon: '📚', text: `${i18n.t('recentActivity.learningPlanCreated')} — "${e.title}"` }
+    case 'learning:plan:completed':    return { icon: '🎓', text: `${i18n.t('recentActivity.learningPlanCompleted')} — "${e.title}"` }
+    case 'training:workout:logged':    return { icon: '💪', text: `${i18n.t('recentActivity.workoutLogged')} — "${e.planTitle}"${e.duration ? ` · ${e.duration}min` : ''}` }
+    case 'training:plan:created':      return { icon: '🏋️', text: `${i18n.t('recentActivity.trainingPlanCreated')} — "${e.title}"` }
+    case 'goal:created':               return { icon: '🎯', text: `${i18n.t('recentActivity.goalCreated')} — "${e.title}"` }
+    case 'goal:completed':             return { icon: '✅', text: `${i18n.t('recentActivity.goalCompleted')} — "${e.title}"` }
+    case 'goal:milestone:completed':   return { icon: '●', text: `${i18n.t('recentActivity.milestoneCompleted')} — "${e.milestoneTitle}"` }
     default:                return { icon: '·', text: i18n.t('recentActivity.activity') }
   }
 }
@@ -54,6 +62,14 @@ function iconColor(e: PlatformEvent): string {
     case 'card:moved':      return '#f59e0b'
     case 'studio:run':      return '#8b5cf6'
     case 'game:score':      return '#6b7280'
+    case 'learning:session:completed':
+    case 'learning:plan:created':      return 'var(--color-accent)'
+    case 'learning:plan:completed':    return 'var(--color-success)'
+    case 'training:workout:logged':
+    case 'training:plan:created':      return '#f97316'
+    case 'goal:created':               return 'var(--color-accent)'
+    case 'goal:completed':             return 'var(--color-success)'
+    case 'goal:milestone:completed':   return 'var(--color-success)'
     default:                return 'var(--color-text-muted)'
   }
 }

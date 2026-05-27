@@ -56,7 +56,7 @@ function onKeydown(e: KeyboardEvent) {
     noteListRef.value?.focusSearch()
   } else if (e.shiftKey && e.key === 'P') {
     e.preventDefault()
-    mode.value = mode.value === 'preview' ? 'split' : 'preview'
+    mode.value = mode.value === 'preview' ? 'edit' : 'preview'
   }
 }
 
@@ -86,7 +86,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <div class="notes-toolbar">
         <div class="notes-toolbar__modes">
           <button
-            v-for="m in (['edit', 'split', 'preview'] as const)"
+            v-for="m in (['edit', 'preview'] as const)"
             :key="m"
             class="notes-toolbar__mode"
             :class="{ 'notes-toolbar__mode--active': mode === m }"
@@ -121,13 +121,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <!-- Panes -->
       <div v-if="selectedNote" class="notes-panes">
         <NoteEditor
-          v-if="mode === 'edit' || mode === 'split'"
+          v-if="mode === 'edit'"
           :model-value="selectedNote.content"
-          :class="{ 'notes-panes__half': mode === 'split' }"
           @update:model-value="onContentUpdate"
         />
         <NotePreview
-          v-if="mode === 'preview' || mode === 'split'"
+          v-if="mode === 'preview'"
           :content="selectedNote.content"
         />
       </div>
@@ -250,11 +249,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   flex: 1;
   display: flex;
   overflow: hidden;
-}
-
-.notes-panes__half {
-  flex: 1;
-  min-width: 0;
 }
 
 /* Empty state */

@@ -10,7 +10,16 @@ export const useGoalsStore = defineStore('goals:goals', () => {
   const goals = useStorage<Goal[]>(storageKey('goals', 'goals'), [])
   const events = useEventBus()
 
-  const activeGoals = computed(() => goals.value.filter(g => g.status === 'active'))
+  const activeGoals = computed(() =>
+    goals.value
+      .filter(g => g.status === 'active')
+      .sort((a, b) => {
+        if (!a.targetDate && !b.targetDate) return 0
+        if (!a.targetDate) return 1
+        if (!b.targetDate) return -1
+        return a.targetDate.localeCompare(b.targetDate)
+      })
+  )
   const completedGoals = computed(() => goals.value.filter(g => g.status === 'completed'))
 
   function createGoal(data: Omit<Goal, 'id' | 'createdAt' | 'status' | 'milestones'>): Goal {
