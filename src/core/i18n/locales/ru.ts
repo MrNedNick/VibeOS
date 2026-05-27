@@ -101,12 +101,12 @@ export const ru: Messages = {
   games: {
     title: 'Игры',
     subtitle: 'Сделайте паузу. Вы заслужили.',
-    game2048Name: '2048',
-    game2048Desc: 'Сдвигайте плитки и объединяйте числа.',
+    minesweeperName: 'Сапёр',
+    minesweeperDesc: 'Очистите поле, не задев ни одну мину.',
     memoryName: 'Память',
     memoryDesc: 'Переворачивайте карточки и ищите пары.',
     snakeName: 'Змейка',
-    snakeDesc: 'Ешьте еду, растите, избегайте стен.',
+    snakeDesc: 'Ешьте еду, растите, проходите сквозь стены.',
   },
   notFound: {
     title: 'Этот модуль ещё не загружен в VibeOS.',

@@ -7,9 +7,9 @@ export const gamesRoutes: RouteRecordRaw[] = [
     component: () => import('./views/GamesLobbyView.vue'),
   },
   {
-    path: '/games/2048',
-    name: 'game-2048',
-    component: () => import('./views/Game2048View.vue'),
+    path: '/games/minesweeper',
+    name: 'game-minesweeper',
+    component: () => import('./views/GameMinesweeperView.vue'),
   },
   {
     path: '/games/memory',

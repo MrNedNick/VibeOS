@@ -7,18 +7,18 @@ import { useStorage } from '@/core/composables/useStorage'
 const router = useRouter()
 const i18n = useLocale()
 
-const best2048 = useStorage<number>('platform:games:2048:best', 0)
+const bestMinesweeper = useStorage<number>('platform:games:minesweeper:best', 0)
 const bestMemoryEasy = useStorage<number>('platform:games:memory:easy:time', 0)
 const bestSnake = useStorage<number>('platform:games:snake:best', 0)
 
 const games = computed(() => [
   {
-    id: '2048',
-    label: i18n.t('games.game2048Name'),
-    desc: i18n.t('games.game2048Desc'),
-    path: '/games/2048',
-    stat: best2048.value > 0 ? `Best: ${best2048.value}` : null,
-    color: '#f59e0b',
+    id: 'minesweeper',
+    label: i18n.t('games.minesweeperName'),
+    desc: i18n.t('games.minesweeperDesc'),
+    path: '/games/minesweeper',
+    stat: bestMinesweeper.value > 0 ? `Best: ${bestMinesweeper.value}s` : null,
+    color: '#ef4444',
   },
   {
     id: 'memory',
@@ -55,16 +55,26 @@ const games = computed(() => [
       >
         <!-- Visual preview -->
         <div class="game-card__preview" :style="`--game-color: ${game.color}`">
-          <!-- 2048 preview: colored tiles -->
-          <svg v-if="game.id === '2048'" viewBox="0 0 52 52" class="game-card__svg">
-            <rect x="1" y="1" width="23" height="23" rx="4" fill="rgba(245,158,11,0.18)" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
-            <text x="12.5" y="16.5" text-anchor="middle" font-size="10" font-weight="700" fill="#f59e0b">2</text>
-            <rect x="28" y="1" width="23" height="23" rx="4" fill="rgba(245,158,11,0.3)" stroke="rgba(245,158,11,0.6)" stroke-width="1.5"/>
-            <text x="39.5" y="16.5" text-anchor="middle" font-size="10" font-weight="700" fill="#f59e0b">4</text>
-            <rect x="1" y="28" width="23" height="23" rx="4" fill="rgba(245,158,11,0.48)" stroke="rgba(245,158,11,0.75)" stroke-width="1.5"/>
-            <text x="12.5" y="43.5" text-anchor="middle" font-size="10" font-weight="700" fill="#f59e0b">8</text>
-            <rect x="28" y="28" width="23" height="23" rx="4" fill="rgba(245,158,11,0.7)" stroke="#f59e0b" stroke-width="1.5"/>
-            <text x="39.5" y="43.5" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">16</text>
+          <!-- Minesweeper preview: grid cells with mine + numbers -->
+          <svg v-if="game.id === 'minesweeper'" viewBox="0 0 52 52" class="game-card__svg">
+            <!-- 3×3 cell grid -->
+            <rect x="1"  y="1"  width="15" height="15" rx="2" fill="rgba(239,68,68,0.15)" stroke="rgba(239,68,68,0.5)" stroke-width="1"/>
+            <text x="8.5" y="12" text-anchor="middle" font-size="10">💣</text>
+            <rect x="19" y="1"  width="15" height="15" rx="2" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
+            <text x="26.5" y="12.5" text-anchor="middle" font-size="9" font-weight="700" fill="#ef4444">3</text>
+            <rect x="37" y="1"  width="15" height="15" rx="2" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
+            <text x="44.5" y="12.5" text-anchor="middle" font-size="9" font-weight="700" fill="#f59e0b">2</text>
+            <rect x="1"  y="19" width="15" height="15" rx="2" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
+            <text x="8.5" y="30.5" text-anchor="middle" font-size="9" font-weight="700" fill="#f59e0b">2</text>
+            <rect x="19" y="19" width="15" height="15" rx="2" fill="rgba(100,100,100,0.2)" stroke="rgba(100,100,100,0.4)" stroke-width="1"/>
+            <text x="26.5" y="30" text-anchor="middle" font-size="9">🚩</text>
+            <rect x="37" y="19" width="15" height="15" rx="2" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
+            <text x="44.5" y="30.5" text-anchor="middle" font-size="9" font-weight="700" fill="#3b82f6">1</text>
+            <rect x="1"  y="37" width="15" height="15" rx="2" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
+            <text x="8.5" y="48.5" text-anchor="middle" font-size="9" font-weight="700" fill="#3b82f6">1</text>
+            <rect x="19" y="37" width="15" height="15" rx="2" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
+            <text x="26.5" y="48.5" text-anchor="middle" font-size="9" font-weight="700" fill="#3b82f6">1</text>
+            <rect x="37" y="37" width="15" height="15" rx="2" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
           </svg>
 
           <!-- Memory preview: cards grid -->

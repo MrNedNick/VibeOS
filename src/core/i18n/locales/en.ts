@@ -99,12 +99,12 @@ export const en = {
   games: {
     title: 'Games',
     subtitle: 'Take a break. You deserve it.',
-    game2048Name: '2048',
-    game2048Desc: 'Slide tiles and merge matching numbers to reach 2048.',
+    minesweeperName: 'Minesweeper',
+    minesweeperDesc: 'Clear the field without detonating a mine.',
     memoryName: 'Memory',
     memoryDesc: 'Flip cards and find all matching pairs.',
     snakeName: 'Snake',
-    snakeDesc: 'Eat food, grow longer, avoid the walls.',
+    snakeDesc: 'Eat food, grow longer, wrap through walls.',
   },
   notFound: {
     title: 'This module is not yet loaded into VibeOS.',
