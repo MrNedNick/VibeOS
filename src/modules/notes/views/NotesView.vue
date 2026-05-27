@@ -10,7 +10,7 @@ import NotePreview from '../components/NotePreview.vue'
 const {
   selectedId, mode, searchQuery,
   filteredNotes, selectedNote,
-  selectNote, newNote, debouncedSave, deleteNote,
+  selectNote, newNote, todayNote, debouncedSave, deleteNote,
 } = useNotes()
 
 const notesStore = useNotesStore()
@@ -98,6 +98,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <span v-if="selectedNote && wordCount > 0" class="notes-toolbar__stats">
             {{ wordCount }} words · {{ readingTime }} min
           </span>
+          <button
+            class="notes-toolbar__today"
+            title="Open or create today's journal entry"
+            @click="todayNote"
+          >Today</button>
           <button
             v-if="selectedNote"
             class="notes-toolbar__action"
@@ -202,6 +207,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   color: var(--color-text-muted);
   padding: 0 8px;
 }
+
+.notes-toolbar__today {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-accent);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-accent-muted);
+  background: var(--color-accent-muted);
+  transition: opacity var(--t-fast);
+}
+.notes-toolbar__today:hover { opacity: 0.75; }
 
 .notes-toolbar__action {
   font-size: 13px;

@@ -36,6 +36,13 @@ export function useNotes() {
     mode.value = 'edit'
   }
 
+  /** Open (or create) today's daily journal note. */
+  function todayNote(): void {
+    const id = store.openOrCreateToday()
+    selectedId.value = id
+    mode.value = 'split'
+  }
+
   function debouncedSave(id: string, content: string): void {
     if (debounceTimer) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => store.updateContent(id, content), 300)
@@ -57,6 +64,7 @@ export function useNotes() {
     selectedNote,
     selectNote,
     newNote,
+    todayNote,
     debouncedSave,
     deleteNote,
   }

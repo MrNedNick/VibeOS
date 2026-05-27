@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
 import { useStorage } from '@/core/composables/useStorage'
 import { storageKey } from '@/core/utils/storage'
+import { useEventBus } from '@/core/events'
 import { todayStr } from '../types'
 import type { Habit } from '../types'
 
 export const useHabitsStore = defineStore('habits:habits', () => {
   const habits = useStorage<Habit[]>(storageKey('habits', 'habits'), [])
+  const events = useEventBus()
 
   function createHabit(name: string, emoji: string): void {
     habits.value.push({
@@ -24,8 +26,10 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     const idx = habit.completedDates.indexOf(today)
     if (idx === -1) {
       habit.completedDates.push(today)
+      events.emit({ type: 'habit:checked', habitId: id, habitName: habit.name, timestamp: new Date().toISOString() })
     } else {
       habit.completedDates.splice(idx, 1)
+      events.emit({ type: 'habit:unchecked', habitId: id, habitName: habit.name, timestamp: new Date().toISOString() })
     }
   }
 

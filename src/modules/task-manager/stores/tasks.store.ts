@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { storageKey } from '@/core/utils/storage'
 import { generateId } from '@/core/utils/id'
+import { useEventBus } from '@/core/events'
 import type { Task, TaskFilter, TaskPriority } from '../types'
 
 const STORAGE_KEY = storageKey('task-manager', 'tasks')
@@ -10,6 +11,7 @@ const STORAGE_KEY = storageKey('task-manager', 'tasks')
 export const useTasksStore = defineStore('task-manager:tasks', () => {
   const tasks = useStorage<Task[]>(STORAGE_KEY, [])
   const filter = ref<TaskFilter>('all')
+  const events = useEventBus()
 
   const filteredTasks = computed<Task[]>(() => {
     if (filter.value === 'active') return tasks.value.filter(t => !t.done)
@@ -26,17 +28,27 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
   )
 
   function addTask(text: string, priority: TaskPriority = 'none') {
-    tasks.value.push({ id: generateId(), text: text.trim(), done: false, priority, createdAt: Date.now() })
+    const id = generateId()
+    tasks.value.push({ id, text: text.trim(), done: false, priority, createdAt: Date.now() })
+    events.emit({ type: 'task:created', taskId: id, label: text.trim(), timestamp: new Date().toISOString() })
   }
 
   function toggleTask(id: string) {
     const task = tasks.value.find(t => t.id === id)
-    if (task) task.done = !task.done
+    if (!task) return
+    task.done = !task.done
+    if (task.done) {
+      events.emit({ type: 'task:completed', taskId: id, label: task.text, timestamp: new Date().toISOString() })
+    }
   }
 
   function deleteTask(id: string) {
     const idx = tasks.value.findIndex(t => t.id === id)
-    if (idx > -1) tasks.value.splice(idx, 1)
+    if (idx > -1) {
+      const label = tasks.value[idx].text
+      tasks.value.splice(idx, 1)
+      events.emit({ type: 'task:deleted', taskId: id, label, timestamp: new Date().toISOString() })
+    }
   }
 
   function updateTask(id: string, text: string) {

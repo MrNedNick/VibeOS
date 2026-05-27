@@ -8,6 +8,7 @@ import { MODULE_DETAILS, PLATFORM_STATUS } from '../data/platform-notes'
 import StatCard from '../components/StatCard.vue'
 import ModuleDetailPanel from '../components/ModuleDetailPanel.vue'
 import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '../components/AllTasksPanel.vue'
+import RecentActivityPanel from '../components/RecentActivityPanel.vue'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 
@@ -220,13 +221,16 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
       <div class="dashboard__detail">
         <Transition name="panel" mode="out-in">
 
-          <!-- Overview: all tasks aggregated -->
-          <AllTasksPanel
-            v-if="selectedId === OVERVIEW_ID"
-            key="__overview__"
-            :tasks="aggregatedTasks"
-            :shipped-tasks="aggregatedShipped"
-          />
+          <!-- Overview: all tasks aggregated + activity -->
+          <div v-if="selectedId === OVERVIEW_ID" key="__overview__" class="overview-panels">
+            <AllTasksPanel
+              :tasks="aggregatedTasks"
+              :shipped-tasks="aggregatedShipped"
+            />
+            <div class="overview-activity">
+              <RecentActivityPanel />
+            </div>
+          </div>
 
           <!-- Per-module detail -->
           <ModuleDetailPanel
@@ -443,6 +447,22 @@ const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', plan
   border-radius: var(--radius);
   padding: 22px 24px;
   overflow-y: auto;
+}
+
+/* Overview: side-by-side tasks + activity */
+.overview-panels {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.overview-activity {
+  padding-top: 2px;
+}
+
+@media (max-width: 900px) {
+  .overview-panels { grid-template-columns: 1fr; }
 }
 
 /* Panel transition */

@@ -85,9 +85,20 @@ Order:
 ## Recently shipped (history)
 
 ### 2026-05-27
-- Game lobby at `/games` with cards for each game
-- 2048 — CSS grid, merge logic, best score persistence, arrow keys + WASD + swipe
-- Win / game-over overlays with continue / restart
+- **i18n system** — custom Pinia store (zero new deps), EN + RU locales, 90+ translated keys, `pluralRu()` helper for Russian declension
+- **Settings module** at `/settings` — Appearance tab: theme + language toggles working; stub sections for Keyboard / Data / Account
+- **About page** at `/about` — VibeOS logo SVG, 7-item tech stack grid, version row, GitHub link, responsive
+- **Habits improvements** — inline name editing, confirm-before-delete with 4s auto-cancel, Russian plural streaks
+- **Games lobby redesign** — inline SVG game previews, best-score display, per-game color accents
+- **Memory Cards** — CSS 3D flip, easy/medium/hard difficulty, best time persistence
+- **Snake** — canvas game loop, WASD + arrows, difficulty levels, best score
+- **Page transition fix** — opacity-only (no translateY), `@after-leave` hook prevents layout shift between fullbleed and padded views
+- **Command Palette** — `wip`-status modules navigable, all strings translated
+- **Sidebar** — `wip` modules show amber badge and are navigable
+- **Event bus** — typed `PlatformEvent` union, Pinia store with `emit()` + persisted `history[]`, wired into tasks/habits/notes stores
+- **Dashboard Recent Activity** — live feed of last 12 events next to the All Tasks overview
+- **Notes "Today" button** — opens or creates a daily journal note (`# YYYY-MM-DD`), always idempotent
+- **localStorage schema versioning** — `useStorage(key, default, { version, migrate })` with automatic migration on version mismatch
 
 ### 2026-05-26
 - Module quick-launch `→` button in Dashboard hover
@@ -127,8 +138,7 @@ Allow each module to override the platform accent color in Settings → Appearan
 ### Achievements system
 Use event bus to track milestones ("Created 100 tasks", "Played all games"). Game-like layer.
 
-### Localization (vue-i18n)
-EN + RU. Task Manager is the reference implementation. Deferred until S4 module depth settles — don't externalize strings that are still in flux.
+~~**Localization** — shipped 2026-05-27 as custom Pinia store (EN + RU, 90+ keys, pluralRu helper, no new dep)~~
 
 ### Currency
 Demoted from standalone module to a Dashboard widget. Standalone converter could come back later.
@@ -187,4 +197,6 @@ Every new component and module must include responsive styles from day one. See 
 | 2026-05-26 | Dashboard at `/` (not `/dashboard`) | Home page should be the platform overview |
 | 2026-05-26 | Notes: textarea + marked, no editor lib | Zero bundle cost, full control |
 | 2026-05-26 | Platform rebranded to VibeOS | Developer culture identity; Geist font |
+| 2026-05-27 | i18n without vue-i18n — custom Pinia store | Zero new dependencies; `t(key, vars?)` + `pluralRu()` cover all needs; reactive via computed `messages` |
+| 2026-05-27 | Snippets retained as standalone module | Unique developer daily value (syntax highlighting, language filter, tag search) vs Notes text; not redundant |
 | 2026-05-26 | Sidebar sections: System / Apps | Cleaner than Platform/Modules; matches VibeOS OS metaphor |

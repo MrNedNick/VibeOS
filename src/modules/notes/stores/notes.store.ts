@@ -2,10 +2,13 @@ import { computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useStorage } from '@/core/composables/useStorage'
 import { storageKey } from '@/core/utils/storage'
+import { useEventBus } from '@/core/events'
+import { deriveTitle } from '../types'
 import type { Note } from '../types'
 
 export const useNotesStore = defineStore('notes:notes', () => {
   const notes = useStorage<Note[]>(storageKey('notes', 'notes'), [])
+  const events = useEventBus()
 
   const sortedNotes = computed(() =>
     [...notes.value].sort((a, b) => {
@@ -23,6 +26,28 @@ export const useNotesStore = defineStore('notes:notes', () => {
       updatedAt: new Date().toISOString(),
     }
     notes.value.unshift(note)
+    events.emit({ type: 'note:created', noteId: note.id, title: 'Untitled', timestamp: note.createdAt })
+    return note.id
+  }
+
+  /**
+   * Open today's daily journal note, creating it if it doesn't exist.
+   * The note starts with "# YYYY-MM-DD" so it appears as the date in the list.
+   * Returns the note id.
+   */
+  function openOrCreateToday(): string {
+    const todayDate = new Date().toISOString().slice(0, 10) // 'YYYY-MM-DD'
+    const todayHeading = `# ${todayDate}`
+    const existing = notes.value.find(n => n.content.trimStart().startsWith(todayHeading))
+    if (existing) return existing.id
+    const note: Note = {
+      id: crypto.randomUUID(),
+      content: `${todayHeading}\n\n`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    notes.value.unshift(note)
+    events.emit({ type: 'note:created', noteId: note.id, title: todayDate, timestamp: note.createdAt })
     return note.id
   }
 
@@ -36,7 +61,11 @@ export const useNotesStore = defineStore('notes:notes', () => {
 
   function deleteNote(id: string): void {
     const idx = notes.value.findIndex(n => n.id === id)
-    if (idx !== -1) notes.value.splice(idx, 1)
+    if (idx !== -1) {
+      const title = deriveTitle(notes.value[idx].content)
+      notes.value.splice(idx, 1)
+      events.emit({ type: 'note:deleted', noteId: id, title, timestamp: new Date().toISOString() })
+    }
   }
 
   function togglePin(id: string): void {
@@ -44,5 +73,5 @@ export const useNotesStore = defineStore('notes:notes', () => {
     if (note) note.pinned = !note.pinned
   }
 
-  return { notes, sortedNotes, createNote, updateContent, deleteNote, togglePin }
+  return { notes, sortedNotes, createNote, openOrCreateToday, updateContent, deleteNote, togglePin }
 })

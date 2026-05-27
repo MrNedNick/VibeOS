@@ -15,8 +15,8 @@ export interface TechDebtItem {
 
 export const TECH_DEBT: TechDebtItem[] = [
   { id: 'd1', label: 'No unit or component tests yet (planned S5)', severity: 'high' },
-  { id: 'd2', label: 'No error boundaries / global error handler (planned S3)', severity: 'high' },
-  { id: 'd3', label: 'localStorage has no schema migration strategy (planned S3)', severity: 'medium' },
+  { id: 'd2', label: 'No Vue error boundary component — uncaught errors crash the view (planned S3)', severity: 'medium' },
+  { id: 'd3', label: 'localStorage schema versioning just added — stores need opt-in migration', severity: 'low' },
   { id: 'd4', label: 'No loading skeletons for async operations', severity: 'medium' },
   { id: 'd5', label: 'Google Fonts loaded via @import (blocks render)', severity: 'low' },
 ]
@@ -26,10 +26,10 @@ export const PLATFORM_STATUS = [
   { label: 'TypeScript',    status: 'good',    note: 'Strict mode, 0 errors' },
   { label: 'Build',         status: 'good',    note: 'Clean production build' },
   { label: 'Deployment',    status: 'good',    note: 'Live at mrnednick.github.io/VibeOS' },
+  { label: 'i18n',          status: 'good',    note: 'EN + RU, custom Pinia store, 90+ keys' },
   { label: 'Tests',         status: 'missing', note: 'Vitest planned in S5' },
   { label: 'Backend',       status: 'planned', note: 'Supabase sync planned in S3' },
   { label: 'Identity',      status: 'planned', note: 'Logo, vibe-paks, landing — active S1' },
-  { label: 'i18n',          status: 'planned', note: 'vue-i18n planned post-S4' },
 ] as const
 
 // ─── Per-module detail data ───────────────────────────────────────
@@ -128,18 +128,22 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   settings: {
-    progress: 0,
-    milestone: 'Not started — S2 priority',
-    shippedTasks: [],
+    progress: 40,
+    milestone: 'Appearance tab live — theme + language toggles working',
+    shippedTasks: [
+      { label: 'Settings view at /settings with Appearance section', date: '2026-05-27' },
+      { label: 'Theme toggle: dark / light with instant preview', date: '2026-05-27' },
+      { label: 'Language picker: EN / RU switch', date: '2026-05-27' },
+      { label: 'Stub sections for Keyboard / Data / Account with "coming soon" state', date: '2026-05-27' },
+    ],
     nextTasks: [
-      { label: 'Build tabbed view: Appearance / Account / Keys / Data / Shortcuts / About', priority: 'high' },
       { label: 'Migrate vibe-pak picker from temporary header location', priority: 'high' },
       { label: 'API keys panel (Anthropic, OpenWeather) for Studio + widgets', priority: 'high' },
       { label: 'Data export / import / clear panel', priority: 'medium' },
       { label: 'Global shortcuts map view', priority: 'medium' },
     ],
     improvements: [
-      'Theme + vibe-pak + accent color + font picker',
+      'Vibe-pak + accent color + font picker in Appearance',
       'Per-app accent override',
       'API key storage abstraction (encrypted in localStorage)',
       'Export entire OS state as a backup JSON',
@@ -148,19 +152,22 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
     ideas: [
       'Settings sync via Supabase when logged in',
       'Profile photo + display name',
-      'Locale picker (when i18n ships)',
     ],
-    notes: 'S2 priority. Unblocks Studio (API key storage) and migrates the vibe-pak picker to a proper home.',
+    notes: 'Appearance foundation done. Next: API keys panel (unblocks Studio) and data export.',
   },
 
   about: {
-    progress: 0,
-    milestone: 'Not started — S2 portfolio anchor',
-    shippedTasks: [],
+    progress: 65,
+    milestone: 'Core view live — logo, tech stack, GitHub link',
+    shippedTasks: [
+      { label: 'About page at /about with VibeOS logo SVG', date: '2026-05-27' },
+      { label: 'Tech stack grid: Vue 3, Vite, Pinia, Router, Lucide, marked, highlight.js', date: '2026-05-27' },
+      { label: 'Version row with GitHub link', date: '2026-05-27' },
+      { label: 'Responsive: single-column on mobile', date: '2026-05-27' },
+    ],
     nextTasks: [
       { label: 'Personal card: name, role, short bio', priority: 'high' },
       { label: 'Links: GitHub, X/Twitter, LinkedIn, email', priority: 'high' },
-      { label: 'Tech stack worked with', priority: 'medium' },
       { label: 'Optional resume PDF link', priority: 'low' },
     ],
     improvements: [
@@ -173,7 +180,7 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       'Short timeline of projects',
       'Now / currently working on section',
     ],
-    notes: 'Portfolio anchor every visitor looks for and currently missing.',
+    notes: 'Foundation done. Needs personal bio + links to complete portfolio anchor purpose.',
   },
 
   'task-manager': {
@@ -232,11 +239,11 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Word count + reading time in toolbar', date: '2026-05-26' },
       { label: 'Export note as .md file download', date: '2026-05-26' },
       { label: 'Code block syntax highlighting in preview (highlight.js)', date: '2026-05-26' },
+      { label: '"Today" button — opens/creates daily journal note (# YYYY-MM-DD)', date: '2026-05-27' },
     ],
     nextTasks: [
       { label: 'S4: Parse [[wiki-style links]] + clickable navigation', priority: 'high' },
       { label: 'S4: Backlinks panel (incoming references)', priority: 'high' },
-      { label: 'S4: "Today" button for daily journal entries', priority: 'high' },
       { label: 'S4: Lock in product name (Inkwell / Slate)', priority: 'medium' },
       { label: 'Responsive: collapse note list on sm, single-pane mode', priority: 'medium' },
       { label: 'Note drag-to-reorder in the list', priority: 'low' },
@@ -318,70 +325,81 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   snippets: {
-    progress: 0,
-    milestone: 'Not started — S4 new module',
-    shippedTasks: [],
+    progress: 100,
+    milestone: 'Full module shipped — list, detail, filter, copy, tags, syntax highlighting',
+    shippedTasks: [
+      { label: 'Snippets module at /snippets — list + detail two-pane layout', date: '2026-05-27' },
+      { label: 'Data model: Snippet { id, title, language, code, tags, createdAt }', date: '2026-05-27' },
+      { label: 'highlight.js syntax highlighting in detail view', date: '2026-05-27' },
+      { label: 'Language filter bar + tag filter', date: '2026-05-27' },
+      { label: 'One-click copy button per snippet', date: '2026-05-27' },
+      { label: 'Create / edit / delete snippets with localStorage persistence', date: '2026-05-27' },
+    ],
     nextTasks: [
-      { label: 'Write module spec in docs/modules/snippets.md', priority: 'high' },
-      { label: 'Data model: Snippet { id, title, language, code, tags, createdAt }', priority: 'high' },
-      { label: 'List view with language tag, search, copy button', priority: 'high' },
-      { label: 'Detail view with highlight.js rendering', priority: 'high' },
-      { label: 'Language filter + tag filter', priority: 'medium' },
+      { label: 'Import from GitHub gists', priority: 'low' },
+      { label: 'Snippet → Note cross-link', priority: 'low' },
     ],
     improvements: [
-      'Code editor with syntax highlighting (CodeMirror or Monaco — pick lightest)',
-      'Snippet → Note cross-link',
-      'Import from GitHub gists',
+      'Code editor with real syntax highlighting (CodeMirror — evaluate bundle cost)',
+      'Snippet templates (component scaffolds, common patterns)',
+      'Public sharing via short URL (S3 dep)',
     ],
     techDebt: [],
     ideas: [
-      'Snippet templates (component scaffolds, useEffect patterns, regex)',
-      'Public sharing via short URL',
       'Variables in snippets ({{name}} placeholders)',
+      'Import from GitHub gists',
+      'Export all snippets as a JSON backup',
     ],
-    notes: 'highlight.js already in dependencies. More useful daily than Currency was. Fits "personal OS for developers" angle.',
+    notes: 'Fully shipped. Retained over currency — unique developer daily value. Fits "personal OS for devs" angle.',
   },
 
   habits: {
-    progress: 0,
-    milestone: 'Not started — S4 new module (ships last in module wave)',
-    shippedTasks: [],
+    progress: 85,
+    milestone: 'Full module live — check-offs, streaks, heatmap, inline edit, confirm delete',
+    shippedTasks: [
+      { label: 'Habits module at /habits — daily check-off list', date: '2026-05-27' },
+      { label: 'Data model: Habit + per-day boolean log in localStorage', date: '2026-05-27' },
+      { label: 'Per-habit GitHub-style contribution heatmap', date: '2026-05-27' },
+      { label: 'Streak counter with Russian plural support (1 день / 2 дня / 5 дней)', date: '2026-05-27' },
+      { label: 'Inline habit name editing (click to edit, Enter/Esc)', date: '2026-05-27' },
+      { label: 'Confirm-before-delete with 4s auto-cancel timeout', date: '2026-05-27' },
+      { label: 'Add / remove habits with empty state', date: '2026-05-27' },
+    ],
     nextTasks: [
-      { label: 'Write module spec in docs/modules/habits.md', priority: 'medium' },
-      { label: 'Data model: Habit + per-day boolean log', priority: 'medium' },
-      { label: 'Habit list with daily check-off', priority: 'medium' },
-      { label: 'Per-habit heatmap (GitHub-contrib style)', priority: 'medium' },
-      { label: 'Streak counter per habit', priority: 'low' },
+      { label: 'Achievements via event bus (S2 dep)', priority: 'low' },
+      { label: 'Habit categories (health, learning, etc)', priority: 'low' },
+      { label: 'Reminders via toast notifications', priority: 'low' },
     ],
     improvements: [
-      'Heatmap on Dashboard as a widget',
-      'Habit categories (health, learning, etc)',
-      'Reminders via toast notifications',
+      'Heatmap widget on Dashboard',
+      'Cross-habit consistency overview',
+      'Freeze days (skip one day without breaking streak)',
     ],
     techDebt: [],
     ideas: [
-      'Cross-habit dashboard (overall consistency)',
       'Streak-loss recovery: optional "freeze" days',
       'Share streak as an image',
+      'Weekly summary notification',
     ],
-    notes: 'Cheap implementation, high "lived-in" feeling. Pairs with Tasks Streaks. Ship after other S4 modules settle.',
+    notes: 'Feature-complete v1. High "lived-in" feeling. Next: event bus integration for achievements.',
   },
 
   games: {
-    progress: 40,
-    milestone: 'Lobby + 2048 shipped — Memory and Snake next',
+    progress: 95,
+    milestone: 'All three games shipped — 2048, Memory, Snake',
     shippedTasks: [
-      { label: 'Game lobby at /games with cards for each game', date: '2026-05-27' },
+      { label: 'Game lobby at /games — SVG previews, best scores, colored accents', date: '2026-05-27' },
       { label: '2048 — CSS grid, merge logic, best score persistence', date: '2026-05-27' },
-      { label: 'Arrow keys + WASD + swipe gesture support', date: '2026-05-27' },
+      { label: 'Arrow keys + WASD + swipe gesture support in 2048', date: '2026-05-27' },
       { label: 'Win / game-over overlays with continue / restart', date: '2026-05-27' },
+      { label: 'Memory Cards — CSS 3D flip, best time per difficulty', date: '2026-05-27' },
+      { label: 'Snake — canvas game loop, difficulty levels, best score', date: '2026-05-27' },
     ],
     nextTasks: [
-      { label: 'Implement Memory Cards — CSS 3D flip', priority: 'medium' },
-      { label: 'Implement Snake — canvas + game loop', priority: 'medium' },
       { label: 'Achievements via event bus (S2 dep)', priority: 'low' },
       { label: 'High scores on Dashboard widget', priority: 'low' },
       { label: 'CRT vibe-pak easter-egg skin', priority: 'low' },
+      { label: 'New game: Tetris or Minesweeper', priority: 'low' },
     ],
     improvements: [
       'Achievements feed (event bus integration)',
