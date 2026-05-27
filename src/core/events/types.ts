@@ -59,6 +59,30 @@ export interface SnippetCreatedEvent {
   timestamp: string
 }
 
+export interface CardCreatedEvent {
+  type: 'card:created'
+  cardId: string
+  title: string
+  columnId: string
+  timestamp: string
+}
+
+export interface CardMovedEvent {
+  type: 'card:moved'
+  cardId: string
+  title: string
+  toColumnId: string
+  timestamp: string
+}
+
+export interface StudioRunEvent {
+  type: 'studio:run'
+  model: string
+  inputTokens: number
+  outputTokens: number
+  timestamp: string
+}
+
 export interface GameScoreEvent {
   type: 'game:score'
   game: string
@@ -75,6 +99,9 @@ export type PlatformEvent =
   | NoteCreatedEvent
   | NoteDeletedEvent
   | SnippetCreatedEvent
+  | CardCreatedEvent
+  | CardMovedEvent
+  | StudioRunEvent
   | GameScoreEvent
 
 export type PlatformEventType = PlatformEvent['type']

@@ -22,16 +22,19 @@ function formatTime(iso: string): string {
 
 function describeEvent(e: PlatformEvent): { icon: string; text: string } {
   switch (e.type) {
-    case 'task:created':   return { icon: '＋', text: `Created task "${e.label}"` }
-    case 'task:completed': return { icon: '✓', text: `Completed "${e.label}"` }
-    case 'task:deleted':   return { icon: '×', text: `Deleted task "${e.label}"` }
-    case 'habit:checked':  return { icon: '●', text: `Checked habit "${e.habitName}"` }
-    case 'habit:unchecked':return { icon: '○', text: `Unchecked "${e.habitName}"` }
-    case 'note:created':   return { icon: '📝', text: `New note "${e.title}"` }
-    case 'note:deleted':   return { icon: '🗑', text: `Deleted note "${e.title}"` }
-    case 'snippet:created':return { icon: '{ }', text: `New snippet "${e.title}"` }
-    case 'game:score':     return { icon: '🎮', text: `${e.game} — score ${e.score}` }
-    default:               return { icon: '·', text: 'Activity' }
+    case 'task:created':    return { icon: '+', text: `Task added — "${e.label}"` }
+    case 'task:completed':  return { icon: '✓', text: `Task done — "${e.label}"` }
+    case 'task:deleted':    return { icon: '×', text: `Task removed — "${e.label}"` }
+    case 'habit:checked':   return { icon: '●', text: `Habit checked — "${e.habitName}"` }
+    case 'habit:unchecked': return { icon: '○', text: `Habit unchecked — "${e.habitName}"` }
+    case 'note:created':    return { icon: '¶', text: `Note created — "${e.title}"` }
+    case 'note:deleted':    return { icon: '¶', text: `Note deleted — "${e.title}"` }
+    case 'snippet:created': return { icon: '{}', text: `Snippet — "${e.title}" (${e.language})` }
+    case 'card:created':    return { icon: '□', text: `Card added — "${e.title}"` }
+    case 'card:moved':      return { icon: '→', text: `Card moved — "${e.title}" → ${e.toColumnId}` }
+    case 'studio:run':      return { icon: '⚡', text: `Studio run — ${e.model.split('-')[1]} · ${e.inputTokens + e.outputTokens} tok` }
+    case 'game:score':      return { icon: '♟', text: `${e.game} — score ${e.score}` }
+    default:                return { icon: '·', text: 'Activity' }
   }
 }
 
@@ -43,6 +46,12 @@ function iconColor(e: PlatformEvent): string {
     case 'habit:checked':   return 'var(--color-success)'
     case 'habit:unchecked': return 'var(--color-text-muted)'
     case 'note:created':    return 'var(--color-accent)'
+    case 'note:deleted':    return 'var(--color-danger)'
+    case 'snippet:created': return '#10b981'
+    case 'card:created':    return 'var(--color-accent)'
+    case 'card:moved':      return '#f59e0b'
+    case 'studio:run':      return '#8b5cf6'
+    case 'game:score':      return '#6b7280'
     default:                return 'var(--color-text-muted)'
   }
 }

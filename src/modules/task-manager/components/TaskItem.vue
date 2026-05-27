@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
 import type { Task } from '../types'
+import { classifyTaskDueDate } from '../types'
 import { UiButton } from '@/ui'
 
 interface Props {
@@ -10,10 +11,15 @@ interface Props {
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
-  toggle: [id: string]
-  delete: [id: string]
-  edit:   [id: string, text: string]
+  toggle:      [id: string]
+  delete:      [id: string]
+  edit:        [id: string, text: string]
+  setDueDate:  [id: string, date: string | undefined]
 }>()
+
+function fmtDate(iso: string): string {
+  return new Date(iso + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
 
 const isEditing   = ref(false)
 const editText    = ref('')
@@ -75,6 +81,14 @@ function cancelEdit() {
         :title="task.done ? '' : 'Double-click to edit'"
         @dblclick="startEdit"
       >{{ task.text }}</span>
+
+      <!-- Due date badge -->
+      <span
+        v-if="task.dueDate && !task.done"
+        class="task-item__due"
+        :class="`task-item__due--${classifyTaskDueDate(task.dueDate)}`"
+        :title="task.dueDate"
+      >{{ fmtDate(task.dueDate) }}</span>
     </template>
 
     <UiButton
@@ -172,6 +186,19 @@ function cancelEdit() {
   padding: 0;
   min-width: 0;
 }
+
+/* Due date badge */
+.task-item__due {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.task-item__due--overdue  { background: color-mix(in srgb, #ef4444 12%, transparent); color: #ef4444; }
+.task-item__due--today    { background: color-mix(in srgb, #f59e0b 12%, transparent); color: #f59e0b; }
+.task-item__due--upcoming { color: var(--color-text-muted); }
 
 /* Delete */
 .task-item__delete {

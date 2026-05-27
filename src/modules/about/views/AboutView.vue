@@ -13,15 +13,34 @@ const STACK = [
   { name: 'marked',       desc: 'Markdown rendering in Notes',     icon: '📝' },
 ]
 
-const GITHUB_URL = 'https://github.com/MrNedNick/VibeOS'
+const MODULES = [
+  { id: 'task-manager', label: 'Tasks',    desc: 'Priority tasks, keyboard nav, CSV/JSON export',         icon: '✓' },
+  { id: 'notes',        label: 'Notes',    desc: 'Markdown with live preview, daily journal, pin + export', icon: '¶' },
+  { id: 'kanban',       label: 'Board',    desc: 'Swimlane timeline, drag-and-drop, task import',          icon: '□' },
+  { id: 'ai-playground',label: 'Studio',   desc: 'Prompt Lab — Opus / Sonnet / Haiku, run history',        icon: '⚡' },
+  { id: 'snippets',     label: 'Snippets', desc: 'Code vault — syntax highlight, tags, search',            icon: '{}' },
+  { id: 'habits',       label: 'Habits',   desc: 'Daily check-offs, streak tracking, heatmap',             icon: '●' },
+  { id: 'games',        label: 'Games',    desc: '2048 · Memory Cards · Snake',                            icon: '♟' },
+]
+
+const STATS = [
+  { label: 'Modules',        value: '9' },
+  { label: 'TypeScript',     value: '0 errors' },
+  { label: 'Dependencies',   value: '0 extra' },
+  { label: 'Bundle size',    value: '~380 KB' },
+]
+
+const GITHUB_URL    = 'https://github.com/MrNedNick/VibeOS'
+const LIVE_SITE_URL = 'https://mrnednick.github.io/VibeOS'
 </script>
 
 <template>
   <div class="about">
-    <!-- Hero -->
+
+    <!-- Hero ──────────────────────────────────────────────── -->
     <div class="about__hero">
       <div class="about__logo">
-        <svg width="48" height="48" viewBox="0 0 32 32" fill="none">
+        <svg width="52" height="52" viewBox="0 0 32 32" fill="none">
           <rect width="32" height="32" rx="8" fill="var(--color-accent)" />
           <path d="M10 23L14 9" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
           <path d="M18 23L22 9" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
@@ -33,27 +52,47 @@ const GITHUB_URL = 'https://github.com/MrNedNick/VibeOS'
       </div>
     </div>
 
-    <div class="about__version">
+    <!-- Meta row ────────────────────────────────────────────── -->
+    <div class="about__meta">
       <span class="about__version-label">{{ i18n.t('about.version') }}</span>
       <span class="about__version-value">v0.1.0</span>
-      <span class="about__version-dot">·</span>
-      <a
-        :href="GITHUB_URL"
-        class="about__github"
-        target="_blank"
-        rel="noopener noreferrer"
-      >{{ i18n.t('about.github') }} ↗</a>
+      <span class="about__sep">·</span>
+      <a :href="GITHUB_URL" class="about__link" target="_blank" rel="noopener noreferrer">
+        GitHub ↗
+      </a>
+      <span class="about__sep">·</span>
+      <a :href="LIVE_SITE_URL" class="about__link" target="_blank" rel="noopener noreferrer">
+        {{ i18n.t('about.liveSite') }} ↗
+      </a>
     </div>
 
-    <!-- Tech stack -->
+    <!-- Quick stats ──────────────────────────────────────────── -->
+    <div class="about__stats">
+      <div v-for="s in STATS" :key="s.label" class="stat-chip">
+        <span class="stat-chip__value">{{ s.value }}</span>
+        <span class="stat-chip__label">{{ s.label }}</span>
+      </div>
+    </div>
+
+    <!-- Modules ────────────────────────────────────────────── -->
+    <section class="about__section">
+      <h2 class="about__section-title">{{ i18n.t('about.modules') }}</h2>
+      <div class="about__modules">
+        <div v-for="mod in MODULES" :key="mod.id" class="mod-item">
+          <span class="mod-item__icon">{{ mod.icon }}</span>
+          <div class="mod-item__body">
+            <span class="mod-item__name">{{ mod.label }}</span>
+            <span class="mod-item__desc">{{ mod.desc }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tech stack ────────────────────────────────────────── -->
     <section class="about__section">
       <h2 class="about__section-title">{{ i18n.t('about.stack') }}</h2>
       <div class="about__stack">
-        <div
-          v-for="item in STACK"
-          :key="item.name"
-          class="stack-item"
-        >
+        <div v-for="item in STACK" :key="item.name" class="stack-item">
           <span class="stack-item__icon">{{ item.icon }}</span>
           <div class="stack-item__body">
             <span class="stack-item__name">{{ item.name }}</span>
@@ -62,16 +101,17 @@ const GITHUB_URL = 'https://github.com/MrNedNick/VibeOS'
         </div>
       </div>
     </section>
+
   </div>
 </template>
 
 <style scoped>
 .about {
-  max-width: 600px;
+  max-width: 640px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
 }
 
 /* Hero */
@@ -81,9 +121,7 @@ const GITHUB_URL = 'https://github.com/MrNedNick/VibeOS'
   gap: 18px;
 }
 
-.about__logo {
-  flex-shrink: 0;
-}
+.about__logo { flex-shrink: 0; }
 
 .about__title {
   font-size: 32px;
@@ -93,7 +131,6 @@ const GITHUB_URL = 'https://github.com/MrNedNick/VibeOS'
   margin: 0;
   line-height: 1;
 }
-
 .about__os { color: var(--color-accent); }
 
 .about__subtitle {
@@ -103,13 +140,13 @@ const GITHUB_URL = 'https://github.com/MrNedNick/VibeOS'
   line-height: 1.5;
 }
 
-/* Version row */
-.about__version {
+/* Meta row */
+.about__meta {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: var(--color-text-muted);
+  flex-wrap: wrap;
 }
 
 .about__version-label {
@@ -120,19 +157,56 @@ const GITHUB_URL = 'https://github.com/MrNedNick/VibeOS'
 .about__version-value {
   font-family: var(--font-mono);
   font-size: 13px;
+  color: var(--color-text-muted);
 }
 
-.about__version-dot { opacity: 0.4; }
+.about__sep { color: var(--color-text-muted); opacity: 0.4; }
 
-.about__github {
+.about__link {
   color: var(--color-accent);
   font-weight: 500;
+  font-size: 14px;
   transition: opacity var(--t-fast);
 }
-.about__github:hover { opacity: 0.8; }
+.about__link:hover { opacity: 0.75; }
+
+/* Stats chips */
+.about__stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stat-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  min-width: 80px;
+}
+
+.stat-chip__value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-accent);
+  line-height: 1;
+}
+
+.stat-chip__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
 
 /* Section */
-.about__section { display: flex; flex-direction: column; gap: 12px; }
+.about__section { display: flex; flex-direction: column; gap: 10px; }
 
 .about__section-title {
   font-size: 13px;
@@ -141,6 +215,58 @@ const GITHUB_URL = 'https://github.com/MrNedNick/VibeOS'
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
   margin: 0;
+}
+
+/* Modules list */
+.about__modules {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.mod-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--color-border);
+  transition: background var(--t-fast);
+}
+.mod-item:last-child { border-bottom: none; }
+.mod-item:hover { background: var(--color-surface-elevated); }
+
+.mod-item__icon {
+  font-size: 14px;
+  font-family: var(--font-mono);
+  color: var(--color-accent);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.mod-item__body {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.mod-item__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.mod-item__desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  min-width: 0;
 }
 
 /* Stack grid */
@@ -168,27 +294,15 @@ const GITHUB_URL = 'https://github.com/MrNedNick/VibeOS'
   text-align: center;
 }
 
-.stack-item__body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
+.stack-item__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
-.stack-item__name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.stack-item__desc {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  line-height: 1.4;
-}
+.stack-item__name { font-size: 14px; font-weight: 600; color: var(--color-text); }
+.stack-item__desc { font-size: 12px; color: var(--color-text-muted); line-height: 1.4; }
 
 @media (max-width: 767px) {
   .about__stack { grid-template-columns: 1fr; }
   .about__hero { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .about__stats { gap: 6px; }
+  .stat-chip { min-width: 70px; padding: 10px 12px; }
 }
 </style>

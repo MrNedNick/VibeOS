@@ -27,10 +27,15 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     totalCount.value === 0 ? 0 : Math.round((doneCount.value / totalCount.value) * 100)
   )
 
-  function addTask(text: string, priority: TaskPriority = 'none') {
+  function addTask(text: string, priority: TaskPriority = 'none', dueDate?: string) {
     const id = generateId()
-    tasks.value.push({ id, text: text.trim(), done: false, priority, createdAt: Date.now() })
+    tasks.value.push({ id, text: text.trim(), done: false, priority, dueDate, createdAt: Date.now() })
     events.emit({ type: 'task:created', taskId: id, label: text.trim(), timestamp: new Date().toISOString() })
+  }
+
+  function setDueDate(id: string, date: string | undefined) {
+    const task = tasks.value.find(t => t.id === id)
+    if (task) task.dueDate = date
   }
 
   function toggleTask(id: string) {
@@ -75,6 +80,7 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     addTask,
     toggleTask,
     updateTask,
+    setDueDate,
     deleteTask,
     clearDone,
     setFilter,

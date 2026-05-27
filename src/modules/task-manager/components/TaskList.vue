@@ -9,10 +9,11 @@ interface Props {
 
 defineProps<Props>()
 const emit = defineEmits<{
-  toggle: [id: string]
-  delete: [id: string]
-  edit:   [id: string, text: string]
-  focus:  [id: string]
+  toggle:     [id: string]
+  delete:     [id: string]
+  edit:       [id: string, text: string]
+  focus:      [id: string]
+  setDueDate: [id: string, date: string | undefined]
 }>()
 </script>
 
@@ -28,6 +29,7 @@ const emit = defineEmits<{
         @toggle="emit('toggle', $event)"
         @delete="emit('delete', $event)"
         @edit="(id, text) => emit('edit', id, text)"
+        @set-due-date="(id, date) => emit('setDueDate', id, date)"
       />
     </TransitionGroup>
 

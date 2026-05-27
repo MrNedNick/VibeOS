@@ -37,8 +37,8 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'Settings2',
     path: '/settings',
     section: 'platform',
-    status: 'wip',
-    description: 'Appearance, account, keys, data, shortcuts',
+    status: 'available',
+    description: 'Appearance, keyboard shortcuts, data export',
   },
   {
     id: 'about',
@@ -46,8 +46,8 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'User',
     path: '/about',
     section: 'platform',
-    status: 'wip',
-    description: 'Who built this — links, bio, stack',
+    status: 'available',
+    description: 'Tech stack, shipped modules, GitHub link',
   },
 
   // ── Apps section ─────────────────────────────────────────────────

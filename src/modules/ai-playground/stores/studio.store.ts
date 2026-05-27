@@ -75,10 +75,11 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
       history.value    = [studioRun, ...history.value].slice(0, MAX_HISTORY)
 
       events.emit({
-        type:      'game:score', // reuse as a generic event for now
-        game:      'Studio',
-        score:     studioRun.outputTokens,
-        timestamp: studioRun.timestamp,
+        type:        'studio:run',
+        model:       studioRun.model,
+        inputTokens: studioRun.inputTokens,
+        outputTokens: studioRun.outputTokens,
+        timestamp:   studioRun.timestamp,
       })
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Network error'

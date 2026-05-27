@@ -45,7 +45,7 @@ export const useBoardStore = defineStore('kanban:board', () => {
       updatedAt:   new Date().toISOString(),
     }
     cards.value.push(card)
-    events.emit({ type: 'snippet:created', snippetId: card.id, title: card.title, language: 'card', timestamp: card.createdAt })
+    events.emit({ type: 'card:created', cardId: card.id, title: card.title, columnId, timestamp: card.createdAt })
     return card.id
   }
 
@@ -59,6 +59,10 @@ export const useBoardStore = defineStore('kanban:board', () => {
     if (colChanged)  card.columnId = toColumnId
     if (toDueDate !== undefined) card.dueDate = toDueDate ?? undefined
     card.updatedAt = new Date().toISOString()
+
+    if (colChanged) {
+      events.emit({ type: 'card:moved', cardId: card.id, title: card.title, toColumnId, timestamp: card.updatedAt })
+    }
 
     if (toColumnId === 'done' && colChanged) {
       events.emit({ type: 'task:completed', taskId: card.id, label: card.title, timestamp: card.updatedAt })

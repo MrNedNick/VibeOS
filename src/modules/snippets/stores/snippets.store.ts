@@ -2,10 +2,12 @@ import { computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useStorage } from '@/core/composables/useStorage'
 import { storageKey } from '@/core/utils/storage'
+import { useEventBus } from '@/core/events'
 import type { Snippet } from '../types'
 
 export const useSnippetsStore = defineStore('snippets:snippets', () => {
   const snippets = useStorage<Snippet[]>(storageKey('snippets', 'snippets'), [])
+  const events   = useEventBus()
 
   const sortedSnippets = computed(() =>
     [...snippets.value].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
@@ -27,6 +29,7 @@ export const useSnippetsStore = defineStore('snippets:snippets', () => {
       updatedAt: new Date().toISOString(),
     }
     snippets.value.unshift(snippet)
+    events.emit({ type: 'snippet:created', snippetId: snippet.id, title: snippet.title, language: snippet.language, timestamp: snippet.createdAt })
     return snippet.id
   }
 

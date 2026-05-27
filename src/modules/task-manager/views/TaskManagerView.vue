@@ -123,6 +123,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       @toggle="store.toggleTask"
       @delete="removeTask"
       @edit="store.updateTask"
+      @set-due-date="store.setDueDate"
       @focus="focusedId = $event"
     />
   </div>
