@@ -9,6 +9,7 @@ import { notesRoutes } from '@/modules/notes'
 import { gamesRoutes } from '@/modules/games'
 import { snippetsRoutes } from '@/modules/snippets'
 import { habitsRoutes } from '@/modules/habits'
+import { kanbanRoutes } from '@/modules/kanban'
 import { studioRoutes } from '@/modules/ai-playground'
 import { settingsRoutes } from '@/modules/settings'
 import { aboutRoutes } from '@/modules/about'
@@ -25,6 +26,7 @@ const routes: RouteRecordRaw[] = [
       ...gamesRoutes,
       ...snippetsRoutes,
       ...habitsRoutes,
+      ...kanbanRoutes,
       ...studioRoutes,
       ...settingsRoutes,
       ...aboutRoutes,

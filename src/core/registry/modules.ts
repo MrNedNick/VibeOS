@@ -75,8 +75,8 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'Kanban',
     path: '/kanban',
     section: 'modules',
-    status: 'planned',
-    description: 'Time-based swimlanes — unified with Tasks',
+    status: 'available',
+    description: 'Drag-and-drop Kanban board — Backlog / In Progress / Done',
   },
   {
     id: 'ai-playground',
