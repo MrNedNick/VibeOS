@@ -9,7 +9,7 @@ const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages'
 
 export const useStudioStore = defineStore('ai-playground:studio', () => {
   const apiKey = useStorage<string>('platform:studio:apikey', '')
-  const model  = useStorage<StudioModel>('platform:studio:model', 'claude-sonnet-4-5')
+  const model  = useStorage<StudioModel>('platform:studio:model', 'claude-sonnet-4-6')
   const maxTokens = useStorage<number>('platform:studio:maxTokens', 1024)
   const history = useStorage<StudioRun[]>('platform:studio:runs', [])
 

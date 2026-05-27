@@ -241,14 +241,26 @@ const currentModel = computed(() =>
 
         <!-- Empty state -->
         <div v-else class="studio__empty">
-          <div class="studio__empty-icon">⚡</div>
-          <p class="studio__empty-title">{{ i18n.t('studio.emptyTitle') }}</p>
-          <p class="studio__empty-sub">{{ i18n.t('studio.emptySub') }}</p>
-          <ul class="studio__empty-tips">
-            <li>{{ i18n.t('studio.tip1') }}</li>
-            <li>{{ i18n.t('studio.tip2') }}</li>
-            <li>{{ i18n.t('studio.tip3') }}</li>
-          </ul>
+          <template v-if="!store.apiKey">
+            <div class="studio__empty-icon">🔑</div>
+            <p class="studio__empty-title">{{ i18n.t('studio.requiresKey') }}</p>
+            <p class="studio__empty-sub">{{ i18n.t('studio.requiresKeyDesc') }}</p>
+            <div class="studio__empty-warning">
+              <p>{{ i18n.t('studio.costWarning') }}</p>
+            </div>
+            <p class="studio__empty-link">{{ i18n.t('studio.getKeyLink') }}</p>
+            <p class="studio__empty-note">{{ i18n.t('studio.proxyNote') }}</p>
+          </template>
+          <template v-else>
+            <div class="studio__empty-icon">⚡</div>
+            <p class="studio__empty-title">{{ i18n.t('studio.emptyTitle') }}</p>
+            <p class="studio__empty-sub">{{ i18n.t('studio.emptySub') }}</p>
+            <ul class="studio__empty-tips">
+              <li>{{ i18n.t('studio.tip1') }}</li>
+              <li>{{ i18n.t('studio.tip2') }}</li>
+              <li>{{ i18n.t('studio.tip3') }}</li>
+            </ul>
+          </template>
         </div>
 
       </div>
@@ -753,6 +765,34 @@ const currentModel = computed(() =>
   position: absolute;
   left: 0;
   color: var(--color-accent);
+}
+
+.studio__empty-warning {
+  padding: 10px 16px;
+  background: rgba(240, 160, 48, 0.08);
+  border: 1px solid rgba(240, 160, 48, 0.2);
+  border-radius: var(--radius-sm);
+  max-width: 400px;
+}
+.studio__empty-warning p {
+  font-size: 13px;
+  color: var(--color-warning);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.studio__empty-link {
+  font-size: 13px;
+  color: var(--color-accent);
+  margin: 0;
+}
+
+.studio__empty-note {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.5;
 }
 
 /* ── Responsive ──────────────────────────────── */
