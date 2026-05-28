@@ -8,6 +8,7 @@ interface Props {
   totalCount: number
   activeCount: number
   doneCount: number
+  todayCount: number
 }
 
 const props = defineProps<Props>()
@@ -18,12 +19,14 @@ interface Tab { id: TaskFilter; labelKey: string }
 
 const tabs: Tab[] = [
   { id: 'all',    labelKey: 'tasks.filterAll'    },
+  { id: 'today',  labelKey: 'tasks.filterToday'  },
   { id: 'active', labelKey: 'tasks.filterActive' },
   { id: 'done',   labelKey: 'tasks.filterDone'   },
 ]
 
 function getCount(id: TaskFilter): number {
   if (id === 'all')    return props.totalCount
+  if (id === 'today')  return props.todayCount
   if (id === 'active') return props.activeCount
   return props.doneCount
 }

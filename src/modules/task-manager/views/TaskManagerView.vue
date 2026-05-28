@@ -125,6 +125,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       :total-count="store.totalCount"
       :active-count="store.activeCount"
       :done-count="store.doneCount"
+      :today-count="store.todayCount"
     />
 
     <!-- Category filter chips -->

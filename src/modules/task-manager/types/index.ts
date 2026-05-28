@@ -1,4 +1,4 @@
-export type TaskFilter   = 'all' | 'active' | 'done'
+export type TaskFilter   = 'all' | 'active' | 'done' | 'today'
 export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
 export type TaskCategory = 'work' | 'learning' | 'training' | 'personal' | 'goal'
 

@@ -2,9 +2,16 @@
 import { ref } from 'vue'
 import { useUiStore } from '@/core/stores/ui.store'
 import { useLocale } from '@/core/i18n'
+import { useStorage } from '@/core/composables/useStorage'
 
 const uiStore = useUiStore()
 const i18n    = useLocale()
+
+// ── API keys ──────────────────────────────────────────────────────
+const anthropicKey    = useStorage<string>('platform:studio:apikey', '')
+const openWeatherKey  = useStorage<string>('platform:settings:openweather-key', '')
+const showAnthropic   = ref(false)
+const showOpenWeather = ref(false)
 
 // ── Data section ──────────────────────────────────────────────────
 const clearConfirm = ref(false)
@@ -136,6 +143,59 @@ const SHORTCUTS = [
           </tr>
         </tbody>
       </table>
+    </section>
+
+    <!-- ── API Keys ──────────────────────────────────────── -->
+    <section class="settings__section">
+      <h2 class="settings__section-title">{{ i18n.t('settings.sectionApiKeys') }}</h2>
+
+      <!-- Anthropic -->
+      <div class="settings__row settings__row--col">
+        <div>
+          <span class="settings__row-name">{{ i18n.t('settings.anthropicKeyLabel') }}</span>
+          <p class="settings__row-hint">{{ i18n.t('settings.anthropicKeyHint') }}</p>
+        </div>
+        <div class="settings__key-row">
+          <input
+            v-model="anthropicKey"
+            :type="showAnthropic ? 'text' : 'password'"
+            class="settings__key-input"
+            placeholder="sk-ant-…"
+            spellcheck="false"
+            autocomplete="off"
+          />
+          <button class="settings__key-toggle" @click="showAnthropic = !showAnthropic">
+            {{ showAnthropic ? i18n.t('settings.keyHide') : i18n.t('settings.keyShow') }}
+          </button>
+          <span class="settings__key-status" :class="{ 'settings__key-status--set': anthropicKey }">
+            {{ anthropicKey ? i18n.t('settings.keySet') : i18n.t('settings.keyNotSet') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- OpenWeather -->
+      <div class="settings__row settings__row--col">
+        <div>
+          <span class="settings__row-name">{{ i18n.t('settings.openWeatherKeyLabel') }}</span>
+          <p class="settings__row-hint">{{ i18n.t('settings.openWeatherKeyHint') }}</p>
+        </div>
+        <div class="settings__key-row">
+          <input
+            v-model="openWeatherKey"
+            :type="showOpenWeather ? 'text' : 'password'"
+            class="settings__key-input"
+            placeholder="abc123…"
+            spellcheck="false"
+            autocomplete="off"
+          />
+          <button class="settings__key-toggle" @click="showOpenWeather = !showOpenWeather">
+            {{ showOpenWeather ? i18n.t('settings.keyHide') : i18n.t('settings.keyShow') }}
+          </button>
+          <span class="settings__key-status" :class="{ 'settings__key-status--set': openWeatherKey }">
+            {{ openWeatherKey ? i18n.t('settings.keySet') : i18n.t('settings.keyNotSet') }}
+          </span>
+        </div>
+      </div>
     </section>
 
     <!-- ── Data ────────────────────────────────────────── -->
@@ -419,6 +479,57 @@ const SHORTCUTS = [
   margin-right: 2px;
 }
 
+/* API Key rows */
+.settings__row--col { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+.settings__key-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.settings__key-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--t-fast);
+}
+.settings__key-input:focus { border-color: var(--color-accent); }
+.settings__key-input::placeholder { color: var(--color-text-muted); }
+
+.settings__key-toggle {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.settings__key-toggle:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.settings__key-status {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.settings__key-status--set { color: var(--color-success); }
+
 @media (max-width: 767px) {
   .settings { max-width: 100%; }
   .settings__section { padding: 16px 16px; }
@@ -427,5 +538,6 @@ const SHORTCUTS = [
   .shortcuts-table { font-size: 12px; }
   .shortcuts-table th,
   .shortcuts-table td { padding-right: 4px; }
+  .settings__key-input { min-width: 0; }
 }
 </style>

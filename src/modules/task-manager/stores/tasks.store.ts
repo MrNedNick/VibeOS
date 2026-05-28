@@ -15,9 +15,11 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
   const events = useEventBus()
 
   const filteredTasks = computed<Task[]>(() => {
+    const today = new Date().toISOString().slice(0, 10)
     let result = tasks.value
     if (filter.value === 'active') result = result.filter(t => !t.done)
     else if (filter.value === 'done') result = result.filter(t => t.done)
+    else if (filter.value === 'today') result = result.filter(t => !t.done && t.dueDate === today)
     if (categoryFilter.value !== 'all') result = result.filter(t => t.category === categoryFilter.value)
     return result
   })
@@ -25,6 +27,10 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
   const activeCount = computed(() => tasks.value.filter(t => !t.done).length)
   const doneCount   = computed(() => tasks.value.filter(t => t.done).length)
   const totalCount  = computed(() => tasks.value.length)
+  const todayCount  = computed(() => {
+    const today = new Date().toISOString().slice(0, 10)
+    return tasks.value.filter(t => !t.done && t.dueDate === today).length
+  })
 
   const progress = computed(() =>
     totalCount.value === 0 ? 0 : Math.round((doneCount.value / totalCount.value) * 100)
@@ -84,6 +90,7 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     activeCount,
     doneCount,
     totalCount,
+    todayCount,
     progress,
     addTask,
     toggleTask,

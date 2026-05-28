@@ -28,9 +28,24 @@ hljs.registerLanguage('markdown', markdown)
 hljs.registerLanguage('md', markdown)
 
 const props = defineProps<{ content: string }>()
+const emit  = defineEmits<{ 'wiki-navigate': [title: string] }>()
 
 marked.use({
   gfm: true,
+  extensions: [{
+    name: 'wikiLink',
+    level: 'inline' as const,
+    start(src: string) { return src.indexOf('[[') },
+    tokenizer(src: string) {
+      const m = /^\[\[([^\]]+)\]\]/.exec(src)
+      if (m) return { type: 'wikiLink', raw: m[0], title: m[1].trim() }
+    },
+    renderer(token) {
+      const t    = token as unknown as { title: string }
+      const safe = t.title.replace(/"/g, '&quot;')
+      return `<a class="wiki-link" data-wiki="${safe}">${t.title}</a>`
+    },
+  }],
   renderer: {
     code({ text, lang }: { text: string; lang?: string }) {
       const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
@@ -47,6 +62,14 @@ const rendered = computed<string>(() => {
   const result = marked.parse(props.content)
   return typeof result === 'string' ? result : ''
 })
+
+function handleClick(e: MouseEvent) {
+  const el = e.target as HTMLElement
+  if (el.classList.contains('wiki-link') && el.dataset.wiki) {
+    e.preventDefault()
+    emit('wiki-navigate', el.dataset.wiki)
+  }
+}
 </script>
 
 <template>
@@ -55,6 +78,7 @@ const rendered = computed<string>(() => {
       v-if="rendered"
       class="note-preview__content doc-content"
       v-html="rendered"
+      @click="handleClick"
     />
     <p v-else class="note-preview__empty">Preview will appear here</p>
   </div>
@@ -204,6 +228,18 @@ const rendered = computed<string>(() => {
 
 .note-preview__content :deep(a) { color: var(--color-accent); }
 .note-preview__content :deep(a:hover) { text-decoration: underline; }
+
+.note-preview__content :deep(.wiki-link) {
+  color: var(--color-accent);
+  border-bottom: 1px dashed var(--color-accent);
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity var(--t-fast);
+}
+.note-preview__content :deep(.wiki-link:hover) {
+  text-decoration: none;
+  opacity: 0.75;
+}
 .note-preview__content :deep(strong) { color: var(--color-text); font-weight: 600; }
 .note-preview__content :deep(em) { color: var(--color-text-secondary); font-style: italic; }
 </style>

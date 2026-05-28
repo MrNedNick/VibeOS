@@ -10,7 +10,7 @@ import NotePreview from '../components/NotePreview.vue'
 const {
   selectedId, mode, searchQuery,
   filteredNotes, selectedNote,
-  selectNote, newNote, todayNote, debouncedSave, deleteNote,
+  selectNote, newNote, todayNote, debouncedSave, deleteNote, navigateToWikiLink,
 } = useNotes()
 
 const notesStore = useNotesStore()
@@ -128,6 +128,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <NotePreview
           v-if="mode === 'preview'"
           :content="selectedNote.content"
+          @wiki-navigate="navigateToWikiLink"
         />
       </div>
 

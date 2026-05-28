@@ -129,8 +129,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   settings: {
-    progress: 85,
-    milestone: 'Appearance + Keyboard cheatsheet + Data export/clear fully functional',
+    progress: 92,
+    milestone: 'API Keys panel shipped — Anthropic + OpenWeather keys centralised in Settings',
     shippedTasks: [
       { label: 'Settings view at /settings with Appearance section', date: '2026-05-27' },
       { label: 'Theme toggle: dark / light with instant preview', date: '2026-05-27' },
@@ -139,9 +139,9 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Data export: download all localStorage as dated JSON backup', date: '2026-05-27' },
       { label: 'Clear all data with 5s confirm dialog + auto-cancel', date: '2026-05-27' },
       { label: 'Marked available in module registry (no more wip badge)', date: '2026-05-27' },
+      { label: 'API Keys section: Anthropic key (shared with Studio) + OpenWeather key, show/hide toggle, saved status', date: '2026-05-28' },
     ],
     nextTasks: [
-      { label: 'API keys panel (Anthropic, OpenWeather) for Studio + widgets', priority: 'high' },
       { label: 'Vibe-pak / accent color picker in Appearance (S1)', priority: 'high' },
       { label: 'Notification preferences (toasts, sounds, frequency)', priority: 'medium' },
       { label: 'Privacy & data preferences section', priority: 'medium' },
@@ -195,8 +195,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   'task-manager': {
-    progress: 76,
-    milestone: 'Foundation solid + due dates + life categories — S4 Today/Focus/Streaks pending',
+    progress: 80,
+    milestone: 'Today view shipped — tasks due today now filterable in one click',
     shippedTasks: [
       { label: 'Create, toggle, delete tasks with localStorage persistence', date: '2026-05-26' },
       { label: 'Filter tabs: All / Active / Done', date: '2026-05-26' },
@@ -213,9 +213,10 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Life categories: work / learning / training / personal / goal with filter chips', date: '2026-05-27' },
       { label: 'Colored category badge on task items (blue/purple/orange/teal/pink)', date: '2026-05-27' },
       { label: 'Category selector in new task input row (shown when typing)', date: '2026-05-27' },
+      { label: 'Today filter tab: shows only undone tasks with dueDate === today', date: '2026-05-28' },
+      { label: 'todayCount computed exported from store for badge display', date: '2026-05-28' },
     ],
     nextTasks: [
-      { label: 'S4: Today view (filter by due == today)', priority: 'high' },
       { label: 'S4: Focus mode with Pomodoro timer', priority: 'high' },
       { label: 'S4: Streak counter + heatmap (≥1 done/day)', priority: 'high' },
       { label: 'S4: Natural-language input ("tomorrow" → sets dueDate)', priority: 'medium' },
@@ -246,8 +247,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   notes: {
-    progress: 78,
-    milestone: 'Split mode removed — clean edit/preview two-mode UX; backlinks still pending S4',
+    progress: 84,
+    milestone: '[[Wiki links]] shipped — click any [[Title]] in preview to navigate or create that note',
     shippedTasks: [
       { label: 'Three-pane workspace: list / editor / preview', date: '2026-05-26' },
       { label: 'Live markdown preview with marked', date: '2026-05-26' },
@@ -259,10 +260,10 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Code block syntax highlighting in preview (highlight.js)', date: '2026-05-26' },
       { label: '"Today" button — opens/creates daily journal note (# YYYY-MM-DD)', date: '2026-05-27' },
       { label: 'Remove split mode — EditorMode is edit | preview only (cleaner UX)', date: '2026-05-27' },
+      { label: '[[wiki links]] — marked inline extension, click to navigate or auto-create note', date: '2026-05-28' },
     ],
     nextTasks: [
-      { label: 'S4: Parse [[wiki-style links]] + clickable navigation', priority: 'high' },
-      { label: 'S4: Backlinks panel (incoming references)', priority: 'high' },
+      { label: 'S4: Backlinks panel (incoming references to current note)', priority: 'high' },
       { label: 'S4: Lock in product name (Inkwell / Slate)', priority: 'medium' },
       { label: 'Responsive: collapse note list on sm, single-pane mode', priority: 'medium' },
       { label: 'Note drag-to-reorder in the list', priority: 'low' },

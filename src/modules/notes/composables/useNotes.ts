@@ -56,6 +56,21 @@ export function useNotes() {
     }
   }
 
+  function navigateToWikiLink(title: string): void {
+    const match = store.notes.find(n =>
+      deriveTitle(n.content).toLowerCase() === title.toLowerCase()
+    )
+    if (match) {
+      selectedId.value = match.id
+      mode.value = 'preview'
+    } else {
+      const id = store.createNote()
+      store.updateContent(id, `# ${title}\n\n`)
+      selectedId.value = id
+      mode.value = 'edit'
+    }
+  }
+
   return {
     selectedId,
     mode,
@@ -67,5 +82,6 @@ export function useNotes() {
     todayNote,
     debouncedSave,
     deleteNote,
+    navigateToWikiLink,
   }
 }
