@@ -16,9 +16,9 @@ const lifeModules   = computed(() => PLATFORM_MODULES.filter(m => m.section === 
 const workModules   = computed(() => PLATFORM_MODULES.filter(m => m.section === 'work'))
 
 const sidebarGroups = computed(() => [
-  { key: 'system', label: i18n.t('nav.system'), modules: systemModules.value },
-  { key: 'life',   label: i18n.t('nav.life'),   modules: lifeModules.value },
-  { key: 'work',   label: i18n.t('nav.work'),   modules: workModules.value },
+  { key: 'life',   label: i18n.t('nav.life'),   icon: 'Heart',    modules: lifeModules.value },
+  { key: 'work',   label: i18n.t('nav.work'),   icon: 'Briefcase', modules: workModules.value },
+  { key: 'system', label: i18n.t('nav.system'), icon: 'Cpu',      modules: systemModules.value },
 ])
 
 function isActive(mod: ModuleMeta): boolean {
@@ -58,8 +58,11 @@ function modLabel(mod: ModuleMeta): string {
     <nav class="sidebar__nav">
 
       <template v-for="group in sidebarGroups" :key="group.key">
-        <div class="sidebar__group">
-          <p class="sidebar__section-label">{{ group.label }}</p>
+        <div class="sidebar__group" :class="`sidebar__group--${group.key}`">
+          <p class="sidebar__section-label">
+            <span class="sidebar__section-icon"><UiIcon :name="group.icon" :size="11" :stroke-width="2.5" /></span>
+            <span class="sidebar__section-text">{{ group.label }}</span>
+          </p>
           <button
             v-for="mod in group.modules"
             :key="mod.id"
@@ -142,18 +145,33 @@ function modLabel(mod: ModuleMeta): string {
 .sidebar__group { display: flex; flex-direction: column; gap: 2px; }
 
 .sidebar__section-label {
-  font-size: 12px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
   padding: 0 8px;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   white-space: nowrap;
   transition: opacity var(--t);
 }
 
+.sidebar__section-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.sidebar__section-text { flex: 1; }
+
 .sidebar--collapsed .sidebar__section-label { opacity: 0; }
+
+.sidebar__group--life   .sidebar__section-label { color: var(--color-success); }
+.sidebar__group--work   .sidebar__section-label { color: var(--color-accent); }
+.sidebar__group--system .sidebar__section-label { color: var(--color-text-muted); }
 
 .sidebar__item {
   display: flex;

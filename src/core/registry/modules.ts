@@ -46,7 +46,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     label: 'Studio',
     icon: 'Zap',
     path: '/ai',
-    section: 'system',
+    section: 'work',
     status: 'available',
     description: 'Prompt Lab — run prompts across Opus / Sonnet / Haiku',
   },
