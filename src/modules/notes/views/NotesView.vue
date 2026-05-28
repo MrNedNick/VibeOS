@@ -6,6 +6,7 @@ import { deriveTitle } from '../types'
 import NoteList from '../components/NoteList.vue'
 import NoteEditor from '../components/NoteEditor.vue'
 import NotePreview from '../components/NotePreview.vue'
+import { UiIcon } from '@/ui'
 
 const {
   selectedId, mode, searchQuery,
@@ -14,6 +15,21 @@ const {
 } = useNotes()
 
 const notesStore = useNotesStore()
+
+// ── Backlinks ─────────────────────────────────────────────────────────
+interface BacklinkNote { id: string; title: string }
+
+const backlinks = computed((): BacklinkNote[] => {
+  if (!selectedNote.value) return []
+  const title = deriveTitle(selectedNote.value.content).trim()
+  if (!title || title === 'Untitled') return []
+  const pattern = `[[${title}]]`
+  return notesStore.notes
+    .filter(n => n.id !== selectedNote.value!.id && n.content.includes(pattern))
+    .map(n => ({ id: n.id, title: deriveTitle(n.content) || 'Untitled' }))
+})
+
+const showBacklinks = ref(false)
 
 // Word count + reading time
 const wordCount = computed(() => {
@@ -158,6 +174,40 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <p class="notes-empty__title">Nothing open.</p>
         <p class="notes-empty__sub">Pick a note from the list, or start fresh.</p>
         <button class="notes-empty__btn" @click="newNote">New note</button>
+      </div>
+
+      <!-- Backlinks bar (shown when note is open) -->
+      <div v-if="selectedNote" class="notes-backlinks">
+        <button
+          class="notes-backlinks__toggle"
+          :class="{ 'notes-backlinks__toggle--active': showBacklinks }"
+          @click="showBacklinks = !showBacklinks"
+        >
+          <UiIcon name="Link2" :size="13" />
+          <span>{{ backlinks.length }} backlink{{ backlinks.length !== 1 ? 's' : '' }}</span>
+          <UiIcon
+            :name="showBacklinks ? 'ChevronDown' : 'ChevronRight'"
+            :size="13"
+            class="notes-backlinks__chevron"
+          />
+        </button>
+
+        <Transition name="bl">
+          <div v-if="showBacklinks" class="notes-backlinks__list">
+            <div v-if="backlinks.length === 0" class="notes-backlinks__empty">
+              No notes link to this one yet. Use <code>[[{{ deriveTitle(selectedNote.content) || 'Note Title' }}]]</code> in another note.
+            </div>
+            <button
+              v-for="bl in backlinks"
+              :key="bl.id"
+              class="notes-backlinks__item"
+              @click="selectNote(bl.id); mobileShowEditor = true"
+            >
+              <UiIcon name="FileText" :size="13" />
+              <span>{{ bl.title }}</span>
+            </button>
+          </div>
+        </Transition>
       </div>
 
     </div>
@@ -309,6 +359,85 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .notes-empty__btn:hover { opacity: 0.88; }
+
+/* ── Backlinks ───────────────────────────────────────────────── */
+.notes-backlinks {
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.notes-backlinks__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-align: left;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+
+.notes-backlinks__toggle:hover,
+.notes-backlinks__toggle--active {
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+}
+
+.notes-backlinks__chevron {
+  margin-left: auto;
+  opacity: 0.6;
+}
+
+.notes-backlinks__list {
+  border-top: 1px solid var(--color-border);
+  padding: 4px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.notes-backlinks__empty {
+  padding: 8px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.notes-backlinks__empty code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--color-surface-elevated);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--color-accent);
+}
+
+.notes-backlinks__item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  transition: background var(--t-fast), color var(--t-fast);
+  text-align: left;
+  width: 100%;
+}
+
+.notes-backlinks__item:hover {
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+}
+
+/* Backlinks expand transition */
+.bl-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.bl-leave-active { transition: opacity 0.1s ease; }
+.bl-enter-from   { opacity: 0; transform: translateY(-4px); }
+.bl-leave-to     { opacity: 0; }
 
 /* ── Mobile: back button ─────────────────────────────────────── */
 .notes-toolbar__back {

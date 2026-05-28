@@ -50,7 +50,10 @@ const showAnthropic   = ref(false)
 const showOpenWeather = ref(false)
 
 // ── Data section ──────────────────────────────────────────────────
-const clearConfirm = ref(false)
+const clearConfirm  = ref(false)
+const importConfirm = ref(false)
+const importPayload = ref<Record<string, unknown> | null>(null)
+const fileInputRef  = ref<HTMLInputElement>()
 let clearTimer: ReturnType<typeof setTimeout> | null = null
 
 function exportData() {
@@ -88,6 +91,47 @@ function confirmClear() {
 function cancelClear() {
   if (clearTimer) clearTimeout(clearTimer)
   clearConfirm.value = false
+}
+
+function triggerImport() {
+  fileInputRef.value?.click()
+}
+
+function onFileChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  ;(e.target as HTMLInputElement).value = ''    // reset so same file can re-trigger
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target?.result as string)
+      if (typeof data !== 'object' || data === null) throw new Error('Not an object')
+      importPayload.value = data as Record<string, unknown>
+      importConfirm.value = true
+    } catch {
+      alert('Invalid backup file — expected a VibeOS JSON export.')
+    }
+  }
+  reader.readAsText(file)
+}
+
+function confirmImport() {
+  if (!importPayload.value) return
+  for (const [key, value] of Object.entries(importPayload.value)) {
+    if (value === null) {
+      localStorage.removeItem(key)
+    } else {
+      localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value))
+    }
+  }
+  importConfirm.value = false
+  importPayload.value = null
+  window.location.reload()
+}
+
+function cancelImport() {
+  importConfirm.value = false
+  importPayload.value = null
 }
 
 </script>
@@ -206,6 +250,7 @@ function cancelClear() {
     <section class="settings__section">
       <h2 class="settings__section-title">{{ i18n.t('settings.sectionData') }}</h2>
 
+      <!-- Export -->
       <div class="settings__row">
         <div>
           <span class="settings__row-name">{{ i18n.t('settings.exportLabel') }}</span>
@@ -216,6 +261,38 @@ function cancelClear() {
         </button>
       </div>
 
+      <!-- Import -->
+      <div class="settings__row">
+        <div>
+          <span class="settings__row-name">{{ i18n.t('settings.importLabel') }}</span>
+          <p class="settings__row-hint">{{ i18n.t('settings.importHint') }}</p>
+        </div>
+        <div class="settings__import-actions">
+          <template v-if="!importConfirm">
+            <button class="settings__action-btn" @click="triggerImport">
+              {{ i18n.t('settings.importBtn') }}
+            </button>
+            <input
+              ref="fileInputRef"
+              type="file"
+              accept=".json,application/json"
+              class="settings__file-input"
+              @change="onFileChange"
+            />
+          </template>
+          <template v-else>
+            <span class="settings__danger-confirm">{{ i18n.t('settings.importConfirm') }}</span>
+            <button class="settings__danger-btn settings__danger-btn--confirm" @click="confirmImport">
+              {{ i18n.t('settings.importYes') }}
+            </button>
+            <button class="settings__cancel-btn" @click="cancelImport">
+              {{ i18n.t('settings.importNo') }}
+            </button>
+          </template>
+        </div>
+      </div>
+
+      <!-- Clear -->
       <div class="settings__row settings__row--danger">
         <div>
           <span class="settings__row-name">{{ i18n.t('settings.clearLabel') }}</span>
@@ -393,6 +470,17 @@ function cancelClear() {
   background: var(--color-accent-muted);
   color: var(--color-accent);
   border-color: var(--color-accent-muted);
+}
+
+.settings__import-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.settings__file-input {
+  display: none;
 }
 
 .settings__clear-actions {
