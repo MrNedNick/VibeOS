@@ -13,9 +13,11 @@ import StatCard from '../components/StatCard.vue'
 import ModuleDetailPanel from '../components/ModuleDetailPanel.vue'
 import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '../components/AllTasksPanel.vue'
 import RecentActivityPanel from '../components/RecentActivityPanel.vue'
+import DashboardTodayPanel from '../components/DashboardTodayPanel.vue'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 
+const TODAY_ID    = '__today__'
 const OVERVIEW_ID = '__overview__'
 
 const router = useRouter()
@@ -40,7 +42,7 @@ const today = computed(() =>
 )
 
 // ── Module selection ────────────────────────────────────────────
-const selectedId = ref(OVERVIEW_ID)
+const selectedId = ref(TODAY_ID)
 
 const allModules = computed(() => PLATFORM_MODULES)
 
@@ -215,7 +217,17 @@ const APP_VERSION = __APP_VERSION__
       <!-- Left: module list ────────────────────────────────────── -->
       <div class="dashboard__module-list">
 
-        <!-- All Tasks (overview row — always first) -->
+        <!-- Today (default view — always first) -->
+        <div
+          class="mod-row mod-row--today"
+          :class="{ 'mod-row--active': selectedId === TODAY_ID }"
+          @click="selectedId = TODAY_ID"
+        >
+          <span class="mod-row__icon"><UiIcon name="Sun" :size="15" :stroke-width="1.75" /></span>
+          <span class="mod-row__name">{{ i18n.t('dashboardToday.navLabel') }}</span>
+        </div>
+
+        <!-- All Tasks (overview row) -->
         <div
           class="mod-row mod-row--overview"
           :class="{ 'mod-row--active': selectedId === OVERVIEW_ID }"
@@ -275,8 +287,11 @@ const APP_VERSION = __APP_VERSION__
       <div class="dashboard__detail">
         <Transition name="panel" mode="out-in">
 
+          <!-- Today panel -->
+          <DashboardTodayPanel v-if="selectedId === TODAY_ID" key="__today__" />
+
           <!-- Overview: all tasks aggregated + activity -->
-          <div v-if="selectedId === OVERVIEW_ID" key="__overview__" class="overview-panels">
+          <div v-else-if="selectedId === OVERVIEW_ID" key="__overview__" class="overview-panels">
             <AllTasksPanel
               :tasks="aggregatedTasks"
               :shipped-tasks="aggregatedShipped"
@@ -453,6 +468,10 @@ const APP_VERSION = __APP_VERSION__
 }
 
 .mod-row--disabled { cursor: default; opacity: 0.5; }
+
+.mod-row--today {
+  font-weight: 700;
+}
 
 .mod-row--overview {
   font-weight: 600;
