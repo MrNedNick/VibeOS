@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Task } from '../types'
 import TaskItem from './TaskItem.vue'
+import { UiIcon } from '@/ui'
 
 interface Props {
   tasks: Task[]
@@ -34,7 +35,7 @@ const emit = defineEmits<{
     </TransitionGroup>
 
     <div v-if="tasks.length === 0" class="task-list__empty">
-      <span class="task-list__empty-icon">✓</span>
+      <UiIcon name="CheckCircle2" :size="32" class="task-list__empty-icon" />
       <p class="task-list__empty-title">Inbox zero.</p>
       <p class="task-list__empty-sub">Add something above to get started.</p>
     </div>
@@ -54,9 +55,9 @@ const emit = defineEmits<{
 }
 
 .task-list__empty-icon {
-  font-size: 28px;
-  opacity: 0.18;
+  opacity: 0.2;
   margin-bottom: 6px;
+  color: var(--color-text-muted);
 }
 
 .task-list__empty-title {

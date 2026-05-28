@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
 import type { GoalMilestone } from '../types'
+import { UiIcon } from '@/ui'
 
 defineProps<{
   milestones: GoalMilestone[]
@@ -48,7 +49,7 @@ function onAddKeydown(e: KeyboardEvent) {
           @click="emit('toggle', m.id)"
           :aria-label="m.completed ? 'Uncheck milestone' : 'Check milestone'"
         >
-          <span v-if="m.completed">✓</span>
+          <UiIcon v-if="m.completed" name="Check" :size="12" :stroke-width="2.5" />
           <span v-else class="milestones__circle" />
         </button>
         <span class="milestones__title">{{ m.title }}</span>
@@ -56,7 +57,7 @@ function onAddKeydown(e: KeyboardEvent) {
           class="milestones__del"
           @click="emit('delete', m.id)"
           aria-label="Delete milestone"
-        >×</button>
+        ><UiIcon name="X" :size="14" :stroke-width="2" /></button>
       </div>
     </div>
 
@@ -147,9 +148,10 @@ function onAddKeydown(e: KeyboardEvent) {
   background: none;
   border: none;
   color: var(--color-text-muted);
-  font-size: 16px;
   cursor: pointer;
   padding: 0 4px;
+  display: flex;
+  align-items: center;
   line-height: 1;
   opacity: 0;
   transition: opacity var(--t-fast), color var(--t-fast);

@@ -119,7 +119,7 @@ const availableCount = computed(() =>
   PLATFORM_MODULES.filter(m => m.status === 'available').length
 )
 
-const STATUS_ICONS: Record<string, string> = { good: '✓', missing: '✕', planned: '◷' }
+const STATUS_ICON_NAMES: Record<string, string> = { good: 'Check', missing: 'X', planned: 'Clock3' }
 const APP_VERSION = __APP_VERSION__
 </script>
 
@@ -176,7 +176,7 @@ const APP_VERSION = __APP_VERSION__
     <!-- Life module stats ───────────────────────────────────────── -->
     <div class="dashboard__life-stats">
       <div class="life-stat" @click="router.push('/habits')">
-        <span class="life-stat__icon">●</span>
+        <span class="life-stat__icon"><UiIcon name="Flame" :size="20" :stroke-width="1.6" /></span>
         <div class="life-stat__info">
           <span class="life-stat__value">{{ todayHabits.done }}/{{ todayHabits.total }}</span>
           <span class="life-stat__label">{{ i18n.t('dashboard.habitsToday') }}</span>
@@ -277,7 +277,7 @@ const APP_VERSION = __APP_VERSION__
             <span
               class="health-compact__dot"
               :class="`health-compact__dot--${item.status}`"
-            >{{ STATUS_ICONS[item.status] }}</span>
+            ><UiIcon :name="STATUS_ICON_NAMES[item.status] ?? 'Activity'" :size="12" :stroke-width="2.2" /></span>
             <span class="health-compact__text">{{ i18n.t(item.labelKey) }}</span>
           </div>
         </div>
@@ -563,11 +563,11 @@ const APP_VERSION = __APP_VERSION__
 }
 
 .health-compact__dot {
-  font-size: 12px;
-  font-family: var(--font-mono);
   width: 14px;
-  text-align: center;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .health-compact__dot--good    { color: var(--color-success); }

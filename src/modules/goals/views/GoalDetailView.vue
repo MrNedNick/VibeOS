@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useGoalsStore } from '../stores/goals.store'
 import MilestoneList from '../components/MilestoneList.vue'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '../types'
+import { UiIcon } from '@/ui'
 
 const route = useRoute()
 const router = useRouter()
@@ -82,7 +83,10 @@ function cancelConfirm() {
   <div v-if="goal" class="gdetail">
 
     <div class="gdetail__nav">
-      <button class="gdetail__back" @click="router.push('/goals')">← Goals</button>
+      <button class="gdetail__back" @click="router.push('/goals')">
+        <UiIcon name="ArrowLeft" :size="14" :stroke-width="2" />
+        Goals
+      </button>
     </div>
 
     <div class="gdetail__header">
@@ -177,6 +181,9 @@ function cancelConfirm() {
   padding: 0;
   transition: color var(--t-fast);
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .gdetail__back:hover { color: var(--color-text-secondary); }

@@ -65,7 +65,7 @@ function modMilestone(modId: string): string {
           class="detail__open-btn"
           @click="router.push(mod.path)"
         >
-          {{ i18n.t('dashboardDetail.openModule') }} →
+          {{ i18n.t('dashboardDetail.openModule') }} <UiIcon name="ArrowRight" :size="13" :stroke-width="2" />
         </button>
       </div>
     </div>
@@ -118,7 +118,7 @@ function modMilestone(modId: string): string {
           :key="i"
           class="task-row task-row--shipped"
         >
-          <span class="task-row__check">✓</span>
+          <UiIcon name="Check" :size="12" :stroke-width="2.5" class="task-row__check" />
           <span class="task-row__label task-row__label--shipped">{{ task.label }}</span>
           <span class="task-row__date">{{ task.date }}</span>
         </div>
@@ -245,6 +245,9 @@ function modMilestone(modId: string): string {
   font-weight: 600;
   color: var(--color-accent);
   padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 .detail__open-btn:hover { text-decoration: underline; }
 
@@ -393,10 +396,11 @@ function modMilestone(modId: string): string {
 .task-row--shipped:hover { opacity: 1; }
 
 .task-row__check {
-  font-size: 12px;
   color: var(--color-success);
   width: 14px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .task-row__label--shipped {

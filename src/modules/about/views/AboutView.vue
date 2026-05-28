@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useLocale } from '@/core/i18n'
+import { UiIcon } from '@/ui'
 
 const i18n = useLocale()
 
@@ -14,16 +15,16 @@ const STACK = [
 ]
 
 const MODULES = [
-  { id: 'task-manager', label: 'Tasks',    desc: 'Priority tasks, keyboard nav, CSV/JSON export',           icon: '✓' },
-  { id: 'notes',        label: 'Notes',    desc: 'Markdown with live preview, daily journal, pin + export', icon: '¶' },
-  { id: 'kanban',       label: 'Board',    desc: 'Swimlane timeline, drag-and-drop, task import',            icon: '□' },
-  { id: 'ai-playground',label: 'Studio',   desc: 'Prompt Lab — Opus / Sonnet / Haiku, run history',         icon: '⚡' },
-  { id: 'snippets',     label: 'Snippets', desc: 'Code vault — syntax highlight, tags, search',              icon: '{}' },
-  { id: 'habits',       label: 'Habits',   desc: 'Daily check-offs, streak tracking, heatmap',               icon: '●' },
-  { id: 'games',        label: 'Games',    desc: 'Minesweeper · Memory Cards · Snake',                       icon: '♟' },
-  { id: 'goals',        label: 'Goals',    desc: 'Goal tracking with milestones and progress',               icon: '🎯' },
-  { id: 'learning',     label: 'Learning', desc: 'Study plans, session logs, streaks and progress rings',   icon: '📚' },
-  { id: 'training',     label: 'Training', desc: 'Workout plans, session logs, streaks and distance',        icon: '💪' },
+  { id: 'task-manager', label: 'Tasks',    desc: 'Priority tasks, keyboard nav, CSV/JSON export',           icon: 'CheckSquare' },
+  { id: 'notes',        label: 'Notes',    desc: 'Markdown with live preview, daily journal, pin + export', icon: 'NotebookPen' },
+  { id: 'kanban',       label: 'Board',    desc: 'Swimlane timeline, drag-and-drop, task import',            icon: 'LayoutGrid' },
+  { id: 'ai-playground',label: 'Studio',   desc: 'Prompt Lab — Opus / Sonnet / Haiku, run history',         icon: 'Sparkles' },
+  { id: 'snippets',     label: 'Snippets', desc: 'Code vault — syntax highlight, tags, search',              icon: 'Braces' },
+  { id: 'habits',       label: 'Habits',   desc: 'Daily check-offs, streak tracking, heatmap',               icon: 'Flame' },
+  { id: 'games',        label: 'Games',    desc: 'Minesweeper · Memory Cards · Snake',                       icon: 'Gamepad2' },
+  { id: 'goals',        label: 'Goals',    desc: 'Goal tracking with milestones and progress',               icon: 'Target' },
+  { id: 'learning',     label: 'Learning', desc: 'Study plans, session logs, streaks and progress rings',   icon: 'BookOpen' },
+  { id: 'training',     label: 'Training', desc: 'Workout plans, session logs, streaks and distance',        icon: 'Dumbbell' },
 ]
 
 const STATS = [
@@ -83,7 +84,7 @@ const LIVE_SITE_URL = 'https://mrnednick.github.io/VibeOS'
       <h2 class="about__section-title">{{ i18n.t('about.modules') }}</h2>
       <div class="about__modules">
         <div v-for="mod in MODULES" :key="mod.id" class="mod-item">
-          <span class="mod-item__icon">{{ mod.icon }}</span>
+          <span class="mod-item__icon"><UiIcon :name="mod.icon" :size="18" :stroke-width="1.6" /></span>
           <div class="mod-item__body">
             <span class="mod-item__name">{{ mod.label }}</span>
             <span class="mod-item__desc">{{ mod.desc }}</span>
@@ -244,12 +245,12 @@ const LIVE_SITE_URL = 'https://mrnednick.github.io/VibeOS'
 .mod-item:hover { background: var(--color-surface-elevated); }
 
 .mod-item__icon {
-  font-size: 14px;
-  font-family: var(--font-mono);
   color: var(--color-accent);
-  width: 20px;
-  text-align: center;
+  width: 22px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mod-item__body {

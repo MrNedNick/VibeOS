@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useEventBus } from '@/core/events'
 import type { PlatformEvent } from '@/core/events'
 import { useLocale } from '@/core/i18n'
+import { UiIcon } from '@/ui'
 
 const bus  = useEventBus()
 const i18n = useLocale()
@@ -57,27 +58,27 @@ function formatTime(iso: string): string {
 
 function describeEvent(e: PlatformEvent): { icon: string; text: string } {
   switch (e.type) {
-    case 'task:created':    return { icon: '+', text: `${i18n.t('recentActivity.taskAdded')} — "${e.label}"` }
-    case 'task:completed':  return { icon: '✓', text: `${i18n.t('recentActivity.taskDone')} — "${e.label}"` }
-    case 'task:deleted':    return { icon: '×', text: `${i18n.t('recentActivity.taskRemoved')} — "${e.label}"` }
-    case 'habit:checked':   return { icon: '●', text: `${i18n.t('recentActivity.habitChecked')} — "${e.habitName}"` }
-    case 'habit:unchecked': return { icon: '○', text: `${i18n.t('recentActivity.habitUnchecked')} — "${e.habitName}"` }
-    case 'note:created':    return { icon: '¶', text: `${i18n.t('recentActivity.noteCreated')} — "${e.title}"` }
-    case 'note:deleted':    return { icon: '¶', text: `${i18n.t('recentActivity.noteDeleted')} — "${e.title}"` }
-    case 'snippet:created': return { icon: '{}', text: `${i18n.t('recentActivity.snippet')} — "${e.title}" (${e.language})` }
-    case 'card:created':    return { icon: '□', text: `${i18n.t('recentActivity.cardAdded')} — "${e.title}"` }
-    case 'card:moved':      return { icon: '→', text: `${i18n.t('recentActivity.cardMoved')} — "${e.title}" → ${e.toColumnId}` }
-    case 'studio:run':      return { icon: '⚡', text: `${i18n.t('recentActivity.studioRun')} — ${e.model.split('-')[1]} · ${e.inputTokens + e.outputTokens} tok` }
-    case 'game:score':      return { icon: '♟', text: `${i18n.t('recentActivity.gameScore')} — ${e.game} ${e.score}` }
-    case 'learning:session:completed': return { icon: '📖', text: `${i18n.t('recentActivity.learningSessionLogged')} — "${e.planTitle}" · ${e.minutes}min` }
-    case 'learning:plan:created':      return { icon: '📚', text: `${i18n.t('recentActivity.learningPlanCreated')} — "${e.title}"` }
-    case 'learning:plan:completed':    return { icon: '🎓', text: `${i18n.t('recentActivity.learningPlanCompleted')} — "${e.title}"` }
-    case 'training:workout:logged':    return { icon: '💪', text: `${i18n.t('recentActivity.workoutLogged')} — "${e.planTitle}"${e.duration ? ` · ${e.duration}min` : ''}` }
-    case 'training:plan:created':      return { icon: '🏋️', text: `${i18n.t('recentActivity.trainingPlanCreated')} — "${e.title}"` }
-    case 'goal:created':               return { icon: '🎯', text: `${i18n.t('recentActivity.goalCreated')} — "${e.title}"` }
-    case 'goal:completed':             return { icon: '✅', text: `${i18n.t('recentActivity.goalCompleted')} — "${e.title}"` }
-    case 'goal:milestone:completed':   return { icon: '◎', text: `${i18n.t('recentActivity.milestoneCompleted')} — "${e.milestoneTitle}"` }
-    default:               return { icon: '·', text: i18n.t('recentActivity.activity') }
+    case 'task:created':    return { icon: 'Plus',           text: `${i18n.t('recentActivity.taskAdded')} — "${e.label}"` }
+    case 'task:completed':  return { icon: 'CheckCircle2',   text: `${i18n.t('recentActivity.taskDone')} — "${e.label}"` }
+    case 'task:deleted':    return { icon: 'Trash2',         text: `${i18n.t('recentActivity.taskRemoved')} — "${e.label}"` }
+    case 'habit:checked':   return { icon: 'Flame',          text: `${i18n.t('recentActivity.habitChecked')} — "${e.habitName}"` }
+    case 'habit:unchecked': return { icon: 'Circle',         text: `${i18n.t('recentActivity.habitUnchecked')} — "${e.habitName}"` }
+    case 'note:created':    return { icon: 'FileText',       text: `${i18n.t('recentActivity.noteCreated')} — "${e.title}"` }
+    case 'note:deleted':    return { icon: 'FileX2',         text: `${i18n.t('recentActivity.noteDeleted')} — "${e.title}"` }
+    case 'snippet:created': return { icon: 'Braces',         text: `${i18n.t('recentActivity.snippet')} — "${e.title}" (${e.language})` }
+    case 'card:created':    return { icon: 'LayoutGrid',     text: `${i18n.t('recentActivity.cardAdded')} — "${e.title}"` }
+    case 'card:moved':      return { icon: 'ArrowRight',     text: `${i18n.t('recentActivity.cardMoved')} — "${e.title}" → ${e.toColumnId}` }
+    case 'studio:run':      return { icon: 'Sparkles',       text: `${i18n.t('recentActivity.studioRun')} — ${e.model.split('-')[1]} · ${e.inputTokens + e.outputTokens} tok` }
+    case 'game:score':      return { icon: 'Gamepad2',       text: `${i18n.t('recentActivity.gameScore')} — ${e.game} ${e.score}` }
+    case 'learning:session:completed': return { icon: 'BookOpenCheck',  text: `${i18n.t('recentActivity.learningSessionLogged')} — "${e.planTitle}" · ${e.minutes}min` }
+    case 'learning:plan:created':      return { icon: 'BookOpen',       text: `${i18n.t('recentActivity.learningPlanCreated')} — "${e.title}"` }
+    case 'learning:plan:completed':    return { icon: 'GraduationCap',  text: `${i18n.t('recentActivity.learningPlanCompleted')} — "${e.title}"` }
+    case 'training:workout:logged':    return { icon: 'Dumbbell',       text: `${i18n.t('recentActivity.workoutLogged')} — "${e.planTitle}"${e.duration ? ` · ${e.duration}min` : ''}` }
+    case 'training:plan:created':      return { icon: 'ClipboardList',  text: `${i18n.t('recentActivity.trainingPlanCreated')} — "${e.title}"` }
+    case 'goal:created':               return { icon: 'Target',         text: `${i18n.t('recentActivity.goalCreated')} — "${e.title}"` }
+    case 'goal:completed':             return { icon: 'Trophy',         text: `${i18n.t('recentActivity.goalCompleted')} — "${e.title}"` }
+    case 'goal:milestone:completed':   return { icon: 'CheckCheck',     text: `${i18n.t('recentActivity.milestoneCompleted')} — "${e.milestoneTitle}"` }
+    default:                           return { icon: 'Activity',       text: i18n.t('recentActivity.activity') }
   }
 }
 
@@ -131,7 +132,7 @@ function iconColor(e: PlatformEvent): string {
             class="activity__item"
           >
             <span class="activity__icon" :style="{ color: iconColor(e) }">
-              {{ describeEvent(e).icon }}
+              <UiIcon :name="describeEvent(e).icon" :size="14" :stroke-width="1.75" />
             </span>
             <span class="activity__text">{{ describeEvent(e).text }}</span>
             <span class="activity__time">{{ formatTime(e.timestamp) }}</span>
@@ -203,12 +204,11 @@ function iconColor(e: PlatformEvent): string {
 .activity__item:last-child { border-bottom: none; }
 
 .activity__icon {
-  font-size: 12px;
-  font-family: var(--font-mono);
   flex-shrink: 0;
   width: 18px;
-  text-align: center;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .activity__text {

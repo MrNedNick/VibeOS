@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { useNotificationsStore } from '@/core/stores/notifications.store'
+import { UiIcon } from '@/ui'
 
 const store = useNotificationsStore()
 
-const ICONS: Record<string, string> = {
-  success: '✓',
-  error:   '✕',
-  warning: '⚠',
-  info:    'ℹ',
+const ICON_NAMES: Record<string, string> = {
+  success: 'CheckCircle2',
+  error:   'XCircle',
+  warning: 'AlertTriangle',
+  info:    'Info',
 }
 </script>
 
@@ -22,14 +23,18 @@ const ICONS: Record<string, string> = {
           :class="`notif--${n.type}`"
           role="alert"
         >
-          <span class="notif__icon">{{ ICONS[n.type] }}</span>
+          <span class="notif__icon">
+            <UiIcon :name="ICON_NAMES[n.type] ?? 'Info'" :size="16" :stroke-width="2" />
+          </span>
           <span class="notif__msg">{{ n.message }}</span>
           <button
             v-if="n.action"
             class="notif__action"
             @click="n.action.fn(); store.dismiss(n.id)"
           >{{ n.action.label }}</button>
-          <button class="notif__close" :aria-label="`Dismiss: ${n.message}`" @click="store.dismiss(n.id)">✕</button>
+          <button class="notif__close" :aria-label="`Dismiss: ${n.message}`" @click="store.dismiss(n.id)">
+            <UiIcon name="X" :size="14" :stroke-width="2" />
+          </button>
         </div>
       </TransitionGroup>
     </div>
@@ -74,7 +79,7 @@ const ICONS: Record<string, string> = {
 .notif--warning .notif__icon { color: var(--color-warning); }
 .notif--info    .notif__icon { color: var(--color-info);    }
 
-.notif__icon { font-size: 13px; flex-shrink: 0; font-family: var(--font-mono); }
+.notif__icon { flex-shrink: 0; display: flex; align-items: center; }
 .notif__msg  { flex: 1; color: var(--color-text); }
 
 .notif__action {
@@ -90,9 +95,10 @@ const ICONS: Record<string, string> = {
 
 .notif__close {
   color: var(--color-text-muted);
-  font-size: 11px;
   flex-shrink: 0;
   opacity: 0.6;
+  display: flex;
+  align-items: center;
   transition: opacity var(--t-fast);
 }
 .notif__close:hover { opacity: 1; }

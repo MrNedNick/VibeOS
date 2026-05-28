@@ -121,7 +121,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
     <div v-if="shippedTasks && shippedTasks.length" class="all-tasks__section">
       <div class="all-tasks__shipped-header">
         <p class="all-tasks__section-label all-tasks__section-label--success">
-          {{ i18n.t('allTasksPanel.shipped') }} ✓ ({{ shippedTasks.length }})
+          {{ i18n.t('allTasksPanel.shipped') }} ({{ shippedTasks.length }})
         </p>
         <button
           v-if="shippedRest.length"
@@ -135,7 +135,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
           :key="i"
           class="task-row task-row--shipped"
         >
-          <span class="task-row__check">✓</span>
+          <UiIcon name="Check" :size="12" :stroke-width="2.5" class="task-row__check" />
           <span class="task-row__label task-row__label--shipped">{{ task.label }}</span>
           <span class="task-row__module">
             <UiIcon :name="task.moduleIcon" :size="12" :stroke-width="1.75" />
@@ -149,7 +149,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
             :key="`rest-${i}`"
             class="task-row task-row--shipped"
           >
-            <span class="task-row__check">✓</span>
+            <UiIcon name="Check" :size="12" :stroke-width="2.5" class="task-row__check" />
             <span class="task-row__label task-row__label--shipped">{{ task.label }}</span>
             <span class="task-row__module">
               <UiIcon :name="task.moduleIcon" :size="12" :stroke-width="1.75" />
@@ -331,10 +331,11 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 .task-row--shipped:hover { opacity: 1; }
 
 .task-row__check {
-  font-size: 12px;
   color: var(--color-success);
   width: 14px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .task-row__label--shipped {

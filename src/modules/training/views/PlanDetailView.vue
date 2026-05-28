@@ -5,6 +5,7 @@ import { useTrainingStore } from '../stores/training.store'
 import WorkoutLogForm from '../components/WorkoutLogForm.vue'
 import type { WorkoutLog } from '../types'
 import { FEELING_EMOJI, todayStr } from '../types'
+import { UiIcon } from '@/ui'
 
 const route = useRoute()
 const router = useRouter()
@@ -60,7 +61,9 @@ function formatDate(iso: string): string {
   <div v-if="plan" class="tdetail">
 
     <div class="tdetail__nav">
-      <button class="tdetail__back" @click="router.push('/training')">← Training</button>
+      <button class="tdetail__back" @click="router.push('/training')">
+        <UiIcon name="ArrowLeft" :size="14" :stroke-width="2" /> Training
+      </button>
     </div>
 
     <div class="tdetail__header">
@@ -169,6 +172,9 @@ function formatDate(iso: string): string {
   padding: 0;
   transition: color var(--t-fast);
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .tdetail__back:hover { color: var(--color-text-secondary); }

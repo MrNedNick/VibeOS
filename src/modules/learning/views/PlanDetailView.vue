@@ -6,6 +6,7 @@ import ProgressRing from '../components/ProgressRing.vue'
 import SessionLogForm from '../components/SessionLogForm.vue'
 import type { LearningSession } from '../types'
 import { estimateTargetDate, todayStr } from '../types'
+import { UiIcon } from '@/ui'
 
 const route = useRoute()
 const router = useRouter()
@@ -84,7 +85,7 @@ const today = todayStr()
     <!-- Navigation -->
     <div class="detail__nav">
       <button class="detail__back" @click="router.push('/learning')">
-        ← Learning
+        <UiIcon name="ArrowLeft" :size="14" :stroke-width="2" /> Learning
       </button>
     </div>
 
@@ -218,6 +219,9 @@ const today = todayStr()
   padding: 0;
   transition: color var(--t-fast);
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .detail__back:hover { color: var(--color-text-secondary); }

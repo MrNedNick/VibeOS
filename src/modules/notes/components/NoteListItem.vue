@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { Note } from '../types'
 import { deriveTitle } from '../types'
+import { UiIcon } from '@/ui'
 
 const props = defineProps<{
   note: Note
@@ -42,7 +43,7 @@ const date = computed(() => {
           :class="{ 'note-item__pin--active': note.pinned }"
           :title="note.pinned ? 'Unpin note' : 'Pin note'"
           @click.stop="emit('pin', note.id)"
-        >◈</button>
+        ><UiIcon name="Pin" :size="12" :stroke-width="1.75" /></button>
         <span class="note-item__date">{{ date }}</span>
       </div>
     </div>
