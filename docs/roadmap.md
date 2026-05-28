@@ -125,6 +125,21 @@ Order:
 
 ## Recently shipped (history)
 
+### 2026-05-28 (session 7 — responsive layout + sidebar redesign + Sudoku)
+
+**Responsive design** — now a top-quality priority for the entire platform:
+- **Sidebar redesign** — `position: fixed`, rail mode (52px) on desktop with hover-expand overlay, drawer on mobile/tablet (<1024px), smooth 220ms CSS transitions, no layout jumps; brand logo clickable → home
+- **AppLayout** — migrated to `margin-left` offset model; mobile/tablet backdrop with blur; Escape key closes drawer; route-change closes drawer
+- **AppHeader** — separate hamburger (mobile/tablet) vs pin-toggle (desktop), each properly scoped with CSS media queries
+- **Sidebar groups** — Life → Work → System order; Studio moved to Work; colored section labels (Life=green, Work=blue, System=muted) with Lucide section icons
+- **HabitCard wide layout** — heatmap right-aligned with `justify-content: flex-end`; section has own padding; scrollbar hidden; `overflow: hidden` on card prevents bleed
+- **Sudoku game** — 3 classic puzzles, 9×9 grid with box separators, cell selection + keyboard nav, real-time conflict detection, timer, win detection, responsive numpad (3×3 desktop / 5+1 mobile)
+- **Games lobby** — Sudoku added with amber SVG preview; arrow icon updated to SVG
+
+**Decisions documented:**
+- **Snippets** — keep; serves developer use cases (shell commands, SQL, API calls, config templates); distinct from Notes (code vs prose, syntax highlighting); portfolio value
+- **Responsive design roadmap** — documented as key quality priority; Phase 1 complete (layout + sidebar); Phase 2 per-module pending
+
 ### 2026-05-28 (session 6 — UI polish + Russian + improvements)
 - **Settings API Keys panel** — Anthropic + OpenWeather key fields; password masking toggle; key set/not-set status; shared via localStorage with Studio
 - **Tasks "Today" filter** — new filter tab; `todayCount` computed in store; shows tasks due today
@@ -210,6 +225,19 @@ Post-S3: production connects to Supabase. Demo account seeded.
 
 ## Backlog (not yet scheduled)
 
+### Responsive design — Phase 2 (per-module)
+Phase 1 is complete (sidebar, layout, header).
+Remaining per-module responsive work:
+- **Dashboard** — stat cards 2×2 on tablet, 1-col on mobile; Today panel adapts
+- **Notes** — hide preview on mobile (edit-only), collapse note list
+- **Docs** — sidebar becomes top dropdown on mobile
+- **Kanban** — mobile card list view (no drag on touch)
+- **Habits/Goals/Learning/Training** — already responsive (card grids)
+All Phase 2 items are non-blocking; polish when each module is next touched.
+
+### Snippets — decision (2026-05-28)
+**Keep.** Serves developer workflow use cases: shell commands, SQL queries, API calls, config templates. Distinct from Notes (code vs prose, syntax highlighting). Portfolio value: demonstrates highlight.js, search/filter, CRUD with tags. No merge with Notes — different mental models, different access patterns. Possible future: tagging improvements, import/export.
+
 ### Analytics module
 Unified personal stats: habit heatmap, task completion rate, learning hours, workout frequency, goal progress. Planned for S5.
 
@@ -241,8 +269,9 @@ Dashboard widget: recent commits + contribution graph. GitHub REST API, 5000 req
 Demoted from standalone module to Dashboard widget. Low priority.
 
 ### Games backlog
-After Memory and Snake: Tetris or Minesweeper.
-Sudoku — classic grid puzzle; good fit for the Games lobby alongside Minesweeper and Snake.
+Shipped: Minesweeper, Memory, Snake, Sudoku.
+Next candidates: Tetris, 15-Puzzle, Wordle-clone.
+Snake skin system (post-record unlock) — planned but low priority.
 
 ### Free AI API alternatives (no billing risk)
 Research done 2026-05-28. Candidates for Studio integration without Anthropic key:

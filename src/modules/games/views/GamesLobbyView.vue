@@ -36,6 +36,14 @@ const games = computed(() => [
     stat: bestSnake.value > 0 ? `Best: ${bestSnake.value}` : null,
     color: '#10b981',
   },
+  {
+    id: 'sudoku',
+    label: i18n.t('games.sudokuName'),
+    desc: i18n.t('games.sudokuDesc'),
+    path: '/games/sudoku',
+    stat: null,
+    color: '#f59e0b',
+  },
 ])
 </script>
 
@@ -92,6 +100,23 @@ const games = computed(() => [
             <text x="39.5" y="44" text-anchor="middle" font-size="15">⭐</text>
           </svg>
 
+          <!-- Sudoku preview: mini 4×4 grid -->
+          <svg v-else-if="game.id === 'sudoku'" viewBox="0 0 52 52" class="game-card__svg">
+            <!-- 3×3 box grid outline -->
+            <rect x="2" y="2" width="48" height="48" rx="2" fill="none" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
+            <!-- Box dividers -->
+            <line x1="18" y1="2" x2="18" y2="50" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
+            <line x1="34" y1="2" x2="34" y2="50" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
+            <line x1="2" y1="18" x2="50" y2="18" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
+            <line x1="2" y1="34" x2="50" y2="34" stroke="rgba(245,158,11,0.5)" stroke-width="1.5"/>
+            <!-- Sample numbers -->
+            <text x="10" y="15" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(245,158,11,0.9)">5</text>
+            <text x="26" y="15" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(245,158,11,0.5)">3</text>
+            <text x="42" y="31" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(245,158,11,0.9)">7</text>
+            <text x="10" y="47" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(245,158,11,0.5)">9</text>
+            <text x="42" y="47" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(245,158,11,0.9)">1</text>
+          </svg>
+
           <!-- Snake preview: pixel snake shape -->
           <svg v-else-if="game.id === 'snake'" viewBox="0 0 52 52" class="game-card__svg">
             <!-- Snake body segments -->
@@ -115,7 +140,11 @@ const games = computed(() => [
           <div v-if="game.stat" class="game-card__stat">{{ game.stat }}</div>
         </div>
 
-        <span class="game-card__arrow">→</span>
+        <span class="game-card__arrow">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
       </div>
     </div>
   </div>
@@ -234,6 +263,8 @@ const games = computed(() => [
   color: var(--color-text-muted);
   flex-shrink: 0;
   transition: color var(--t-fast);
+  display: flex;
+  align-items: center;
 }
 
 @media (max-width: 767px) {

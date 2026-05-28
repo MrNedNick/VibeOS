@@ -14,17 +14,12 @@ const palette = useCommandPaletteStore()
 const route = useRoute()
 
 // ── Fullbleed state ───────────────────────────────────────────────────
-// We decouple isFullbleed from the route so we can delay the class removal
-// until AFTER the leave animation, preventing layout shifts between
-// fullbleed (Notes/Snippets) and padded (Habits/Tasks) views.
 const isFullbleed = ref(!!route.meta.fullbleed)
 
 watch(
   () => route.meta.fullbleed,
   (newVal) => {
-    // Going TO fullbleed: apply immediately (content expands, no jank)
     if (newVal) isFullbleed.value = true
-    // Going FROM fullbleed: handled by @after-leave below
   }
 )
 
@@ -32,11 +27,19 @@ function onAfterLeave() {
   isFullbleed.value = !!route.meta.fullbleed
 }
 
-// ── Command Palette shortcut ──────────────────────────────────────────
+// ── Close mobile drawer on navigation ────────────────────────────────
+watch(() => route.path, () => {
+  uiStore.closeMobileDrawer()
+})
+
+// ── Command Palette + Escape ──────────────────────────────────────────
 function onKeydown(e: KeyboardEvent) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault()
     palette.toggle()
+  }
+  if (e.key === 'Escape' && uiStore.mobileSidebarOpen) {
+    uiStore.closeMobileDrawer()
   }
 }
 
@@ -45,8 +48,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <div class="app-layout" :class="{ 'app-layout--collapsed': !uiStore.sidebarOpen }">
+  <div
+    class="app-layout"
+    :class="{ 'app-layout--expanded': uiStore.sidebarOpen }"
+  >
+    <!-- Mobile / tablet backdrop -->
+    <Transition name="backdrop">
+      <div
+        v-if="uiStore.mobileSidebarOpen"
+        class="sidebar-backdrop"
+        aria-hidden="true"
+        @click="uiStore.closeMobileDrawer"
+      />
+    </Transition>
+
     <AppSidebar />
+
     <div class="app-main">
       <AppHeader />
       <main class="app-content" :class="{ 'app-content--fullbleed': isFullbleed }">
@@ -59,6 +76,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         </AppErrorBoundary>
       </main>
     </div>
+
     <AppNotifications />
     <CommandPalette />
   </div>
@@ -66,17 +84,33 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 <style scoped>
 .app-layout {
-  display: flex;
   height: 100%;
   overflow: hidden;
 }
 
+/* Main content is offset from the fixed sidebar */
 .app-main {
-  flex: 1;
+  height: 100%;
+  margin-left: var(--sidebar-collapsed);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
+  transition: margin-left 220ms var(--ease);
+}
+
+/* Desktop: push content when sidebar is pinned open */
+@media (min-width: 1024px) {
+  .app-layout--expanded .app-main {
+    margin-left: var(--sidebar-width);
+  }
+}
+
+/* Tablet + mobile: no sidebar offset (drawer is overlay) */
+@media (max-width: 1023px) {
+  .app-main {
+    margin-left: 0 !important;
+  }
 }
 
 .app-content {
@@ -90,8 +124,25 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   overflow: hidden;
 }
 
-/* Page transition — opacity only, no translateY which causes layout-shift
-   when switching between fullbleed and padded views */
+/* Backdrop for mobile/tablet drawer */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+@media (min-width: 1024px) {
+  .sidebar-backdrop { display: none; }
+}
+
+.backdrop-enter-active { transition: opacity 200ms var(--ease); }
+.backdrop-leave-active { transition: opacity 160ms var(--ease); }
+.backdrop-enter-from,
+.backdrop-leave-to    { opacity: 0; }
+
+/* Page transitions */
 .page-enter-active { transition: opacity 160ms var(--ease); }
 .page-leave-active { transition: opacity 100ms var(--ease); }
 .page-enter-from   { opacity: 0; }

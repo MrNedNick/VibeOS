@@ -21,4 +21,9 @@ export const gamesRoutes: RouteRecordRaw[] = [
     name: 'game-snake',
     component: () => import('./views/GameSnakeView.vue'),
   },
+  {
+    path: '/games/sudoku',
+    name: 'game-sudoku',
+    component: () => import('./views/GameSudokuView.vue'),
+  },
 ]

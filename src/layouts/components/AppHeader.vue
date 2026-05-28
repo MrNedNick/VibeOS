@@ -28,18 +28,29 @@ const moduleLabel = computed(() => {
 
 <template>
   <header class="app-header">
-    <!-- Sidebar toggle -->
+
+    <!-- Mobile/tablet hamburger (hidden on desktop ≥1024px) -->
     <button
-      class="header-btn"
+      class="header-btn header-btn--hamburger"
+      :aria-label="i18n.t('header.openMenu')"
+      :title="i18n.t('header.openMenu')"
+      @click="uiStore.toggleMobileDrawer"
+    >
+      <UiIcon name="Menu" :size="18" :stroke-width="1.75" />
+    </button>
+
+    <!-- Desktop sidebar pin toggle (hidden on tablet/mobile) -->
+    <button
+      class="header-btn header-btn--pin"
       :title="uiStore.sidebarOpen ? i18n.t('header.collapseSidebar') : i18n.t('header.expandSidebar')"
       :aria-label="uiStore.sidebarOpen ? i18n.t('header.collapseSidebar') : i18n.t('header.expandSidebar')"
       @click="uiStore.toggleSidebar"
     >
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="2" y="4" width="12" height="1.5" rx="1" fill="currentColor"/>
-        <rect x="2" y="7.25" width="8"  height="1.5" rx="1" fill="currentColor"/>
-        <rect x="2" y="10.5" width="12" height="1.5" rx="1" fill="currentColor"/>
-      </svg>
+      <UiIcon
+        :name="uiStore.sidebarOpen ? 'PanelLeftClose' : 'PanelLeft'"
+        :size="17"
+        :stroke-width="1.75"
+      />
     </button>
 
     <!-- Module title -->
@@ -103,13 +114,14 @@ const moduleLabel = computed(() => {
   height: var(--header-height);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 16px;
+  gap: 6px;
+  padding: 0 14px;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
   flex-shrink: 0;
 }
 
+/* Base header button */
 .header-btn {
   width: 32px;
   height: 32px;
@@ -119,12 +131,25 @@ const moduleLabel = computed(() => {
   color: var(--color-text-secondary);
   border-radius: var(--radius-sm);
   transition: background var(--t-fast), color var(--t-fast);
+  flex-shrink: 0;
 }
 .header-btn:hover {
   background: var(--color-surface-elevated);
   color: var(--color-text);
 }
 
+/* Mobile hamburger: visible only on tablet/mobile */
+.header-btn--hamburger { display: none; }
+
+/* Desktop pin toggle: visible only on desktop */
+.header-btn--pin { display: flex; }
+
+@media (max-width: 1023px) {
+  .header-btn--hamburger { display: flex; }
+  .header-btn--pin       { display: none; }
+}
+
+/* Locale toggle */
 .header-btn--locale {
   font-size: 12px;
   font-weight: 700;
@@ -141,25 +166,24 @@ const moduleLabel = computed(() => {
   color: var(--color-accent);
   background: var(--color-accent-muted);
 }
-
 .header-locale-label { line-height: 1; }
 
+/* Module title */
 .header-title {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-
 .header-title__icon { color: var(--color-text-secondary); }
-
 .header-title__label {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .header-spacer { flex: 1; }
 
+/* Command palette search button */
 .header-search {
   display: flex;
   align-items: center;
@@ -171,18 +195,16 @@ const moduleLabel = computed(() => {
   color: var(--color-text-muted);
   cursor: pointer;
   transition: border-color var(--t-fast), color var(--t-fast);
+  flex-shrink: 0;
 }
 .header-search:hover {
   border-color: var(--color-accent);
   color: var(--color-text);
 }
-
 .header-search__text {
   font-size: 13px;
-  font-weight: 400;
   white-space: nowrap;
 }
-
 .header-search__kbd {
   font-size: 11px;
   font-family: var(--font-mono);
@@ -193,6 +215,7 @@ const moduleLabel = computed(() => {
   color: var(--color-text-muted);
 }
 
+/* Mobile: hide search text/kbd, locale toggle */
 @media (max-width: 767px) {
   .header-search__text,
   .header-search__kbd { display: none; }

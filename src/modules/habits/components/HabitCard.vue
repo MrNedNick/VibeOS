@@ -173,6 +173,7 @@ function cancelConfirm() {
   flex-direction: column;
   gap: 14px;
   transition: border-color var(--t-fast);
+  overflow: hidden;
 }
 
 .habit-card--done {
@@ -360,23 +361,24 @@ function cancelConfirm() {
 .habit-card__heatmap {
   overflow-x: auto;
   padding-bottom: 2px;
+  scrollbar-width: none;
 }
+.habit-card__heatmap::-webkit-scrollbar { display: none; }
 
 @media (min-width: 900px) {
   .habit-card {
     flex-direction: row;
-    align-items: center;
-    gap: 20px;
+    align-items: stretch;
+    gap: 0;
   }
 
   .habit-card__top {
-    flex: 0 0 260px;
+    flex: 0 0 280px;
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-    padding-right: 20px;
+    padding: 18px 20px 14px;
     border-right: 1px solid var(--color-border);
-    align-self: stretch;
     justify-content: space-between;
   }
 
@@ -391,6 +393,11 @@ function cancelConfirm() {
   .habit-card__heatmap {
     flex: 1;
     min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 14px 20px;
+    overflow-x: auto;
   }
 }
 </style>
