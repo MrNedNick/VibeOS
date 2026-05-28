@@ -365,6 +365,19 @@ function cancelConfirm() {
 }
 .habit-card__heatmap::-webkit-scrollbar { display: none; }
 
+/* Mobile: compact stacked layout */
+@media (max-width: 767px) {
+  .habit-card { border-radius: var(--radius-lg); }
+  .habit-card__heatmap {
+    padding: 0 12px 12px;
+    /* Show last few weeks instead of full year to fit */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Always show delete button (no hover on touch) */
+  .habit-card__delete { opacity: 0.5; }
+}
+
 @media (min-width: 900px) {
   .habit-card {
     flex-direction: row;

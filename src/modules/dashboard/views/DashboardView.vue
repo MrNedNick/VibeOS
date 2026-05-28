@@ -607,18 +607,51 @@ const APP_VERSION = __APP_VERSION__
 .panel-enter-from   { opacity: 0; transform: translateX(6px); }
 .panel-leave-to     { opacity: 0; }
 
-/* Responsive — md: 2×2 widget grid, stacked workspace */
+/* Responsive — md: 2×2 widget grid */
 @media (max-width: 1279px) {
   .dashboard__stats      { grid-template-columns: repeat(2, 1fr); }
   .dashboard__life-stats { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* Responsive — sm: single column everything */
+/* Responsive — sm (iPhone 17 Pro: 393px) */
 @media (max-width: 767px) {
-  .dashboard__stats      { grid-template-columns: 1fr; }
-  .dashboard__life-stats { grid-template-columns: repeat(2, 1fr); }
-  .dashboard__workspace  { grid-template-columns: 1fr; }
-  .dashboard__header     { flex-direction: column; gap: 4px; }
+  .dashboard {
+    gap: 14px;
+    height: auto; /* allow natural flow on mobile */
+  }
+
+  .dashboard__header     { flex-direction: column; gap: 2px; }
+  .dashboard__title      { font-size: 22px; }
+  .dashboard__date       { font-size: 13px; }
   .dashboard__version    { display: none; }
+
+  /* 2×2 stat cards */
+  .dashboard__stats      { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  /* 2×2 life stats */
+  .dashboard__life-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+  /* Module list is a desktop sidebar — hide on mobile */
+  /* Users navigate via bottom tab bar */
+  .dashboard__workspace  {
+    grid-template-columns: 1fr;
+  }
+  .dashboard__module-list { display: none; }
+
+  /* Detail panel: full-width, no extra padding */
+  .dashboard__detail {
+    padding: 16px;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Overview panels: stack vertically */
+  .overview-panels {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Life stat cards: smaller text */
+  .life-stat            { padding: 12px 12px; }
+  .life-stat__value     { font-size: 16px; }
+  .life-stat__label     { font-size: 11px; }
 }
 </style>

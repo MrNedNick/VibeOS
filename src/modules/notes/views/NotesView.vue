@@ -34,9 +34,25 @@ function downloadNote() {
 }
 
 const noteListRef = ref<InstanceType<typeof NoteList>>()
+// Mobile: show editor pane (true) or list pane (false)
+const mobileShowEditor = ref(false)
 
 function onContentUpdate(value: string) {
   if (selectedId.value) debouncedSave(selectedId.value, value)
+}
+
+function selectNoteOnMobile(id: string) {
+  selectNote(id)
+  mobileShowEditor.value = true
+}
+
+function newNoteOnMobile() {
+  newNote()
+  mobileShowEditor.value = true
+}
+
+function backToList() {
+  mobileShowEditor.value = false
 }
 
 watch(filteredNotes, (notes) => {
@@ -65,7 +81,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <div class="notes-workspace">
+  <div class="notes-workspace" :class="{ 'notes-workspace--editor': mobileShowEditor }">
 
     <!-- Note list (left) -->
     <NoteList
@@ -73,8 +89,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       :notes="filteredNotes"
       :selected-id="selectedId"
       :search-query="searchQuery"
-      @select="selectNote"
-      @new="newNote"
+      @select="selectNoteOnMobile"
+      @new="newNoteOnMobile"
       @pin="notesStore.togglePin"
       @update:search-query="searchQuery = $event"
     />
@@ -84,6 +100,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
       <!-- Toolbar -->
       <div class="notes-toolbar">
+        <!-- Mobile: back button to return to list -->
+        <button class="notes-toolbar__back" @click="backToList">
+          ← Back
+        </button>
+
         <div class="notes-toolbar__modes">
           <button
             v-for="m in (['edit', 'preview'] as const)"
@@ -288,4 +309,72 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .notes-empty__btn:hover { opacity: 0.88; }
+
+/* ── Mobile: back button ─────────────────────────────────────── */
+.notes-toolbar__back {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-accent);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background var(--t-fast);
+  margin-right: 4px;
+  min-height: 0;
+  min-width: 0;
+  white-space: nowrap;
+}
+.notes-toolbar__back:hover {
+  background: var(--color-accent-muted);
+}
+
+/* ── Mobile layout: single pane at a time ────────────────────── */
+@media (max-width: 767px) {
+  .notes-workspace {
+    /* Start showing list */
+    flex-direction: column;
+    overflow: visible;
+    height: auto;
+  }
+
+  /* Default mobile: show list, hide editor */
+  .notes-workspace :deep(.note-list) {
+    display: flex;
+    flex: none;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .notes-workspace .notes-editor-area {
+    display: none;
+  }
+
+  /* When editor is active: show editor, hide list */
+  .notes-workspace--editor :deep(.note-list) {
+    display: none;
+  }
+
+  .notes-workspace--editor .notes-editor-area {
+    display: flex;
+    height: calc(100svh - var(--header-height-mobile) - env(safe-area-inset-top, 0px) - var(--tab-bar-height) - env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Show back button only on mobile */
+  .notes-toolbar__back { display: flex; }
+
+  /* Compact toolbar */
+  .notes-toolbar {
+    height: 48px;
+    padding: 0 12px;
+    gap: 4px;
+  }
+  .notes-toolbar__stats  { display: none; }
+  .notes-toolbar__action { display: none; }
+  .notes-toolbar__mode   { font-size: 13px; padding: 4px 8px; }
+}
 </style>

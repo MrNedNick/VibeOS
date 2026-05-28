@@ -29,99 +29,118 @@ const moduleLabel = computed(() => {
 <template>
   <header class="app-header">
 
-    <!-- Mobile/tablet hamburger (hidden on desktop ≥1024px) -->
-    <button
-      class="header-btn header-btn--hamburger"
-      :aria-label="i18n.t('header.openMenu')"
-      :title="i18n.t('header.openMenu')"
-      @click="uiStore.toggleMobileDrawer"
-    >
-      <UiIcon name="Menu" :size="18" :stroke-width="1.75" />
-    </button>
+    <!-- ── Left slot ───────────────────────────────────── -->
+    <div class="header-slot header-slot--left">
+      <!-- Tablet: hamburger to open sidebar drawer (768–1023px) -->
+      <button
+        class="header-btn header-btn--hamburger"
+        :aria-label="i18n.t('header.openMenu')"
+        :title="i18n.t('header.openMenu')"
+        @click="uiStore.toggleMobileDrawer"
+      >
+        <UiIcon name="Menu" :size="18" :stroke-width="1.75" />
+      </button>
 
-    <!-- Desktop sidebar pin toggle (hidden on tablet/mobile) -->
-    <button
-      class="header-btn header-btn--pin"
-      :title="uiStore.sidebarOpen ? i18n.t('header.collapseSidebar') : i18n.t('header.expandSidebar')"
-      :aria-label="uiStore.sidebarOpen ? i18n.t('header.collapseSidebar') : i18n.t('header.expandSidebar')"
-      @click="uiStore.toggleSidebar"
-    >
-      <UiIcon
-        :name="uiStore.sidebarOpen ? 'PanelLeftClose' : 'PanelLeft'"
-        :size="17"
-        :stroke-width="1.75"
-      />
-    </button>
+      <!-- Desktop: sidebar pin toggle (≥ 1024px) -->
+      <button
+        class="header-btn header-btn--pin"
+        :title="uiStore.sidebarOpen ? i18n.t('header.collapseSidebar') : i18n.t('header.expandSidebar')"
+        :aria-label="uiStore.sidebarOpen ? i18n.t('header.collapseSidebar') : i18n.t('header.expandSidebar')"
+        @click="uiStore.toggleSidebar"
+      >
+        <UiIcon
+          :name="uiStore.sidebarOpen ? 'PanelLeftClose' : 'PanelLeft'"
+          :size="17"
+          :stroke-width="1.75"
+        />
+      </button>
+    </div>
 
-    <!-- Module title -->
+    <!-- ── Center: module title ────────────────────────── -->
     <div class="header-title">
       <UiIcon
         v-if="currentModule"
         :name="currentModule.icon"
-        :size="16"
+        :size="15"
         :stroke-width="1.75"
         class="header-title__icon"
       />
       <span class="header-title__label">{{ moduleLabel }}</span>
     </div>
 
-    <div class="header-spacer" />
+    <!-- ── Right: actions ─────────────────────────────── -->
+    <div class="header-slot header-slot--right">
 
-    <!-- Command palette trigger -->
-    <button
-      class="header-search"
-      title="Command palette (⌘K)"
-      aria-label="Open command palette"
-      @click="palette.open"
-    >
-      <UiIcon name="Search" :size="14" :stroke-width="1.75" />
-      <span class="header-search__text">{{ i18n.t('header.search') }}</span>
-      <kbd class="header-search__kbd">⌘K</kbd>
-    </button>
+      <!-- Search / command palette -->
+      <button
+        class="header-search"
+        title="Command palette (⌘K)"
+        aria-label="Open command palette"
+        @click="palette.open"
+      >
+        <UiIcon name="Search" :size="15" :stroke-width="1.75" />
+        <span class="header-search__text">{{ i18n.t('header.search') }}</span>
+        <kbd class="header-search__kbd">⌘K</kbd>
+      </button>
 
-    <!-- Locale toggle -->
-    <button
-      class="header-btn header-btn--locale"
-      :title="i18n.t('header.langToggleAria')"
-      :aria-label="i18n.t('header.langToggleAria')"
-      @click="i18n.toggleLocale"
-    >
-      <span class="header-locale-label">{{ i18n.t('header.langToggle') }}</span>
-    </button>
+      <!-- Locale toggle — hidden on mobile -->
+      <button
+        class="header-btn header-btn--locale"
+        :title="i18n.t('header.langToggleAria')"
+        :aria-label="i18n.t('header.langToggleAria')"
+        @click="i18n.toggleLocale"
+      >
+        <span class="header-locale-label">{{ i18n.t('header.langToggle') }}</span>
+      </button>
 
-    <!-- Theme toggle -->
-    <button
-      class="header-btn"
-      :title="uiStore.isDark ? i18n.t('header.switchToLight') : i18n.t('header.switchToDark')"
-      :aria-label="uiStore.isDark ? i18n.t('header.switchToLightAria') : i18n.t('header.switchToDarkAria')"
-      @click="uiStore.toggleTheme"
-    >
-      <svg v-if="uiStore.isDark" width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M11.89 4.11l1.06-1.06M3.05 12.95l1.06-1.06"
-          stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M13.5 9.5A5.5 5.5 0 016.5 2.5a5.5 5.5 0 100 11 5.5 5.5 0 007-4z"
-          stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-      </svg>
-    </button>
+      <!-- Theme toggle -->
+      <button
+        class="header-btn"
+        :title="uiStore.isDark ? i18n.t('header.switchToLight') : i18n.t('header.switchToDark')"
+        :aria-label="uiStore.isDark ? i18n.t('header.switchToLightAria') : i18n.t('header.switchToDarkAria')"
+        @click="uiStore.toggleTheme"
+      >
+        <svg v-if="uiStore.isDark" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M11.89 4.11l1.06-1.06M3.05 12.95l1.06-1.06"
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M13.5 9.5A5.5 5.5 0 016.5 2.5a5.5 5.5 0 100 11 5.5 5.5 0 007-4z"
+            stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
   </header>
 </template>
 
 <style scoped>
+/* ── Header base ────────────────────────────────────────────────────── */
 .app-header {
   height: var(--header-height);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 0 14px;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
   flex-shrink: 0;
+  position: relative;
 }
 
-/* Base header button */
+/* Left / right slot containers */
+.header-slot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.header-slot--left  { margin-right: auto; }
+.header-slot--right { margin-left: auto; }
+
+/* ── Base header button ─────────────────────────────────────────────── */
 .header-btn {
   width: 32px;
   height: 32px;
@@ -132,24 +151,32 @@ const moduleLabel = computed(() => {
   border-radius: var(--radius-sm);
   transition: background var(--t-fast), color var(--t-fast);
   flex-shrink: 0;
+  /* Override global mobile 44px — buttons sit in header with defined size */
+  min-height: 0;
+  min-width: 0;
 }
 .header-btn:hover {
   background: var(--color-surface-elevated);
   color: var(--color-text);
 }
 
-/* Mobile hamburger: visible only on tablet/mobile */
+/* Default: show pin on desktop, hide hamburger */
+.header-btn--pin       { display: flex; }
 .header-btn--hamburger { display: none; }
 
-/* Desktop pin toggle: visible only on desktop */
-.header-btn--pin { display: flex; }
-
-@media (max-width: 1023px) {
-  .header-btn--hamburger { display: flex; }
+/* Tablet (768–1023px): show hamburger, hide pin */
+@media (min-width: 768px) and (max-width: 1023px) {
   .header-btn--pin       { display: none; }
+  .header-btn--hamburger { display: flex; }
 }
 
-/* Locale toggle */
+/* Mobile (< 768px): hide both — bottom tab bar handles navigation */
+@media (max-width: 767px) {
+  .header-btn--pin       { display: none; }
+  .header-btn--hamburger { display: none; }
+}
+
+/* ── Locale toggle ──────────────────────────────────────────────────── */
 .header-btn--locale {
   font-size: 12px;
   font-weight: 700;
@@ -160,6 +187,8 @@ const moduleLabel = computed(() => {
   height: 28px;
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
+  min-height: 0;
+  min-width: 0;
 }
 .header-btn--locale:hover {
   border-color: var(--color-accent);
@@ -168,22 +197,26 @@ const moduleLabel = computed(() => {
 }
 .header-locale-label { line-height: 1; }
 
-/* Module title */
+/* ── Module title — centered absolutely ─────────────────────────────── */
 .header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  pointer-events: none;
+  user-select: none;
 }
 .header-title__icon { color: var(--color-text-secondary); }
 .header-title__label {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
+  white-space: nowrap;
 }
 
-.header-spacer { flex: 1; }
-
-/* Command palette search button */
+/* ── Command palette search button ──────────────────────────────────── */
 .header-search {
   display: flex;
   align-items: center;
@@ -196,6 +229,8 @@ const moduleLabel = computed(() => {
   cursor: pointer;
   transition: border-color var(--t-fast), color var(--t-fast);
   flex-shrink: 0;
+  min-height: 0;
+  min-width: 0;
 }
 .header-search:hover {
   border-color: var(--color-accent);
@@ -215,11 +250,53 @@ const moduleLabel = computed(() => {
   color: var(--color-text-muted);
 }
 
-/* Mobile: hide search text/kbd, locale toggle */
+/* ── Mobile overrides (≤ 767px) ─────────────────────────────────────── */
 @media (max-width: 767px) {
+  .app-header {
+    /* Safe area for Dynamic Island */
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(var(--header-height-mobile) + env(safe-area-inset-top, 0px));
+
+    /* Glass effect */
+    background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+
+    /* Stick to top when content scrolls under */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    padding-left: 12px;
+    padding-right: 12px;
+    gap: 4px;
+  }
+
+  /* Hide pin button on mobile — sidebar replaced by bottom tabs */
+  .header-btn--pin       { display: none; }
+
+  /* Hide locale toggle on mobile — accessible via More > Settings */
+  .header-btn--locale    { display: none; }
+
+  /* Search: icon-only on mobile */
   .header-search__text,
-  .header-search__kbd { display: none; }
-  .header-search { padding: 5px 7px; }
-  .header-btn--locale { display: none; }
+  .header-search__kbd    { display: none; }
+  .header-search {
+    padding: 6px;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+    border-radius: var(--radius);
+  }
+
+  /* Theme toggle — slightly bigger tap area */
+  .header-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Title stays centered via absolute positioning */
+  .header-title__label { font-size: 15px; font-weight: 600; }
 }
+
 </style>

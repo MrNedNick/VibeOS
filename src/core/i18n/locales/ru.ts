@@ -8,6 +8,7 @@ export const ru: Messages = {
     apps: 'Приложения',
     soon: 'скоро',
     wip: 'разработка',
+    more: 'Ещё',
   },
   modules: {
     dashboard: 'Главная',

@@ -397,6 +397,14 @@ function goHome() {
   .sidebar__footer { display: none; }
 }
 
+/* ── Mobile (≤ 767px): sidebar completely hidden ─────────────────────── */
+/* Bottom tab bar + More sheet replace it entirely */
+@media (max-width: 767px) {
+  .sidebar {
+    display: none !important;
+  }
+}
+
 /* ── Expanded-state text visibility ──────────────────────────────── */
 
 /* When pinned (sidebarOpen) */

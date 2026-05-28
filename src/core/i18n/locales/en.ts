@@ -6,6 +6,7 @@ export const en = {
     apps: 'Apps',
     soon: 'soon',
     wip: 'wip',
+    more: 'More',
   },
   modules: {
     dashboard: 'Dashboard',

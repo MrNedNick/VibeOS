@@ -6,6 +6,7 @@ import AppHeader from './components/AppHeader.vue'
 import AppNotifications from './components/AppNotifications.vue'
 import AppErrorBoundary from './components/AppErrorBoundary.vue'
 import CommandPalette from './components/CommandPalette.vue'
+import AppBottomTabs from './components/AppBottomTabs.vue'
 import { useUiStore } from '@/core/stores/ui.store'
 import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
 
@@ -79,6 +80,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
     <AppNotifications />
     <CommandPalette />
+    <!-- Mobile bottom tab bar (self-hides on ≥ 768px via its own CSS) -->
+    <AppBottomTabs />
   </div>
 </template>
 
@@ -124,7 +127,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   overflow: hidden;
 }
 
-/* Backdrop for mobile/tablet drawer */
+/* ── Mobile content: clear bottom tab bar + safe area ─────────────── */
+@media (max-width: 767px) {
+  .app-content:not(.app-content--fullbleed) {
+    padding-bottom: calc(
+      var(--tab-bar-height) +
+      env(safe-area-inset-bottom, 0px) +
+      var(--content-padding)
+    );
+  }
+}
+
+/* Backdrop for tablet drawer (768–1023px only) */
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
@@ -134,6 +148,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 @media (min-width: 1024px) {
+  .sidebar-backdrop { display: none; }
+}
+
+/* On mobile the sidebar is gone — backdrop not needed */
+@media (max-width: 767px) {
   .sidebar-backdrop { display: none; }
 }
 

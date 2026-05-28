@@ -65,6 +65,10 @@
   --header-height:      56px;
   --content-max-width:  1000px;
   --content-padding:    32px;
+
+  /* Mobile layout */
+  --tab-bar-height:     64px;
+  --header-height-mobile: 52px;
 }
 
 /* ─── Responsive content padding ────────────────────────────── */
@@ -73,6 +77,26 @@
 }
 @media (max-width: 767px) {
   :root { --content-padding: 14px; }
+}
+
+/* ─── Mobile global overrides ────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Prevent horizontal scroll / rubber-banding */
+  html, body {
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+
+  /* Momentum scrolling for all scroll containers */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Larger base tap target comfort — bumps interactive feel */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 /* Light theme overrides */
