@@ -5,17 +5,86 @@ import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
 import { useUiStore } from '@/core/stores/ui.store'
 import { useLocale } from '@/core/i18n'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
+import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
+import { useHabitsStore } from '@/modules/habits/stores/habits.store'
+import { useGoalsStore } from '@/modules/goals/stores/goals.store'
+import { useNotesStore } from '@/modules/notes/stores/notes.store'
 import { UiIcon } from '@/ui'
+import type { Theme } from '@/core/stores/ui.store'
 
-const palette = useCommandPaletteStore()
-const uiStore = useUiStore()
-const router  = useRouter()
-const i18n    = useLocale()
+const palette     = useCommandPaletteStore()
+const uiStore     = useUiStore()
+const router      = useRouter()
+const i18n        = useLocale()
+const tasksStore  = useTasksStore()
+const habitsStore = useHabitsStore()
+const goalsStore  = useGoalsStore()
+const notesStore  = useNotesStore()
 
+// ── Search state ──────────────────────────────────────────────────────
 const query    = ref('')
 const selIdx   = ref(0)
 const inputRef = ref<HTMLInputElement>()
 const listRef  = ref<HTMLElement>()
+
+// ── Sub-input (action mode) ───────────────────────────────────────────
+type ActionMode = 'new-task' | 'new-note' | 'new-goal' | null
+
+const activeAction  = ref<ActionMode>(null)
+const subInputValue = ref('')
+const subInputRef   = ref<HTMLInputElement>()
+
+// Computed labels (reactive to locale)
+const actionMeta = computed(() => ({
+  'new-task': {
+    label: i18n.t('palette.newTask').replace('…', ''),
+    placeholder: i18n.t('palette.taskPlaceholder'),
+    icon: 'ListTodo',
+  },
+  'new-note': {
+    label: i18n.t('palette.newNote').replace('…', ''),
+    placeholder: i18n.t('palette.notePlaceholder'),
+    icon: 'NotebookPen',
+  },
+  'new-goal': {
+    label: i18n.t('palette.newGoal').replace('…', ''),
+    placeholder: i18n.t('palette.goalPlaceholder'),
+    icon: 'Target',
+  },
+}))
+
+function enterActionMode(mode: NonNullable<ActionMode>) {
+  activeAction.value = mode
+  subInputValue.value = ''
+  nextTick(() => subInputRef.value?.focus())
+}
+
+function cancelActionMode() {
+  activeAction.value = null
+  nextTick(() => inputRef.value?.focus())
+}
+
+async function confirmAction() {
+  const val = subInputValue.value.trim()
+  if (!val || !activeAction.value) return
+
+  if (activeAction.value === 'new-task') {
+    tasksStore.addTask(val)
+  } else if (activeAction.value === 'new-note') {
+    const id = notesStore.createNote()
+    notesStore.updateContent(id, `# ${val}\n`)
+    router.push('/notes')
+  } else if (activeAction.value === 'new-goal') {
+    goalsStore.createGoal({
+      title: val,
+      category: 'other',
+      coverEmoji: '🎯',
+    })
+    router.push('/goals')
+  }
+
+  palette.close()
+}
 
 // ── Command definitions ────────────────────────────────────────────────
 interface Command {
@@ -23,15 +92,59 @@ interface Command {
   label: string
   icon: string
   group: string
+  badge?: string
   action: () => void
 }
 
+const THEME_OPTIONS: { id: Theme; labelKey: string; icon: string }[] = [
+  { id: 'dark',      labelKey: 'palette.themeDark',      icon: 'Moon'     },
+  { id: 'light',     labelKey: 'palette.themeLight',     icon: 'Sun'      },
+  { id: 'terminal',  labelKey: 'palette.themeTerminal',  icon: 'Terminal' },
+  { id: 'brutalist', labelKey: 'palette.themeBrutalist', icon: 'Bold'     },
+]
+
 const commands = computed<Command[]>(() => [
-  // Navigate to each available or wip module
+  // ── Actions: Create ───────────────────────────────────────────────
+  {
+    id:     'action:new-task',
+    label:  i18n.t('palette.newTask'),
+    icon:   'ListTodo',
+    group:  i18n.t('palette.actionsGroup'),
+    action: () => enterActionMode('new-task'),
+  },
+  {
+    id:     'action:new-note',
+    label:  i18n.t('palette.newNote'),
+    icon:   'NotebookPen',
+    group:  i18n.t('palette.actionsGroup'),
+    action: () => enterActionMode('new-note'),
+  },
+  {
+    id:     'action:new-goal',
+    label:  i18n.t('palette.newGoal'),
+    icon:   'Target',
+    group:  i18n.t('palette.actionsGroup'),
+    action: () => enterActionMode('new-goal'),
+  },
+
+  // ── Habits toggle ─────────────────────────────────────────────────
+  ...habitsStore.habits.map(h => {
+    const done = habitsStore.isCompletedToday(h.id)
+    return {
+      id:     `habit:toggle:${h.id}`,
+      label:  `${h.emoji} ${h.name}`,
+      icon:   done ? 'CheckCircle2' : 'Circle',
+      group:  i18n.t('palette.habitsGroup'),
+      badge:  done ? '✓' : undefined,
+      action: () => { habitsStore.toggleToday(h.id) },  // don't close — allow batch
+    }
+  }),
+
+  // ── Navigate ──────────────────────────────────────────────────────
   ...PLATFORM_MODULES
     .filter(m => m.status === 'available' || m.status === 'wip')
     .map(m => {
-      const key = `modules.${m.id}`
+      const key        = `modules.${m.id}`
       const translated = i18n.t(key)
       return {
         id:     `nav:${m.id}`,
@@ -42,14 +155,17 @@ const commands = computed<Command[]>(() => [
       }
     }),
 
-  // System
-  {
-    id:     'system:theme',
-    label:  uiStore.isDark ? i18n.t('palette.themeLight') : i18n.t('palette.themeDark'),
-    icon:   uiStore.isDark ? 'Sun' : 'Moon',
-    group:  i18n.t('palette.systemGroup'),
-    action: () => { uiStore.toggleTheme(); palette.close() },
-  },
+  // ── Theme ─────────────────────────────────────────────────────────
+  ...THEME_OPTIONS.map(t => ({
+    id:     `system:theme:${t.id}`,
+    label:  i18n.t(t.labelKey),
+    icon:   t.icon,
+    group:  i18n.t('palette.themeGroup'),
+    badge:  uiStore.theme === t.id ? '✓' : undefined,
+    action: () => { uiStore.setTheme(t.id); palette.close() },
+  })),
+
+  // ── System ────────────────────────────────────────────────────────
   {
     id:     'system:sidebar',
     label:  uiStore.sidebarOpen ? i18n.t('palette.collapseSidebar') : i18n.t('palette.expandSidebar'),
@@ -92,8 +208,9 @@ const groups = computed(() => {
 // ── Focus management ───────────────────────────────────────────────────
 watch(() => palette.isOpen, async (open) => {
   if (open) {
-    query.value = ''
-    selIdx.value = 0
+    query.value      = ''
+    selIdx.value     = 0
+    activeAction.value = null
     await nextTick()
     inputRef.value?.focus()
   }
@@ -112,15 +229,17 @@ function isSelected(cmd: Command) {
 
 function scrollToSelected() {
   nextTick(() => {
-    const el = listRef.value?.querySelector<HTMLElement>(
-      `[data-idx="${selIdx.value}"]`
-    )
+    const el = listRef.value?.querySelector<HTMLElement>(`[data-idx="${selIdx.value}"]`)
     el?.scrollIntoView({ block: 'nearest' })
   })
 }
 
 // ── Keyboard navigation ────────────────────────────────────────────────
 function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    palette.close()
+    return
+  }
   if (e.key === 'ArrowDown') {
     e.preventDefault()
     selIdx.value = Math.min(selIdx.value + 1, filtered.value.length - 1)
@@ -132,8 +251,16 @@ function onKeydown(e: KeyboardEvent) {
   } else if (e.key === 'Enter') {
     e.preventDefault()
     filtered.value[selIdx.value]?.action()
-  } else if (e.key === 'Escape') {
-    palette.close()
+  }
+}
+
+function onSubInputKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    cancelActionMode()
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    confirmAction()
   }
 }
 </script>
@@ -142,58 +269,89 @@ function onKeydown(e: KeyboardEvent) {
   <Teleport to="body">
     <Transition name="palette">
       <div v-if="palette.isOpen" class="palette-backdrop" @mousedown.self="palette.close">
-        <div class="palette" role="dialog" aria-label="Command palette" @keydown="onKeydown">
+        <div class="palette" role="dialog" aria-label="Command palette" @keydown="!activeAction ? onKeydown($event) : undefined">
 
-          <!-- Search input -->
-          <div class="palette__search">
-            <UiIcon name="Search" :size="16" class="palette__search-icon" />
-            <input
-              ref="inputRef"
-              v-model="query"
-              class="palette__input"
-              :placeholder="i18n.t('palette.placeholder')"
-              autocomplete="off"
-              spellcheck="false"
-            />
-            <kbd class="palette__esc-hint">Esc</kbd>
-          </div>
-
-          <div class="palette__divider" />
-
-          <!-- Results -->
-          <div ref="listRef" class="palette__list">
-            <template v-if="filtered.length > 0">
-              <div v-for="group in groups" :key="group.label" class="palette__group">
-                <div class="palette__group-label">{{ group.label }}</div>
-                <button
-                  v-for="cmd in group.items"
-                  :key="cmd.id"
-                  :data-idx="globalIdx(cmd)"
-                  class="palette__item"
-                  :class="{ 'palette__item--selected': isSelected(cmd) }"
-                  @mouseenter="selIdx = globalIdx(cmd)"
-                  @click="cmd.action()"
-                >
-                  <span class="palette__item-icon">
-                    <UiIcon :name="cmd.icon" :size="15" :stroke-width="1.75" />
-                  </span>
-                  <span class="palette__item-label">{{ cmd.label }}</span>
-                  <span v-if="isSelected(cmd)" class="palette__item-enter">↵</span>
-                </button>
-              </div>
-            </template>
-
-            <div v-else class="palette__empty">
-              {{ i18n.t('palette.noResults') }} "{{ query }}"
+          <!-- ── Normal search mode ─────────────────────────────── -->
+          <template v-if="!activeAction">
+            <div class="palette__search">
+              <UiIcon name="Search" :size="16" class="palette__search-icon" />
+              <input
+                ref="inputRef"
+                v-model="query"
+                class="palette__input"
+                :placeholder="i18n.t('palette.placeholder')"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <kbd class="palette__esc-hint">Esc</kbd>
             </div>
-          </div>
 
-          <!-- Footer -->
-          <div class="palette__footer">
-            <span><kbd>↑</kbd><kbd>↓</kbd> {{ i18n.t('palette.footerNav') }}</span>
-            <span><kbd>↵</kbd> {{ i18n.t('palette.footerSelect') }}</span>
-            <span><kbd>Esc</kbd> {{ i18n.t('palette.footerClose') }}</span>
-          </div>
+            <div class="palette__divider" />
+
+            <div ref="listRef" class="palette__list">
+              <template v-if="filtered.length > 0">
+                <div v-for="group in groups" :key="group.label" class="palette__group">
+                  <div class="palette__group-label">{{ group.label }}</div>
+                  <button
+                    v-for="cmd in group.items"
+                    :key="cmd.id"
+                    :data-idx="globalIdx(cmd)"
+                    class="palette__item"
+                    :class="{ 'palette__item--selected': isSelected(cmd) }"
+                    @mouseenter="selIdx = globalIdx(cmd)"
+                    @click="cmd.action()"
+                  >
+                    <span class="palette__item-icon">
+                      <UiIcon :name="cmd.icon" :size="15" :stroke-width="1.75" />
+                    </span>
+                    <span class="palette__item-label">{{ cmd.label }}</span>
+                    <span v-if="cmd.badge" class="palette__item-badge">{{ cmd.badge }}</span>
+                    <span v-else-if="isSelected(cmd)" class="palette__item-enter">↵</span>
+                  </button>
+                </div>
+              </template>
+
+              <div v-else class="palette__empty">
+                {{ i18n.t('palette.noResults') }} "{{ query }}"
+              </div>
+            </div>
+
+            <div class="palette__footer">
+              <span><kbd>↑</kbd><kbd>↓</kbd> {{ i18n.t('palette.footerNav') }}</span>
+              <span><kbd>↵</kbd> {{ i18n.t('palette.footerSelect') }}</span>
+              <span><kbd>Esc</kbd> {{ i18n.t('palette.footerClose') }}</span>
+            </div>
+          </template>
+
+          <!-- ── Sub-input (action) mode ───────────────────────── -->
+          <template v-else>
+            <div class="palette__action-header">
+              <button class="palette__back-btn" @click="cancelActionMode">
+                <UiIcon name="ArrowLeft" :size="14" />
+              </button>
+              <UiIcon :name="actionMeta[activeAction].icon" :size="15" class="palette__action-icon" />
+              <span class="palette__action-label">{{ actionMeta[activeAction].label }}</span>
+            </div>
+
+            <div class="palette__divider" />
+
+            <div class="palette__sub-input-wrap">
+              <input
+                ref="subInputRef"
+                v-model="subInputValue"
+                class="palette__input palette__input--sub"
+                :placeholder="actionMeta[activeAction].placeholder"
+                autocomplete="off"
+                spellcheck="false"
+                @keydown="onSubInputKeydown"
+              />
+            </div>
+
+            <div class="palette__footer palette__footer--action">
+              <span><kbd>↵</kbd> {{ i18n.t('palette.createConfirm') }}</span>
+              <span class="palette__footer-hint">{{ i18n.t('palette.backHint') }}</span>
+            </div>
+          </template>
 
         </div>
       </div>
@@ -334,8 +492,11 @@ function onKeydown(e: KeyboardEvent) {
   text-overflow: ellipsis;
 }
 
-.palette__item--selected .palette__item-label {
-  color: var(--color-text);
+.palette__item-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-accent);
+  flex-shrink: 0;
 }
 
 .palette__item-enter {
@@ -369,6 +530,14 @@ function onKeydown(e: KeyboardEvent) {
   color: var(--color-text-muted);
 }
 
+.palette__footer--action {
+  justify-content: space-between;
+}
+
+.palette__footer-hint {
+  opacity: 0.6;
+}
+
 kbd {
   font-size: 11px;
   font-family: var(--font-mono);
@@ -377,6 +546,60 @@ kbd {
   border-radius: var(--radius-xs);
   padding: 1px 5px;
   color: var(--color-text-muted);
+}
+
+/* ── Action mode header ───────────────────────────────────────────────── */
+.palette__action-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  flex-shrink: 0;
+}
+
+.palette__back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.palette__back-btn:hover {
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+}
+
+.palette__action-icon {
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.palette__action-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Sub-input area ───────────────────────────────────────────────────── */
+.palette__sub-input-wrap {
+  padding: 14px 18px;
+  flex: 1;
+}
+
+.palette__input--sub {
+  font-size: 20px;
+  font-weight: 500;
+  width: 100%;
 }
 
 /* ── Open/close transition ────────────────────────────────────────────── */
@@ -393,15 +616,15 @@ kbd {
   transition: opacity 120ms ease, transform 120ms ease;
 }
 
-.palette-enter-from { opacity: 0; }
+.palette-enter-from         { opacity: 0; }
 .palette-enter-from .palette { opacity: 0; transform: scale(0.96) translateY(-8px); }
-.palette-leave-to   { opacity: 0; }
-.palette-leave-to   .palette { opacity: 0; transform: scale(0.97); }
+.palette-leave-to            { opacity: 0; }
+.palette-leave-to .palette   { opacity: 0; transform: scale(0.97); }
 
 /* ── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .palette-backdrop { padding-top: 16px; align-items: flex-start; }
-  .palette { max-height: 85vh; }
-  .palette__input { font-size: 16px; }
+  .palette          { max-height: 85vh; }
+  .palette__input   { font-size: 16px; }
 }
 </style>

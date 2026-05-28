@@ -18,6 +18,7 @@ import { goalsRoutes } from '@/modules/goals'
 import { learningRoutes } from '@/modules/learning'
 import { trainingRoutes } from '@/modules/training'
 import { analyticsRoutes } from '@/modules/analytics'
+import { calendarRoutes } from '@/modules/calendar'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -44,6 +45,7 @@ const routes: RouteRecordRaw[] = [
       ...learningRoutes,
       ...trainingRoutes,
       ...analyticsRoutes,
+      ...calendarRoutes,
       { path: '/:pathMatch(.*)*', component: NotFoundView },
     ],
   },

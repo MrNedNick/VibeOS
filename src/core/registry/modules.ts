@@ -154,4 +154,13 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     status: 'available',
     description: 'Take a break — Minesweeper, Memory, Snake',
   },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    icon: 'CalendarDays',
+    path: '/calendar',
+    section: 'life',
+    status: 'available',
+    description: 'Unified view of tasks, habits, learning, training and goals',
+  },
 ]
