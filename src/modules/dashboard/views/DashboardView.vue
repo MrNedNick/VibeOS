@@ -177,7 +177,7 @@ const APP_VERSION = __APP_VERSION__
         <span class="life-stat__icon">●</span>
         <div class="life-stat__info">
           <span class="life-stat__value">{{ todayHabits.done }}/{{ todayHabits.total }}</span>
-          <span class="life-stat__label">Habits today</span>
+          <span class="life-stat__label">{{ i18n.t('dashboard.habitsToday') }}</span>
         </div>
         <div
           class="life-stat__bar"
@@ -188,24 +188,24 @@ const APP_VERSION = __APP_VERSION__
         <span class="life-stat__icon">🎯</span>
         <div class="life-stat__info">
           <span class="life-stat__value">{{ goalsStore.activeGoals.length }}</span>
-          <span class="life-stat__label">Active goals</span>
+          <span class="life-stat__label">{{ i18n.t('dashboard.activeGoals') }}</span>
         </div>
       </div>
       <div class="life-stat" @click="router.push('/learning')">
         <span class="life-stat__icon">📚</span>
         <div class="life-stat__info">
           <span class="life-stat__value">{{ learningStore.todayItems.length }}</span>
-          <span class="life-stat__label">Learning today</span>
+          <span class="life-stat__label">{{ i18n.t('dashboard.learningToday') }}</span>
         </div>
-        <span v-if="learningStore.todayItems.some(i => i.logged)" class="life-stat__done">{{ learningStore.todayItems.filter(i => i.logged).length }} done</span>
+        <span v-if="learningStore.todayItems.some(i => i.logged)" class="life-stat__done">{{ learningStore.todayItems.filter(i => i.logged).length }} {{ i18n.t('dashboard.doneSuffix') }}</span>
       </div>
       <div class="life-stat" @click="router.push('/training')">
         <span class="life-stat__icon">💪</span>
         <div class="life-stat__info">
           <span class="life-stat__value">{{ trainingStore.todayItems.length }}</span>
-          <span class="life-stat__label">Training today</span>
+          <span class="life-stat__label">{{ i18n.t('dashboard.trainingToday') }}</span>
         </div>
-        <span v-if="trainingStore.todayItems.some(i => i.logged)" class="life-stat__done">{{ trainingStore.todayItems.filter(i => i.logged).length }} done</span>
+        <span v-if="trainingStore.todayItems.some(i => i.logged)" class="life-stat__done">{{ trainingStore.todayItems.filter(i => i.logged).length }} {{ i18n.t('dashboard.doneSuffix') }}</span>
       </div>
     </div>
 

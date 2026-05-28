@@ -136,7 +136,7 @@ function modMilestone(modId: string): string {
         >
           <span class="task-row__num">{{ i + 1 }}</span>
           <span class="task-row__priority" :class="`task-row__priority--${PRIORITY_COLOR[task.priority]}`">
-            {{ task.priority }}
+            {{ i18n.t(`dashboardDetail.priority${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}`) }}
           </span>
           <span class="task-row__label">{{ task.label }}</span>
         </div>
@@ -157,7 +157,7 @@ function modMilestone(modId: string): string {
       <div class="debt-list">
         <div v-for="(item, i) in detail.techDebt" :key="i" class="debt-row">
           <span class="debt-row__sev" :class="`debt-row__sev--${SEVERITY_COLOR[item.severity]}`">
-            {{ item.severity }}
+            {{ i18n.t(`dashboardDetail.severity${item.severity.charAt(0).toUpperCase() + item.severity.slice(1)}`) }}
           </span>
           <span class="debt-row__label">{{ item.label }}</span>
         </div>

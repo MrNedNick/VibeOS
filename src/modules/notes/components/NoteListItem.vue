@@ -14,7 +14,9 @@ const title = computed(() => deriveTitle(props.note.content))
 
 const excerpt = computed(() => {
   const lines = props.note.content.split('\n').filter(l => l.trim())
-  const body = lines.find(l => !l.startsWith('#'))?.trim() ?? ''
+  const hasHeading = lines.some(l => l.startsWith('#'))
+  const bodyLines = hasHeading ? lines.filter(l => !l.startsWith('#')) : lines.slice(1)
+  const body = bodyLines[0]?.trim() ?? ''
   return body.length > 72 ? body.slice(0, 72) + '…' : body
 })
 

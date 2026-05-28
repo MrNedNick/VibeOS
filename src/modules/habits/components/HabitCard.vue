@@ -361,4 +361,36 @@ function cancelConfirm() {
   overflow-x: auto;
   padding-bottom: 2px;
 }
+
+@media (min-width: 900px) {
+  .habit-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .habit-card__top {
+    flex: 0 0 260px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding-right: 20px;
+    border-right: 1px solid var(--color-border);
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
+  .habit-card__identity {
+    flex: 1;
+  }
+
+  .habit-card__actions {
+    align-self: flex-start;
+  }
+
+  .habit-card__heatmap {
+    flex: 1;
+    min-width: 0;
+  }
+}
 </style>

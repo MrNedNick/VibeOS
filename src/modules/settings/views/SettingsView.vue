@@ -54,24 +54,6 @@ function cancelClear() {
   clearConfirm.value = false
 }
 
-// ── Keyboard shortcuts reference ──────────────────────────────────
-const SHORTCUTS = [
-  { keys: ['⌘', 'K'],         scope: 'Global',    desc: 'Open Command Palette' },
-  { keys: ['Esc'],             scope: 'Global',    desc: 'Close palette / modal' },
-  { keys: ['↑', '↓'],         scope: 'Palette',   desc: 'Navigate results' },
-  { keys: ['Enter'],           scope: 'Palette',   desc: 'Select result' },
-  { keys: ['⌘', 'N'],         scope: 'Notes',     desc: 'New note' },
-  { keys: ['⌘', 'F'],         scope: 'Notes',     desc: 'Focus search' },
-  { keys: ['⌘', '⇧', 'P'],   scope: 'Notes',     desc: 'Toggle edit / preview' },
-  { keys: ['⌘', 'N'],         scope: 'Snippets',  desc: 'New snippet' },
-  { keys: ['⌘', 'F'],         scope: 'Snippets',  desc: 'Focus search' },
-  { keys: ['j', '↓'],         scope: 'Tasks',     desc: 'Focus next task' },
-  { keys: ['k', '↑'],         scope: 'Tasks',     desc: 'Focus previous task' },
-  { keys: ['Space'],           scope: 'Tasks',     desc: 'Toggle focused task' },
-  { keys: ['d'],               scope: 'Tasks',     desc: 'Delete focused task' },
-  { keys: ['/'],               scope: 'Tasks',     desc: 'Focus add input' },
-  { keys: ['⌘', '↵'],         scope: 'Studio',    desc: 'Run prompt' },
-]
 </script>
 
 <template>
@@ -116,33 +98,6 @@ const SHORTCUTS = [
           >English</button>
         </div>
       </div>
-    </section>
-
-    <!-- ── Keyboard shortcuts ──────────────────────────── -->
-    <section class="settings__section">
-      <h2 class="settings__section-title">{{ i18n.t('settings.sectionKeyboard') }}</h2>
-      <table class="shortcuts-table">
-        <thead>
-          <tr>
-            <th>{{ i18n.t('settings.shortcutKeys') }}</th>
-            <th>{{ i18n.t('settings.shortcutScope') }}</th>
-            <th>{{ i18n.t('settings.shortcutDesc') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(s, i) in SHORTCUTS" :key="i">
-            <td>
-              <span
-                v-for="(k, ki) in s.keys"
-                :key="ki"
-                class="kbd"
-              >{{ k }}</span>
-            </td>
-            <td class="shortcuts-table__scope">{{ s.scope }}</td>
-            <td>{{ s.desc }}</td>
-          </tr>
-        </tbody>
-      </table>
     </section>
 
     <!-- ── API Keys ──────────────────────────────────────── -->
@@ -429,56 +384,6 @@ const SHORTCUTS = [
 }
 .settings__cancel-btn:hover { color: var(--color-text); background: var(--color-surface-elevated); }
 
-/* Keyboard shortcuts table */
-.shortcuts-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.shortcuts-table th {
-  text-align: left;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
-  padding: 0 8px 8px 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.shortcuts-table td {
-  padding: 7px 8px 7px 0;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
-  vertical-align: middle;
-}
-.shortcuts-table tr:last-child td { border-bottom: none; }
-
-.shortcuts-table__scope {
-  font-size: 11px;
-  font-family: var(--font-mono);
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-.kbd {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 5px;
-  font-size: 12px;
-  font-family: var(--font-mono);
-  color: var(--color-text-secondary);
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  box-shadow: 0 1px 0 var(--color-border);
-  margin-right: 2px;
-}
-
 /* API Key rows */
 .settings__row--col { flex-direction: column; align-items: flex-start; gap: 10px; }
 
@@ -535,9 +440,6 @@ const SHORTCUTS = [
   .settings__section { padding: 16px 16px; }
   .settings__row { flex-direction: column; align-items: flex-start; gap: 10px; }
   .settings__clear-actions { flex-wrap: wrap; }
-  .shortcuts-table { font-size: 12px; }
-  .shortcuts-table th,
-  .shortcuts-table td { padding-right: 4px; }
   .settings__key-input { min-width: 0; }
 }
 </style>

@@ -125,6 +125,16 @@ Order:
 
 ## Recently shipped (history)
 
+### 2026-05-28 (session 6 — UI polish + Russian + improvements)
+- **Settings API Keys panel** — Anthropic + OpenWeather key fields; password masking toggle; key set/not-set status; shared via localStorage with Studio
+- **Tasks "Today" filter** — new filter tab; `todayCount` computed in store; shows tasks due today
+- **Notes [[wiki links]]** — click `[[Title]]` in preview to navigate to matching note; creates new note if not found
+- **Dashboard translations** — all life stat labels and detail panel priority/severity labels use i18n; life stats strip fully translated
+- **Settings cleanup** — removed Hotkeys/Shortcuts block (not useful at this stage)
+- **Notes list duplication fix** — excerpt now skips the title line when note has no heading
+- **Habits wide-screen layout** — at ≥900px cards switch to horizontal: identity left, heatmap right, border separator
+- **Control Center (platform-notes.ts)** — fully rewritten in Russian; all 14 modules updated with current state, shipped tasks, next tasks, improvements, tech debt
+
 ### 2026-05-27 (session 5 — life modules + polish)
 - **Learning module** — full implementation: plans, session logs, progress rings, streaks, today strip, plan detail view
 - **Training module** — full implementation: plans, workout logs, feeling emoji, streaks, km tracking, today strip, plan detail view
@@ -232,6 +242,40 @@ Demoted from standalone module to Dashboard widget. Low priority.
 
 ### Games backlog
 After Memory and Snake: Tetris or Minesweeper.
+Sudoku — classic grid puzzle; good fit for the Games lobby alongside Minesweeper and Snake.
+
+### Free AI API alternatives (no billing risk)
+Research done 2026-05-28. Candidates for Studio integration without Anthropic key:
+- **Gemini Flash** — Google AI Studio free tier; 60 req/min, 1M tokens/min; no credit card for dev key
+- **GroqCloud** — free with rate limits (30 req/min on Llama3/Mixtral); fast inference; good for real-time tasks
+- **OpenRouter** — routes to multiple free models (Mistral, Phi, others); single API key; free tier available
+All require user-provided API key via Settings. No auto-billing. Integration planned for S6.
+
+### External data widgets (future)
+- **Weather widget** — OpenWeatherMap free tier (60 calls/min, no credit card); Dashboard widget; API key in Settings — partially planned in S5
+- **Currency rates** — free.currencyapi.com or ExchangeRate-API free tier (1500 req/month); Dashboard mini-widget
+- **Maps / location context** — low priority; possible for Training module (route tracking) in S5+
+- **GitHub activity widget** — already listed; REST API, 5000 req/hour unauthenticated
+
+### Settings future ideas
+- Module visibility toggles (show/hide modules from sidebar)
+- Notification preferences (browser notifications for habits reminders)
+- Privacy settings (local-only vs synced data preference)
+- Data import (restore from JSON backup)
+
+### Learning module future improvements
+- Resource library with URL bookmarks and notes per resource
+- Session timer with Pomodoro integration
+- Weekly learning report with goal progress
+- AI-generated study plans (S6)
+- Export session log as CSV
+
+### Training module future improvements
+- Exercise library with notes and personal records
+- Workout templates (reuse past plans)
+- Volume/intensity progression charts
+- AI workout analysis after each session (S6)
+- Export workout log as CSV
 
 ---
 
@@ -278,3 +322,5 @@ After Memory and Snake: Tetris or Minesweeper.
 | Calendar view sprint placement | Unscheduled | Natural fit in S5 or as S6 addition |
 | Mobile PWA | Unscheduled | Research after S5; depends on how mobile-critical check-ins become |
 | Analytics: standalone module or dashboard tab? | Undecided | Lean toward standalone module with Dashboard summary widget |
+| Snippets module: keep or remove? | Open | Low daily-use value in a life OS context; already built and stable; keep until there's a clear reason to remove |
+| Studio: Anthropic-only or multi-provider? | Open | Add GroqCloud/Gemini/OpenRouter as free alternatives in S6; user selects provider in Settings |
