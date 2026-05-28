@@ -71,6 +71,88 @@
   --header-height-mobile: 52px;
 }
 
+/* ─── Vibe-pak: Terminal Dark ────────────────────────────────── */
+/* Phosphor-green CRT aesthetic — monospace everywhere, zero radius */
+[data-theme='terminal'] {
+  --color-bg:               #000000;
+  --color-surface:          #060606;
+  --color-surface-elevated: #0d1a0d;
+  --color-border:           #0a2a0a;
+  --color-border-subtle:    #051505;
+
+  --color-accent:           #00ff41;
+  --color-accent-hover:     #00cc33;
+  --color-accent-muted:     rgba(0, 255, 65, 0.07);
+
+  --color-success:          #00ff41;
+  --color-danger:           #ff3344;
+  --color-warning:          #ffcc00;
+  --color-info:             #00ff41;
+
+  --color-text:             #a8ffb0;
+  --color-text-secondary:   #5dba5d;
+  --color-text-muted:       #2d662d;
+  --color-text-inverse:     #000000;
+
+  /* Force monospace everywhere */
+  --font-sans:              'JetBrains Mono', 'Fira Code', monospace;
+
+  --radius-xs: 0px;
+  --radius-sm: 2px;
+  --radius:    2px;
+  --radius-lg: 2px;
+  --radius-xl: 4px;
+
+  --shadow-sm: 0 0 6px  rgba(0, 255, 65, 0.15);
+  --shadow:    0 0 16px rgba(0, 255, 65, 0.10);
+  --shadow-lg: 0 0 32px rgba(0, 255, 65, 0.12);
+}
+
+/* ─── Vibe-pak: Brutalist ─────────────────────────────────────── */
+/* Stark black/white — zero radius, hard shadows, no softness */
+[data-theme='brutalist'] {
+  --color-bg:               #f0ede8;
+  --color-surface:          #ffffff;
+  --color-surface-elevated: #e8e5e0;
+  --color-border:           #000000;
+  --color-border-subtle:    #333333;
+
+  --color-accent:           #000000;
+  --color-accent-hover:     #222222;
+  --color-accent-muted:     rgba(0, 0, 0, 0.06);
+
+  --color-success:          #006600;
+  --color-danger:           #cc0000;
+  --color-warning:          #bb5500;
+  --color-info:             #0000cc;
+
+  --color-text:             #000000;
+  --color-text-secondary:   #1a1a1a;
+  --color-text-muted:       #555555;
+  --color-text-inverse:     #ffffff;
+
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius:    0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+
+  /* Hard offset shadows instead of blur */
+  --shadow-sm: 2px 2px 0px #000000;
+  --shadow:    3px 3px 0px #000000;
+  --shadow-lg: 5px 5px 0px #000000;
+}
+
+/* Brutalist: heavier borders on key structural elements */
+[data-theme='brutalist'] .app-header,
+[data-theme='brutalist'] .sidebar,
+[data-theme='brutalist'] .board-col,
+[data-theme='brutalist'] .board-card,
+[data-theme='brutalist'] .settings__section,
+[data-theme='brutalist'] .modal {
+  border-width: 2px;
+}
+
 /* ─── Responsive content padding ────────────────────────────── */
 @media (max-width: 1023px) and (min-width: 768px) {
   :root { --content-padding: 20px; }

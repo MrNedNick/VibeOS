@@ -1,11 +1,47 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useUiStore } from '@/core/stores/ui.store'
+import type { Theme } from '@/core/stores/ui.store'
 import { useLocale } from '@/core/i18n'
 import { useStorage } from '@/core/composables/useStorage'
 
 const uiStore = useUiStore()
 const i18n    = useLocale()
+
+// ── Vibe-paks ─────────────────────────────────────────────────────
+interface VibePak {
+  id: Theme
+  nameKey: string
+  swatches: string[]   // [bg, accent, text]
+  label: string        // short descriptor
+}
+
+const VIBE_PAKS: VibePak[] = [
+  {
+    id:      'dark',
+    nameKey: 'settings.themeDark',
+    swatches: ['#0a0a0a', '#4f8ef7', '#f0f0f4'],
+    label:   'Default',
+  },
+  {
+    id:      'light',
+    nameKey: 'settings.themeLight',
+    swatches: ['#f0f0f5', '#2563eb', '#0d0d12'],
+    label:   'Clean',
+  },
+  {
+    id:      'terminal',
+    nameKey: 'settings.themeTerminal',
+    swatches: ['#000000', '#00ff41', '#a8ffb0'],
+    label:   'Phosphor',
+  },
+  {
+    id:      'brutalist',
+    nameKey: 'settings.themeBrutalist',
+    swatches: ['#f0ede8', '#000000', '#000000'],
+    label:   'Stark',
+  },
+]
 
 // ── API keys ──────────────────────────────────────────────────────
 const anthropicKey    = useStorage<string>('platform:studio:apikey', '')
@@ -67,19 +103,32 @@ function cancelClear() {
     <section class="settings__section">
       <h2 class="settings__section-title">{{ i18n.t('settings.sectionAppearance') }}</h2>
 
-      <div class="settings__row">
-        <span class="settings__row-name">{{ i18n.t('settings.themeLabel') }}</span>
-        <div class="settings__toggle">
+      <!-- Vibe-paks -->
+      <div class="settings__row settings__row--col">
+        <div>
+          <span class="settings__row-name">{{ i18n.t('settings.vibePaks') }}</span>
+          <p class="settings__row-hint">{{ i18n.t('settings.vibePaksSub') }}</p>
+        </div>
+        <div class="pak-grid">
           <button
-            class="settings__toggle-btn"
-            :class="{ 'settings__toggle-btn--active': uiStore.isDark }"
-            @click="!uiStore.isDark && uiStore.toggleTheme()"
-          >{{ i18n.t('settings.themeDark') }}</button>
-          <button
-            class="settings__toggle-btn"
-            :class="{ 'settings__toggle-btn--active': !uiStore.isDark }"
-            @click="uiStore.isDark && uiStore.toggleTheme()"
-          >{{ i18n.t('settings.themeLight') }}</button>
+            v-for="pak in VIBE_PAKS"
+            :key="pak.id"
+            class="pak-card"
+            :class="{ 'pak-card--active': uiStore.theme === pak.id }"
+            @click="uiStore.setTheme(pak.id)"
+          >
+            <div class="pak-preview">
+              <span
+                v-for="(swatch, si) in pak.swatches"
+                :key="si"
+                class="pak-swatch"
+                :style="{ background: swatch }"
+              />
+            </div>
+            <span class="pak-name">{{ i18n.t(pak.nameKey) }}</span>
+            <span class="pak-label">{{ pak.label }}</span>
+            <span v-if="uiStore.theme === pak.id" class="pak-check">✓</span>
+          </button>
         </div>
       </div>
 
@@ -435,11 +484,82 @@ function cancelClear() {
 }
 .settings__key-status--set { color: var(--color-success); }
 
+/* ── Vibe-pak picker ─────────────────────────────────────────── */
+.pak-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+.pak-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 10px 12px;
+  border-radius: var(--radius);
+  border: 2px solid var(--color-border);
+  background: var(--color-surface-elevated);
+  cursor: pointer;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+  min-width: 0;
+  min-height: 0;
+}
+.pak-card:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.pak-card--active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+  box-shadow: var(--shadow);
+}
+
+.pak-preview {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.pak-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+
+.pak-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.pak-label {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.pak-check {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
 @media (max-width: 767px) {
   .settings { max-width: 100%; }
   .settings__section { padding: 16px 16px; }
   .settings__row { flex-direction: column; align-items: flex-start; gap: 10px; }
   .settings__clear-actions { flex-wrap: wrap; }
   .settings__key-input { min-width: 0; }
+  .pak-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
