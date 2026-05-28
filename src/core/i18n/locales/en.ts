@@ -409,6 +409,9 @@ export const en = {
     goalCreated: 'Goal created',
     goalCompleted: 'Goal completed',
     milestoneCompleted: 'Milestone completed',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    daysAgo: 'days ago',
   },
 }
 

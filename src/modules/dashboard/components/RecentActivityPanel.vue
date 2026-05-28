@@ -4,22 +4,55 @@ import { useEventBus } from '@/core/events'
 import type { PlatformEvent } from '@/core/events'
 import { useLocale } from '@/core/i18n'
 
-const bus = useEventBus()
+const bus  = useEventBus()
 const i18n = useLocale()
 
-const events = computed(() => bus.recent(12))
+interface EventGroup {
+  label: string
+  events: PlatformEvent[]
+}
+
+const groupedEvents = computed((): EventGroup[] => {
+  const all = bus.recent(20)
+  if (!all.length) return []
+
+  const now       = new Date()
+  const todayStr  = now.toISOString().split('T')[0]
+  const yd        = new Date(now); yd.setDate(yd.getDate() - 1)
+  const yestStr   = yd.toISOString().split('T')[0]
+
+  const map = new Map<string, PlatformEvent[]>()
+  for (const e of all) {
+    const day = e.timestamp.split('T')[0]
+    if (!map.has(day)) map.set(day, [])
+    map.get(day)!.push(e)
+  }
+
+  return Array.from(map.entries()).map(([day, events]) => {
+    let label: string
+    if (day === todayStr)  label = i18n.t('recentActivity.today')
+    else if (day === yestStr) label = i18n.t('recentActivity.yesterday')
+    else {
+      const diffD = Math.floor((now.getTime() - new Date(day).getTime()) / 86_400_000)
+      label = `${diffD} ${i18n.t('recentActivity.daysAgo')}`
+    }
+    return { label, events }
+  })
+})
+
+const hasEvents = computed(() => groupedEvents.value.length > 0)
 
 function formatTime(iso: string): string {
-  const d = new Date(iso)
-  const now = new Date()
-  const diffMs = now.getTime() - d.getTime()
+  const d      = new Date(iso)
+  const diffMs = Date.now() - d.getTime()
   const diffMin = Math.floor(diffMs / 60_000)
   const diffH   = Math.floor(diffMs / 3_600_000)
-  const diffD   = Math.floor(diffMs / 86_400_000)
   if (diffMin < 1)  return 'just now'
-  if (diffMin < 60) return `${diffMin}m ago`
-  if (diffH   < 24) return `${diffH}h ago`
-  return `${diffD}d ago`
+  if (diffMin < 60) return `${diffMin}m`
+  if (diffH   < 24) return `${diffH}h`
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${hh}:${mm}`
 }
 
 function describeEvent(e: PlatformEvent): { icon: string; text: string } {
@@ -43,15 +76,15 @@ function describeEvent(e: PlatformEvent): { icon: string; text: string } {
     case 'training:plan:created':      return { icon: '🏋️', text: `${i18n.t('recentActivity.trainingPlanCreated')} — "${e.title}"` }
     case 'goal:created':               return { icon: '🎯', text: `${i18n.t('recentActivity.goalCreated')} — "${e.title}"` }
     case 'goal:completed':             return { icon: '✅', text: `${i18n.t('recentActivity.goalCompleted')} — "${e.title}"` }
-    case 'goal:milestone:completed':   return { icon: '●', text: `${i18n.t('recentActivity.milestoneCompleted')} — "${e.milestoneTitle}"` }
-    default:                return { icon: '·', text: i18n.t('recentActivity.activity') }
+    case 'goal:milestone:completed':   return { icon: '◎', text: `${i18n.t('recentActivity.milestoneCompleted')} — "${e.milestoneTitle}"` }
+    default:               return { icon: '·', text: i18n.t('recentActivity.activity') }
   }
 }
 
 function iconColor(e: PlatformEvent): string {
   switch (e.type) {
-    case 'task:completed':  return 'var(--color-success)'
     case 'task:created':    return 'var(--color-accent)'
+    case 'task:completed':  return 'var(--color-success)'
     case 'task:deleted':    return 'var(--color-danger)'
     case 'habit:checked':   return 'var(--color-success)'
     case 'habit:unchecked': return 'var(--color-text-muted)'
@@ -63,13 +96,13 @@ function iconColor(e: PlatformEvent): string {
     case 'studio:run':      return '#8b5cf6'
     case 'game:score':      return '#6b7280'
     case 'learning:session:completed':
-    case 'learning:plan:created':      return 'var(--color-accent)'
-    case 'learning:plan:completed':    return 'var(--color-success)'
+    case 'learning:plan:created':    return '#8b5cf6'
+    case 'learning:plan:completed':  return 'var(--color-success)'
     case 'training:workout:logged':
-    case 'training:plan:created':      return '#f97316'
-    case 'goal:created':               return 'var(--color-accent)'
-    case 'goal:completed':             return 'var(--color-success)'
-    case 'goal:milestone:completed':   return 'var(--color-success)'
+    case 'training:plan:created':   return '#f97316'
+    case 'goal:created':            return 'var(--color-accent)'
+    case 'goal:completed':          return 'var(--color-success)'
+    case 'goal:milestone:completed': return 'var(--color-success)'
     default:                return 'var(--color-text-muted)'
   }
 }
@@ -79,30 +112,37 @@ function iconColor(e: PlatformEvent): string {
   <div class="activity">
     <p class="activity__heading">{{ i18n.t('recentActivity.title') }}</p>
 
-    <div v-if="events.length === 0" class="activity__empty">
+    <div v-if="!hasEvents" class="activity__empty">
       <p>{{ i18n.t('recentActivity.empty') }}</p>
       <p class="activity__empty-sub">{{ i18n.t('recentActivity.emptySub') }}</p>
     </div>
 
-    <ul v-else class="activity__list">
-      <li
-        v-for="(e, i) in events"
-        :key="i"
-        class="activity__item"
+    <template v-else>
+      <div
+        v-for="group in groupedEvents"
+        :key="group.label"
+        class="activity__group"
       >
-        <span class="activity__icon" :style="{ color: iconColor(e) }">
-          {{ describeEvent(e).icon }}
-        </span>
-        <span class="activity__text">{{ describeEvent(e).text }}</span>
-        <span class="activity__time">{{ formatTime(e.timestamp) }}</span>
-      </li>
-    </ul>
+        <p class="activity__day-label">{{ group.label }}</p>
+        <ul class="activity__list">
+          <li
+            v-for="(e, i) in group.events"
+            :key="i"
+            class="activity__item"
+          >
+            <span class="activity__icon" :style="{ color: iconColor(e) }">
+              {{ describeEvent(e).icon }}
+            </span>
+            <span class="activity__text">{{ describeEvent(e).text }}</span>
+            <span class="activity__time">{{ formatTime(e.timestamp) }}</span>
+          </li>
+        </ul>
+      </div>
 
-    <button
-      v-if="events.length > 0"
-      class="activity__clear"
-      @click="bus.clear()"
-    >{{ i18n.t('recentActivity.clear') }}</button>
+      <button class="activity__clear" @click="bus.clear()">
+        {{ i18n.t('recentActivity.clear') }}
+      </button>
+    </template>
   </div>
 </template>
 
@@ -127,9 +167,22 @@ function iconColor(e: PlatformEvent): string {
   color: var(--color-text-muted);
   padding: 12px 0;
 }
+.activity__empty p     { margin: 0; }
+.activity__empty-sub   { font-size: 12px; margin-top: 4px !important; }
 
-.activity__empty p { margin: 0; }
-.activity__empty-sub { font-size: 12px; margin-top: 4px !important; }
+/* Day group */
+.activity__group + .activity__group { margin-top: 12px; }
+
+.activity__day-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+  margin: 0 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-border);
+}
 
 .activity__list {
   list-style: none;
@@ -137,18 +190,16 @@ function iconColor(e: PlatformEvent): string {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .activity__item {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--color-border);
+  padding: 5px 0;
   font-size: 13px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
 }
-
 .activity__item:last-child { border-bottom: none; }
 
 .activity__icon {
@@ -177,7 +228,7 @@ function iconColor(e: PlatformEvent): string {
 }
 
 .activity__clear {
-  margin-top: 8px;
+  margin-top: 10px;
   align-self: flex-start;
   font-size: 11px;
   color: var(--color-text-muted);
@@ -185,7 +236,6 @@ function iconColor(e: PlatformEvent): string {
   border-radius: var(--radius-sm);
   transition: background var(--t-fast), color var(--t-fast);
 }
-
 .activity__clear:hover {
   background: var(--color-surface-elevated);
   color: var(--color-danger);

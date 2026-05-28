@@ -62,20 +62,21 @@ export interface ModuleDetail {
 
 export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   dashboard: {
-    progress: 60,
-    milestone: 'S2 redesign pending — replace dev stats with live widgets',
+    progress: 75,
+    milestone: 'Life stats strip shipped — Habits/Goals/Learning/Training indicators live on Dashboard',
     shippedTasks: [
       { label: 'Module quick-launch → button in sidebar', date: '2026-05-26' },
       { label: 'Per-module detail panel with progress bars', date: '2026-05-26' },
       { label: 'All-tasks aggregated overview panel', date: '2026-05-26' },
       { label: 'Stat cards redesigned as widgets with icons and progress bar', date: '2026-05-26' },
       { label: 'Responsive layout: stat cards 2×2 on md, 1-col on sm', date: '2026-05-26' },
+      { label: 'Life stats strip: Habits today, Active goals, Learning today, Training today', date: '2026-05-27' },
+      { label: 'Dynamic version display via __APP_VERSION__ (no more hardcoded v0.x)', date: '2026-05-27' },
     ],
     nextTasks: [
-      { label: 'S2: replace stat cards with clock, weather, Today, Activity, heatmap', priority: 'high' },
-      { label: 'S2: move dev metrics (build, doc pages, modules) into a Platform tab', priority: 'high' },
-      { label: 'S2: Recent Activity widget reading from event bus', priority: 'high' },
-      { label: 'Optional quote / dev joke widget', priority: 'low' },
+      { label: 'S2: replace dev stat cards with live life widgets (Today tasks, habits, goals)', priority: 'high' },
+      { label: 'S2: move platform metrics (modules, docs, build status) into a Platform tab', priority: 'high' },
+      { label: 'Optional quote / motivational widget', priority: 'low' },
     ],
     improvements: [
       'Live clock + date + weather block as the headline widget',
@@ -194,8 +195,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   'task-manager': {
-    progress: 72,
-    milestone: 'Foundation solid + due dates; S4 Today/Focus/Streaks still pending',
+    progress: 76,
+    milestone: 'Foundation solid + due dates + life categories — S4 Today/Focus/Streaks pending',
     shippedTasks: [
       { label: 'Create, toggle, delete tasks with localStorage persistence', date: '2026-05-26' },
       { label: 'Filter tabs: All / Active / Done', date: '2026-05-26' },
@@ -209,6 +210,9 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Due date field: dueDate?: string on Task type', date: '2026-05-27' },
       { label: 'Due date badge on task items: overdue (red), today (amber), upcoming (muted)', date: '2026-05-27' },
       { label: 'setDueDate() action on tasks store + propagation through TaskList', date: '2026-05-27' },
+      { label: 'Life categories: work / learning / training / personal / goal with filter chips', date: '2026-05-27' },
+      { label: 'Colored category badge on task items (blue/purple/orange/teal/pink)', date: '2026-05-27' },
+      { label: 'Category selector in new task input row (shown when typing)', date: '2026-05-27' },
     ],
     nextTasks: [
       { label: 'S4: Today view (filter by due == today)', priority: 'high' },
@@ -242,18 +246,19 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   notes: {
-    progress: 75,
-    milestone: 'Foundation strong — S4 adds [[backlinks]] and daily journal',
+    progress: 78,
+    milestone: 'Split mode removed — clean edit/preview two-mode UX; backlinks still pending S4',
     shippedTasks: [
       { label: 'Three-pane workspace: list / editor / preview', date: '2026-05-26' },
       { label: 'Live markdown preview with marked', date: '2026-05-26' },
       { label: 'Auto-save with 300ms debounce', date: '2026-05-26' },
-      { label: 'Keyboard shortcuts: ⌘N new, ⌘F search, ⌘⇧P toggle preview', date: '2026-05-26' },
+      { label: 'Keyboard shortcuts: ⌘N new, ⌘F search, ⌘⇧P toggle edit/preview', date: '2026-05-26' },
       { label: 'Pin notes to top of list', date: '2026-05-26' },
       { label: 'Word count + reading time in toolbar', date: '2026-05-26' },
       { label: 'Export note as .md file download', date: '2026-05-26' },
       { label: 'Code block syntax highlighting in preview (highlight.js)', date: '2026-05-26' },
       { label: '"Today" button — opens/creates daily journal note (# YYYY-MM-DD)', date: '2026-05-27' },
+      { label: 'Remove split mode — EditorMode is edit | preview only (cleaner UX)', date: '2026-05-27' },
     ],
     nextTasks: [
       { label: 'S4: Parse [[wiki-style links]] + clickable navigation', priority: 'high' },
@@ -429,35 +434,147 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   games: {
-    progress: 95,
-    milestone: 'All three games shipped — 2048, Memory, Snake',
+    progress: 97,
+    milestone: 'All four games shipped — Minesweeper (replaced 2048), Memory, Snake (wall wrap)',
     shippedTasks: [
       { label: 'Game lobby at /games — SVG previews, best scores, colored accents', date: '2026-05-27' },
-      { label: '2048 — CSS grid, merge logic, best score persistence', date: '2026-05-27' },
-      { label: 'Arrow keys + WASD + swipe gesture support in 2048', date: '2026-05-27' },
-      { label: 'Win / game-over overlays with continue / restart', date: '2026-05-27' },
       { label: 'Memory Cards — CSS 3D flip, best time per difficulty', date: '2026-05-27' },
       { label: 'Snake — canvas game loop, difficulty levels, best score', date: '2026-05-27' },
+      { label: 'Snake: wall wrap — boundary collision wraps (modulo) instead of game over', date: '2026-05-27' },
+      { label: 'Minesweeper — 9×9 grid, 10 mines, first-click safety (3×3 safe zone)', date: '2026-05-27' },
+      { label: 'Minesweeper — flood-fill reveal, right-click flags, timer, best-time persistence', date: '2026-05-27' },
+      { label: 'Replaced 2048 with Minesweeper (more original + showcases algorithm knowledge)', date: '2026-05-27' },
     ],
     nextTasks: [
       { label: 'Achievements via event bus (S2 dep)', priority: 'low' },
       { label: 'High scores on Dashboard widget', priority: 'low' },
       { label: 'CRT vibe-pak easter-egg skin', priority: 'low' },
-      { label: 'New game: Tetris or Minesweeper', priority: 'low' },
+      { label: 'New game: Tetris (most visually impressive)', priority: 'low' },
     ],
     improvements: [
       'Achievements feed (event bus integration)',
       'Daily challenge with shared seed',
-      'Difficulty picker per game',
       'Sound effects toggle (Web Audio API)',
     ],
     techDebt: [],
     ideas: [
       'Tetris — most visually impressive, fits VibeOS grid aesthetic',
-      'Minesweeper — flood-fill reveal, right-click flag',
       'Wordle clone (keyboard + word dictionary)',
       'Pong vs AI',
     ],
-    notes: 'After Memory + Snake, recommended next: Tetris or Minesweeper (more visual than Wordle).',
+    notes: 'Four games, all original implementations. Minesweeper showcases flood-fill + first-click safety algorithm. Tetris is the natural next pick.',
+  },
+
+  goals: {
+    progress: 85,
+    milestone: 'Full Goals module shipped — milestones, progress tracking, target dates, sorted by deadline',
+    shippedTasks: [
+      { label: 'Goals module at /goals — list view with GoalCard components', date: '2026-05-27' },
+      { label: 'Data model: Goal { id, title, description, status, category, targetDate, progress, milestones }', date: '2026-05-27' },
+      { label: 'Milestone support: nested milestones per goal with completion tracking', date: '2026-05-27' },
+      { label: 'Auto-computed progress from milestone completion %', date: '2026-05-27' },
+      { label: 'Goal detail view with debounced notes editor', date: '2026-05-27' },
+      { label: 'Goal status lifecycle: active → paused / completed', date: '2026-05-27' },
+      { label: 'Active goals sorted by nearest target date first', date: '2026-05-27' },
+      { label: 'Dashboard integration: Active Goals count in life stats strip', date: '2026-05-27' },
+      { label: 'Event bus: goal:created, goal:completed, goal:milestone:completed', date: '2026-05-27' },
+    ],
+    nextTasks: [
+      { label: 'S4: Link tasks to goals (linkedGoalId on Task)', priority: 'high' },
+      { label: 'S4: Habit → Goal integration (habit completion increments goal progress)', priority: 'high' },
+      { label: 'Goal progress ring / visual indicator on GoalCard', priority: 'medium' },
+      { label: 'Goal category filter (work / learning / training / personal)', priority: 'medium' },
+      { label: 'Archive completed goals with history view', priority: 'low' },
+    ],
+    improvements: [
+      'Visual progress ring on GoalCard (like Learning/Training rings)',
+      'Milestone due dates',
+      'Goal dependency graph (this goal requires that goal)',
+      'Weekly goal review prompt',
+    ],
+    techDebt: [
+      { label: 'Progress is milestone-only — no manual override', severity: 'low' },
+    ],
+    ideas: [
+      'AI: suggest tasks and milestones for a goal (S6)',
+      'Goal templates (e.g. "Run a half-marathon" → pre-filled milestones)',
+      'Share goal publicly (Supabase dep)',
+      'Goal retrospective after completion',
+    ],
+    notes: 'Central connector for all life modules. S4: Tasks + Habits link here. S5: Learning/Training sessions increment goal progress. S6: AI goal planning.',
+  },
+
+  learning: {
+    progress: 85,
+    milestone: 'Full Learning module shipped — plans, session logs, progress rings, streaks, today strip',
+    shippedTasks: [
+      { label: 'Learning module at /learning — plans list + detail view', date: '2026-05-27' },
+      { label: 'Data model: LearningPlan { id, title, topic, description, sessions, targetDate }', date: '2026-05-27' },
+      { label: 'Session log: log study sessions with minutes and notes', date: '2026-05-27' },
+      { label: 'Progress ring: visual completion % per plan', date: '2026-05-27' },
+      { label: 'Streak counter: consecutive days with at least one session', date: '2026-05-27' },
+      { label: 'Today strip: shows if learning session logged today', date: '2026-05-27' },
+      { label: 'Plan detail view with session history list', date: '2026-05-27' },
+      { label: 'Dashboard integration: Learning today indicator in life stats strip', date: '2026-05-27' },
+      { label: 'Event bus: learning:session:completed, learning:plan:created, learning:plan:completed', date: '2026-05-27' },
+    ],
+    nextTasks: [
+      { label: 'S4/S5: Link sessions to goals (linkedGoalId)', priority: 'high' },
+      { label: 'S5: Learning analytics — total hours, daily chart, topic breakdown', priority: 'high' },
+      { label: 'S5: Habits → Learning integration (logging session marks habit done)', priority: 'medium' },
+      { label: 'Resource list per plan (links, books, courses)', priority: 'medium' },
+      { label: 'Focus timer in session log (Pomodoro-style)', priority: 'low' },
+    ],
+    improvements: [
+      'Resource list (links, books, courses) per plan',
+      'Weekly learning hours chart',
+      'Spaced repetition reminders',
+      'Session notes with markdown',
+    ],
+    techDebt: [],
+    ideas: [
+      'AI: generate a learning plan for a topic in N weeks (S6)',
+      'Import from Notion / Obsidian',
+      'Flashcard mode from session notes',
+      'Public study room (Supabase dep)',
+    ],
+    notes: 'Foundation solid. S5 adds analytics and Dashboard full integration. S6 adds AI plan generation.',
+  },
+
+  training: {
+    progress: 85,
+    milestone: 'Full Training module shipped — plans, workout logs, feeling emoji, streaks, km tracking',
+    shippedTasks: [
+      { label: 'Training module at /training — plans list + detail view', date: '2026-05-27' },
+      { label: 'Data model: TrainingPlan { id, title, type, description, sessions, targetDate }', date: '2026-05-27' },
+      { label: 'Workout log: log sessions with duration, km distance, feeling emoji', date: '2026-05-27' },
+      { label: 'Streak counter: consecutive training days', date: '2026-05-27' },
+      { label: 'km tracking: total distance across all sessions per plan', date: '2026-05-27' },
+      { label: 'Today strip: shows if workout logged today', date: '2026-05-27' },
+      { label: 'Plan detail view with session history list', date: '2026-05-27' },
+      { label: 'Dashboard integration: Training today indicator in life stats strip', date: '2026-05-27' },
+      { label: 'Event bus: training:workout:logged, training:plan:created', date: '2026-05-27' },
+    ],
+    nextTasks: [
+      { label: 'S4/S5: Link workouts to goals (linkedGoalId)', priority: 'high' },
+      { label: 'S5: Training analytics — workout frequency chart, km over time, feeling trends', priority: 'high' },
+      { label: 'S5: Habits → Training integration (logging workout marks habit done)', priority: 'medium' },
+      { label: 'Exercise library per plan (exercise name, sets, reps, weight)', priority: 'medium' },
+      { label: 'Rest day tracking', priority: 'low' },
+    ],
+    improvements: [
+      'Exercise list per session (sets × reps × weight)',
+      'Weekly training volume chart',
+      'Heart rate / RPE zones',
+      'Personal records tracking',
+    ],
+    techDebt: [],
+    ideas: [
+      'AI: analyze session and suggest improvements (S6)',
+      'Strava integration for auto-import',
+      'Body weight / measurement tracking',
+      'Training plan templates (5K plan, strength program)',
+    ],
+    notes: 'Foundation solid. S5 adds analytics. S6 adds AI workout analysis. Mobile check-ins important — PWA planned post-S5.',
   },
 }

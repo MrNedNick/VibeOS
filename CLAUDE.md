@@ -17,15 +17,16 @@ Active sprint and priority are encoded in each task subject as `[S1·P0]`, `[S2�
 
 ---
 
-## Auto-commit rule
+## Auto-commit and deploy rule
 
 After every successful implementation of a task or group of related tasks:
 1. Run `npm run type-check` to verify no TypeScript errors
 2. Stage the relevant files
-3. Create a commit with a clear message describing what was implemented
-4. **Do this automatically** — do not ask for confirmation unless the change is destructive
+3. Bump `package.json` version (see Version bump rule below)
+4. Create a commit with a clear message describing what was implemented
+5. **Push to `main`** — this triggers the GitHub Actions deploy to `mrnednick.github.io/VibeOS`
+6. **Do this automatically** — do not ask for confirmation unless the change is destructive
 
-Commit message format:
 ```
 feat: short description of what was added
 
@@ -33,6 +34,10 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 ```
 
 Use `feat:` for new features, `fix:` for bug fixes, `style:` for visual/font changes, `docs:` for documentation updates, `refactor:` for refactoring.
+
+**Push command:** `git push origin main`
+
+The deploy is considered live when GitHub Actions finishes (≈ 2 minutes after push). The version number visible in the About page and Dashboard header confirms the correct deploy is live.
 
 ---
 

@@ -411,5 +411,8 @@ export const ru: Messages = {
     goalCreated: 'Цель создана',
     goalCompleted: 'Цель выполнена',
     milestoneCompleted: 'Этап выполнен',
+    today: 'Сегодня',
+    yesterday: 'Вчера',
+    daysAgo: 'дн. назад',
   },
 }

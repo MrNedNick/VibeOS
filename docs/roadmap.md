@@ -125,6 +125,21 @@ Order:
 
 ## Recently shipped (history)
 
+### 2026-05-27 (session 5 — life modules + polish)
+- **Learning module** — full implementation: plans, session logs, progress rings, streaks, today strip, plan detail view
+- **Training module** — full implementation: plans, workout logs, feeling emoji, streaks, km tracking, today strip, plan detail view
+- **Goals module** — full implementation: goals with milestones, progress, target dates, category, detail view with debounced notes
+- **Minesweeper** — replace 2048: 9×9 grid, 10 mines, first-click safety, flood-fill reveal, flags, timer, best time
+- **Snake: wall wrapping** — boundary collision → modulo wrap (classic Snake behavior)
+- **Notes: remove split mode** — EditorMode is now 'edit' | 'preview' only; ⌘⇧P toggles edit↔preview
+- **Task categories** — filter chips (Work/Learning/Training/Personal/Goal) + colored badge on task items
+- **Dashboard life stats** — new strip: Habits today, Active goals, Learning today, Training today — clickable to each module
+- **Dynamic version** — `__APP_VERSION__` injected via Vite; Dashboard header + About page always reflect package.json version
+- **RecentActivityPanel** — handles all new event types: learning, training, goals, milestones
+- **Goals sorted by target date** — nearest due date shown first in active goals list
+- **package.json renamed** — `frontend-platform` → `vibeos`
+- **Version bump rule + push rule** — documented in CLAUDE.md: always push after commit to trigger GitHub Pages deploy
+
 ### 2026-05-27 (session 3 — fast wins)
 - **README.md** — complete portfolio README: modules table, tech stack, architecture decisions, keyboard shortcuts, sprint plan, run instructions
 - **Event bus hardening** — correct `card:created` / `card:moved` event types; new `studio:run` event type; `snippet:created` wired in snippets store; Recent Activity panel handles all types
