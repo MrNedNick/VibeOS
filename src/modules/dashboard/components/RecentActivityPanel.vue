@@ -43,12 +43,22 @@ const groupedEvents = computed((): EventGroup[] => {
 
 const hasEvents = computed(() => groupedEvents.value.length > 0)
 
+/** Translate a raw Kanban column ID to its display label */
+function colLabel(colId: string): string {
+  const map: Record<string, string> = {
+    'backlog':     i18n.t('kanban.colBacklog'),
+    'in-progress': i18n.t('kanban.colInProgress'),
+    'done':        i18n.t('kanban.colDone'),
+  }
+  return map[colId] ?? colId
+}
+
 function formatTime(iso: string): string {
-  const d      = new Date(iso)
-  const diffMs = Date.now() - d.getTime()
+  const d       = new Date(iso)
+  const diffMs  = Date.now() - d.getTime()
   const diffMin = Math.floor(diffMs / 60_000)
   const diffH   = Math.floor(diffMs / 3_600_000)
-  if (diffMin < 1)  return 'just now'
+  if (diffMin < 1)  return i18n.t('recentActivity.justNow')
   if (diffMin < 60) return `${diffMin}m`
   if (diffH   < 24) return `${diffH}h`
   const hh = String(d.getHours()).padStart(2, '0')
@@ -67,7 +77,7 @@ function describeEvent(e: PlatformEvent): { icon: string; text: string } {
     case 'note:deleted':    return { icon: 'FileX2',         text: `${i18n.t('recentActivity.noteDeleted')} — "${e.title}"` }
     case 'snippet:created': return { icon: 'Braces',         text: `${i18n.t('recentActivity.snippet')} — "${e.title}" (${e.language})` }
     case 'card:created':    return { icon: 'LayoutGrid',     text: `${i18n.t('recentActivity.cardAdded')} — "${e.title}"` }
-    case 'card:moved':      return { icon: 'ArrowRight',     text: `${i18n.t('recentActivity.cardMoved')} — "${e.title}" → ${e.toColumnId}` }
+    case 'card:moved':      return { icon: 'ArrowRight',     text: `${i18n.t('recentActivity.cardMoved')} — "${e.title}" → ${colLabel(e.toColumnId)}` }
     case 'studio:run':      return { icon: 'Sparkles',       text: `${i18n.t('recentActivity.studioRun')} — ${e.model.split('-')[1]} · ${e.inputTokens + e.outputTokens} tok` }
     case 'game:score':      return { icon: 'Gamepad2',       text: `${i18n.t('recentActivity.gameScore')} — ${e.game} ${e.score}` }
     case 'learning:session:completed': return { icon: 'BookOpenCheck',  text: `${i18n.t('recentActivity.learningSessionLogged')} — "${e.planTitle}" · ${e.minutes}min` }

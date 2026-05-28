@@ -134,6 +134,9 @@ const colCounts  = computed(() =>
   Object.fromEntries(BOARD_COLUMNS.map(c => [c.id, store.cardsForColumn(c.id).length]))
 )
 const totalCards = computed(() => store.cards.length)
+
+// ── Mobile single-column view ────────────────────────────────────────
+const activeColMobile = ref<BoardColumnId>('backlog')
 </script>
 
 <template>
@@ -173,13 +176,31 @@ const totalCards = computed(() => store.cards.length)
     <!-- Workspace ───────────────────────────────────────────── -->
     <div class="board__workspace" :class="{ 'board__workspace--with-panel': showTaskPanel }">
 
+      <!-- ── Mobile column tabs (< 768px) ─────────────── -->
+      <div v-if="store.viewMode === 'kanban'" class="board__mobile-tabs">
+        <button
+          v-for="col in BOARD_COLUMNS"
+          :key="col.id"
+          class="board__mobile-tab"
+          :class="{ 'board__mobile-tab--active': activeColMobile === col.id }"
+          @click="activeColMobile = col.id"
+        >
+          <span class="board__mobile-tab-dot" :style="{ background: col.color }" />
+          {{ colLabel(col.id) }}
+          <span class="board__mobile-tab-count">{{ colCounts[col.id] }}</span>
+        </button>
+      </div>
+
       <!-- ── Kanban view ──────────────────────────────────── -->
       <div v-if="store.viewMode === 'kanban'" class="board__columns">
         <div
           v-for="col in BOARD_COLUMNS"
           :key="col.id"
           class="board-col"
-          :class="{ 'board-col--dragover': dragOverCol === col.id }"
+          :class="{
+            'board-col--dragover': dragOverCol === col.id,
+            'board-col--mobile-hidden': activeColMobile !== col.id,
+          }"
           @dragenter.prevent="onDragEnter(col.id)"
           @dragleave="onDragLeave(col.id)"
           @dragover.prevent
@@ -268,6 +289,19 @@ const totalCards = computed(() => store.cards.length)
                       class="board-card__action board-card__action--delete"
                       @click="store.deleteCard(card.id)"
                     >{{ i18n.t('kanban.delete') }}</button>
+                  </div>
+
+                  <!-- Mobile: move to column buttons -->
+                  <div class="board-card__move-row">
+                    <span class="board-card__move-label">{{ i18n.t('kanban.moveTo') }}:</span>
+                    <button
+                      v-for="targetCol in BOARD_COLUMNS"
+                      :key="targetCol.id"
+                      v-show="targetCol.id !== col.id"
+                      class="board-card__move-btn"
+                      :style="{ '--move-dot': targetCol.color }"
+                      @click.stop="store.moveCard(card.id, targetCol.id); activeColMobile = targetCol.id"
+                    >{{ colLabel(targetCol.id) }}</button>
                   </div>
 
                   <!-- Source task indicator -->
@@ -938,6 +972,44 @@ const totalCards = computed(() => store.cards.length)
 .panel-slide-enter-from   { transform: translateX(16px); opacity: 0; }
 .panel-slide-leave-to     { transform: translateX(16px); opacity: 0; }
 
+/* ── Mobile column tabs ──────────────────────────────────── */
+.board__mobile-tabs {
+  display: none; /* hidden on desktop */
+}
+
+/* ── Mobile: move-to buttons inside expanded card ─────── */
+.board-card__move-row {
+  display: none; /* hidden on desktop */
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 2px;
+}
+.board-card__move-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+.board-card__move-btn {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.board-card__move-btn:hover {
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
   .board__workspace--with-panel .board__columns { grid-template-columns: repeat(2, 1fr); }
@@ -951,11 +1023,74 @@ const totalCards = computed(() => store.cards.length)
 }
 
 @media (max-width: 767px) {
-  .board__workspace { flex-direction: column; overflow-y: auto; }
-  .board__columns { grid-template-columns: 1fr; }
+  /* Mobile workspace stacks */
+  .board__workspace {
+    flex-direction: column;
+    overflow-y: auto;
+    gap: 0;
+  }
+  .board__header { flex-direction: column; align-items: flex-start; }
+
+  /* Show mobile tab selector */
+  .board__mobile-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 0 10px;
+    flex-shrink: 0;
+  }
+  .board__mobile-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+  }
+  .board__mobile-tab--active {
+    background: var(--color-surface-elevated);
+    color: var(--color-text);
+    border-color: var(--color-accent);
+  }
+  .board__mobile-tab-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .board__mobile-tab-count {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    padding: 0 5px;
+    border-radius: 99px;
+    line-height: 1.6;
+  }
+
+  /* Hide non-active column */
+  .board-col--mobile-hidden { display: none; }
+  .board__columns {
+    grid-template-columns: 1fr;
+    flex: none;
+  }
   .board-col:last-child { grid-column: span 1; }
   .board-col { max-height: none; }
+
+  /* Show move-to buttons */
+  .board-card__move-row { display: flex; }
+
+  /* Disable drag cursor */
+  .board-card { cursor: default; }
+  .board-card:active { cursor: default; }
+
   .task-panel { width: 100%; align-self: auto; }
-  .board__header { flex-direction: column; align-items: flex-start; }
 }
 </style>

@@ -196,6 +196,7 @@ export const en = {
     modalDueDate: 'Due date',
     modalCancel: 'Cancel',
     modalCreate: 'Create card',
+    moveTo: 'Move to',
     emptyCol: 'Drop cards here',
     addDesc: 'Add a description…',
     descPlaceholder: 'Add a description…',
@@ -468,6 +469,7 @@ export const en = {
     today: 'Today',
     yesterday: 'Yesterday',
     daysAgo: 'days ago',
+    justNow: 'Just now',
   },
 }
 

@@ -198,6 +198,7 @@ export const ru: Messages = {
     modalDueDate: 'Дедлайн',
     modalCancel: 'Отмена',
     modalCreate: 'Создать',
+    moveTo: 'Переместить в',
     emptyCol: 'Перетащите сюда карточки',
     addDesc: 'Добавить описание…',
     descPlaceholder: 'Добавить описание…',
@@ -470,5 +471,6 @@ export const ru: Messages = {
     today: 'Сегодня',
     yesterday: 'Вчера',
     daysAgo: 'дн. назад',
+    justNow: 'Только что',
   },
 }
