@@ -311,6 +311,8 @@ export const en = {
     overdue: 'overdue',
     emptyTitle: 'Nothing planned for today',
     emptyDesc: 'Add tasks with a due date of today, set up habits, or activate learning and training plans',
+    addTaskPlaceholder: '+ Add a task for today…',
+    sectionPinnedNotes: 'Pinned notes',
   },
   dashboardDetail: {
     openModule: 'Open module',

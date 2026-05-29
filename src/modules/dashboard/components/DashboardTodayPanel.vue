@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
@@ -8,6 +8,8 @@ import { useTrainingStore } from '@/modules/training/stores/training.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { calcProgress, daysUntil } from '@/modules/goals/types'
 import { useLocale } from '@/core/i18n'
+import { useNotesStore } from '@/modules/notes/stores/notes.store'
+import { deriveTitle } from '@/modules/notes/types'
 
 const router       = useRouter()
 const tasksStore   = useTasksStore()
@@ -15,6 +17,7 @@ const habitsStore  = useHabitsStore()
 const learnStore   = useLearningStore()
 const trainStore   = useTrainingStore()
 const goalsStore   = useGoalsStore()
+const notesStore   = useNotesStore()
 const i18n         = useLocale()
 
 const todayStr = computed(() => new Date().toISOString().split('T')[0])
@@ -30,6 +33,22 @@ const todayTasks = computed(() =>
     })
 )
 const tasksDone  = computed(() => todayTasks.value.filter(t => t.done).length)
+
+// ── Quick-add task ─────────────────────────────────────────────────
+const newTaskText  = ref('')
+const taskInputRef = ref<HTMLInputElement>()
+
+function submitNewTask() {
+  const text = newTaskText.value.trim()
+  if (!text) return
+  tasksStore.addTask(text, 'none', todayStr.value)
+  newTaskText.value = ''
+}
+
+function onTaskKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') { e.preventDefault(); submitNewTask() }
+  if (e.key === 'Escape') { newTaskText.value = '';(e.target as HTMLInputElement).blur() }
+}
 
 // ── Habits ────────────────────────────────────────────────────────
 const habits = computed(() =>
@@ -52,12 +71,18 @@ const activeGoals = computed(() =>
   goalsStore.activeGoals.map(g => ({ ...g, progress: calcProgress(g) })).slice(0, 5)
 )
 
+// ── Pinned notes ──────────────────────────────────────────────────
+const pinnedNotes = computed(() =>
+  notesStore.sortedNotes.filter(n => n.pinned).slice(0, 3)
+)
+
 const isEmpty = computed(() =>
   !todayTasks.value.length &&
   !habits.value.length &&
   !learningItems.value.length &&
   !trainingItems.value.length &&
-  !activeGoals.value.length
+  !activeGoals.value.length &&
+  !pinnedNotes.value.length
 )
 
 // ── Helpers ───────────────────────────────────────────────────────
@@ -97,167 +122,196 @@ function priorityLabel(p: string): string {
       <p class="today__empty-desc">{{ i18n.t('dashboardToday.emptyDesc') }}</p>
     </div>
 
-    <template v-else>
-
-      <!-- ── Tasks ──────────────────────────────────────────────── -->
-      <section v-if="todayTasks.length" class="today__section">
-        <div class="today__section-header">
-          <span class="today__section-title">{{ i18n.t('dashboardToday.sectionTasks') }}</span>
-          <span class="today__section-count">{{ tasksDone }}/{{ todayTasks.length }}</span>
-          <button class="today__open-btn" @click="router.push('/tasks')">
-            {{ i18n.t('dashboardToday.openBtn') }} →
-          </button>
-        </div>
-        <div class="today__list">
-          <div
-            v-for="task in todayTasks"
-            :key="task.id"
-            class="today__task"
-            :class="{ 'today__task--done': task.done }"
+    <!-- ── Tasks (always visible) ─────────────────────────────── -->
+    <section class="today__section">
+      <div class="today__section-header">
+        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionTasks') }}</span>
+        <span v-if="todayTasks.length" class="today__section-count">{{ tasksDone }}/{{ todayTasks.length }}</span>
+        <button class="today__open-btn" @click="router.push('/tasks')">
+          {{ i18n.t('dashboardToday.openBtn') }} →
+        </button>
+      </div>
+      <div v-if="todayTasks.length" class="today__list">
+        <div
+          v-for="task in todayTasks"
+          :key="task.id"
+          class="today__task"
+          :class="{ 'today__task--done': task.done }"
+        >
+          <button
+            class="today__check"
+            :class="{ 'today__check--done': task.done }"
+            @click="tasksStore.toggleTask(task.id)"
           >
-            <button
-              class="today__check"
-              :class="{ 'today__check--done': task.done }"
-              @click="tasksStore.toggleTask(task.id)"
-            >
-              <svg v-if="task.done" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M2.5 7.5l2.5 2.5 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-            <span v-if="task.priority !== 'none'" class="today__badge" :class="PRIORITY_CLASS[task.priority]">
-              {{ priorityLabel(task.priority) }}
-            </span>
-            <span class="today__task-text">{{ task.text }}</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- ── Habits ─────────────────────────────────────────────── -->
-      <section v-if="habits.length" class="today__section">
-        <div class="today__section-header">
-          <span class="today__section-title">{{ i18n.t('dashboardToday.sectionHabits') }}</span>
-          <span class="today__section-count" :class="{ 'today__section-count--done': habitsDone === habits.length }">
-            {{ habitsDone }}/{{ habits.length }}
+            <svg v-if="task.done" width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2.5 7.5l2.5 2.5 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <span v-if="task.priority !== 'none'" class="today__badge" :class="PRIORITY_CLASS[task.priority]">
+            {{ priorityLabel(task.priority) }}
           </span>
-          <div class="today__habit-progress">
-            <div
-              class="today__habit-fill"
-              :style="{ width: habits.length ? `${Math.round(habitsDone / habits.length * 100)}%` : '0%' }"
-            />
-          </div>
-          <button class="today__open-btn" @click="router.push('/habits')">
-            {{ i18n.t('dashboardToday.openBtn') }} →
-          </button>
+          <span class="today__task-text">{{ task.text }}</span>
         </div>
-        <div class="today__list">
-          <div
-            v-for="habit in habits"
-            :key="habit.id"
-            class="today__habit"
-            :class="{ 'today__habit--done': habit.doneToday }"
-            @click="habitsStore.toggleToday(habit.id)"
-          >
-            <button class="today__check" :class="{ 'today__check--done': habit.doneToday }">
-              <svg v-if="habit.doneToday" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M2.5 7.5l2.5 2.5 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-            <span class="today__habit-emoji">{{ habit.emoji }}</span>
-            <span class="today__habit-name">{{ habit.name }}</span>
-          </div>
-        </div>
-      </section>
+      </div>
+      <!-- Quick-add input -->
+      <div class="today__add-task">
+        <input
+          ref="taskInputRef"
+          v-model="newTaskText"
+          class="today__add-input"
+          :placeholder="i18n.t('dashboardToday.addTaskPlaceholder')"
+          @keydown="onTaskKeydown"
+        />
+      </div>
+    </section>
 
-      <!-- ── Learning ───────────────────────────────────────────── -->
-      <section v-if="learningItems.length" class="today__section">
-        <div class="today__section-header">
-          <span class="today__section-title">{{ i18n.t('dashboardToday.sectionLearning') }}</span>
-          <span class="today__section-count" :class="{ 'today__section-count--done': learningDone === learningItems.length }">
-            {{ learningDone }}/{{ learningItems.length }}
+    <!-- ── Habits ─────────────────────────────────────────────── -->
+    <section v-if="habits.length" class="today__section">
+      <div class="today__section-header">
+        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionHabits') }}</span>
+        <span class="today__section-count" :class="{ 'today__section-count--done': habitsDone === habits.length }">
+          {{ habitsDone }}/{{ habits.length }}
+        </span>
+        <div class="today__habit-progress">
+          <div
+            class="today__habit-fill"
+            :style="{ width: habits.length ? `${Math.round(habitsDone / habits.length * 100)}%` : '0%' }"
+          />
+        </div>
+        <button class="today__open-btn" @click="router.push('/habits')">
+          {{ i18n.t('dashboardToday.openBtn') }} →
+        </button>
+      </div>
+      <div class="today__list">
+        <div
+          v-for="habit in habits"
+          :key="habit.id"
+          class="today__habit"
+          :class="{ 'today__habit--done': habit.doneToday }"
+          @click="habitsStore.toggleToday(habit.id)"
+        >
+          <button class="today__check" :class="{ 'today__check--done': habit.doneToday }">
+            <svg v-if="habit.doneToday" width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2.5 7.5l2.5 2.5 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <span class="today__habit-emoji">{{ habit.emoji }}</span>
+          <span class="today__habit-name">{{ habit.name }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Learning ───────────────────────────────────────────── -->
+    <section v-if="learningItems.length" class="today__section">
+      <div class="today__section-header">
+        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionLearning') }}</span>
+        <span class="today__section-count" :class="{ 'today__section-count--done': learningDone === learningItems.length }">
+          {{ learningDone }}/{{ learningItems.length }}
+        </span>
+        <button class="today__open-btn" @click="router.push('/learning')">
+          {{ i18n.t('dashboardToday.openBtn') }} →
+        </button>
+      </div>
+      <div class="today__list">
+        <div
+          v-for="item in learningItems"
+          :key="item.plan.id"
+          class="today__plan-row"
+          :class="{ 'today__plan-row--done': item.logged }"
+          @click="router.push('/learning')"
+        >
+          <span class="today__plan-emoji">{{ item.plan.coverEmoji }}</span>
+          <span class="today__plan-title">{{ item.plan.title }}</span>
+          <span class="today__plan-status" :class="item.logged ? 'today__plan-status--done' : 'today__plan-status--pending'">
+            {{ item.logged ? i18n.t('dashboardToday.logged') : i18n.t('dashboardToday.pending') }}
           </span>
-          <button class="today__open-btn" @click="router.push('/learning')">
-            {{ i18n.t('dashboardToday.openBtn') }} →
-          </button>
         </div>
-        <div class="today__list">
-          <div
-            v-for="item in learningItems"
-            :key="item.plan.id"
-            class="today__plan-row"
-            :class="{ 'today__plan-row--done': item.logged }"
-            @click="router.push('/learning')"
-          >
-            <span class="today__plan-emoji">{{ item.plan.coverEmoji }}</span>
-            <span class="today__plan-title">{{ item.plan.title }}</span>
-            <span class="today__plan-status" :class="item.logged ? 'today__plan-status--done' : 'today__plan-status--pending'">
-              {{ item.logged ? i18n.t('dashboardToday.logged') : i18n.t('dashboardToday.pending') }}
-            </span>
-          </div>
-        </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- ── Training ───────────────────────────────────────────── -->
-      <section v-if="trainingItems.length" class="today__section">
-        <div class="today__section-header">
-          <span class="today__section-title">{{ i18n.t('dashboardToday.sectionTraining') }}</span>
-          <span class="today__section-count" :class="{ 'today__section-count--done': trainingDone === trainingItems.length }">
-            {{ trainingDone }}/{{ trainingItems.length }}
+    <!-- ── Training ───────────────────────────────────────────── -->
+    <section v-if="trainingItems.length" class="today__section">
+      <div class="today__section-header">
+        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionTraining') }}</span>
+        <span class="today__section-count" :class="{ 'today__section-count--done': trainingDone === trainingItems.length }">
+          {{ trainingDone }}/{{ trainingItems.length }}
+        </span>
+        <button class="today__open-btn" @click="router.push('/training')">
+          {{ i18n.t('dashboardToday.openBtn') }} →
+        </button>
+      </div>
+      <div class="today__list">
+        <div
+          v-for="item in trainingItems"
+          :key="item.plan.id"
+          class="today__plan-row"
+          :class="{ 'today__plan-row--done': item.logged }"
+          @click="router.push('/training')"
+        >
+          <span class="today__plan-emoji">{{ item.plan.coverEmoji }}</span>
+          <span class="today__plan-title">{{ item.plan.title }}</span>
+          <span class="today__plan-status" :class="item.logged ? 'today__plan-status--done' : 'today__plan-status--pending'">
+            {{ item.logged ? i18n.t('dashboardToday.logged') : i18n.t('dashboardToday.pending') }}
           </span>
-          <button class="today__open-btn" @click="router.push('/training')">
-            {{ i18n.t('dashboardToday.openBtn') }} →
-          </button>
         </div>
-        <div class="today__list">
-          <div
-            v-for="item in trainingItems"
-            :key="item.plan.id"
-            class="today__plan-row"
-            :class="{ 'today__plan-row--done': item.logged }"
-            @click="router.push('/training')"
-          >
-            <span class="today__plan-emoji">{{ item.plan.coverEmoji }}</span>
-            <span class="today__plan-title">{{ item.plan.title }}</span>
-            <span class="today__plan-status" :class="item.logged ? 'today__plan-status--done' : 'today__plan-status--pending'">
-              {{ item.logged ? i18n.t('dashboardToday.logged') : i18n.t('dashboardToday.pending') }}
-            </span>
-          </div>
-        </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- ── Goals ─────────────────────────────────────────────── -->
-      <section v-if="activeGoals.length" class="today__section">
-        <div class="today__section-header">
-          <span class="today__section-title">{{ i18n.t('dashboardToday.sectionGoals') }}</span>
-          <span class="today__section-count">{{ activeGoals.length }}</span>
-          <button class="today__open-btn" @click="router.push('/goals')">
-            {{ i18n.t('dashboardToday.openBtn') }} →
-          </button>
-        </div>
-        <div class="today__list">
-          <div
-            v-for="goal in activeGoals"
-            :key="goal.id"
-            class="today__goal"
-            @click="router.push('/goals')"
-          >
-            <span class="today__goal-emoji">{{ goal.coverEmoji }}</span>
-            <div class="today__goal-body">
-              <div class="today__goal-top">
-                <span class="today__goal-title">{{ goal.title }}</span>
-                <span class="today__goal-pct">{{ goal.progress }}%</span>
-              </div>
-              <div class="today__goal-bar">
-                <div class="today__goal-fill" :style="{ width: `${goal.progress}%` }" />
-              </div>
+    <!-- ── Goals ─────────────────────────────────────────────── -->
+    <section v-if="activeGoals.length" class="today__section">
+      <div class="today__section-header">
+        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionGoals') }}</span>
+        <span class="today__section-count">{{ activeGoals.length }}</span>
+        <button class="today__open-btn" @click="router.push('/goals')">
+          {{ i18n.t('dashboardToday.openBtn') }} →
+        </button>
+      </div>
+      <div class="today__list">
+        <div
+          v-for="goal in activeGoals"
+          :key="goal.id"
+          class="today__goal"
+          @click="router.push('/goals')"
+        >
+          <span class="today__goal-emoji">{{ goal.coverEmoji }}</span>
+          <div class="today__goal-body">
+            <div class="today__goal-top">
+              <span class="today__goal-title">{{ goal.title }}</span>
+              <span class="today__goal-pct">{{ goal.progress }}%</span>
             </div>
-            <span v-if="goal.targetDate" class="today__goal-days" :class="{ 'today__goal-days--overdue': daysUntil(goal.targetDate) < 0 }">
-              {{ daysLeftLabel(goal.targetDate) }}
-            </span>
+            <div class="today__goal-bar">
+              <div class="today__goal-fill" :style="{ width: `${goal.progress}%` }" />
+            </div>
           </div>
+          <span v-if="goal.targetDate" class="today__goal-days" :class="{ 'today__goal-days--overdue': daysUntil(goal.targetDate) < 0 }">
+            {{ daysLeftLabel(goal.targetDate) }}
+          </span>
         </div>
-      </section>
+      </div>
+    </section>
 
-    </template>
+    <!-- ── Pinned notes ────────────────────────────────────────── -->
+    <section v-if="pinnedNotes.length" class="today__section">
+      <div class="today__section-header">
+        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionPinnedNotes') }}</span>
+        <span class="today__section-count">{{ pinnedNotes.length }}</span>
+        <button class="today__open-btn" @click="router.push('/notes')">
+          {{ i18n.t('dashboardToday.openBtn') }} →
+        </button>
+      </div>
+      <div class="today__list">
+        <div
+          v-for="note in pinnedNotes"
+          :key="note.id"
+          class="today__note"
+          @click="router.push('/notes')"
+        >
+          <span class="today__note-pin">📌</span>
+          <span class="today__note-title">{{ deriveTitle(note.content) }}</span>
+        </div>
+      </div>
+    </section>
+
   </div>
 </template>
 
@@ -275,7 +329,7 @@ function priorityLabel(p: string): string {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 48px 24px;
+  padding: 32px 24px 16px;
   text-align: center;
 }
 
@@ -379,9 +433,7 @@ function priorityLabel(p: string): string {
   font-size: 14px;
   transition: opacity var(--t-fast);
 }
-.today__task--done {
-  opacity: 0.45;
-}
+.today__task--done { opacity: 0.45; }
 
 .today__check {
   width: 20px;
@@ -432,6 +484,29 @@ function priorityLabel(p: string): string {
   color: var(--color-text-muted);
 }
 
+/* Quick-add task input */
+.today__add-task { margin-top: 2px; }
+
+.today__add-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  transition: border-color var(--t-fast), background var(--t-fast);
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+.today__add-input:focus {
+  border-color: var(--color-accent);
+  border-style: solid;
+  background: var(--color-surface-elevated);
+}
+.today__add-input::placeholder { color: var(--color-text-muted); }
+
 /* Habit row */
 .today__habit {
   display: flex;
@@ -451,7 +526,7 @@ function priorityLabel(p: string): string {
 .today__habit-emoji { font-size: 16px; flex-shrink: 0; }
 .today__habit-name  { font-size: 14px; color: var(--color-text-secondary); flex: 1; }
 
-/* Plan row (learning/training) */
+/* Plan row (learning / training) */
 .today__plan-row {
   display: flex;
   align-items: center;
@@ -550,4 +625,29 @@ function priorityLabel(p: string): string {
   white-space: nowrap;
 }
 .today__goal-days--overdue { color: var(--color-danger); }
+
+/* Pinned note row */
+.today__note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--t-fast);
+}
+.today__note:hover { border-color: var(--color-accent); }
+
+.today__note-pin   { font-size: 14px; flex-shrink: 0; }
+
+.today__note-title {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>

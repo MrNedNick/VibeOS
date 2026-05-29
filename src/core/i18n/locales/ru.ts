@@ -313,6 +313,8 @@ export const ru: Messages = {
     overdue: 'просрочено',
     emptyTitle: 'На сегодня ничего нет',
     emptyDesc: 'Добавь задачи с датой на сегодня, настрой привычки или активируй планы обучения и тренировок',
+    addTaskPlaceholder: '+ Добавить задачу на сегодня…',
+    sectionPinnedNotes: 'Закреплённые заметки',
   },
   dashboardDetail: {
     openModule: 'Открыть модуль',

@@ -7,6 +7,7 @@ import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useLearningStore } from '@/modules/learning/stores/learning.store'
 import { useTrainingStore } from '@/modules/training/stores/training.store'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
+import { computeStreak } from '@/modules/habits/types'
 import { TOTAL_DOC_PAGES } from '@/modules/docs/data/docs-registry'
 import { MODULE_DETAILS, PLATFORM_STATUS } from '../data/platform-notes'
 import StatCard from '../components/StatCard.vue'
@@ -33,6 +34,11 @@ const todayHabits = computed(() => {
   const total = habitsStore.habits.length
   const done  = habitsStore.habits.filter(h => h.completedDates.includes(today)).length
   return { total, done }
+})
+
+const bestHabitStreak = computed(() => {
+  if (!habitsStore.habits.length) return 0
+  return Math.max(...habitsStore.habits.map(h => computeStreak(h.completedDates)))
 })
 
 const today = computed(() =>
@@ -181,6 +187,7 @@ const APP_VERSION = __APP_VERSION__
           <span class="life-stat__value">{{ todayHabits.done }}/{{ todayHabits.total }}</span>
           <span class="life-stat__label">{{ i18n.t('dashboard.habitsToday') }}</span>
         </div>
+        <span v-if="bestHabitStreak > 0" class="life-stat__streak">🔥 {{ bestHabitStreak }}</span>
         <div
           class="life-stat__bar"
           :style="{ '--pct': todayHabits.total > 0 ? `${Math.round(todayHabits.done/todayHabits.total*100)}%` : '0%' }"
@@ -411,6 +418,14 @@ const APP_VERSION = __APP_VERSION__
   color: var(--color-success);
   font-weight: 500;
   flex-shrink: 0;
+}
+
+.life-stat__streak {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-warning);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .life-stat__bar {
