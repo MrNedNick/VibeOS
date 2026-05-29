@@ -216,22 +216,23 @@
 }
 
 /* Brutalist: fix components that use --color-border as a background —
-   border is #000 in Brutalist which makes tracks/cells invisible against fills */
+   border is #000 in Brutalist which makes tracks/cells invisible against fills.
+   !important needed to beat scoped component CSS specificity. */
 [data-theme='brutalist'] .heatmap__cell {
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-elevated) !important;
+  border: 1px solid var(--color-border) !important;
 }
 [data-theme='brutalist'] .heatmap__cell--done {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
 }
 [data-theme='brutalist'] .goal-card__bar {
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: 0;
+  background: var(--color-surface-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 0 !important;
 }
 [data-theme='brutalist'] .goal-card__bar-fill {
-  border-radius: 0;
+  border-radius: 0 !important;
 }
 
 /* ─── Responsive content padding ────────────────────────────── */
