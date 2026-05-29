@@ -130,6 +130,37 @@ Order:
 
 ## Recently shipped (history)
 
+### 2026-05-29 (session — Studio chat redesign + Calendar fixes + Notes wider + Snippets removed) — v0.5.8
+
+**Studio — chat interface** (full details in Backlog → Studio section):
+- Complete redesign: single-prompt lab → multi-turn chat
+- Critical bug fix: `res.json()` → `res.text()` for Pollinations.ai (was causing all Free AI errors)
+- Default provider changed to Free AI
+- Clean chat bubble UI with typing indicator, quick prompts, New Chat button
+
+**Calendar improvements:**
+- Always-visible right panel (task detail; never closes/toggles)
+- Defaults to today's date on mount
+- European calendar (Monday first) — `(day.getDay() + 6) % 7`
+- Selected day highlighted with accent outline (visible in all themes, including dark)
+- Dark theme CSS variable bug fixed (was using `--accent`, `--bg-card`, etc. instead of `--color-accent`, `--color-surface`)
+- Unified card layout: left grid + right panel as one bordered container (no separate divider line)
+
+**Notes — wider left column:**
+- Desktop: 320px (was 240px)
+- Responsive: 260px on tablet (≤1279px), 220px on small laptop (≤1023px)
+
+**Snippets module — removed:**
+- Low daily-use value in a life OS context; code fits in Notes (code blocks)
+- Deleted: `src/modules/snippets/` folder, router entries, registry entry, i18n keys, event bus type, platform-notes data block, RecentActivityPanel cases
+
+**Plans documented in roadmap:**
+- More game skins for all 4 games
+- Reusable component system (`src/ui/` expansion)
+- Studio future improvements (project data access, markdown rendering, sessions)
+
+---
+
 ### 2026-05-28 (session 8 — Analytics, Calendar, Command Palette actions, Notes backlinks, Snake skins, Settings import) — v0.5.3
 
 **Analytics module** — real data from all life stores:
@@ -356,18 +387,45 @@ Next candidates: Tetris, 15-Puzzle, Wordle-clone.
 - **Sudoku** — add color themes: Classic, Dark, Pastel; unlock by puzzles solved
 Each game should persist `activeSkinId` + `unlockedSkins` in localStorage, matching Snake's pattern.
 
-### Free AI in Studio (shipped 2026-05-29)
-**Pollinations.ai** integrated as "Free AI" provider — no API key, no account required, CORS-enabled.
-- Provider toggle: Claude API ↔ Free AI in Studio top bar
-- Free models: GPT-4o mini (openai-fast), Mistral, Llama 3
-- Uses `POST https://text.pollinations.ai/` with OpenAI-compatible message format
-- Falls back to CORS error message if blocked
+### Studio — chat interface + Free AI fix (shipped 2026-05-29)
+**Studio completely redesigned** from a single-prompt lab into a proper chat interface:
+- **Chat mode** — conversation history with user/assistant bubbles; multi-turn context sent to API
+- **Input bar at bottom** — Enter to send, Shift+Enter for new line; textarea auto-resizes
+- **Typing indicator** — three-dot bounce animation while waiting for response
+- **Quick prompts** — 4 suggestion buttons on empty state to get started instantly
+- **New chat** button — clears conversation and starts fresh
+- **System prompt** — collapsible advanced setting (persisted per-session in localStorage)
+- **Provider tabs** — Free AI (default) | Claude API; Free AI has "no key" badge
+- **Model chips** — pill selectors per provider (replaces verbose card buttons)
+- **Copy button** — per-message copy on assistant responses; "Copied!" flash feedback
+- **Error bubbles** — errors appear as red assistant messages inline in the conversation, not blocking the whole view
 
-**Other researched alternatives (require user API key):**
-- **Gemini Flash** — Google AI Studio free tier; 60 req/min; no credit card for dev key
-- **GroqCloud** — 30 req/min on Llama3/Mixtral; fast inference
-- **OpenRouter** — routes to multiple free models; single key
-Integration of these planned for S6 (user provides key in Settings).
+**Critical bug fixed:** `runFree()` was calling `await res.json()` but `POST https://text.pollinations.ai/` returns `Content-Type: text/plain`. Changed to `await res.text()`. This was the root cause of all Free AI errors.
+
+**Architecture change:** Store now uses `ConvMessage[]` (chat history) instead of single `StudioRun`. Full conversation history is passed to Pollinations on every send for multi-turn context. Error messages are part of the history with `error: true` flag and are excluded from API calls.
+
+**Free AI default:** Provider now defaults to `'free'` (was `'anthropic'`). Claude API is still available as secondary tab.
+
+**Pollinations.ai** — still the only free provider (no key, no account, CORS-enabled):
+- `openai-fast` → GPT-4o mini (fast)
+- `mistral` → Mistral (open source)
+- `llama` → Meta Llama 3
+
+**Removed from Studio UI:** max tokens input, history sidebar, left/right column split.
+
+### Studio — future improvements (TODO backlog)
+These are the meaningful improvements to do next — not features for features' sake:
+- **Project data access** — inject VibeOS context into prompts: current tasks, active goals, recent habits, upcoming learning/training sessions; opt-in per-message ("Include my data")
+- **Markdown rendering** — render AI responses as markdown (code blocks, lists, headings) using `marked`; currently `white-space: pre-wrap` only
+- **Conversation sessions** — save/restore named conversations; session list in sidebar; "Conversation 1", "Planning session", etc.
+- **Export conversation** — copy full conversation as markdown or plain text
+- **Free AI model descriptions** — show brief desc tooltip on hover (speed, quality, best-for)
+- **Additional free providers** (S6, user provides key):
+  - **Gemini Flash** — Google AI Studio free tier; 60 req/min; no credit card for dev key
+  - **GroqCloud** — 30 req/min on Llama3/Mixtral; very fast inference
+  - **OpenRouter** — routes to multiple free models; single key
+- **AI planning actions** (S6) — "Plan my week", "Review my goals", "Suggest a workout" — pre-built actions that inject relevant data automatically
+- **Token count display** — show rough token count for long conversations; warn before hitting limits
 
 ### External data widgets (future)
 - **Weather widget** — OpenWeatherMap free tier (60 calls/min, no credit card); Dashboard widget; API key in Settings — partially planned in S5
@@ -442,4 +500,4 @@ Integration of these planned for S6 (user provides key in Settings).
 | Mobile PWA | Unscheduled | Research after S5; depends on how mobile-critical check-ins become |
 | Analytics: standalone module or dashboard tab? | ✅ Shipped as standalone module | Dashboard has summary strip; Analytics module has full detail |
 | Snippets module: keep or remove? | Open | Low daily-use value in a life OS context; already built and stable; keep until there's a clear reason to remove |
-| Studio: Anthropic-only or multi-provider? | Open | Add GroqCloud/Gemini/OpenRouter as free alternatives in S6; user selects provider in Settings |
+| Studio: Anthropic-only or multi-provider? | ✅ Decided | Free AI (Pollinations.ai) = default, no key; Claude API = secondary tab; other providers (Gemini, Groq, OpenRouter) planned for S6 with user key |

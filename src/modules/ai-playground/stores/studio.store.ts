@@ -2,117 +2,193 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useStorage } from '@/core/composables/useStorage'
 import { useEventBus } from '@/core/events'
-import type { StudioModel, FreeModel, StudioProvider, StudioRun, AnthropicResponse, AnthropicError } from '../types'
+import type { StudioModel, FreeModel, StudioProvider, AnthropicResponse, AnthropicError } from '../types'
 
-const MAX_HISTORY  = 20
 const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages'
 const FREE_API      = 'https://text.pollinations.ai/'
 
-export const useStudioStore = defineStore('ai-playground:studio', () => {
-  const apiKey   = useStorage<string>('platform:studio:apikey', '')
-  const model    = useStorage<StudioModel>('platform:studio:model', 'claude-sonnet-4-6')
-  const freeModel = useStorage<FreeModel>('platform:studio:freeModel', 'openai-fast')
-  const provider  = useStorage<StudioProvider>('platform:studio:provider', 'anthropic')
-  const maxTokens = useStorage<number>('platform:studio:maxTokens', 1024)
-  const history   = useStorage<StudioRun[]>('platform:studio:runs', [])
+export interface ConvMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: string
+  error?: boolean
+  model?: string
+  durationMs?: number
+}
 
-  const loading    = ref(false)
-  const error      = ref<string | null>(null)
-  const currentRun = ref<StudioRun | null>(null)
+export const useStudioStore = defineStore('ai-playground:studio', () => {
+  const apiKey    = useStorage<string>('platform:studio:apikey', '')
+  const model     = useStorage<StudioModel>('platform:studio:model', 'claude-sonnet-4-6')
+  const freeModel = useStorage<FreeModel>('platform:studio:freeModel', 'openai-fast')
+  const provider  = useStorage<StudioProvider>('platform:studio:provider', 'free') // default: free
+  const system    = useStorage<string>('platform:studio:system', '')
+
+  const messages = ref<ConvMessage[]>([])
+  const loading  = ref(false)
+  const error    = ref<string | null>(null)
 
   const events = useEventBus()
 
-  async function run(prompt: string, system = ''): Promise<void> {
-    if (!prompt.trim()) return
-    loading.value    = true
-    error.value      = null
-    currentRun.value = null
-    const startedAt  = Date.now()
+  /** Build clean API history — excludes error messages and user messages that preceded an error */
+  function buildHistory(): { role: 'user' | 'assistant'; content: string }[] {
+    const result: { role: 'user' | 'assistant'; content: string }[] = []
+    const msgs = messages.value
+    for (let i = 0; i < msgs.length; i++) {
+      const m = msgs[i]
+      if (m.error) continue
+      // Skip user messages immediately followed by an error (failed exchanges)
+      if (m.role === 'user' && i + 1 < msgs.length && msgs[i + 1].error) continue
+      result.push({ role: m.role, content: m.content })
+    }
+    return result
+  }
 
+  async function sendMessage(content: string): Promise<void> {
+    if (!content.trim() || loading.value) return
+
+    error.value = null
+    messages.value.push({
+      id:        crypto.randomUUID(),
+      role:      'user',
+      content:   content.trim(),
+      timestamp: new Date().toISOString(),
+    })
+
+    loading.value = true
+    const startedAt = Date.now()
     try {
       if (provider.value === 'free') {
-        await runFree(prompt, system, startedAt)
+        await runFree(startedAt)
       } else {
-        await runAnthropic(prompt, system, startedAt)
+        await runAnthropic(startedAt)
       }
     } finally {
       loading.value = false
     }
   }
 
-  async function runAnthropic(prompt: string, system: string, startedAt: number): Promise<void> {
-    if (!apiKey.value.trim()) { error.value = 'no_key'; return }
+  async function runAnthropic(startedAt: number): Promise<void> {
+    if (!apiKey.value.trim()) { pushError('no_key'); return }
 
     const body: Record<string, unknown> = {
       model:      model.value,
-      max_tokens: maxTokens.value,
-      messages:   [{ role: 'user', content: prompt.trim() }],
+      max_tokens: 2048,
+      messages:   buildHistory(),
     }
-    if (system.trim()) body.system = system.trim()
+    if (system.value.trim()) body.system = system.value.trim()
 
     try {
       const res  = await fetch(ANTHROPIC_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey.value.trim(), 'anthropic-version': '2023-06-01' },
+        method:  'POST',
+        headers: {
+          'Content-Type':        'application/json',
+          'X-API-Key':           apiKey.value.trim(),
+          'anthropic-version':   '2023-06-01',
+        },
         body: JSON.stringify(body),
       })
       const data = await res.json() as AnthropicResponse | AnthropicError
-      if (!res.ok || data.type === 'error') { error.value = (data as AnthropicError).error?.message ?? `HTTP ${res.status}`; return }
+      if (!res.ok || data.type === 'error') {
+        pushError((data as AnthropicError).error?.message ?? `HTTP ${res.status}`)
+        return
+      }
 
       const result = data as AnthropicResponse
-      const studioRun: StudioRun = {
-        id: crypto.randomUUID(), prompt: prompt.trim(), system: system.trim(), model: model.value,
-        response: result.content.map(c => c.text).join(''),
-        inputTokens: result.usage.input_tokens, outputTokens: result.usage.output_tokens,
-        timestamp: new Date().toISOString(), durationMs: Date.now() - startedAt,
-      }
-      currentRun.value = studioRun
-      history.value    = [studioRun, ...history.value].slice(0, MAX_HISTORY)
-      events.emit({ type: 'studio:run', model: studioRun.model, inputTokens: studioRun.inputTokens, outputTokens: studioRun.outputTokens, timestamp: studioRun.timestamp })
+      const text   = result.content.map(c => c.text).join('')
+      const ts     = new Date().toISOString()
+
+      messages.value.push({
+        id:        crypto.randomUUID(),
+        role:      'assistant',
+        content:   text,
+        timestamp: ts,
+        model:     model.value,
+        durationMs: Date.now() - startedAt,
+      })
+      events.emit({
+        type: 'studio:run', model: model.value,
+        inputTokens:  result.usage.input_tokens,
+        outputTokens: result.usage.output_tokens,
+        timestamp: ts,
+      })
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Network error'
-      error.value = msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('network') ? 'cors' : msg
+      pushError(networkError(e))
     }
   }
 
-  async function runFree(prompt: string, system: string, startedAt: number): Promise<void> {
-    const messages: { role: string; content: string }[] = []
-    if (system.trim()) messages.push({ role: 'system', content: system.trim() })
-    messages.push({ role: 'user', content: prompt.trim() })
+  async function runFree(startedAt: number): Promise<void> {
+    // Build OpenAI-style messages array for Pollinations
+    const apiMessages: { role: string; content: string }[] = []
+    if (system.value.trim()) {
+      apiMessages.push({ role: 'system', content: system.value.trim() })
+    }
+    for (const m of buildHistory()) {
+      apiMessages.push(m)
+    }
 
     try {
       const res = await fetch(FREE_API, {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: freeModel.value, messages }),
+        body: JSON.stringify({
+          model:    freeModel.value,
+          messages: apiMessages,
+          nologo:   true,
+          private:  true,
+        }),
       })
-      if (!res.ok) { error.value = `HTTP ${res.status}`; return }
+      if (!res.ok) { pushError(`HTTP ${res.status}`); return }
 
-      const data = await res.json()
-      const text: string = data?.choices?.[0]?.message?.content ?? data?.content ?? ''
-      if (!text) { error.value = 'Empty response from free AI'; return }
+      // ✅ Pollinations POST /  returns plain text — NOT JSON
+      const text = await res.text()
+      if (!text.trim()) { pushError('Empty response from free AI'); return }
 
-      const studioRun: StudioRun = {
-        id: crypto.randomUUID(), prompt: prompt.trim(), system: system.trim(),
+      const ts = new Date().toISOString()
+      messages.value.push({
+        id:        crypto.randomUUID(),
+        role:      'assistant',
+        content:   text.trim(),
+        timestamp: ts,
+        model:     `free:${freeModel.value}`,
+        durationMs: Date.now() - startedAt,
+      })
+      events.emit({
+        type: 'studio:run',
         model: `free:${freeModel.value}` as StudioModel,
-        response: text, inputTokens: 0, outputTokens: 0,
-        timestamp: new Date().toISOString(), durationMs: Date.now() - startedAt,
-      }
-      currentRun.value = studioRun
-      history.value    = [studioRun, ...history.value].slice(0, MAX_HISTORY)
-      events.emit({ type: 'studio:run', model: studioRun.model, inputTokens: 0, outputTokens: 0, timestamp: studioRun.timestamp })
+        inputTokens: 0, outputTokens: 0, timestamp: ts,
+      })
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Network error'
-      error.value = msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('network') ? 'cors' : msg
+      pushError(networkError(e))
     }
   }
 
-  function clearHistory(): void { history.value = []; currentRun.value = null }
-  function loadRun(run: StudioRun): void { currentRun.value = run }
+  function pushError(msg: string): void {
+    error.value = msg
+    messages.value.push({
+      id:        crypto.randomUUID(),
+      role:      'assistant',
+      content:   msg,
+      timestamp: new Date().toISOString(),
+      error:     true,
+    })
+  }
+
+  function networkError(e: unknown): string {
+    const msg = e instanceof Error ? e.message : 'Network error'
+    return msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('network')
+      ? 'cors'
+      : msg
+  }
+
+  function newConversation(): void {
+    messages.value = []
+    error.value    = null
+  }
 
   return {
-    apiKey, model, freeModel, provider, maxTokens,
-    history, loading, error, currentRun,
-    run, clearHistory, loadRun,
+    apiKey, model, freeModel, provider, system,
+    messages, loading, error,
+    sendMessage, newConversation,
   }
 })

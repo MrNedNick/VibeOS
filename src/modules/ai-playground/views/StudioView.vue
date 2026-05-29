@@ -1,354 +1,368 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { useStudioStore } from '../stores/studio.store'
 import { STUDIO_MODELS, FREE_MODELS } from '../types'
-import { useLocale } from '@/core/i18n'
+import { UiIcon } from '@/ui'
 
-const store  = useStudioStore()
-const i18n   = useLocale()
+const store = useStudioStore()
 
-// Form state
-const prompt        = ref('')
-const system        = ref('')
-const showSystem    = ref(false)
-const showKey       = ref(false)
-const showHistory   = ref(false)
-const historyFilter = ref('')
+// ── Local state ────────────────────────────────────
+const inputText  = ref('')
+const showSystem = ref(false)
+const showKey    = ref(false)
+const messagesEl = ref<HTMLElement | null>(null)
+const inputEl    = ref<HTMLTextAreaElement | null>(null)
+const copiedId   = ref<string | null>(null)
 
-// Derived
+// ── Computed ───────────────────────────────────────
 const isFree = computed(() => store.provider === 'free')
-const canRun = computed(() => {
-  if (store.loading || !prompt.value.trim()) return false
-  if (isFree.value) return true
-  return !!store.apiKey.trim()
-})
 
-const filteredHistory = computed(() => {
-  const q = historyFilter.value.toLowerCase()
-  return q
-    ? store.history.filter(r => r.prompt.toLowerCase().includes(q) || r.response.toLowerCase().includes(q))
-    : store.history
-})
+const canSend = computed(() =>
+  !store.loading &&
+  !!inputText.value.trim() &&
+  (isFree.value || !!store.apiKey.trim())
+)
 
-// Format duration
-function fmtDuration(ms: number): string {
-  return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
+// ── Quick prompts ──────────────────────────────────
+const QUICK_PROMPTS = [
+  'Help me plan my day effectively',
+  'Suggest 3 habits to build this week',
+  'Write a short motivational message',
+  'Explain the Pomodoro technique',
+]
+
+// ── Send ───────────────────────────────────────────
+async function send(): Promise<void> {
+  if (!canSend.value) return
+  const content = inputText.value.trim()
+  inputText.value = ''
+  if (inputEl.value) inputEl.value.style.height = 'auto'
+  await store.sendMessage(content)
 }
 
-function fmtTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString(i18n.localeCode, { hour: '2-digit', minute: '2-digit' })
+async function useQuickPrompt(text: string): Promise<void> {
+  inputText.value = text
+  await nextTick()
+  if (inputEl.value) autoResize(inputEl.value)
+  await send()
 }
 
-// Copy to clipboard
-const copied = ref(false)
-async function copyResponse(): Promise<void> {
-  if (!store.currentRun?.response) return
-  await navigator.clipboard.writeText(store.currentRun.response)
-  copied.value = true
-  setTimeout(() => { copied.value = false }, 1500)
-}
-
-// Run
-async function handleRun(): Promise<void> {
-  await store.run(prompt.value, system.value)
-}
-
-// Keyboard shortcut — ⌘Enter / Ctrl+Enter
+// ── Input handlers ─────────────────────────────────
 function onKeydown(e: KeyboardEvent): void {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+  if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault()
-    if (canRun.value) handleRun()
+    send()
   }
 }
 
-onMounted(()   => window.addEventListener('keydown', onKeydown))
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+function onInput(e: Event): void {
+  autoResize(e.target as HTMLTextAreaElement)
+}
 
-// Error messages
-const errorMessage = computed(() => {
-  if (!store.error) return null
-  if (store.error === 'no_key')  return i18n.t('studio.errorNoKey')
-  if (store.error === 'cors')    return i18n.t('studio.errorCors')
-  return store.error
-})
+function autoResize(el: HTMLTextAreaElement): void {
+  el.style.height = 'auto'
+  el.style.height = Math.min(el.scrollHeight, 180) + 'px'
+}
 
-// Current model meta
-const currentModel = computed(() =>
-  STUDIO_MODELS.find(m => m.id === store.model) ?? STUDIO_MODELS[1]
-)
+// ── Scroll ─────────────────────────────────────────
+async function scrollToBottom(): Promise<void> {
+  await nextTick()
+  if (messagesEl.value) {
+    messagesEl.value.scrollTop = messagesEl.value.scrollHeight
+  }
+}
+
+watch(() => store.messages.length, scrollToBottom)
+watch(() => store.loading, scrollToBottom)
+
+// ── Copy ───────────────────────────────────────────
+async function copyMessage(id: string, content: string): Promise<void> {
+  await navigator.clipboard.writeText(content)
+  copiedId.value = id
+  setTimeout(() => { copiedId.value = null }, 1500)
+}
+
+// ── Formatting ─────────────────────────────────────
+function fmtTime(iso: string): string {
+  const d = new Date(iso)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+function fmtDuration(ms?: number): string {
+  if (!ms) return ''
+  return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
+}
+
+function modelLabel(modelId?: string): string {
+  if (!modelId) return ''
+  if (modelId.startsWith('free:')) {
+    const id = modelId.slice(5)
+    return FREE_MODELS.find(m => m.id === id)?.label ?? id
+  }
+  return STUDIO_MODELS.find(m => m.id === modelId)?.label ?? modelId
+}
+
+function modelColor(modelId?: string): string {
+  if (!modelId) return 'var(--color-text-muted)'
+  if (modelId.startsWith('free:')) {
+    const id = modelId.slice(5)
+    return FREE_MODELS.find(m => m.id === id)?.color ?? '#10b981'
+  }
+  return STUDIO_MODELS.find(m => m.id === modelId)?.color ?? 'var(--color-accent)'
+}
+
+function errorText(raw: string): string {
+  if (raw === 'no_key') return 'Claude API key required — add it in the settings bar above'
+  if (raw === 'cors')   return 'Network error — free AI service may be temporarily unavailable. Try again.'
+  return raw
+}
+
+onMounted(() => inputEl.value?.focus())
 </script>
 
 <template>
   <div class="studio">
 
-    <!-- Top bar ─────────────────────────────────────── -->
+    <!-- ── Top bar ──────────────────────────────────── -->
     <div class="studio__topbar">
-
-      <!-- Provider toggle -->
-      <div class="studio__provider-row">
+      <div class="studio__tabs">
         <button
-          class="studio__provider-btn"
-          :class="{ 'studio__provider-btn--active': !isFree }"
-          @click="store.provider = 'anthropic'"
-        >
-          <span class="studio__provider-label">Claude API</span>
-          <span class="studio__provider-desc">Requires key</span>
-        </button>
-        <button
-          class="studio__provider-btn studio__provider-btn--free"
-          :class="{ 'studio__provider-btn--active': isFree }"
+          class="studio__tab"
+          :class="{ 'studio__tab--active': isFree }"
           @click="store.provider = 'free'"
         >
-          <span class="studio__provider-label">Free AI</span>
-          <span class="studio__provider-desc">No key needed</span>
+          <UiIcon name="Sparkles" :size="13" />
+          Free AI
+          <span class="studio__tab-badge">no key</span>
         </button>
-      </div>
-
-      <!-- Anthropic model selector -->
-      <div v-if="!isFree" class="studio__model-row">
         <button
-          v-for="m in STUDIO_MODELS"
-          :key="m.id"
-          class="studio__model-btn"
-          :class="{ 'studio__model-btn--active': store.model === m.id }"
-          :style="store.model === m.id ? { '--model-color': m.color } : {}"
-          @click="store.model = m.id"
+          class="studio__tab"
+          :class="{ 'studio__tab--active': !isFree }"
+          @click="store.provider = 'anthropic'"
         >
-          <span class="studio__model-label">{{ m.label }}</span>
-          <span class="studio__model-desc">{{ m.desc }}</span>
+          <UiIcon name="Key" :size="13" />
+          Claude API
         </button>
       </div>
 
-      <!-- Free model selector -->
-      <div v-else class="studio__model-row">
-        <button
-          v-for="m in FREE_MODELS"
-          :key="m.id"
-          class="studio__model-btn"
-          :class="{ 'studio__model-btn--active': store.freeModel === m.id }"
-          :style="store.freeModel === m.id ? { '--model-color': m.color } : {}"
-          @click="store.freeModel = m.id"
-        >
-          <span class="studio__model-label">{{ m.label }}</span>
-          <span class="studio__model-desc">{{ m.desc }}</span>
-        </button>
+      <button
+        class="studio__new-btn"
+        :disabled="!store.messages.length"
+        title="Start a new conversation"
+        @click="store.newConversation()"
+      >
+        <UiIcon name="SquarePen" :size="14" />
+        New chat
+      </button>
+    </div>
+
+    <!-- ── Settings bar ─────────────────────────────── -->
+    <div class="studio__settings-bar">
+
+      <!-- Model chips -->
+      <div class="studio__model-row">
+        <template v-if="isFree">
+          <button
+            v-for="m in FREE_MODELS"
+            :key="m.id"
+            class="studio__chip"
+            :class="{ 'studio__chip--active': store.freeModel === m.id }"
+            :style="store.freeModel === m.id ? { '--chip-color': m.color } : {}"
+            :title="m.desc"
+            @click="store.freeModel = m.id"
+          >{{ m.label }}</button>
+        </template>
+        <template v-else>
+          <button
+            v-for="m in STUDIO_MODELS"
+            :key="m.id"
+            class="studio__chip"
+            :class="{ 'studio__chip--active': store.model === m.id }"
+            :style="store.model === m.id ? { '--chip-color': m.color } : {}"
+            :title="m.desc"
+            @click="store.model = m.id"
+          >{{ m.label }}</button>
+        </template>
       </div>
 
-      <!-- API key (hidden for free mode) -->
+      <!-- API key (Claude only) -->
       <div v-if="!isFree" class="studio__key-row">
-        <label class="studio__key-label">{{ i18n.t('studio.apiKeyLabel') }}</label>
-        <div class="studio__key-input-wrap">
+        <div class="studio__key-wrap">
           <input
             v-model="store.apiKey"
             :type="showKey ? 'text' : 'password'"
             class="studio__key-input"
-            :placeholder="i18n.t('studio.apiKeyPlaceholder')"
+            placeholder="sk-ant-..."
             autocomplete="off"
             spellcheck="false"
           />
-          <button
-            class="studio__key-toggle"
-            :title="showKey ? i18n.t('studio.hideKey') : i18n.t('studio.showKey')"
-            @click="showKey = !showKey"
-          >{{ showKey ? '●' : '○' }}</button>
+          <button class="studio__key-eye" :title="showKey ? 'Hide' : 'Show'" @click="showKey = !showKey">
+            <UiIcon :name="showKey ? 'EyeOff' : 'Eye'" :size="13" />
+          </button>
         </div>
-        <span v-if="store.apiKey" class="studio__key-indicator studio__key-indicator--set">{{ i18n.t('studio.keySet') }}</span>
-        <span v-else class="studio__key-indicator">{{ i18n.t('studio.keyUnset') }}</span>
+        <span v-if="store.apiKey" class="studio__key-ok">● key set</span>
       </div>
 
-      <!-- Free mode badge -->
-      <div v-else class="studio__free-badge">
-        <span class="studio__free-icon">✦</span>
-        <span>Powered by <strong>Pollinations.ai</strong> — free, no account needed</span>
-      </div>
+      <!-- System prompt toggle -->
+      <button class="studio__sys-btn" @click="showSystem = !showSystem">
+        <UiIcon name="Settings2" :size="13" />
+        System
+        <UiIcon :name="showSystem ? 'ChevronUp' : 'ChevronDown'" :size="12" />
+      </button>
 
     </div>
 
-    <!-- Workspace ───────────────────────────────────── -->
-    <div class="studio__workspace">
+    <!-- ── System prompt (collapsible) ──────────────── -->
+    <div v-if="showSystem" class="studio__system-area">
+      <textarea
+        v-model="store.system"
+        class="studio__system-ta"
+        placeholder="Optional system prompt — sets AI persona and behavior for this conversation…"
+        rows="2"
+      />
+    </div>
 
-      <!-- Left: input ─────────────────────────────── -->
-      <div class="studio__input-col">
+    <!-- ── Messages ──────────────────────────────────── -->
+    <div ref="messagesEl" class="studio__messages">
 
-        <!-- System prompt toggle -->
-        <div class="studio__section-head" @click="showSystem = !showSystem">
-          <span class="studio__section-title">{{ i18n.t('studio.systemPrompt') }}</span>
-          <span class="studio__section-chevron">{{ showSystem ? '▾' : '▸' }}</span>
+      <!-- Empty state -->
+      <div v-if="!store.messages.length" class="studio__empty">
+        <div class="studio__empty-icon">
+          <UiIcon name="Sparkles" :size="30" />
         </div>
-        <textarea
-          v-if="showSystem"
-          v-model="system"
-          class="studio__system-textarea"
-          :placeholder="i18n.t('studio.systemPlaceholder')"
-          rows="3"
-        />
-
-        <!-- User prompt -->
-        <div class="studio__section-head" style="margin-top: 2px">
-          <span class="studio__section-title">{{ i18n.t('studio.userPrompt') }}</span>
-        </div>
-        <textarea
-          v-model="prompt"
-          class="studio__prompt-textarea"
-          :placeholder="i18n.t('studio.promptPlaceholder')"
-        />
-
-        <!-- Run button -->
-        <button
-          class="studio__run-btn"
-          :class="{ 'studio__run-btn--loading': store.loading }"
-          :disabled="!canRun"
-          @click="handleRun"
-        >
-          <span v-if="store.loading" class="studio__run-spinner">⟳</span>
-          <span v-else>{{ i18n.t('studio.runBtn') }}</span>
-          <kbd class="studio__run-kbd">⌘↵</kbd>
-        </button>
-
-        <!-- Max tokens -->
-        <div class="studio__tokens-row">
-          <label class="studio__tokens-label">{{ i18n.t('studio.maxTokens') }}</label>
-          <input
-            v-model.number="store.maxTokens"
-            type="number"
-            class="studio__tokens-input"
-            min="64"
-            max="8192"
-            step="256"
-          />
-        </div>
-
-        <!-- History ────────────────────────────────── -->
-        <div
-          v-if="store.history.length > 0"
-          class="studio__history"
-        >
-          <div class="studio__section-head" @click="showHistory = !showHistory">
-            <span class="studio__section-title">{{ i18n.t('studio.history') }} ({{ store.history.length }})</span>
-            <span class="studio__section-chevron">{{ showHistory ? '▾' : '▸' }}</span>
-          </div>
-
-          <template v-if="showHistory">
-            <input
-              v-model="historyFilter"
-              class="studio__history-search"
-              :placeholder="i18n.t('studio.historySearch')"
-            />
-            <ul class="studio__history-list">
-              <li
-                v-for="run in filteredHistory"
-                :key="run.id"
-                class="studio__history-item"
-                :class="{ 'studio__history-item--active': store.currentRun?.id === run.id }"
-                @click="store.loadRun(run)"
-              >
-                <span class="studio__history-prompt">{{ run.prompt.slice(0, 60) }}{{ run.prompt.length > 60 ? '…' : '' }}</span>
-                <span class="studio__history-meta">{{ run.model.split('-')[1] }} · {{ fmtTime(run.timestamp) }}</span>
-              </li>
-            </ul>
-            <button class="studio__history-clear" @click="store.clearHistory()">
-              {{ i18n.t('studio.clearHistory') }}
-            </button>
-          </template>
-        </div>
-
-      </div>
-
-      <!-- Right: output ───────────────────────────── -->
-      <div class="studio__output-col">
-
-        <!-- Error state -->
-        <div v-if="errorMessage" class="studio__error">
-          <p class="studio__error-icon">⚠</p>
-          <p class="studio__error-msg">{{ errorMessage }}</p>
-          <p v-if="store.error === 'cors'" class="studio__error-hint">{{ i18n.t('studio.errorCorsHint') }}</p>
-        </div>
-
-        <!-- Loading state -->
-        <div v-else-if="store.loading" class="studio__loading">
-          <span class="studio__loading-spinner">⟳</span>
-          <p>{{ i18n.t('studio.running') }}</p>
-          <p class="studio__loading-model">{{ currentModel.label }}</p>
-        </div>
-
-        <!-- Response -->
-        <template v-else-if="store.currentRun">
-          <div class="studio__response-meta">
-            <span class="studio__response-model"
-              :style="{ color: STUDIO_MODELS.find(m => m.id === store.currentRun!.model)?.color }"
-            >{{ store.currentRun.model.split('-').slice(1, 3).join('-') }}</span>
-            <span class="studio__response-tokens">{{ store.currentRun.inputTokens }} in / {{ store.currentRun.outputTokens }} out</span>
-            <span class="studio__response-dur">{{ fmtDuration(store.currentRun.durationMs) }}</span>
-            <button class="studio__copy-btn" @click="copyResponse">
-              {{ copied ? i18n.t('studio.copied') : i18n.t('studio.copy') }}
-            </button>
-          </div>
-          <div class="studio__response-body">{{ store.currentRun.response }}</div>
-        </template>
-
-        <!-- Empty state -->
-        <div v-else class="studio__empty">
+        <p class="studio__empty-title">
+          {{ isFree ? 'Free AI — no account needed' : 'Claude API' }}
+        </p>
+        <p class="studio__empty-sub">
           <template v-if="isFree">
-            <div class="studio__empty-icon">✦</div>
-            <p class="studio__empty-title">Free AI ready</p>
-            <p class="studio__empty-sub">Ask anything — no API key needed. Powered by Pollinations.ai.</p>
-            <ul class="studio__empty-tips">
-              <li>{{ i18n.t('studio.tip1') }}</li>
-              <li>{{ i18n.t('studio.tip2') }}</li>
-              <li>{{ i18n.t('studio.tip3') }}</li>
-            </ul>
-          </template>
-          <template v-else-if="!store.apiKey">
-            <div class="studio__empty-icon">🔑</div>
-            <p class="studio__empty-title">{{ i18n.t('studio.requiresKey') }}</p>
-            <p class="studio__empty-sub">{{ i18n.t('studio.requiresKeyDesc') }}</p>
-            <div class="studio__empty-warning">
-              <p>{{ i18n.t('studio.costWarning') }}</p>
-            </div>
-            <p class="studio__empty-link">{{ i18n.t('studio.getKeyLink') }}</p>
-            <p class="studio__empty-note">{{ i18n.t('studio.proxyNote') }}</p>
+            Powered by Pollinations.ai · Llama 3, Mistral, GPT-4o mini
           </template>
           <template v-else>
-            <div class="studio__empty-icon">⚡</div>
-            <p class="studio__empty-title">{{ i18n.t('studio.emptyTitle') }}</p>
-            <p class="studio__empty-sub">{{ i18n.t('studio.emptySub') }}</p>
-            <ul class="studio__empty-tips">
-              <li>{{ i18n.t('studio.tip1') }}</li>
-              <li>{{ i18n.t('studio.tip2') }}</li>
-              <li>{{ i18n.t('studio.tip3') }}</li>
-            </ul>
+            Enter your Anthropic API key above to start chatting
           </template>
+        </p>
+
+        <!-- Quick prompts -->
+        <div v-if="isFree || store.apiKey" class="studio__quick">
+          <p class="studio__quick-label">Try asking:</p>
+          <button
+            v-for="q in QUICK_PROMPTS"
+            :key="q"
+            class="studio__quick-btn"
+            @click="useQuickPrompt(q)"
+          >
+            <UiIcon name="ArrowRight" :size="12" class="studio__quick-arrow" />
+            {{ q }}
+          </button>
         </div>
 
+        <!-- No key warning -->
+        <div v-if="!isFree && !store.apiKey" class="studio__no-key">
+          <UiIcon name="AlertCircle" :size="14" />
+          Add your Claude API key in the bar above to start chatting.
+        </div>
       </div>
 
+      <!-- Message list -->
+      <template v-else>
+        <div
+          v-for="msg in store.messages"
+          :key="msg.id"
+          class="studio__msg"
+          :class="{
+            'studio__msg--user':      msg.role === 'user',
+            'studio__msg--assistant': msg.role === 'assistant' && !msg.error,
+            'studio__msg--error':     msg.error,
+          }"
+        >
+          <div class="studio__bubble">
+            <p class="studio__bubble-text">
+              <template v-if="msg.error">
+                <span class="studio__err-row">
+                  <UiIcon name="AlertCircle" :size="14" />
+                  {{ errorText(msg.content) }}
+                </span>
+              </template>
+              <template v-else>{{ msg.content }}</template>
+            </p>
+
+            <!-- Meta row — assistant only -->
+            <div v-if="msg.role === 'assistant'" class="studio__bubble-meta">
+              <span
+                v-if="msg.model && !msg.error"
+                class="studio__meta-model"
+                :style="{ color: modelColor(msg.model) }"
+              >{{ modelLabel(msg.model) }}</span>
+              <span v-if="msg.durationMs" class="studio__meta-dur">{{ fmtDuration(msg.durationMs) }}</span>
+              <span class="studio__meta-time">{{ fmtTime(msg.timestamp) }}</span>
+              <button
+                v-if="!msg.error"
+                class="studio__copy-btn"
+                @click="copyMessage(msg.id, msg.content)"
+              >{{ copiedId === msg.id ? 'Copied!' : 'Copy' }}</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div v-if="store.loading" class="studio__msg studio__msg--assistant">
+          <div class="studio__bubble studio__bubble--typing">
+            <div class="studio__typing">
+              <span /><span /><span />
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
+
+    <!-- ── Input bar ─────────────────────────────────── -->
+    <div class="studio__input-bar">
+      <textarea
+        ref="inputEl"
+        v-model="inputText"
+        class="studio__input"
+        placeholder="Type a message… (Enter to send, Shift+Enter for new line)"
+        rows="1"
+        @keydown="onKeydown"
+        @input="onInput"
+      />
+      <button
+        class="studio__send-btn"
+        :class="{ 'studio__send-btn--ready': canSend }"
+        :disabled="!canSend && !store.loading"
+        @click="send"
+      >
+        <span :class="{ 'icon-spin': store.loading }">
+          <UiIcon :name="store.loading ? 'Loader2' : 'ArrowUp'" :size="16" />
+        </span>
+      </button>
+    </div>
+
   </div>
 </template>
 
 <style scoped>
+/* ── Layout ───────────────────────────────────────── */
 .studio {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  background: var(--color-bg);
 }
 
-/* ── Top bar ─────────────────────────────────── */
+/* ── Top bar ──────────────────────────────────────── */
 .studio__topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 12px 20px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
   flex-shrink: 0;
-  flex-wrap: wrap;
 }
 
-/* Provider toggle */
-.studio__provider-row {
+.studio__tabs {
   display: flex;
   gap: 2px;
   background: var(--color-surface-elevated);
@@ -356,109 +370,113 @@ const currentModel = computed(() =>
   border-radius: var(--radius-sm);
   padding: 2px;
 }
-.studio__provider-btn {
+
+.studio__tab {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 1px;
-  padding: 5px 14px;
+  gap: 5px;
+  padding: 5px 12px;
   border-radius: calc(var(--radius-sm) - 2px);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
   background: transparent;
   cursor: pointer;
-  transition: background var(--t-fast);
+  transition: background var(--t-fast), color var(--t-fast);
 }
-.studio__provider-btn:hover:not(.studio__provider-btn--active) { background: var(--color-surface); }
-.studio__provider-btn--active {
-  background: var(--color-accent-muted);
+.studio__tab:hover:not(.studio__tab--active) {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
 }
-.studio__provider-btn--free.studio__provider-btn--active {
-  background: color-mix(in srgb, #10b981 12%, transparent);
-}
-.studio__provider-label {
-  font-size: 13px;
+.studio__tab--active {
+  background: var(--color-surface);
+  color: var(--color-accent);
   font-weight: 600;
-  color: var(--color-text);
-  .studio__provider-btn--active & { color: var(--color-accent); }
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
 }
-.studio__provider-btn--active .studio__provider-label { color: var(--color-accent); }
-.studio__provider-btn--free.studio__provider-btn--active .studio__provider-label { color: #10b981; }
-.studio__provider-desc { font-size: 10px; color: var(--color-text-muted); }
 
-/* Free badge */
-.studio__free-badge {
+.studio__tab-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 20px;
+  background: color-mix(in srgb, #10b981 14%, transparent);
+  color: #10b981;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.studio__new-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--color-text-muted);
-  padding: 4px 10px;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, #10b981 10%, transparent);
-  border: 1px solid color-mix(in srgb, #10b981 25%, transparent);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
 }
-.studio__free-icon { color: #10b981; font-size: 14px; }
-.studio__free-badge strong { color: #10b981; }
+.studio__new-btn:hover:not(:disabled) {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+.studio__new-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Settings bar ─────────────────────────────────── */
+.studio__settings-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
 
 .studio__model-row {
   display: flex;
   gap: 4px;
+  flex: 1;
 }
 
-.studio__model-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  padding: 6px 16px;
-  border-radius: var(--radius-sm);
+.studio__chip {
+  padding: 4px 12px;
+  border-radius: 20px;
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  transition: border-color var(--t-fast), background var(--t-fast);
-  cursor: pointer;
-  min-width: 70px;
-}
-
-.studio__model-btn:hover:not(.studio__model-btn--active) {
-  background: var(--color-surface-elevated);
-}
-
-.studio__model-btn--active {
-  border-color: var(--model-color, var(--color-accent));
-  background: color-mix(in srgb, var(--model-color, var(--color-accent)) 10%, transparent);
-}
-
-.studio__model-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  .studio__model-btn--active & { color: var(--model-color, var(--color-accent)); }
-}
-
-.studio__model-btn--active .studio__model-label {
-  color: var(--model-color, var(--color-accent));
-}
-
-.studio__model-desc {
-  font-size: 11px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.studio__chip:hover:not(.studio__chip--active) {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+}
+.studio__chip--active {
+  border-color: var(--chip-color, var(--color-accent));
+  background: color-mix(in srgb, var(--chip-color, var(--color-accent)) 12%, transparent);
+  color: var(--chip-color, var(--color-accent));
+  font-weight: 600;
 }
 
-/* Key input */
+/* API key */
 .studio__key-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
 }
-
-.studio__key-label {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
-.studio__key-input-wrap {
+.studio__key-wrap {
   display: flex;
   align-items: center;
   border: 1px solid var(--color-border);
@@ -466,80 +484,61 @@ const currentModel = computed(() =>
   background: var(--color-bg);
   overflow: hidden;
 }
-
 .studio__key-input {
-  font-size: 13px;
+  font-size: 12px;
   font-family: var(--font-mono);
   color: var(--color-text);
   background: transparent;
   border: none;
   outline: none;
-  padding: 5px 10px;
-  width: 200px;
+  padding: 4px 8px;
+  width: 160px;
 }
-
-.studio__key-toggle {
-  padding: 5px 8px;
-  font-size: 10px;
+.studio__key-eye {
+  padding: 4px 7px;
   color: var(--color-text-muted);
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
+  cursor: pointer;
   transition: color var(--t-fast);
 }
-.studio__key-toggle:hover { color: var(--color-accent); }
-
-.studio__key-indicator {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.studio__key-indicator--set {
+.studio__key-eye:hover { color: var(--color-accent); }
+.studio__key-ok {
+  font-size: 11px;
   color: var(--color-success);
+  white-space: nowrap;
 }
 
-/* ── Workspace ───────────────────────────────── */
-.studio__workspace {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* ── Input column ────────────────────────────── */
-.studio__input-col {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-  border-right: 1px solid var(--color-border);
-  overflow-y: auto;
-  background: var(--color-surface);
-}
-
-.studio__section-head {
+/* System prompt button */
+.studio__sys-btn {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
   cursor: pointer;
-  user-select: none;
-  padding: 2px 0;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.studio__sys-btn:hover {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
 }
 
-.studio__section-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
+/* ── System area ──────────────────────────────────── */
+.studio__system-area {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
 }
-
-.studio__section-chevron {
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
-.studio__system-textarea {
+.studio__system-ta {
+  width: 100%;
+  box-sizing: border-box;
   font-size: 13px;
   font-family: var(--font-mono);
   color: var(--color-text);
@@ -548,278 +547,21 @@ const currentModel = computed(() =>
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   resize: vertical;
-  min-height: 64px;
+  min-height: 56px;
   outline: none;
   line-height: 1.5;
   transition: border-color var(--t-fast);
 }
-.studio__system-textarea:focus { border-color: var(--color-accent); }
+.studio__system-ta:focus { border-color: var(--color-accent); }
 
-.studio__prompt-textarea {
-  font-size: 14px;
-  font-family: var(--font-sans);
-  color: var(--color-text);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  resize: none;
-  flex: 1;
-  min-height: 140px;
-  outline: none;
-  line-height: 1.6;
-  transition: border-color var(--t-fast);
-}
-.studio__prompt-textarea:focus { border-color: var(--color-accent); }
-
-/* Run button */
-.studio__run-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
-  background: var(--color-accent);
-  color: #fff;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 600;
-  transition: opacity var(--t-fast), transform var(--t-fast);
-  width: 100%;
-  cursor: pointer;
-}
-.studio__run-btn:hover:not(:disabled) { opacity: 0.88; }
-.studio__run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.studio__run-btn--loading { cursor: wait; }
-
-.studio__run-spinner {
-  display: inline-block;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.studio__run-kbd {
-  font-size: 11px;
-  background: rgba(255,255,255,0.15);
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-family: var(--font-mono);
-  letter-spacing: 0;
-}
-
-/* Max tokens */
-.studio__tokens-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.studio__tokens-label {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  flex: 1;
-}
-
-.studio__tokens-input {
-  font-size: 13px;
-  font-family: var(--font-mono);
-  color: var(--color-text);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 4px 8px;
-  width: 80px;
-  outline: none;
-  text-align: right;
-}
-
-/* History */
-.studio__history {
-  border-top: 1px solid var(--color-border);
-  padding-top: 10px;
-  margin-top: 4px;
-}
-
-.studio__history-search {
-  font-size: 13px;
-  color: var(--color-text);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 5px 8px;
-  width: 100%;
-  outline: none;
-  margin: 6px 0 4px;
-}
-
-.studio__history-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-.studio__history-item {
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  transition: background var(--t-fast);
-}
-.studio__history-item:hover { background: var(--color-surface-elevated); }
-.studio__history-item--active { background: var(--color-accent-muted); }
-
-.studio__history-prompt {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.studio__history-meta {
-  font-size: 11px;
-  font-family: var(--font-mono);
-  color: var(--color-text-muted);
-}
-
-.studio__history-clear {
-  margin-top: 6px;
-  font-size: 11px;
-  color: var(--color-text-muted);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  transition: color var(--t-fast), background var(--t-fast);
-}
-.studio__history-clear:hover {
-  color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
-}
-
-/* ── Output column ───────────────────────────── */
-.studio__output-col {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--color-bg);
-}
-
-/* Error */
-.studio__error {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 40px;
-  text-align: center;
-}
-
-.studio__error-icon {
-  font-size: 28px;
-  color: var(--color-warning);
-  margin: 0;
-}
-
-.studio__error-msg {
-  font-size: 15px;
-  color: var(--color-text);
-  font-weight: 500;
-  margin: 0;
-  max-width: 400px;
-}
-
-.studio__error-hint {
-  font-size: 13px;
-  color: var(--color-text-muted);
-  margin: 0;
-  max-width: 420px;
-  line-height: 1.5;
-}
-
-/* Loading */
-.studio__loading {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: var(--color-text-muted);
-}
-
-.studio__loading-spinner {
-  font-size: 28px;
-  animation: spin 0.8s linear infinite;
-  display: inline-block;
-}
-
-.studio__loading p { margin: 0; font-size: 14px; }
-
-.studio__loading-model {
-  font-size: 13px;
-  font-family: var(--font-mono);
-  color: var(--color-text-muted);
-}
-
-/* Response meta bar */
-.studio__response-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-  flex-shrink: 0;
-}
-
-.studio__response-model {
-  font-size: 13px;
-  font-family: var(--font-mono);
-  font-weight: 600;
-}
-
-.studio__response-tokens {
-  font-size: 12px;
-  font-family: var(--font-mono);
-  color: var(--color-text-muted);
-  flex: 1;
-}
-
-.studio__response-dur {
-  font-size: 12px;
-  font-family: var(--font-mono);
-  color: var(--color-text-muted);
-}
-
-.studio__copy-btn {
-  font-size: 12px;
-  color: var(--color-accent);
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-accent-muted);
-  transition: background var(--t-fast);
-}
-.studio__copy-btn:hover { background: var(--color-accent-muted); }
-
-/* Response body */
-.studio__response-body {
+/* ── Messages ─────────────────────────────────────── */
+.studio__messages {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 24px;
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--color-text);
-  white-space: pre-wrap;
-  word-break: break-word;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 /* Empty state */
@@ -830,90 +572,278 @@ const currentModel = computed(() =>
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 40px;
+  padding: 32px 24px;
   text-align: center;
 }
-
 .studio__empty-icon {
-  font-size: 36px;
-  opacity: 0.4;
+  color: var(--color-accent);
+  opacity: 0.45;
+  margin-bottom: 4px;
 }
-
 .studio__empty-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text-secondary);
   margin: 0;
 }
-
 .studio__empty-sub {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--color-text-muted);
   margin: 0;
-  max-width: 360px;
+  max-width: 340px;
+  line-height: 1.5;
 }
 
-.studio__empty-tips {
-  list-style: none;
-  padding: 0;
-  margin: 8px 0 0;
+/* Quick prompts */
+.studio__quick {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  margin-top: 8px;
+  width: 100%;
+  max-width: 340px;
+}
+.studio__quick-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+  margin: 0 0 2px;
   text-align: left;
 }
-
-.studio__empty-tips li {
-  font-size: 13px;
-  color: var(--color-text-muted);
-  padding-left: 16px;
-  position: relative;
-}
-.studio__empty-tips li::before {
-  content: '→';
-  position: absolute;
-  left: 0;
-  color: var(--color-accent);
-}
-
-.studio__empty-warning {
-  padding: 10px 16px;
-  background: rgba(240, 160, 48, 0.08);
-  border: 1px solid rgba(240, 160, 48, 0.2);
+.studio__quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  max-width: 400px;
+  background: var(--color-surface);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
 }
-.studio__empty-warning p {
+.studio__quick-btn:hover {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+.studio__quick-arrow {
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+/* No key warning */
+.studio__no-key {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
   color: var(--color-warning);
-  margin: 0;
-  line-height: 1.5;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 20%, transparent);
+  margin-top: 4px;
+  max-width: 380px;
+  line-height: 1.4;
 }
 
-.studio__empty-link {
-  font-size: 13px;
-  color: var(--color-accent);
-  margin: 0;
+/* ── Chat messages ────────────────────────────────── */
+.studio__msg {
+  display: flex;
+}
+.studio__msg--user      { justify-content: flex-end; }
+.studio__msg--assistant,
+.studio__msg--error     { justify-content: flex-start; }
+
+.studio__bubble {
+  max-width: 75%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.studio__empty-note {
-  font-size: 12px;
+/* User bubble */
+.studio__msg--user .studio__bubble {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  border-radius: 14px 14px 3px 14px;
+  padding: 10px 14px;
+}
+
+/* Assistant bubble */
+.studio__msg--assistant .studio__bubble {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px 14px 14px 3px;
+  padding: 10px 14px;
+}
+
+/* Error bubble */
+.studio__msg--error .studio__bubble {
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 20%, transparent);
+  border-radius: 14px 14px 14px 3px;
+  padding: 10px 14px;
+}
+
+.studio__bubble-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.studio__err-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--color-danger);
+}
+
+/* Meta row */
+.studio__bubble-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.studio__meta-model {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+.studio__meta-dur {
+  font-size: 11px;
+  font-family: var(--font-mono);
   color: var(--color-text-muted);
-  margin: 0;
-  max-width: 400px;
-  line-height: 1.5;
+}
+.studio__meta-time {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+.studio__copy-btn {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 1px 7px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.studio__copy-btn:hover {
+  color: var(--color-accent);
+  background: var(--color-surface-elevated);
 }
 
-/* ── Responsive ──────────────────────────────── */
-@media (max-width: 900px) {
-  .studio__workspace { grid-template-columns: 280px 1fr; }
+/* Typing indicator */
+.studio__bubble--typing {
+  padding: 13px 16px;
+}
+.studio__typing {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.studio__typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  animation: typing-dot 1.2s ease-in-out infinite;
+}
+.studio__typing span:nth-child(2) { animation-delay: 0.2s; }
+.studio__typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-dot {
+  0%, 100% { transform: translateY(0);    opacity: 0.4; }
+  50%       { transform: translateY(-4px); opacity: 1;   }
+}
+
+/* ── Input bar ────────────────────────────────────── */
+.studio__input-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+
+.studio__input {
+  flex: 1;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  resize: none;
+  min-height: 42px;
+  max-height: 180px;
+  outline: none;
+  line-height: 1.5;
+  overflow-y: auto;
+  transition: border-color var(--t-fast);
+}
+.studio__input:focus { border-color: var(--color-accent); }
+.studio__input::placeholder { color: var(--color-text-muted); }
+
+.studio__send-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.studio__send-btn--ready {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+.studio__send-btn--ready:hover { opacity: 0.88; }
+.studio__send-btn:disabled:not(.studio__send-btn--ready) {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.icon-spin {
+  display: flex;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 1279px) {
+  .studio__bubble { max-width: 82%; }
 }
 
 @media (max-width: 767px) {
-  .studio__workspace { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-  .studio__input-col { border-right: none; border-bottom: 1px solid var(--color-border); overflow: visible; }
-  .studio__prompt-textarea { min-height: 100px; }
-  .studio__topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .studio__key-input { width: 150px; }
+  .studio__topbar      { padding: 8px 12px; }
+  .studio__settings-bar { padding: 6px 12px; gap: 6px; }
+  .studio__messages    { padding: 14px 12px; }
+  .studio__input-bar   { padding: 10px 12px; }
+  .studio__bubble      { max-width: 90%; }
+  .studio__key-input   { width: 120px; }
+  .studio__tab         { padding: 4px 8px; font-size: 12px; }
+  .studio__tab-badge   { display: none; }
 }
 </style>
