@@ -3,13 +3,20 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PLATFORM_MODULES, type ModuleMeta } from '@/core/registry/modules'
 import { useUiStore } from '@/core/stores/ui.store'
+import { useAuthStore } from '@/core/stores/auth.store'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 
 const route  = useRoute()
 const router = useRouter()
 const uiStore = useUiStore()
+const auth = useAuthStore()
 const i18n = useLocale()
+
+function logout() {
+  auth.logout()
+  router.push('/welcome')
+}
 
 const systemModules = computed(() => PLATFORM_MODULES.filter(m => m.section === 'system'))
 const lifeModules   = computed(() => PLATFORM_MODULES.filter(m => m.section === 'life'))
@@ -105,8 +112,48 @@ function goHome() {
       </template>
     </nav>
 
-    <!-- Footer: pin/collapse toggle (desktop only) -->
+    <!-- Footer: user + pin/collapse -->
     <div class="sidebar__footer">
+
+      <!-- User row (only when logged in) -->
+      <div v-if="auth.isLoggedIn" class="sidebar__user">
+        <!-- Avatar initials -->
+        <div class="sidebar__user-avatar" :class="{ 'sidebar__user-avatar--demo': auth.isDemoMode }">
+          <UiIcon v-if="auth.isDemoMode" name="FlaskConical" :size="13" :stroke-width="2" />
+          <span v-else>{{ (auth.user?.displayName ?? auth.user?.email ?? '?')[0].toUpperCase() }}</span>
+        </div>
+        <!-- Name + email -->
+        <div class="sidebar__user-info">
+          <span class="sidebar__user-name">
+            {{ auth.isDemoMode ? 'Demo mode' : (auth.user?.displayName ?? auth.user?.email) }}
+          </span>
+          <span class="sidebar__user-email">
+            {{ auth.user?.email }}
+          </span>
+        </div>
+        <!-- Logout -->
+        <button
+          class="sidebar__user-logout"
+          title="Sign out"
+          @click="logout"
+        >
+          <UiIcon name="LogOut" :size="14" :stroke-width="1.75" />
+        </button>
+      </div>
+
+      <!-- Sign in prompt (guest) -->
+      <button
+        v-else
+        class="sidebar__sign-in"
+        @click="router.push('/login')"
+      >
+        <span class="sidebar__icon">
+          <UiIcon name="LogIn" :size="15" :stroke-width="1.75" />
+        </span>
+        <span class="sidebar__label">Sign in</span>
+      </button>
+
+      <!-- Pin toggle -->
       <button
         class="sidebar__pin-btn"
         :title="uiStore.sidebarOpen ? i18n.t('header.collapseSidebar') : i18n.t('header.expandSidebar')"
@@ -355,6 +402,118 @@ function goHome() {
   padding: 8px;
   border-top: 1px solid var(--color-border);
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ── User row ────────────────────────────────────────────────────── */
+.sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar__user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--color-accent-muted);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.sidebar__user-avatar--demo {
+  background: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning, #f59e0b) 40%, transparent);
+  color: var(--color-warning, #f59e0b);
+}
+
+.sidebar__user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.sidebar__user-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__user-email {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__user-logout {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+  flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease, background var(--t-fast), color var(--t-fast);
+}
+
+.sidebar__user-logout:hover {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+}
+
+/* Sign in button (guest) */
+.sidebar__sign-in {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.sidebar__sign-in:hover {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
 }
 
 .sidebar__pin-btn {
@@ -412,7 +571,9 @@ function goHome() {
 .sidebar--pinned .sidebar__section-text,
 .sidebar--pinned .sidebar__label,
 .sidebar--pinned .sidebar__soon,
-.sidebar--pinned .sidebar__pin-label {
+.sidebar--pinned .sidebar__pin-label,
+.sidebar--pinned .sidebar__user-info,
+.sidebar--pinned .sidebar__user-logout {
   opacity: 1;
   pointer-events: auto;
 }
@@ -421,7 +582,9 @@ function goHome() {
 .sidebar--drawer-open .sidebar__brand-name,
 .sidebar--drawer-open .sidebar__section-text,
 .sidebar--drawer-open .sidebar__label,
-.sidebar--drawer-open .sidebar__soon {
+.sidebar--drawer-open .sidebar__soon,
+.sidebar--drawer-open .sidebar__user-info,
+.sidebar--drawer-open .sidebar__user-logout {
   opacity: 1;
   pointer-events: auto;
 }
@@ -432,7 +595,9 @@ function goHome() {
   .sidebar:not(.sidebar--pinned):hover .sidebar__section-text,
   .sidebar:not(.sidebar--pinned):hover .sidebar__label,
   .sidebar:not(.sidebar--pinned):hover .sidebar__soon,
-  .sidebar:not(.sidebar--pinned):hover .sidebar__pin-label {
+  .sidebar:not(.sidebar--pinned):hover .sidebar__pin-label,
+  .sidebar:not(.sidebar--pinned):hover .sidebar__user-info,
+  .sidebar:not(.sidebar--pinned):hover .sidebar__user-logout {
     opacity: 1;
     pointer-events: auto;
     transition: opacity 140ms ease 60ms;
