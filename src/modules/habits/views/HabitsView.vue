@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useHabitsStore } from '../stores/habits.store'
+import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useLocale } from '@/core/i18n'
 import HabitCard from '../components/HabitCard.vue'
 
 const store = useHabitsStore()
+const goalsStore = useGoalsStore()
 const i18n = useLocale()
 
-const showForm = ref(false)
-const newName = ref('')
-const newEmoji = ref('')
+const showForm  = ref(false)
+const newName   = ref('')
+const newEmoji  = ref('')
+const newGoalId = ref('')
 const nameInputRef = ref<HTMLInputElement>()
 
 const todayLabel = computed(() =>
@@ -22,12 +25,18 @@ function openForm() {
   showForm.value = true
   newName.value = ''
   newEmoji.value = ''
+  newGoalId.value = ''
   setTimeout(() => nameInputRef.value?.focus(), 50)
 }
 
 function submitForm() {
   if (!newName.value.trim()) return
   store.createHabit(newName.value, newEmoji.value)
+  // Link to goal if selected
+  if (newGoalId.value) {
+    const created = store.habits[store.habits.length - 1]
+    if (created) store.updateHabitLink(created.id, { linkedGoalId: newGoalId.value })
+  }
   showForm.value = false
 }
 
@@ -77,6 +86,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         :placeholder="i18n.t('habits.namePlaceholder')"
         maxlength="60"
       />
+      <!-- Optional goal link -->
+      <select
+        v-if="goalsStore.activeGoals.length"
+        v-model="newGoalId"
+        class="habits__form-goal"
+        title="Link this habit to a goal (optional)"
+      >
+        <option value="">🎯 No goal</option>
+        <option
+          v-for="g in goalsStore.activeGoals"
+          :key="g.id"
+          :value="g.id"
+        >{{ g.coverEmoji }} {{ g.title }}</option>
+      </select>
       <div class="habits__form-actions">
         <button class="habits__form-save" @click="submitForm">{{ i18n.t('habits.formSave') }}</button>
         <button class="habits__form-cancel" @click="cancelForm">{{ i18n.t('habits.formCancel') }}</button>
@@ -211,6 +234,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   transition: background var(--t-fast);
 }
 .habits__form-cancel:hover { background: var(--color-border); }
+
+.habits__form-goal {
+  font-size: 13px;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--t-fast);
+}
+.habits__form-goal:focus { border-color: var(--color-accent); }
 
 /* Grid */
 .habits__grid {

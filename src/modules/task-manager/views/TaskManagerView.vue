@@ -5,6 +5,7 @@ import TaskInput from '../components/TaskInput.vue'
 import TaskFilters from '../components/TaskFilters.vue'
 import TaskList from '../components/TaskList.vue'
 import TaskProgress from '../components/TaskProgress.vue'
+import PomodoroPanel from '../components/PomodoroPanel.vue'
 import { useLocale } from '@/core/i18n'
 import { UiButton } from '@/ui'
 
@@ -29,6 +30,7 @@ const CATEGORIES: { val: TaskCategory | 'all'; labelKey: string }[] = [
 
 const focusedId    = ref<string | null>(null)
 const taskInputRef = ref<InstanceType<typeof TaskInput>>()
+const showPomodoro = ref(false)
 
 function onKeydown(e: KeyboardEvent) {
   const target = e.target as HTMLElement
@@ -78,6 +80,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       </div>
       <div class="tm-view__actions">
         <UiButton
+          variant="ghost"
+          size="sm"
+          :title="showPomodoro ? 'Hide focus timer' : 'Show focus timer'"
+          @click="showPomodoro = !showPomodoro"
+        >🍅 Focus</UiButton>
+        <UiButton
           v-if="store.totalCount > 0"
           variant="ghost"
           size="sm"
@@ -100,6 +108,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         >{{ i18n.t('tasks.clearDone') }}</UiButton>
       </div>
     </div>
+
+    <!-- Pomodoro panel (collapsible) -->
+    <Transition name="pomo-slide">
+      <PomodoroPanel v-if="showPomodoro" />
+    </Transition>
 
     <!-- Input -->
     <TaskInput
@@ -206,6 +219,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   opacity: 0.5;
   font-family: var(--font-mono);
 }
+
+/* Pomodoro transition */
+.pomo-slide-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.pomo-slide-leave-active { transition: opacity 0.15s ease; }
+.pomo-slide-enter-from   { opacity: 0; transform: translateY(-8px); }
+.pomo-slide-leave-to     { opacity: 0; }
 
 /* Category chips */
 .tm-view__cats,

@@ -15,6 +15,7 @@ import ModuleDetailPanel from '../components/ModuleDetailPanel.vue'
 import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '../components/AllTasksPanel.vue'
 import RecentActivityPanel from '../components/RecentActivityPanel.vue'
 import DashboardTodayPanel from '../components/DashboardTodayPanel.vue'
+import GitHubWidget from '../components/GitHubWidget.vue'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 
@@ -217,6 +218,9 @@ const APP_VERSION = __APP_VERSION__
         <span v-if="trainingStore.todayItems.some(i => i.logged)" class="life-stat__done">{{ trainingStore.todayItems.filter(i => i.logged).length }} {{ i18n.t('dashboard.doneSuffix') }}</span>
       </div>
     </div>
+
+    <!-- GitHub Activity Widget ─────────────────────────────────────── -->
+    <GitHubWidget />
 
     <!-- Workspace: module list + detail panel ───────────────────── -->
     <div class="dashboard__workspace">

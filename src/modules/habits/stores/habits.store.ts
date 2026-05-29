@@ -27,10 +27,33 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     if (idx === -1) {
       habit.completedDates.push(today)
       events.emit({ type: 'habit:checked', habitId: id, habitName: habit.name, timestamp: new Date().toISOString() })
+      // Auto-complete next milestone of linked goal
+      if (habit.linkedGoalId) {
+        import('@/modules/goals/stores/goals.store').then(({ useGoalsStore }) => {
+          const goalsStore = useGoalsStore()
+          const goal = goalsStore.goals.find(g => g.id === habit.linkedGoalId)
+          if (goal) {
+            const next = goal.milestones.find(m => !m.completed)
+            if (next) goalsStore.toggleMilestone(goal.id, next.id)
+          }
+        })
+      }
     } else {
       habit.completedDates.splice(idx, 1)
       events.emit({ type: 'habit:unchecked', habitId: id, habitName: habit.name, timestamp: new Date().toISOString() })
     }
+  }
+
+  function updateHabitLink(id: string, links: {
+    linkedGoalId?: string
+    linkedLearningPlanId?: string
+    linkedTrainingPlanId?: string
+  }): void {
+    const habit = habits.value.find(h => h.id === id)
+    if (!habit) return
+    if ('linkedGoalId' in links) habit.linkedGoalId = links.linkedGoalId
+    if ('linkedLearningPlanId' in links) habit.linkedLearningPlanId = links.linkedLearningPlanId
+    if ('linkedTrainingPlanId' in links) habit.linkedTrainingPlanId = links.linkedTrainingPlanId
   }
 
   function updateHabit(id: string, name: string, emoji?: string): void {
@@ -50,5 +73,5 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     return habit ? habit.completedDates.includes(todayStr()) : false
   }
 
-  return { habits, createHabit, updateHabit, toggleToday, deleteHabit, isCompletedToday }
+  return { habits, createHabit, updateHabit, updateHabitLink, toggleToday, deleteHabit, isCompletedToday }
 })

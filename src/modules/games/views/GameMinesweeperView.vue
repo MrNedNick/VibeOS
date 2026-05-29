@@ -20,8 +20,83 @@ interface Cell {
   adjacent: number
 }
 
-// ── State ─────────────────────────────────────────────────────────────
-const best = useStorage<number>('platform:games:minesweeper:best', 0)
+// ── Skins ─────────────────────────────────────────────────────────────
+interface MinesweeperSkin {
+  id: string
+  name: string
+  emoji: string
+  desc: string
+  unlock: number   // best-time threshold in seconds (0 = always unlocked)
+  vars: Record<string, string>  // CSS custom property overrides
+}
+
+const SKINS: MinesweeperSkin[] = [
+  {
+    id: 'classic', name: 'Classic', emoji: '🟦', desc: 'Default style',
+    unlock: 0,
+    vars: {},
+  },
+  {
+    id: 'dark', name: 'Dark', emoji: '⬛', desc: 'Unlock: beat 120s',
+    unlock: 120,
+    vars: {
+      '--ms-cell-hidden': '#1a1a2e',
+      '--ms-cell-hidden-border': '#333366',
+      '--ms-cell-revealed': '#0d0d1a',
+      '--ms-cell-mine': '#3d0000',
+      '--ms-cell-flag': '#1a2e1a',
+      '--ms-board-bg': '#111',
+    },
+  },
+  {
+    id: 'retro', name: 'Retro', emoji: '🟩', desc: 'Unlock: beat 90s',
+    unlock: 90,
+    vars: {
+      '--ms-cell-hidden': '#001200',
+      '--ms-cell-hidden-border': '#00ff41',
+      '--ms-cell-revealed': '#000d00',
+      '--ms-cell-mine': '#400000',
+      '--ms-cell-flag': '#003300',
+      '--ms-board-bg': '#000800',
+      '--ms-accent': '#00ff41',
+    },
+  },
+  {
+    id: 'neon', name: 'Neon', emoji: '🟪', desc: 'Unlock: beat 60s',
+    unlock: 60,
+    vars: {
+      '--ms-cell-hidden': '#1a0030',
+      '--ms-cell-hidden-border': '#9b59b6',
+      '--ms-cell-revealed': '#110022',
+      '--ms-cell-mine': '#3d0055',
+      '--ms-cell-flag': '#002244',
+      '--ms-board-bg': '#0d0018',
+      '--ms-accent': '#e040fb',
+    },
+  },
+]
+
+// ── Persistent skin state ──────────────────────────────────────────────
+const best          = useStorage<number>('platform:games:minesweeper:best', 0)
+const unlockedSkins = useStorage<string[]>('platform:games:minesweeper:unlocked', ['classic'])
+const activeSkinId  = useStorage<string>('platform:games:minesweeper:skin', 'classic')
+
+// ── Derived skin data ──────────────────────────────────────────────────
+const activeSkin = computed(() => SKINS.find(s => s.id === activeSkinId.value) ?? SKINS[0])
+
+const skinsWithStatus = computed(() =>
+  SKINS.map(s => ({
+    ...s,
+    unlocked: unlockedSkins.value.includes(s.id),
+    active:   activeSkinId.value === s.id,
+  }))
+)
+
+const skinCssVars = computed(() => activeSkin.value.vars)
+
+// Flash newly unlocked skin
+const newUnlocks = ref<string[]>([])
+
 const gameState = ref<GameState>('idle')
 const board = ref<Cell[][]>([])
 const flagCount = ref(0)
@@ -130,7 +205,18 @@ function checkWin(): void {
   if (allSafeCellsRevealed) {
     gameState.value = 'won'
     clearInterval(timerInterval)
-    if (best.value === 0 || elapsed.value < best.value) best.value = elapsed.value
+    const isNewBest = best.value === 0 || elapsed.value < best.value
+    if (isNewBest) best.value = elapsed.value
+
+    // Unlock skins based on time
+    const newBestTime = best.value
+    newUnlocks.value = []
+    for (const skin of SKINS) {
+      if (skin.unlock > 0 && newBestTime <= skin.unlock && !unlockedSkins.value.includes(skin.id)) {
+        unlockedSkins.value = [...unlockedSkins.value, skin.id]
+        newUnlocks.value = [...newUnlocks.value, skin.id]
+      }
+    }
   }
 }
 
@@ -175,7 +261,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="game">
+  <div class="game" :style="skinCssVars">
 
     <!-- Header -->
     <div class="game__header">
@@ -253,6 +339,35 @@ onUnmounted(() => {
           <button class="btn-overlay" @click="startGame">Try again</button>
         </div>
       </Transition>
+    </div>
+
+    <!-- New unlock notice -->
+    <Transition name="unlock">
+      <div v-if="newUnlocks.length" class="game__unlocks">
+        🎉 New skin{{ newUnlocks.length > 1 ? 's' : '' }} unlocked:
+        <strong>{{ newUnlocks.map(id => SKINS.find(s => s.id === id)?.name ?? id).join(', ') }}</strong>
+      </div>
+    </Transition>
+
+    <!-- Skin selector -->
+    <div class="game__skins">
+      <span class="game__skins-label">Skins:</span>
+      <button
+        v-for="skin in skinsWithStatus"
+        :key="skin.id"
+        class="game__skin-btn"
+        :class="{
+          'game__skin-btn--active':   skin.active,
+          'game__skin-btn--locked':   !skin.unlocked,
+        }"
+        :title="skin.unlocked ? skin.name : `${skin.name} — ${skin.desc}`"
+        :disabled="!skin.unlocked"
+        @click="activeSkinId = skin.id"
+      >
+        {{ skin.emoji }}
+        <span class="game__skin-name">{{ skin.name }}</span>
+        <span v-if="!skin.unlocked" class="game__skin-lock">🔒</span>
+      </button>
     </div>
 
     <p class="game__controls">Left click: reveal · Right click / long press: flag · R: new game</p>
@@ -363,7 +478,7 @@ onUnmounted(() => {
   display: inline-flex;
   flex-direction: column;
   gap: 2px;
-  background: var(--color-surface);
+  background: var(--ms-board-bg, var(--color-surface));
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: 8px;
@@ -394,37 +509,104 @@ onUnmounted(() => {
 }
 
 .cell--hidden {
-  background: var(--color-surface-elevated);
-  border-color: var(--color-border);
+  background: var(--ms-cell-hidden, var(--color-surface-elevated));
+  border-color: var(--ms-cell-hidden-border, var(--color-border));
 }
 .cell--hidden:not(:disabled):hover {
-  background: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface-elevated));
-  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--ms-accent, var(--color-accent)) 15%, var(--ms-cell-hidden, var(--color-surface-elevated)));
+  border-color: var(--ms-accent, var(--color-accent));
 }
 
 .cell--flag {
-  background: color-mix(in srgb, #f59e0b 12%, var(--color-surface-elevated));
+  background: var(--ms-cell-flag, color-mix(in srgb, #f59e0b 12%, var(--color-surface-elevated)));
   border-color: rgba(245,158,11,0.4);
 }
 
 .cell--revealed {
-  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-bg));
+  background: var(--ms-cell-revealed, color-mix(in srgb, var(--color-accent) 6%, var(--color-bg)));
   border-color: var(--color-border);
   cursor: default;
 }
 
 .cell--safe {
-  background: var(--color-bg);
+  background: var(--ms-cell-revealed, var(--color-bg));
   border-color: transparent;
 }
 
 .cell--mine {
-  background: color-mix(in srgb, #ef4444 20%, var(--color-surface));
+  background: var(--ms-cell-mine, color-mix(in srgb, #ef4444 20%, var(--color-surface)));
   border-color: rgba(239,68,68,0.4);
   cursor: default;
 }
 
 .cell:disabled { cursor: default; }
+
+/* ── Skin selector ────────────────────────────────────────────────────── */
+.game__skins {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.game__skins-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+}
+
+.game__skin-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+}
+.game__skin-btn:hover:not(.game__skin-btn--locked) {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+.game__skin-btn--active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.game__skin-btn--locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.game__skin-name {
+  font-size: 12px;
+}
+
+.game__skin-lock { font-size: 11px; }
+
+/* ── Unlock notice ────────────────────────────────────────────────────── */
+.game__unlocks {
+  padding: 10px 14px;
+  background: color-mix(in srgb, #10b981 12%, transparent);
+  border: 1px solid color-mix(in srgb, #10b981 35%, transparent);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: #10b981;
+  text-align: center;
+}
+
+.unlock-enter-active { transition: opacity 0.4s ease, transform 0.4s ease; }
+.unlock-leave-active { transition: opacity 0.4s ease; }
+.unlock-enter-from   { opacity: 0; transform: translateY(-8px); }
+.unlock-leave-to     { opacity: 0; }
 
 /* ── Overlays ─────────────────────────────────────────────────────────── */
 .overlay {

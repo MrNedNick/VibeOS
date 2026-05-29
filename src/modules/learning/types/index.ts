@@ -23,6 +23,7 @@ export interface LearningPlan {
   notes?: string
   coverEmoji: string
   createdAt: string
+  linkedHabitId?: string  // auto-check this habit when a session is logged
 }
 
 export interface LearningSession {

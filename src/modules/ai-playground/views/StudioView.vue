@@ -1,18 +1,116 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted } from 'vue'
+import { marked } from 'marked'
 import { useStudioStore } from '../stores/studio.store'
 import { STUDIO_MODELS, FREE_MODELS } from '../types'
 import { UiIcon } from '@/ui'
+import { useGoalsStore } from '@/modules/goals/stores/goals.store'
+import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
+import { useHabitsStore } from '@/modules/habits/stores/habits.store'
+import { useLearningStore } from '@/modules/learning/stores/learning.store'
+import { useTrainingStore } from '@/modules/training/stores/training.store'
+
+// ── Markdown renderer ──────────────────────────────────────────────
+marked.setOptions({ breaks: true })
+function renderMarkdown(content: string): string {
+  return marked.parse(content) as string
+}
+
+// ── Project context stores ─────────────────────────────────────────
+const goalsStore    = useGoalsStore()
+const tasksStore    = useTasksStore()
+const habitsStore   = useHabitsStore()
+const learningStore = useLearningStore()
+const trainingStore = useTrainingStore()
+
+function buildProjectContext(): string {
+  const today = new Date().toISOString().split('T')[0]
+  const lines: string[] = [
+    '=== YOUR VIBEOS PROJECT DATA ===',
+    `Today: ${new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`,
+    '',
+  ]
+
+  // Goals
+  const activeGoals = goalsStore.activeGoals
+  if (activeGoals.length > 0) {
+    lines.push(`ACTIVE GOALS (${activeGoals.length}):`)
+    for (const g of activeGoals.slice(0, 5)) {
+      const prog = goalsStore.getProgress(g.id)
+      const done = g.milestones.filter((m: { completed: boolean }) => m.completed).length
+      lines.push(`• ${g.coverEmoji} ${g.title} — ${prog}% (${done}/${g.milestones.length} milestones)`)
+    }
+    lines.push('')
+  }
+
+  // Active tasks
+  const activeTasks = tasksStore.tasks.filter(t => !t.done).slice(0, 8)
+  if (activeTasks.length > 0) {
+    lines.push(`ACTIVE TASKS (${tasksStore.activeCount} total, showing ${activeTasks.length}):`)
+    for (const t of activeTasks) {
+      const pri = t.priority !== 'none' ? ` [${t.priority}]` : ''
+      const due = t.dueDate ? ` · due ${t.dueDate}` : ''
+      lines.push(`• ${t.text}${pri}${due}`)
+    }
+    lines.push('')
+  }
+
+  // Habits today
+  if (habitsStore.habits.length > 0) {
+    const doneCnt = habitsStore.habits.filter(h => h.completedDates.includes(today)).length
+    lines.push(`HABITS TODAY (${doneCnt}/${habitsStore.habits.length} done):`)
+    for (const h of habitsStore.habits) {
+      const isDone = h.completedDates.includes(today)
+      lines.push(`• ${h.emoji} ${h.name}: ${isDone ? '✓ done' : '○ pending'}`)
+    }
+    lines.push('')
+  }
+
+  // Learning
+  if (learningStore.activePlans.length > 0) {
+    lines.push(`LEARNING (${learningStore.activePlans.length} active plans):`)
+    for (const plan of learningStore.activePlans.slice(0, 5)) {
+      const logged = learningStore.isLoggedToday(plan.id)
+      lines.push(`• ${plan.coverEmoji} ${plan.title}: ${logged ? '✓ logged today' : '○ not yet today'}`)
+    }
+    lines.push('')
+  }
+
+  // Training
+  if (trainingStore.activePlans.length > 0) {
+    lines.push(`TRAINING (${trainingStore.activePlans.length} active plans):`)
+    for (const plan of trainingStore.activePlans.slice(0, 5)) {
+      const logged = trainingStore.isLoggedToday(plan.id)
+      lines.push(`• ${plan.coverEmoji} ${plan.title}: ${logged ? '✓ logged today' : '○ not yet today'}`)
+    }
+    lines.push('')
+  }
+
+  lines.push('=== END OF PROJECT DATA ===')
+  return lines.join('\n')
+}
 
 const store = useStudioStore()
 
 // ── Local state ────────────────────────────────────
-const inputText  = ref('')
-const showSystem = ref(false)
-const showKey    = ref(false)
-const messagesEl = ref<HTMLElement | null>(null)
-const inputEl    = ref<HTMLTextAreaElement | null>(null)
-const copiedId   = ref<string | null>(null)
+const inputText   = ref('')
+const showSystem  = ref(false)
+const showKey     = ref(false)
+const showSidebar = ref(true)
+const messagesEl  = ref<HTMLElement | null>(null)
+const inputEl     = ref<HTMLTextAreaElement | null>(null)
+const copiedId    = ref<string | null>(null)
+
+// ── Sidebar helpers ────────────────────────────────
+function fmtDate(iso: string): string {
+  const d = new Date(iso)
+  const now = new Date()
+  const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000)
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return d.toLocaleDateString(undefined, { weekday: 'short' })
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
 
 // ── Computed ───────────────────────────────────────
 const isFree = computed(() => store.provider === 'free')
@@ -37,7 +135,8 @@ async function send(): Promise<void> {
   const content = inputText.value.trim()
   inputText.value = ''
   if (inputEl.value) inputEl.value.style.height = 'auto'
-  await store.sendMessage(content)
+  const ctx = store.includeContext ? buildProjectContext() : undefined
+  await store.sendMessage(content, ctx)
 }
 
 async function useQuickPrompt(text: string): Promise<void> {
@@ -121,10 +220,54 @@ onMounted(() => inputEl.value?.focus())
 </script>
 
 <template>
-  <div class="studio">
+  <div class="studio studio--with-sidebar" :class="{ 'studio--sidebar-open': showSidebar }">
+
+    <!-- ── History sidebar ──────────────────────────── -->
+    <aside class="studio__sidebar">
+      <div class="studio__sidebar-header">
+        <span class="studio__sidebar-title">History</span>
+        <button
+          class="studio__sidebar-clear"
+          :disabled="!store.savedConversations.length"
+          title="Clear all history"
+          @click="store.clearHistory()"
+        >Clear</button>
+      </div>
+
+      <div class="studio__sidebar-list">
+        <div v-if="!store.savedConversations.length" class="studio__sidebar-empty">
+          No past conversations yet.<br>Start chatting and use "New chat" to save.
+        </div>
+        <button
+          v-for="conv in store.savedConversations"
+          :key="conv.id"
+          class="studio__sidebar-item"
+          @click="store.loadConversation(conv.id)"
+        >
+          <span class="studio__sidebar-item-date">{{ fmtDate(conv.updatedAt) }}</span>
+          <span class="studio__sidebar-item-title">{{ conv.title }}</span>
+          <button
+            class="studio__sidebar-item-del"
+            title="Delete this conversation"
+            @click.stop="store.deleteConversation(conv.id)"
+          >×</button>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Main chat area ───────────────────────────── -->
+    <div class="studio__main">
 
     <!-- ── Top bar ──────────────────────────────────── -->
     <div class="studio__topbar">
+      <button
+        class="studio__sidebar-toggle"
+        :class="{ 'studio__sidebar-toggle--active': showSidebar }"
+        :title="showSidebar ? 'Hide history' : 'Show history'"
+        @click="showSidebar = !showSidebar"
+      >
+        <UiIcon name="PanelLeft" :size="15" />
+      </button>
       <div class="studio__tabs">
         <button
           class="studio__tab"
@@ -210,6 +353,17 @@ onMounted(() => inputEl.value?.focus())
         <UiIcon :name="showSystem ? 'ChevronUp' : 'ChevronDown'" :size="12" />
       </button>
 
+      <!-- Project context toggle -->
+      <button
+        class="studio__ctx-btn"
+        :class="{ 'studio__ctx-btn--active': store.includeContext }"
+        title="Include your VibeOS project data (goals, tasks, habits, learning, training) as AI context"
+        @click="store.includeContext = !store.includeContext"
+      >
+        <UiIcon name="Database" :size="13" />
+        My data
+      </button>
+
     </div>
 
     <!-- ── System prompt (collapsible) ──────────────── -->
@@ -276,15 +430,21 @@ onMounted(() => inputEl.value?.focus())
           }"
         >
           <div class="studio__bubble">
-            <p class="studio__bubble-text">
-              <template v-if="msg.error">
-                <span class="studio__err-row">
-                  <UiIcon name="AlertCircle" :size="14" />
-                  {{ errorText(msg.content) }}
-                </span>
-              </template>
-              <template v-else>{{ msg.content }}</template>
+            <!-- Error bubble -->
+            <p v-if="msg.error" class="studio__bubble-text">
+              <span class="studio__err-row">
+                <UiIcon name="AlertCircle" :size="14" />
+                {{ errorText(msg.content) }}
+              </span>
             </p>
+            <!-- User message — plain text -->
+            <p v-else-if="msg.role === 'user'" class="studio__bubble-text">{{ msg.content }}</p>
+            <!-- Assistant message — rendered markdown -->
+            <div
+              v-else
+              class="studio__bubble-text studio__md"
+              v-html="renderMarkdown(msg.content)"
+            />
 
             <!-- Meta row — assistant only -->
             <div v-if="msg.role === 'assistant'" class="studio__bubble-meta">
@@ -338,6 +498,7 @@ onMounted(() => inputEl.value?.focus())
       </button>
     </div>
 
+    </div><!-- end studio__main -->
   </div>
 </template>
 
@@ -350,6 +511,154 @@ onMounted(() => inputEl.value?.focus())
   overflow: hidden;
   background: var(--color-bg);
 }
+
+.studio--with-sidebar {
+  flex-direction: row;
+}
+
+/* ── Sidebar ──────────────────────────────────────── */
+.studio__sidebar {
+  width: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 0px solid var(--color-border);
+  background: var(--color-surface);
+  transition: width 0.22s ease, border-width 0.22s ease;
+}
+
+.studio--sidebar-open .studio__sidebar {
+  width: 224px;
+  border-right-width: 1px;
+}
+
+.studio__sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 12px 8px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.studio__sidebar-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.studio__sidebar-clear {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+  transition: color var(--t-fast);
+}
+.studio__sidebar-clear:hover:not(:disabled) { color: var(--color-danger); border-color: var(--color-danger); }
+.studio__sidebar-clear:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.studio__sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.studio__sidebar-empty {
+  padding: 16px 8px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.studio__sidebar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition: background var(--t-fast);
+}
+.studio__sidebar-item:hover {
+  background: var(--color-surface-elevated);
+}
+
+.studio__sidebar-item-date {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.studio__sidebar-item-title {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 175px;
+  line-height: 1.4;
+}
+
+.studio__sidebar-item-del {
+  position: absolute;
+  top: 6px;
+  right: 5px;
+  font-size: 14px;
+  line-height: 1;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity var(--t-fast), color var(--t-fast);
+}
+.studio__sidebar-item:hover .studio__sidebar-item-del { opacity: 1; }
+.studio__sidebar-item-del:hover { color: var(--color-danger); }
+
+/* ── Main area ────────────────────────────────────── */
+.studio__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Sidebar toggle button ────────────────────────── */
+.studio__sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.studio__sidebar-toggle:hover { background: var(--color-surface-elevated); color: var(--color-text-secondary); }
+.studio__sidebar-toggle--active { color: var(--color-accent); border-color: var(--color-accent); background: var(--color-accent-muted); }
 
 /* ── Top bar ──────────────────────────────────────── */
 .studio__topbar {
@@ -527,6 +836,31 @@ onMounted(() => inputEl.value?.focus())
 .studio__sys-btn:hover {
   background: var(--color-surface-elevated);
   color: var(--color-text-secondary);
+}
+
+/* Context toggle button */
+.studio__ctx-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.studio__ctx-btn:hover {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+}
+.studio__ctx-btn--active {
+  color: #10b981;
+  border-color: color-mix(in srgb, #10b981 40%, transparent);
+  background: color-mix(in srgb, #10b981 10%, transparent);
 }
 
 /* ── System area ──────────────────────────────────── */
@@ -836,14 +1170,102 @@ onMounted(() => inputEl.value?.focus())
   .studio__bubble { max-width: 82%; }
 }
 
+@media (max-width: 1279px) {
+  .studio--sidebar-open .studio__sidebar { width: 200px; }
+}
+
 @media (max-width: 767px) {
-  .studio__topbar      { padding: 8px 12px; }
-  .studio__settings-bar { padding: 6px 12px; gap: 6px; }
-  .studio__messages    { padding: 14px 12px; }
-  .studio__input-bar   { padding: 10px 12px; }
-  .studio__bubble      { max-width: 90%; }
-  .studio__key-input   { width: 120px; }
-  .studio__tab         { padding: 4px 8px; font-size: 12px; }
-  .studio__tab-badge   { display: none; }
+  /* Sidebar hidden on mobile */
+  .studio__sidebar           { display: none !important; }
+  .studio__sidebar-toggle    { display: none; }
+  .studio__topbar            { padding: 8px 12px; }
+  .studio__settings-bar      { padding: 6px 12px; gap: 6px; }
+  .studio__messages          { padding: 14px 12px; }
+  .studio__input-bar         { padding: 10px 12px; }
+  .studio__bubble            { max-width: 90%; }
+  .studio__key-input         { width: 120px; }
+  .studio__tab               { padding: 4px 8px; font-size: 12px; }
+  .studio__tab-badge         { display: none; }
+}
+
+/* ── Markdown prose styles ────────────────────────────────────────── */
+.studio__md { color: var(--color-text); }
+.studio__md :deep(p)  { margin: 0 0 0.65em; line-height: 1.65; }
+.studio__md :deep(p:last-child) { margin-bottom: 0; }
+.studio__md :deep(h1),
+.studio__md :deep(h2),
+.studio__md :deep(h3) {
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0.9em 0 0.4em;
+  line-height: 1.3;
+}
+.studio__md :deep(h1) { font-size: 1.2em; }
+.studio__md :deep(h2) { font-size: 1.1em; }
+.studio__md :deep(h3) { font-size: 1em; }
+.studio__md :deep(ul),
+.studio__md :deep(ol) {
+  padding-left: 1.4em;
+  margin: 0.4em 0 0.65em;
+}
+.studio__md :deep(li) { margin: 0.25em 0; line-height: 1.6; }
+.studio__md :deep(code) {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--color-accent);
+}
+.studio__md :deep(pre) {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 0.6em 0;
+}
+.studio__md :deep(pre code) {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: var(--color-text);
+}
+.studio__md :deep(blockquote) {
+  border-left: 3px solid var(--color-accent);
+  padding: 4px 12px;
+  margin: 0.5em 0;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+.studio__md :deep(hr) {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0.8em 0;
+}
+.studio__md :deep(a) {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.studio__md :deep(strong) { font-weight: 700; color: var(--color-text); }
+.studio__md :deep(em) { font-style: italic; }
+.studio__md :deep(table) {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.6em 0;
+  font-size: 13px;
+}
+.studio__md :deep(th),
+.studio__md :deep(td) {
+  border: 1px solid var(--color-border);
+  padding: 5px 10px;
+  text-align: left;
+}
+.studio__md :deep(th) {
+  background: var(--color-surface-elevated);
+  font-weight: 600;
 }
 </style>

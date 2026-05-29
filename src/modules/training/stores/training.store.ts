@@ -45,6 +45,15 @@ export const useTrainingStore = defineStore('training:plans', () => {
       duration: data.actualDuration ?? 0,
       timestamp: new Date().toISOString(),
     })
+    // Auto-check linked habit
+    if (plan?.linkedHabitId) {
+      import('@/modules/habits/stores/habits.store').then(({ useHabitsStore }) => {
+        const habitsStore = useHabitsStore()
+        if (!habitsStore.isCompletedToday(plan.linkedHabitId!)) {
+          habitsStore.toggleToday(plan.linkedHabitId!)
+        }
+      })
+    }
   }
 
   function deletePlan(id: string): void {

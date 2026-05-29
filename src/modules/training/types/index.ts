@@ -18,6 +18,7 @@ export interface TrainingPlan {
   notes?: string
   coverEmoji: string
   createdAt: string
+  linkedHabitId?: string  // auto-check this habit when a workout is logged
 }
 
 export interface WorkoutLog {

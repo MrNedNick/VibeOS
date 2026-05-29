@@ -4,6 +4,9 @@ export interface Habit {
   emoji: string
   createdAt: string
   completedDates: string[]
+  linkedGoalId?: string          // auto-complete next milestone on check
+  linkedLearningPlanId?: string  // auto-mark done when learning session logged
+  linkedTrainingPlanId?: string  // auto-mark done when workout logged
 }
 
 export function todayStr(): string {
