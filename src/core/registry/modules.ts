@@ -152,7 +152,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     path: '/games',
     section: 'work',
     status: 'available',
-    description: 'Take a break — Minesweeper, Memory, Snake',
+    description: 'Take a break — Minesweeper, Memory, Snake, Sudoku',
   },
   {
     id: 'calendar',

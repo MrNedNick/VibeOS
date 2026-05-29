@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useSnippets } from '../composables/useSnippets'
 import SnippetList from '../components/SnippetList.vue'
 import SnippetDetail from '../components/SnippetDetail.vue'
-import { ref } from 'vue'
 
 const {
   store,
@@ -20,10 +19,27 @@ const {
 
 const snippetListRef = ref<InstanceType<typeof SnippetList>>()
 
+// Mobile: track whether we're showing the detail pane
+const mobileShowDetail = ref(false)
+
+function selectSnippetMobile(id: string) {
+  selectSnippet(id)
+  mobileShowDetail.value = true
+}
+
+function newSnippetMobile() {
+  newSnippet()
+  mobileShowDetail.value = true
+}
+
+function backToList() {
+  mobileShowDetail.value = false
+}
+
 function onKeydown(e: KeyboardEvent) {
   const meta = e.metaKey || e.ctrlKey
   if (!meta) return
-  if (e.key === 'n') { e.preventDefault(); newSnippet() }
+  if (e.key === 'n') { e.preventDefault(); newSnippetMobile() }
   if (e.key === 'f') { e.preventDefault(); snippetListRef.value?.focusSearch() }
 }
 
@@ -32,7 +48,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <div class="snippets-workspace">
+  <div class="snippets-workspace" :class="{ 'snippets-workspace--detail': mobileShowDetail }">
     <SnippetList
       ref="snippetListRef"
       :snippets="filteredSnippets"
@@ -40,13 +56,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       :search-query="searchQuery"
       :language-filter="languageFilter"
       :used-languages="store.usedLanguages"
-      @select="selectSnippet"
-      @new="newSnippet"
+      @select="selectSnippetMobile"
+      @new="newSnippetMobile"
       @update:search-query="searchQuery = $event"
       @update:language-filter="languageFilter = $event"
     />
 
     <div class="snippets-main">
+      <!-- Mobile back button -->
+      <button v-if="mobileShowDetail" class="snippets-back" @click="backToList">
+        ← Snippets
+      </button>
+
       <SnippetDetail
         v-if="selectedSnippet"
         :snippet="selectedSnippet"
@@ -60,7 +81,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <div v-else class="snippets-empty">
         <p class="snippets-empty__title">Code vault is empty.</p>
         <p class="snippets-empty__sub">Save the patterns you keep rewriting. Find them in seconds with ⌘F.</p>
-        <button class="snippets-empty__btn" @click="newSnippet">Add first snippet</button>
+        <button class="snippets-empty__btn" @click="newSnippetMobile">Add first snippet</button>
       </div>
     </div>
   </div>
@@ -120,9 +141,53 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 .snippets-empty__btn:hover { opacity: 0.88; }
 
-/* Mobile: stack vertically */
+/* Mobile: single pane at a time */
 @media (max-width: 767px) {
-  .snippets-workspace { flex-direction: column; }
-  .snippets-main { flex: 1; min-height: 0; }
+  .snippets-workspace {
+    flex-direction: column;
+  }
+
+  /* Default: show list, hide main */
+  .snippets-main {
+    display: none;
+  }
+
+  /* When detail is active: hide list, show main */
+  .snippets-workspace--detail :deep(.snippet-list) {
+    display: none;
+  }
+
+  .snippets-workspace--detail .snippets-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+.snippets-back {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .snippets-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-accent);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    flex-shrink: 0;
+  }
+  .snippets-back:hover {
+    background: var(--color-accent-muted);
+  }
 }
 </style>

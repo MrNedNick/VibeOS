@@ -21,7 +21,7 @@ const MODULES = [
   { id: 'ai-playground',label: 'Studio',   desc: 'Prompt Lab — Opus / Sonnet / Haiku, run history',         icon: 'Sparkles' },
   { id: 'snippets',     label: 'Snippets', desc: 'Code vault — syntax highlight, tags, search',              icon: 'Braces' },
   { id: 'habits',       label: 'Habits',   desc: 'Daily check-offs, streak tracking, heatmap',               icon: 'Flame' },
-  { id: 'games',        label: 'Games',    desc: 'Minesweeper · Memory Cards · Snake',                       icon: 'Gamepad2' },
+  { id: 'games',        label: 'Games',    desc: 'Minesweeper · Memory Cards · Snake · Sudoku',              icon: 'Gamepad2' },
   { id: 'goals',        label: 'Goals',    desc: 'Goal tracking with milestones and progress',               icon: 'Target' },
   { id: 'learning',     label: 'Learning', desc: 'Study plans, session logs, streaks and progress rings',   icon: 'BookOpen' },
   { id: 'training',     label: 'Training', desc: 'Workout plans, session logs, streaks and distance',        icon: 'Dumbbell' },

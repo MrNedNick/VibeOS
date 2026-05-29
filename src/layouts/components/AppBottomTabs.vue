@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PLATFORM_MODULES, type ModuleMeta } from '@/core/registry/modules'
 import { useLocale } from '@/core/i18n'
@@ -81,6 +81,9 @@ function navigateMod(mod: ModuleMeta) {
   if (mod.status !== 'available' && mod.status !== 'wip') return
   navigateTo(mod.path)
 }
+
+// Close drawer on any route change (back button, swipe, programmatic nav)
+watch(route, () => { showMore.value = false })
 </script>
 
 <template>

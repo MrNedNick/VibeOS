@@ -13,11 +13,24 @@ const emit = defineEmits<{ pin: [id: string] }>()
 
 const title = computed(() => deriveTitle(props.note.content))
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/, '')           // headings
+    .replace(/!\[.*?\]\(.*?\)/g, '')      // images
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') // links → text
+    .replace(/`{1,3}[^`]*`{1,3}/g, '')   // inline code / fenced
+    .replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, '$1') // bold/italic
+    .replace(/^[-*+]\s+/, '')             // list markers
+    .replace(/^>\s+/, '')                 // blockquotes
+    .replace(/<[^>]+>/g, '')             // html tags
+    .trim()
+}
+
 const excerpt = computed(() => {
   const lines = props.note.content.split('\n').filter(l => l.trim())
   const hasHeading = lines.some(l => l.startsWith('#'))
   const bodyLines = hasHeading ? lines.filter(l => !l.startsWith('#')) : lines.slice(1)
-  const body = bodyLines[0]?.trim() ?? ''
+  const body = stripMarkdown(bodyLines[0]?.trim() ?? '')
   return body.length > 72 ? body.slice(0, 72) + '…' : body
 })
 

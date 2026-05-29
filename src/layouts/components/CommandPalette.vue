@@ -93,6 +93,7 @@ interface Command {
   icon: string
   group: string
   badge?: string
+  keywords?: string[]
   action: () => void
 }
 
@@ -157,12 +158,13 @@ const commands = computed<Command[]>(() => [
 
   // ── Theme ─────────────────────────────────────────────────────────
   ...THEME_OPTIONS.map(t => ({
-    id:     `system:theme:${t.id}`,
-    label:  i18n.t(t.labelKey),
-    icon:   t.icon,
-    group:  i18n.t('palette.themeGroup'),
-    badge:  uiStore.theme === t.id ? '✓' : undefined,
-    action: () => { uiStore.setTheme(t.id); palette.close() },
+    id:       `system:theme:${t.id}`,
+    label:    i18n.t(t.labelKey),
+    icon:     t.icon,
+    group:    i18n.t('palette.themeGroup'),
+    badge:    uiStore.theme === t.id ? '✓' : undefined,
+    keywords: ['theme', 'appearance', 'pak', 'color', 'skin'],
+    action:   () => { uiStore.setTheme(t.id); palette.close() },
   })),
 
   // ── System ────────────────────────────────────────────────────────
@@ -176,9 +178,8 @@ const commands = computed<Command[]>(() => [
 ])
 
 // ── Fuzzy filter + scoring ─────────────────────────────────────────────
-function score(label: string, q: string): number {
-  if (!q) return 1
-  const l  = label.toLowerCase()
+function scoreText(text: string, q: string): number {
+  const l  = text.toLowerCase()
   const lq = q.toLowerCase()
   if (l === lq) return 5
   if (l.startsWith(lq)) return 4
@@ -187,9 +188,18 @@ function score(label: string, q: string): number {
   return 0
 }
 
+function score(cmd: Command, q: string): number {
+  if (!q) return 1
+  const labelScore = scoreText(cmd.label, q)
+  if (labelScore > 0) return labelScore
+  // Also score against optional keyword aliases (keywords match score capped at 2)
+  if (cmd.keywords?.some(kw => kw.toLowerCase().startsWith(q.toLowerCase()))) return 2
+  return 0
+}
+
 const filtered = computed(() =>
   commands.value
-    .map(cmd => ({ cmd, s: score(cmd.label, query.value.trim()) }))
+    .map(cmd => ({ cmd, s: score(cmd, query.value.trim()) }))
     .filter(({ s }) => s > 0)
     .sort((a, b) => b.s - a.s)
     .map(({ cmd }) => cmd)
