@@ -4,6 +4,7 @@ import { useGoalsStore } from '../stores/goals.store'
 import GoalCard from '../components/GoalCard.vue'
 import type { GoalCategory } from '../types'
 import { CATEGORY_EMOJI } from '../types'
+import { UiIcon } from '@/ui'
 
 const store = useGoalsStore()
 
@@ -151,12 +152,17 @@ const todayLabel = computed(() =>
 
     <!-- Empty state -->
     <div v-if="store.activeGoals.length === 0 && !showForm" class="goals__empty">
-      <div class="goals__empty-icon">🎯</div>
-      <p class="goals__empty-title">No active goals.</p>
+      <div class="goals__empty-icon">
+        <UiIcon name="Target" :size="40" :stroke-width="1.4" />
+      </div>
+      <p class="goals__empty-title">No active goals yet.</p>
       <p class="goals__empty-sub">
-        Start with one big thing you want to achieve. Break it into milestones.
+        Set the north star. What do you want to achieve this year? Break it into milestones and make it real.
       </p>
-      <button class="goals__btn goals__btn--primary" @click="openForm">Add first goal</button>
+      <button class="goals__btn goals__btn--primary" @click="openForm">
+        <UiIcon name="Plus" :size="14" />
+        Add first goal
+      </button>
     </div>
 
   </div>
@@ -247,6 +253,9 @@ const todayLabel = computed(() =>
 .goals__input--date { width: 160px; }
 
 .goals__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 18px;
   border-radius: var(--radius);
   font-size: var(--text-sm);
@@ -304,7 +313,7 @@ const todayLabel = computed(() =>
   text-align: center;
 }
 
-.goals__empty-icon { font-size: 52px; line-height: 1; }
+.goals__empty-icon { color: var(--color-accent); opacity: 0.5; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; }
 .goals__empty-title { font-size: var(--text-lg); font-weight: 600; color: var(--color-text); margin: 4px 0 0; }
 .goals__empty-sub { font-size: var(--text-sm); color: var(--color-text-muted); margin: 0 0 10px; max-width: 360px; }
 

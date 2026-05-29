@@ -5,6 +5,7 @@ import LearningPlanCard from '../components/LearningPlanCard.vue'
 import SessionLogForm from '../components/SessionLogForm.vue'
 import type { LearningCategory, LearningSession } from '../types'
 import { todayStr } from '../types'
+import { UiIcon } from '@/ui'
 
 const store = useLearningStore()
 
@@ -231,13 +232,16 @@ const FREQ_OPTIONS: { val: 3 | 5 | 7; label: string }[] = [
 
     <!-- Empty state -->
     <div v-if="store.activePlans.length === 0 && !showForm" class="learning__empty">
-      <div class="learning__empty-icon">📚</div>
-      <p class="learning__empty-title">No learning plans yet.</p>
+      <div class="learning__empty-icon">
+        <UiIcon name="BookOpen" :size="40" :stroke-width="1.4" />
+      </div>
+      <p class="learning__empty-title">Nothing to learn yet.</p>
       <p class="learning__empty-sub">
-        Pick something to learn. Show up every day. Track the hours.
+        Pick something you've always wanted to master. Build the plan. Show up every day — the hours compound.
       </p>
       <button class="learning__btn learning__btn--primary" @click="openForm">
-        Start learning
+        <UiIcon name="Plus" :size="14" />
+        Start a learning plan
       </button>
     </div>
 
@@ -391,6 +395,9 @@ const FREQ_OPTIONS: { val: 3 | 5 | 7; label: string }[] = [
 
 /* ── Buttons ─────────────────────────────────────────────────────── */
 .learning__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 18px;
   border-radius: var(--radius);
   font-size: var(--text-sm);
@@ -545,7 +552,7 @@ const FREQ_OPTIONS: { val: 3 | 5 | 7; label: string }[] = [
   text-align: center;
 }
 
-.learning__empty-icon { font-size: 52px; line-height: 1; }
+.learning__empty-icon { color: #6366f1; opacity: 0.5; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; }
 
 .learning__empty-title {
   font-size: var(--text-lg);

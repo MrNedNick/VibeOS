@@ -21,7 +21,7 @@
 
 ---
 
-## S1 — Identity (active)
+## S1 — Identity ✅ (closed 2026-05-29)
 
 **Goal:** a cold visitor lands on the URL, understands "personal life OS" in 10 seconds, and is hooked by the visual.
 
@@ -415,17 +415,41 @@ Each game should persist `activeSkinId` + `unlockedSkins` in localStorage, match
 
 ### Studio — future improvements (TODO backlog)
 These are the meaningful improvements to do next — not features for features' sake:
-- **Project data access** — inject VibeOS context into prompts: current tasks, active goals, recent habits, upcoming learning/training sessions; opt-in per-message ("Include my data")
-- **Markdown rendering** — render AI responses as markdown (code blocks, lists, headings) using `marked`; currently `white-space: pre-wrap` only
-- **Conversation sessions** — save/restore named conversations; session list in sidebar; "Conversation 1", "Planning session", etc.
-- **Export conversation** — copy full conversation as markdown or plain text
-- **Free AI model descriptions** — show brief desc tooltip on hover (speed, quality, best-for)
+
+**Priority 1 — Chat history sidebar (Claude-style interface):**
+- Left sidebar with list of past conversations (like Claude.ai)
+- Each conversation has a title (auto-generated from first message or user-editable)
+- "New chat" creates a new conversation entry; old ones persist
+- Click any past conversation to restore the full message history
+- Conversation list sorted by last activity; shows model used + message count
+- Conversations stored in localStorage under `platform:studio:conversations`
+- Max 50 saved conversations; oldest auto-pruned
+
+**Priority 2 — Project data access (AI as life OS assistant):**
+- "Include my context" toggle before sending — injects a structured summary of user's VibeOS data:
+  - Active goals (title, progress %, days remaining)
+  - Today's tasks (pending, completed)
+  - Habits today (checked vs not checked)
+  - Learning sessions this week (plan name, hours)
+  - Training sessions this week (plan name, workouts logged)
+- Context is appended as a system message, not visible in chat bubbles
+- User controls what data to include (toggle per category)
+- This enables queries like "what should I focus on today?" or "am I on track for my goals?" with real data
+
+**Priority 3 — Markdown rendering:**
+- Render AI responses as markdown (code blocks, lists, headings, bold) using `marked`
+- Currently `white-space: pre-wrap` only; code blocks look like plain text
+- Use `DOMPurify` for XSS safety if adding it as a dep, otherwise sanitize manually
+
+**Other improvements:**
+- Export conversation as markdown or plain text
+- Free AI model descriptions tooltip (speed, quality, best-for)
 - **Additional free providers** (S6, user provides key):
   - **Gemini Flash** — Google AI Studio free tier; 60 req/min; no credit card for dev key
   - **GroqCloud** — 30 req/min on Llama3/Mixtral; very fast inference
   - **OpenRouter** — routes to multiple free models; single key
-- **AI planning actions** (S6) — "Plan my week", "Review my goals", "Suggest a workout" — pre-built actions that inject relevant data automatically
-- **Token count display** — show rough token count for long conversations; warn before hitting limits
+- **AI planning actions** (S6) — "Plan my week", "Review my goals", "Suggest a workout" — pre-built prompt templates that inject context automatically
+- Token count display for long conversations
 
 ### External data widgets (future)
 - **Weather widget** — OpenWeatherMap free tier (60 calls/min, no credit card); Dashboard widget; API key in Settings — partially planned in S5

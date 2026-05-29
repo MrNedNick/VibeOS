@@ -8,24 +8,24 @@ const APP_VERSION = __APP_VERSION__
 
 // ── Module showcase ──────────────────────────────────────────────────
 const MODULES = [
-  { icon: 'CheckSquare',    title: 'Tasks',      desc: 'Priorities, categories, due dates, and goal links.',     color: '#4f8ef7' },
-  { icon: 'Flame',          title: 'Habits',     desc: 'Daily check-offs, streaks, and a year heatmap.',         color: '#f59e0b' },
-  { icon: 'Target',         title: 'Goals',      desc: 'Life goals with milestones and progress tracking.',       color: '#10b981' },
-  { icon: 'NotebookPen',    title: 'Notes',      desc: 'Markdown notes with [[backlinks]] and a daily journal.',  color: '#8b5cf6' },
-  { icon: 'Kanban',         title: 'Board',      desc: 'Kanban + timeline views with drag-and-drop.',            color: '#06b6d4' },
-  { icon: 'BookOpen',       title: 'Learning',   desc: 'Structured plans, session logs, and progress rings.',    color: '#6366f1' },
-  { icon: 'Dumbbell',       title: 'Training',   desc: 'Workout plans, logs, streaks, and volume tracking.',     color: '#f97316' },
-  { icon: 'Gamepad2',       title: 'Games',      desc: 'Minesweeper, Memory, Snake, Sudoku — take a break.',    color: '#ec4899' },
-  { icon: 'Braces',         title: 'Snippets',   desc: 'Code vault with syntax highlighting and tags.',          color: '#14b8a6' },
-  { icon: 'Zap',            title: 'Studio',     desc: 'Prompt Lab — Claude Haiku / Sonnet / Opus.',            color: '#a855f7' },
-  { icon: 'BarChart2',      title: 'Analytics',  desc: 'Unified stats — habits, tasks, learning, training.',     color: '#3b82f6' },
-  { icon: 'FileText',       title: 'Docs',       desc: 'Architecture decisions and module documentation.',       color: '#64748b' },
+  { icon: 'CheckSquare',    title: 'Tasks',      desc: 'Priorities, categories, due dates, and goal links.',        color: '#4f8ef7' },
+  { icon: 'Flame',          title: 'Habits',     desc: 'Daily check-offs, streaks, and a year heatmap.',            color: '#f59e0b' },
+  { icon: 'Target',         title: 'Goals',      desc: 'Life goals with milestones and progress tracking.',          color: '#10b981' },
+  { icon: 'NotebookPen',    title: 'Notes',      desc: 'Markdown notes with [[backlinks]] and a daily journal.',     color: '#8b5cf6' },
+  { icon: 'Kanban',         title: 'Board',      desc: 'Kanban + timeline views with drag-and-drop.',               color: '#06b6d4' },
+  { icon: 'BookOpen',       title: 'Learning',   desc: 'Structured plans, session logs, and progress rings.',       color: '#6366f1' },
+  { icon: 'Dumbbell',       title: 'Training',   desc: 'Workout plans, logs, streaks, and volume tracking.',        color: '#f97316' },
+  { icon: 'CalendarDays',   title: 'Calendar',   desc: 'Unified view of tasks, habits, learning and training.',     color: '#14b8a6' },
+  { icon: 'Gamepad2',       title: 'Games',      desc: 'Minesweeper, Memory, Snake, Sudoku — take a break.',       color: '#ec4899' },
+  { icon: 'Zap',            title: 'Studio',     desc: 'Free AI chat (no key) or Claude API — multi-turn.',        color: '#a855f7' },
+  { icon: 'BarChart2',      title: 'Analytics',  desc: 'Unified stats — habits, tasks, learning, training.',        color: '#3b82f6' },
+  { icon: 'FileText',       title: 'Docs',       desc: 'Architecture decisions and module documentation.',          color: '#64748b' },
 ]
 
 const STATS = [
-  { value: '12',   label: 'modules live' },
-  { value: '5',    label: 'life categories' },
-  { value: '100%', label: 'local-first' },
+  { value: '15',    label: 'modules built' },
+  { value: '5',     label: 'life categories' },
+  { value: '100%',  label: 'local-first' },
   { value: 'Vue 3', label: '+ TypeScript' },
 ]
 
@@ -176,7 +176,7 @@ const activeTab = ref<'overview' | 'terminal'>('overview')
 
     <!-- ── Module grid ──────────────────────────────────────────── -->
     <section class="welcome__modules">
-      <p class="welcome__section-label">What's inside — {{ MODULES.length }} modules</p>
+      <p class="welcome__section-label">What's inside — 15 modules total, 12 highlighted</p>
       <div class="welcome__grid">
         <button
           v-for="mod in MODULES"
@@ -211,7 +211,7 @@ const activeTab = ref<'overview' | 'terminal'>('overview')
       <div class="welcome__pillar">
         <UiIcon name="Paintbrush" :size="20" :stroke-width="1.5" />
         <h3>Vibe-paks</h3>
-        <p>Choose your aesthetic — Dark, Light, Terminal, or Brutalist. Your system, your look.</p>
+        <p>Choose your aesthetic — Dark, Light, Synthwave, or Brutalist. Your system, your look.</p>
       </div>
     </section>
 

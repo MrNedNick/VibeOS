@@ -48,7 +48,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     path: '/ai',
     section: 'work',
     status: 'available',
-    description: 'Prompt Lab — run prompts across Opus / Sonnet / Haiku',
+    description: 'AI chat — Free AI (no key) or Claude API; multi-turn conversations',
   },
   {
     id: 'docs',
@@ -103,8 +103,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     icon: 'BarChart2',
     path: '/analytics',
     section: 'life',
-    status: 'planned',
-    sprint: 'S5',
+    status: 'available',
     description: 'Personal stats — habits, tasks, learning, and training trends',
   },
 

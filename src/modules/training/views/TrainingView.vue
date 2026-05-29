@@ -5,6 +5,7 @@ import TrainingPlanCard from '../components/TrainingPlanCard.vue'
 import WorkoutLogForm from '../components/WorkoutLogForm.vue'
 import type { SportType, WorkoutLog } from '../types'
 import { SPORT_EMOJI, FEELING_EMOJI, todayStr } from '../types'
+import { UiIcon } from '@/ui'
 
 const store = useTrainingStore()
 
@@ -222,10 +223,17 @@ const todayLabel = computed(() =>
 
     <!-- Empty state -->
     <div v-if="store.activePlans.length === 0 && !showForm" class="training__empty">
-      <div class="training__empty-icon">💪</div>
-      <p class="training__empty-title">No training plans yet.</p>
-      <p class="training__empty-sub">Set up a plan and log your workouts every session.</p>
-      <button class="training__btn training__btn--primary" @click="openForm">Add plan</button>
+      <div class="training__empty-icon">
+        <UiIcon name="Dumbbell" :size="40" :stroke-width="1.4" />
+      </div>
+      <p class="training__empty-title">Day one starts here.</p>
+      <p class="training__empty-sub">
+        Every athlete started with a blank plan. Set up your routine, log every session, and watch the consistency compound.
+      </p>
+      <button class="training__btn training__btn--primary" @click="openForm">
+        <UiIcon name="Plus" :size="14" />
+        Create training plan
+      </button>
     </div>
 
     <!-- Log modal -->
@@ -359,6 +367,9 @@ const todayLabel = computed(() =>
 }
 
 .training__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 18px;
   border-radius: var(--radius);
   font-size: var(--text-sm);
@@ -466,7 +477,7 @@ const todayLabel = computed(() =>
   text-align: center;
 }
 
-.training__empty-icon { font-size: 52px; line-height: 1; }
+.training__empty-icon { color: #f97316; opacity: 0.5; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; }
 .training__empty-title { font-size: var(--text-lg); font-weight: 600; color: var(--color-text); margin: 4px 0 0; }
 .training__empty-sub { font-size: var(--text-sm); color: var(--color-text-muted); margin: 0 0 10px; max-width: 340px; }
 
