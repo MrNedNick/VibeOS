@@ -4,7 +4,7 @@ import { useStorage } from '@/core/composables/useStorage'
 import { storageKey } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
 import { deriveTitle } from '../types'
-import type { Note } from '../types'
+import type { Note, NoteType } from '../types'
 
 export const useNotesStore = defineStore('notes:notes', () => {
   const notes = useStorage<Note[]>(storageKey('notes', 'notes'), [])
@@ -73,5 +73,13 @@ export const useNotesStore = defineStore('notes:notes', () => {
     if (note) note.pinned = !note.pinned
   }
 
-  return { notes, sortedNotes, createNote, openOrCreateToday, updateContent, deleteNote, togglePin }
+  function setNoteType(id: string, type: NoteType): void {
+    const note = notes.value.find(n => n.id === id)
+    if (note) {
+      note.type = type
+      note.updatedAt = new Date().toISOString()
+    }
+  }
+
+  return { notes, sortedNotes, createNote, openOrCreateToday, updateContent, deleteNote, togglePin, setNoteType }
 })

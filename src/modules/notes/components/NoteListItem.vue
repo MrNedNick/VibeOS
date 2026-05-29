@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Note } from '../types'
-import { deriveTitle } from '../types'
+import { deriveTitle, NOTE_TYPE_META } from '../types'
 import { UiIcon } from '@/ui'
 
 const props = defineProps<{
@@ -34,6 +34,11 @@ const excerpt = computed(() => {
   return body.length > 72 ? body.slice(0, 72) + '…' : body
 })
 
+const typeMeta = computed(() => {
+  const t = props.note.type ?? 'note'
+  return NOTE_TYPE_META[t]
+})
+
 const date = computed(() => {
   const d = new Date(props.note.updatedAt)
   const now = new Date()
@@ -51,6 +56,15 @@ const date = computed(() => {
     <div class="note-item__header">
       <span class="note-item__title">{{ title }}</span>
       <div class="note-item__meta">
+        <!-- Type dot (hidden for plain 'note') -->
+        <span
+          v-if="note.type && note.type !== 'note'"
+          class="note-item__type-dot"
+          :style="{ color: typeMeta.color }"
+          :title="typeMeta.label"
+        >
+          <UiIcon :name="typeMeta.icon" :size="11" :stroke-width="2" />
+        </span>
         <button
           class="note-item__pin"
           :class="{ 'note-item__pin--active': note.pinned }"
@@ -139,4 +153,10 @@ const date = computed(() => {
 }
 
 .note-item__empty { font-style: italic; }
+
+.note-item__type-dot {
+  display: flex;
+  align-items: center;
+  opacity: 0.75;
+}
 </style>

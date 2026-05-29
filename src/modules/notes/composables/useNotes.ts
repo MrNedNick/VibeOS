@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { useNotesStore } from '../stores/notes.store'
 import { deriveTitle } from '../types'
+import type { NoteType } from '../types'
 
 type EditorMode = 'edit' | 'preview'
 
@@ -12,14 +13,23 @@ export function useNotes() {
   const selectedId = ref<string | null>(null)
   const mode = ref<EditorMode>('edit')
   const searchQuery = ref('')
+  const typeFilter = ref<NoteType | 'all'>('all')
 
   const filteredNotes = computed(() => {
+    let result = store.sortedNotes
+    // Filter by type
+    if (typeFilter.value !== 'all') {
+      result = result.filter(n => (n.type ?? 'note') === typeFilter.value)
+    }
+    // Filter by search query
     const q = searchQuery.value.trim().toLowerCase()
-    if (!q) return store.sortedNotes
-    return store.sortedNotes.filter(n =>
-      n.content.toLowerCase().includes(q) ||
-      deriveTitle(n.content).toLowerCase().includes(q)
-    )
+    if (q) {
+      result = result.filter(n =>
+        n.content.toLowerCase().includes(q) ||
+        deriveTitle(n.content).toLowerCase().includes(q)
+      )
+    }
+    return result
   })
 
   const selectedNote = computed(() =>
@@ -75,6 +85,7 @@ export function useNotes() {
     selectedId,
     mode,
     searchQuery,
+    typeFilter,
     filteredNotes,
     selectedNote,
     selectNote,

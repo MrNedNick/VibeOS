@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Note } from '../types'
+import type { Note, NoteType } from '../types'
+import { NOTE_TYPE_META, NOTE_TYPES } from '../types'
 import NoteListItem from './NoteListItem.vue'
+import { UiIcon } from '@/ui'
 
 defineProps<{
   notes: Note[]
   selectedId: string | null
   searchQuery: string
+  typeFilter: NoteType | 'all'
 }>()
 
 const emit = defineEmits<{
@@ -14,6 +17,7 @@ const emit = defineEmits<{
   new: []
   pin: [id: string]
   'update:searchQuery': [value: string]
+  'update:typeFilter': [value: NoteType | 'all']
 }>()
 
 const searchInputRef = ref<HTMLInputElement>()
@@ -40,6 +44,26 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
       />
     </div>
 
+    <!-- Type filter chips -->
+    <div class="note-list__filters">
+      <button
+        class="note-list__filter"
+        :class="{ 'note-list__filter--active': typeFilter === 'all' }"
+        @click="emit('update:typeFilter', 'all')"
+      >All</button>
+      <button
+        v-for="t in NOTE_TYPES.filter(x => x !== 'note')"
+        :key="t"
+        class="note-list__filter"
+        :class="{ 'note-list__filter--active': typeFilter === t }"
+        :style="typeFilter === t ? { '--filter-color': NOTE_TYPE_META[t].color } : {}"
+        @click="emit('update:typeFilter', typeFilter === t ? 'all' : t)"
+      >
+        <UiIcon :name="NOTE_TYPE_META[t].icon" :size="11" :stroke-width="2" />
+        {{ NOTE_TYPE_META[t].label }}
+      </button>
+    </div>
+
     <!-- List -->
     <div class="note-list__items">
       <NoteListItem
@@ -52,6 +76,7 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
       />
       <div v-if="notes.length === 0" class="note-list__empty">
         <span v-if="searchQuery">Nothing found for "{{ searchQuery }}"</span>
+        <span v-else-if="typeFilter !== 'all'">No {{ NOTE_TYPE_META[typeFilter as NoteType].label.toLowerCase() }} notes yet.</span>
         <span v-else>No notes yet. Start with ⌘N — plans, ideas, or today's journal.</span>
       </div>
     </div>
@@ -138,6 +163,45 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
 }
 
 .note-list__search::placeholder { color: var(--color-text-muted); }
+
+/* Type filter chips */
+.note-list__filters {
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.note-list__filters::-webkit-scrollbar { display: none; }
+
+.note-list__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--t-fast);
+}
+.note-list__filter:hover:not(.note-list__filter--active) {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+}
+.note-list__filter--active {
+  background: color-mix(in srgb, var(--filter-color, var(--color-accent)) 12%, transparent);
+  border-color: color-mix(in srgb, var(--filter-color, var(--color-accent)) 40%, transparent);
+  color: var(--filter-color, var(--color-accent));
+}
 
 .note-list__items {
   flex: 1;

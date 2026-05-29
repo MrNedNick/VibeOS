@@ -2,14 +2,15 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useNotes } from '../composables/useNotes'
 import { useNotesStore } from '../stores/notes.store'
-import { deriveTitle } from '../types'
+import { deriveTitle, NOTE_TYPE_META, NOTE_TYPES } from '../types'
+import type { NoteType } from '../types'
 import NoteList from '../components/NoteList.vue'
 import NoteEditor from '../components/NoteEditor.vue'
 import NotePreview from '../components/NotePreview.vue'
 import { UiIcon } from '@/ui'
 
 const {
-  selectedId, mode, searchQuery,
+  selectedId, mode, searchQuery, typeFilter,
   filteredNotes, selectedNote,
   selectNote, newNote, todayNote, debouncedSave, deleteNote, navigateToWikiLink,
 } = useNotes()
@@ -105,10 +106,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       :notes="filteredNotes"
       :selected-id="selectedId"
       :search-query="searchQuery"
+      :type-filter="typeFilter"
       @select="selectNoteOnMobile"
       @new="newNoteOnMobile"
       @pin="notesStore.togglePin"
       @update:search-query="searchQuery = $event"
+      @update:type-filter="typeFilter = $event"
     />
 
     <!-- Editor area (right of list) -->
@@ -135,6 +138,26 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <span v-if="selectedNote && wordCount > 0" class="notes-toolbar__stats">
             {{ wordCount }} words · {{ readingTime }} min
           </span>
+
+          <!-- Note type selector -->
+          <div v-if="selectedNote" class="notes-type-select">
+            <UiIcon
+              :name="NOTE_TYPE_META[(selectedNote.type ?? 'note') as NoteType].icon"
+              :size="13"
+              :stroke-width="2"
+              :style="{ color: NOTE_TYPE_META[(selectedNote.type ?? 'note') as NoteType].color }"
+            />
+            <select
+              class="notes-type-select__sel"
+              :value="selectedNote.type ?? 'note'"
+              @change="notesStore.setNoteType(selectedNote!.id, ($event.target as HTMLSelectElement).value as NoteType)"
+            >
+              <option v-for="t in NOTE_TYPES" :key="t" :value="t">
+                {{ NOTE_TYPE_META[t].label }}
+              </option>
+            </select>
+          </div>
+
           <button
             class="notes-toolbar__today"
             title="Open or create today's journal entry"
@@ -277,6 +300,34 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   padding: 0 8px;
+}
+
+/* Note type selector */
+.notes-type-select {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  cursor: pointer;
+  transition: border-color var(--t-fast);
+}
+.notes-type-select:focus-within { border-color: var(--color-accent); }
+
+.notes-type-select__sel {
+  font-size: 12px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .notes-toolbar__today {
