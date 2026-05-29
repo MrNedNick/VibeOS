@@ -99,7 +99,7 @@ interface Command {
 const THEME_OPTIONS: { id: Theme; labelKey: string; icon: string }[] = [
   { id: 'dark',      labelKey: 'palette.themeDark',      icon: 'Moon'     },
   { id: 'light',     labelKey: 'palette.themeLight',     icon: 'Sun'      },
-  { id: 'terminal',  labelKey: 'palette.themeTerminal',  icon: 'Terminal' },
+  { id: 'synthwave', labelKey: 'palette.themeSynthwave',  icon: 'Sparkles' },
   { id: 'brutalist', labelKey: 'palette.themeBrutalist', icon: 'Bold'     },
 ]
 

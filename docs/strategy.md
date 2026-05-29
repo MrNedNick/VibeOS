@@ -1,6 +1,6 @@
 # VibeOS — Strategy & Vision
 
-> Updated 2026-05-27 (v2). Major repositioning: from developer showcase to personal life operating system.
+> Updated 2026-05-28 (v3). Reflects shipped state at v0.5.3 — Goals, Learning, Training, Analytics, Calendar all live.
 > See `docs/privacy-security.md` for the public/private/auth plan.
 > See `docs/roadmap.md` for the sprint execution plan.
 
@@ -98,19 +98,22 @@ This avoids the trap of building many disconnected apps.
 
 | Module | Status | Purpose |
 |--------|--------|---------|
-| **Dashboard** | existing | Daily command center — aggregates everything |
-| **Tasks** | existing | Task list with priority, categories, goals, life areas |
-| **Board** | existing | Kanban view of the same task data (unified) |
-| **Notes** | existing | Plans, ideas, project notes, journal |
-| **Habits** | existing | Daily check-offs, streaks, heatmap |
-| **Goals** | planned (S4) | Life goals, categories, milestones, linked tasks |
-| **Learning** | planned (S5) | Structured learning plans, topics, daily sessions |
-| **Training** | planned (S5) | Workout plans, session tracking, progress analysis |
-| **Analytics** | planned (S5) | Personal stats, habit trends, goal progress, heatmap |
-| **Studio** | existing | AI prompt lab (Claude API) |
-| **Snippets** | existing | Code vault |
-| **Settings** | existing | Appearance, auth, data, shortcuts |
-| **About** | existing | Portfolio anchor |
+| **Dashboard** | ✅ shipped | Daily command center — aggregates everything |
+| **Tasks** | ✅ shipped | Task list with priority, categories, goals, life areas |
+| **Board** | ✅ shipped | Kanban view of the same task data (unified) |
+| **Notes** | ✅ shipped | Plans, ideas, project notes, journal, wiki backlinks |
+| **Habits** | ✅ shipped | Daily check-offs, streaks, heatmap |
+| **Goals** | ✅ shipped (S4) | Life goals, categories, milestones, linked tasks |
+| **Learning** | ✅ shipped (S5) | Structured learning plans, topics, daily sessions |
+| **Training** | ✅ shipped (S5) | Workout plans, session tracking, progress analysis |
+| **Analytics** | ✅ shipped (S5) | Personal stats, habit trends, goal progress, heatmap |
+| **Calendar** | ✅ shipped (S5) | Monthly view — tasks, habits, goals, training, learning dots |
+| **Finance** | 🔜 planned (S6+) | Expense tracking, spending categories, budget limits, monthly overview |
+| **Games** | ✅ shipped | Snake (skins), Minesweeper, Memory, Sudoku |
+| **Studio** | ✅ shipped | AI prompt lab (Claude API, user key) |
+| **Snippets** | ✅ shipped | Code vault with syntax highlighting |
+| **Settings** | ✅ shipped | Appearance, data export/import, API keys |
+| **About** | ✅ shipped | Portfolio anchor |
 
 ### Module categories for sidebar
 
@@ -295,6 +298,15 @@ Becomes the life command center. Replaces dev metrics with life metrics. Panels:
 - Goal progress overview
 - Weekly digest summary
 
+### Finance (new — S6+)
+- Expense entity: amount, category (food / transport / housing / health / entertainment / other), date, note
+- Monthly budget limits per category: set a cap, see how much is left
+- Spending overview: current month bar charts by category; total spent vs total budget
+- Recent transactions list with inline add
+- Dashboard widget: monthly spending snapshot, "over budget" warning
+- Future: export CSV, connect to bank CSV import
+- **Long-term vision**: this module can eventually be extracted as a standalone personal finance app
+
 ### Studio (existing — maintain)
 - Keep as AI prompt lab
 - Add: "AI daily digest" button that generates a daily summary from your data
@@ -316,7 +328,20 @@ Becomes the life command center. Replaces dev metrics with life metrics. Panels:
 
 ---
 
-## 10. Open Questions
+## 10. Future Standalone Projects
+
+### Habit Tracker — iOS App
+The VibeOS Habits module will eventually be extracted and refined into a standalone iOS app:
+- **Stack**: SwiftUI (or React Native if web-native iteration is preferred)
+- **Core features**: daily check-offs, streaks, heatmap, habit creation/editing, notifications, widgets
+- **Differentiator**: clean opinionated design, no subscription, iCloud sync
+- **Distribution**: App Store, free with optional tip/donation
+- **Timeline**: after VibeOS Habits reaches full depth (post-S5); app iteration likely S8+
+- **Why**: hands-on iOS distribution experience; existing logic maps directly to native implementation; VibeOS habits data model is already solid
+
+---
+
+## 11. Open Questions
 
 | Item | Status |
 |------|--------|

@@ -121,7 +121,8 @@ function importTask(taskId: string, text: string) {
 
 // ── Helpers ─────────────────────────────────────────────────────────
 function colLabel(colId: BoardColumnId): string {
-  return i18n.t(`kanban.col${colId.replace(/-([a-z])/g, (_, c) => c.toUpperCase())}`)
+  const camel = colId.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())
+  return i18n.t(`kanban.col${camel.charAt(0).toUpperCase() + camel.slice(1)}`)
 }
 function priorityLabel(p: CardPriority): string {
   return i18n.t(`kanban.priority${p.charAt(0).toUpperCase() + p.slice(1)}`)

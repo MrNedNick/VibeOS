@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned 2026-05-27 (v2) around a 7-sprint structure.
+> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3.
 > Repositioned: VibeOS evolves from developer showcase to personal life operating system.
 > See `docs/strategy.md` for the full product context.
 > See `docs/privacy-security.md` for the auth/demo/security plan.
@@ -79,18 +79,18 @@ Order:
 
 ---
 
-## S5 — Life Depth
+## S5 — Life Depth ✅ (shipped)
 
 **Goal:** Learning, Training, and Analytics modules ship; Dashboard is fully populated.
 
-Order:
-1. **Learning module** — full implementation per `docs/modules/learning.md`; plans, sessions, progress, dashboard widget
-2. **Training module** — full implementation per `docs/modules/training.md`; plans, workout logs, today indicator, dashboard widget
-3. **Habits → Learning + Training integration** — logging session/workout marks associated habit done
-4. **Personal Analytics module** — unified stats view: habit heatmap, task completion rate, learning hours chart, workout frequency, goal progress overview, weekly digest
-5. **Dashboard — full life panels** — Today (tasks + habits + learning + training), Goals panel, Stats row; everything populated
-6. **Snippets** — retain; polish if needed (already complete)
-7. **Weather widget** — OpenWeatherMap free tier; Dashboard widget (API key in Settings)
+1. ✅ **Learning module** — plans, sessions, progress rings, streaks, today strip, plan detail view
+2. ✅ **Training module** — plans, workout logs, feeling emoji, streaks, km tracking, today strip
+3. ⬜ **Habits → Learning + Training integration** — logging session/workout marks associated habit done
+4. ✅ **Personal Analytics module** — period selector, habit heatmap, task/learning/training charts, goals progress
+5. ✅ **Calendar module** — monthly grid, 5 dot types, click-day detail panel
+6. ✅ **Dashboard life stats strip** — habits today, active goals, learning today, training today
+7. ✅ **Snippets** — retained; already complete
+8. ⬜ **Weather widget** — OpenWeatherMap free tier; Dashboard widget (API key in Settings)
 
 ---
 
@@ -124,6 +124,49 @@ Order:
 ---
 
 ## Recently shipped (history)
+
+### 2026-05-28 (session 8 — Analytics, Calendar, Command Palette actions, Notes backlinks, Snake skins, Settings import) — v0.5.3
+
+**Analytics module** — real data from all life stores:
+- Period selector: 7 / 30 / 90 days
+- 4 stat cards: tasks completed, habit consistency %, learning hours, training sessions
+- Habit consistency grid (GitHub-style heatmap per habit)
+- Bar charts: tasks by day, learning hours, training sessions
+- Goals progress list
+
+**Calendar module** (`/calendar`):
+- Monthly grid, Monday-start, prev/next/today navigation
+- 5 dot types per day: tasks (blue), habits (green), learning (purple), training (red), goals (amber)
+- Click any day → right-side detail panel with full breakdown
+- CSS `:has()` 2-column layout; stacks on mobile
+- Registered in `PLATFORM_MODULES` under `section: 'life'` — auto-appears in sidebar + bottom tabs More sheet
+
+**Command Palette ⌘K — action commands**:
+- Sub-input mode: `activeAction` ref for New Task / New Note / New Goal
+- Creates entity on confirm, closes palette
+- Habits group: toggle any habit done for today
+- 5 theme options (dark / light / terminal / brutalist / soft)
+- All strings translated EN + RU
+
+**Notes — backlinks panel**:
+- Scans all notes for `[[Title]]` references to the open note
+- Collapsible bar below editor — shows count, chevron animation
+- Clicking a backlink navigates to that note
+- Empty state shows usage hint with `[[Title]]` syntax example
+
+**Snake — skin system** (5 skins):
+- Skins: Default (blue, free), Emerald (PB≥5), Crimson (PB≥15), Amethyst (PB≥25), Golden (PB≥40)
+- `unlockedSkins` + `activeSkinId` persisted to localStorage
+- Unlock check on every new personal best; "new skin unlocked!" overlay with spring-pop animation
+- Skin picker grid below board; locked skins show threshold hint
+
+**Settings — data import**:
+- Hidden `<input type="file" accept=".json">` triggered by button
+- FileReader → JSON.parse → confirm dialog before restore
+- Iterates all keys from backup JSON → `localStorage.setItem` → `location.reload()`
+- Matches existing export/clear-all UI pattern
+
+---
 
 ### 2026-05-28 (session 7 — responsive layout + sidebar redesign + Sudoku)
 
@@ -225,6 +268,27 @@ Post-S3: production connects to Supabase. Demo account seeded.
 
 ## Backlog (not yet scheduled)
 
+### Finance / Money module (planned — S6+)
+Personal expense tracking and spending regulation:
+- **Expense entry**: amount, category (food / transport / housing / health / entertainment / savings / other), date, optional note
+- **Budget limits**: set monthly cap per category; visual remaining indicator
+- **Monthly overview**: bar chart spend by category, total spent vs budget, over-budget warnings
+- **Transactions list**: recent expenses, inline quick-add form
+- **Dashboard widget**: current month snapshot, "X categories over budget" alert
+- **Data**: `platform:finance:expenses` and `platform:finance:budgets` in localStorage; export CSV
+- **Future**: bank CSV import, multi-currency, recurring transactions
+- **Long-term**: candidate for extraction as standalone personal finance app
+
+### iOS Habit Tracker app (future standalone project)
+Extract VibeOS Habits module into a native iOS app:
+- **Goal**: publish to App Store; hands-on iOS distribution experience
+- **Stack**: SwiftUI (preferred) or React Native
+- **Core features**: daily check-offs, streaks, heatmap, habit creation, push notifications, home screen widget
+- **Differentiator**: clean focused design, no subscription, iCloud sync
+- **Distribution**: App Store, free + optional tip
+- **Timeline**: after Habits module reaches full depth in VibeOS (post-S5); standalone development starts S8+
+- See `docs/strategy.md § 10` for full description
+
 ### Responsive design — Phase 2 (per-module)
 Phase 1 is complete (sidebar, layout, header).
 Remaining per-module responsive work:
@@ -269,9 +333,8 @@ Dashboard widget: recent commits + contribution graph. GitHub REST API, 5000 req
 Demoted from standalone module to Dashboard widget. Low priority.
 
 ### Games backlog
-Shipped: Minesweeper, Memory, Snake, Sudoku.
+Shipped: Minesweeper, Memory, Snake (with 5 unlock-gated skins), Sudoku.
 Next candidates: Tetris, 15-Puzzle, Wordle-clone.
-Snake skin system (post-record unlock) — planned but low priority.
 
 ### Free AI API alternatives (no billing risk)
 Research done 2026-05-28. Candidates for Studio integration without Anthropic key:
@@ -348,8 +411,8 @@ All require user-provided API key via Settings. No auto-billing. Integration pla
 | Tasks module final codename | Deprioritized | "VibeOS Tasks" is fine for now |
 | Notes module final codename | Deprioritized | Same |
 | Custom domain vibeos.dev / vibeos.app | Defer until after S1 design pass | Worth buying once the design is share-worthy |
-| Calendar view sprint placement | Unscheduled | Natural fit in S5 or as S6 addition |
+| Calendar view sprint placement | ✅ Shipped (S5) | Monthly grid, dots, detail panel |
 | Mobile PWA | Unscheduled | Research after S5; depends on how mobile-critical check-ins become |
-| Analytics: standalone module or dashboard tab? | Undecided | Lean toward standalone module with Dashboard summary widget |
+| Analytics: standalone module or dashboard tab? | ✅ Shipped as standalone module | Dashboard has summary strip; Analytics module has full detail |
 | Snippets module: keep or remove? | Open | Low daily-use value in a life OS context; already built and stable; keep until there's a clear reason to remove |
 | Studio: Anthropic-only or multi-provider? | Open | Add GroqCloud/Gemini/OpenRouter as free alternatives in S6; user selects provider in Settings |

@@ -13,7 +13,9 @@ const props = withDefaults(defineProps<{
 
 const icon = computed(() => {
   const component = (LucideIcons as Record<string, unknown>)[props.name]
-  return typeof component === 'object' && component !== null ? component : null
+  if (component == null) return null
+  const t = typeof component
+  return (t === 'object' || t === 'function') ? component : null
 })
 </script>
 
