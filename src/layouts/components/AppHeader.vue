@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUiStore } from '@/core/stores/ui.store'
 import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
+import { useAuthStore } from '@/core/stores/auth.store'
 import { useLocale } from '@/core/i18n'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { UiIcon } from '@/ui'
 
 const route = useRoute()
+const router = useRouter()
 const uiStore = useUiStore()
 const palette = useCommandPaletteStore()
+const auth = useAuthStore()
 const i18n = useLocale()
 
 const currentModule = computed(() =>
@@ -70,6 +73,17 @@ const moduleLabel = computed(() => {
 
     <!-- ── Right: actions ─────────────────────────────── -->
     <div class="header-slot header-slot--right">
+
+      <!-- Demo mode chip -->
+      <button
+        v-if="auth.isDemoMode"
+        class="header-demo-chip"
+        title="You're using Demo mode — data is stored locally"
+        @click="router.push('/login')"
+      >
+        <UiIcon name="FlaskConical" :size="12" :stroke-width="2" />
+        Demo
+      </button>
 
       <!-- Search / command palette -->
       <button
@@ -174,6 +188,32 @@ const moduleLabel = computed(() => {
 @media (max-width: 767px) {
   .header-btn--pin       { display: none; }
   .header-btn--hamburger { display: none; }
+}
+
+/* ── Demo mode chip ─────────────────────────────────────────────────── */
+.header-demo-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  height: 26px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning, #f59e0b) 35%, transparent);
+  color: var(--color-warning, #f59e0b);
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast);
+  flex-shrink: 0;
+  min-height: 0;
+  min-width: 0;
+}
+.header-demo-chip:hover {
+  background: color-mix(in srgb, var(--color-warning, #f59e0b) 20%, transparent);
+  border-color: var(--color-warning, #f59e0b);
 }
 
 /* ── Locale toggle ──────────────────────────────────────────────────── */

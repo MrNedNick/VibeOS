@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon } from '@/ui'
 
 const router = useRouter()
+const auth = useAuthStore()
 const APP_VERSION = __APP_VERSION__
+
+function tryDemo() {
+  auth.loginDemo()
+  router.push('/')
+}
 
 // ── Module showcase ──────────────────────────────────────────────────
 const MODULES = [
@@ -68,8 +75,9 @@ const activeTab = ref<'overview' | 'terminal'>('overview')
           <UiIcon name="Github" :size="15" :stroke-width="1.75" />
           GitHub
         </a>
-        <button class="welcome__nav-cta" @click="router.push('/')">
-          Open VibeOS
+        <button class="welcome__nav-link" @click="router.push('/login')">Sign in</button>
+        <button class="welcome__nav-cta" @click="tryDemo">
+          Try demo
           <UiIcon name="ArrowRight" :size="14" :stroke-width="2" />
         </button>
       </div>
@@ -87,19 +95,14 @@ const activeTab = ref<'overview' | 'terminal'>('overview')
           Open-source. Local-first. No subscriptions.
         </p>
         <div class="welcome__hero-actions">
-          <button class="welcome__btn-primary" @click="router.push('/')">
-            Launch VibeOS
+          <button class="welcome__btn-primary" @click="tryDemo">
+            Try demo — free
             <UiIcon name="ArrowRight" :size="15" :stroke-width="2.2" />
           </button>
-          <a
-            href="https://github.com/mrnednick/VibeOS"
-            target="_blank"
-            rel="noopener"
-            class="welcome__btn-ghost"
-          >
-            <UiIcon name="Github" :size="15" :stroke-width="1.75" />
-            View source
-          </a>
+          <button class="welcome__btn-ghost" @click="router.push('/login')">
+            <UiIcon name="LogIn" :size="15" :stroke-width="1.75" />
+            Sign in
+          </button>
         </div>
       </div>
     </section>

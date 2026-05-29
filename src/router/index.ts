@@ -18,6 +18,7 @@ import { learningRoutes } from '@/modules/learning'
 import { trainingRoutes } from '@/modules/training'
 import { analyticsRoutes } from '@/modules/analytics'
 import { calendarRoutes } from '@/modules/calendar'
+import { authRoutes } from '@/modules/auth'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -25,6 +26,8 @@ const routes: RouteRecordRaw[] = [
     component: WelcomeView,
     meta: { title: 'Welcome' },
   },
+  // Auth pages — full-page, outside AppLayout
+  ...authRoutes,
   {
     path: '/',
     component: AppLayout,
@@ -53,6 +56,20 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior: () => ({ top: 0 }),
+})
+
+// ── Navigation guard ─────────────────────────────────────────────────────
+// Lazy import auth store to avoid circular dep during router init
+router.beforeEach(async (to) => {
+  // Routes with meta.auth = 'guest' redirect logged-in users to dashboard
+  if (to.meta.auth === 'guest') {
+    const { useAuthStore } = await import('@/core/stores/auth.store')
+    const auth = useAuthStore()
+    if (auth.isLoggedIn) return '/'
+  }
+
+  // Protected routes — currently not enforced (app is local-first open access).
+  // When Supabase is live, add meta.auth = 'required' to protected routes here.
 })
 
 export default router
