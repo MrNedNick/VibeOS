@@ -10,6 +10,7 @@ const i18n = useLocale()
 const bestMinesweeper = useStorage<number>('platform:games:minesweeper:best', 0)
 const bestMemoryEasy = useStorage<number>('platform:games:memory:easy:time', 0)
 const bestSnake = useStorage<number>('platform:games:snake:best', 0)
+const bestTetris = useStorage<number>('platform:games:tetris:best', 0)
 
 const games = computed(() => [
   {
@@ -43,6 +44,14 @@ const games = computed(() => [
     path: '/games/sudoku',
     stat: null,
     color: '#f59e0b',
+  },
+  {
+    id: 'tetris',
+    label: 'Tetris',
+    desc: 'Classic falling blocks — clear lines, level up, beat your score.',
+    path: '/games/tetris',
+    stat: bestTetris.value > 0 ? `Best: ${bestTetris.value}` : null,
+    color: '#a855f7',
   },
 ])
 </script>
@@ -115,6 +124,28 @@ const games = computed(() => [
             <text x="42" y="31" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(245,158,11,0.9)">7</text>
             <text x="10" y="47" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(245,158,11,0.5)">9</text>
             <text x="42" y="47" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(245,158,11,0.9)">1</text>
+          </svg>
+
+          <!-- Tetris preview: colorful stacked blocks -->
+          <svg v-else-if="game.id === 'tetris'" viewBox="0 0 52 52" class="game-card__svg">
+            <!-- Bottom row (full) -->
+            <rect x="1" y="43" width="9" height="9" rx="1" fill="rgba(168,85,247,0.8)"/>
+            <rect x="12" y="43" width="9" height="9" rx="1" fill="rgba(6,182,212,0.8)"/>
+            <rect x="23" y="43" width="9" height="9" rx="1" fill="rgba(239,68,68,0.8)"/>
+            <rect x="34" y="43" width="9" height="9" rx="1" fill="rgba(34,197,94,0.8)"/>
+            <rect x="45" y="43" width="7" height="9" rx="1" fill="rgba(234,179,8,0.8)"/>
+            <!-- Row 2 (partial) -->
+            <rect x="1" y="32" width="9" height="9" rx="1" fill="rgba(239,68,68,0.65)"/>
+            <rect x="12" y="32" width="9" height="9" rx="1" fill="rgba(79,142,247,0.65)"/>
+            <rect x="23" y="32" width="9" height="9" rx="1" fill="rgba(168,85,247,0.65)"/>
+            <rect x="34" y="32" width="9" height="9" rx="1" fill="rgba(6,182,212,0.65)"/>
+            <!-- Row 3: active T-piece falling -->
+            <rect x="1" y="21" width="9" height="9" rx="1" fill="rgba(34,197,94,0.5)"/>
+            <rect x="12" y="21" width="9" height="9" rx="1" fill="rgba(249,115,22,0.65)"/>
+            <rect x="23" y="21" width="9" height="9" rx="1" fill="rgba(249,115,22,0.65)"/>
+            <rect x="34" y="21" width="9" height="9" rx="1" fill="rgba(249,115,22,0.65)"/>
+            <!-- T center -->
+            <rect x="23" y="10" width="9" height="9" rx="1" fill="rgba(249,115,22,0.9)"/>
           </svg>
 
           <!-- Snake preview: pixel snake shape -->
