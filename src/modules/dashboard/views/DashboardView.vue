@@ -16,6 +16,7 @@ import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '../c
 import RecentActivityPanel from '../components/RecentActivityPanel.vue'
 import DashboardTodayPanel from '../components/DashboardTodayPanel.vue'
 import GitHubWidget from '../components/GitHubWidget.vue'
+import WeatherWidget from '../components/WeatherWidget.vue'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 
@@ -219,8 +220,11 @@ const APP_VERSION = __APP_VERSION__
       </div>
     </div>
 
-    <!-- GitHub Activity Widget ─────────────────────────────────────── -->
-    <GitHubWidget />
+    <!-- Widgets row: GitHub + Weather ───────────────────────────────── -->
+    <div class="dashboard__widgets">
+      <GitHubWidget class="dashboard__widget-github" />
+      <WeatherWidget class="dashboard__widget-weather" />
+    </div>
 
     <!-- Workspace: module list + detail panel ───────────────────── -->
     <div class="dashboard__workspace">
@@ -441,6 +445,20 @@ const APP_VERSION = __APP_VERSION__
   background: var(--color-accent);
   border-radius: 0 99px 99px 0;
   transition: width 0.4s ease;
+}
+
+/* Widgets row */
+.dashboard__widgets {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .dashboard__widgets {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Workspace */
