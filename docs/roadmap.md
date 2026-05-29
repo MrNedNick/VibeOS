@@ -54,14 +54,19 @@ Order:
 
 **Goal:** personal data survives, stays private, and demo mode works for recruiters.
 
+> Architecture fully researched and documented in `docs/auth-plan.md`.  
+> Backend decision: **Supabase** (Postgres + Auth + RLS). See auth-plan.md §2 for full comparison vs Firebase / Appwrite / PocketBase.  
+> Supabase inactivity pausing mitigated by free UptimeRobot monitor (ping every 3 days).
+
 Order:
-1. **Schema versioning + migration runner** — `useStorage(key, default, { version, migrations })`; must precede Supabase (already done for localStorage layer)
-2. **Supabase auth — email/password** — `useAuthStore`, login/logout/register, protected router guard
-3. **Protected routes** — all module routes behind auth; `/welcome` and `/login` public
-4. **Demo mode** — create `demo@vibeos.app` account; seed with realistic fake data (see `docs/privacy-security.md` for full seed list); "Demo Mode" chip in header
-5. **Supabase sync** — extend stores to sync with Supabase on login; offline-first (localStorage primary, sync on auth)
-6. **Row Level Security** — enable RLS on all tables; policy: `auth.uid() = user_id` on every table
-7. **Error boundaries + real 404** — fallback UI on uncaught errors; errors logged to event bus
+1. **Supabase project setup** — create project, `.env.local`, add to GitHub Actions secrets, verify `.gitignore`; set up UptimeRobot keep-alive
+2. **Supabase auth — email/password** — `src/core/services/supabase.ts`, `useAuthStore` (login/logout/register/init/isDemoMode), router guard for protected routes
+3. **Auth UI** — `/login`, `/register` (gated), `/welcome` landing page with "Try Demo" + "Sign In" CTAs
+4. **Database schema** — create all tables with `user_id` FK + `updated_at`; enable RLS; write policies (`auth.uid() = user_id`) on every table; `subscription_tier` in `user_settings`
+5. **Demo mode** — create `demo@vibeos.app` account; run seed SQL; "Demo Mode" chip in AppHeader; block writes in demo mode with "Sign up to save" toast
+6. **Supabase sync** — offline-first: localStorage primary, dual-write on auth; sync on login (localStorage → upsert all rows); `useSupabaseSync` composable
+7. **Subscription tier scaffold** — `useFeatureGate` composable; `free` / `demo` / `pro` tiers defined; all features on `free` for now; Stripe hookup deferred to future sprint
+8. **Error boundaries + real 404** — fallback UI on uncaught errors; errors logged to event bus
 
 ---
 
@@ -395,6 +400,7 @@ All require user-provided API key via Settings. No auto-billing. Integration pla
 | 2026-05-27 | Sidebar restructure: Life / Work / System | Reflects life OS positioning; groups modules by role rather than technical function |
 | 2026-05-27 | AI integration deferred to S6 | No implementation now; architecture planned; keeps costs zero until intentional |
 | 2026-05-27 | 5-sprint plan (prior) → 7-sprint plan | Prior plan was developer-only; new life modules require 2 extra sprints |
+| 2026-05-29 | S3 auth architecture research complete | Full comparison: Supabase vs Firebase vs Appwrite vs PocketBase vs custom. Supabase confirmed. Key risk (inactivity pausing) documented with free mitigation. Full spec in docs/auth-plan.md |
 | 2026-05-27 | Supabase chosen as backend | Free tier, Postgres, Auth, RLS, Realtime — portfolio value in days |
 | 2026-05-27 | Vibe-paks v1: Terminal Dark + Brutalist | Two distinct moods sufficient to demonstrate the system |
 | 2026-05-27 | Lucide icons replace unicode glyphs | System-wide visual coherence; includes life module icons |
