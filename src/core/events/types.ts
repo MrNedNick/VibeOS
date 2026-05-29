@@ -51,14 +51,6 @@ export interface NoteDeletedEvent {
   timestamp: string
 }
 
-export interface SnippetCreatedEvent {
-  type: 'snippet:created'
-  snippetId: string
-  title: string
-  language: string
-  timestamp: string
-}
-
 export interface CardCreatedEvent {
   type: 'card:created'
   cardId: string
@@ -156,7 +148,6 @@ export type PlatformEvent =
   | HabitUncheckedEvent
   | NoteCreatedEvent
   | NoteDeletedEvent
-  | SnippetCreatedEvent
   | CardCreatedEvent
   | CardMovedEvent
   | StudioRunEvent

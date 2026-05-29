@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useStudioStore } from '../stores/studio.store'
-import { STUDIO_MODELS } from '../types'
+import { STUDIO_MODELS, FREE_MODELS } from '../types'
 import { useLocale } from '@/core/i18n'
 
 const store  = useStudioStore()
@@ -16,7 +16,12 @@ const showHistory   = ref(false)
 const historyFilter = ref('')
 
 // Derived
-const canRun = computed(() => !!store.apiKey.trim() && !!prompt.value.trim() && !store.loading)
+const isFree = computed(() => store.provider === 'free')
+const canRun = computed(() => {
+  if (store.loading || !prompt.value.trim()) return false
+  if (isFree.value) return true
+  return !!store.apiKey.trim()
+})
 
 const filteredHistory = computed(() => {
   const q = historyFilter.value.toLowerCase()
@@ -78,7 +83,29 @@ const currentModel = computed(() =>
 
     <!-- Top bar ─────────────────────────────────────── -->
     <div class="studio__topbar">
-      <div class="studio__model-row">
+
+      <!-- Provider toggle -->
+      <div class="studio__provider-row">
+        <button
+          class="studio__provider-btn"
+          :class="{ 'studio__provider-btn--active': !isFree }"
+          @click="store.provider = 'anthropic'"
+        >
+          <span class="studio__provider-label">Claude API</span>
+          <span class="studio__provider-desc">Requires key</span>
+        </button>
+        <button
+          class="studio__provider-btn studio__provider-btn--free"
+          :class="{ 'studio__provider-btn--active': isFree }"
+          @click="store.provider = 'free'"
+        >
+          <span class="studio__provider-label">Free AI</span>
+          <span class="studio__provider-desc">No key needed</span>
+        </button>
+      </div>
+
+      <!-- Anthropic model selector -->
+      <div v-if="!isFree" class="studio__model-row">
         <button
           v-for="m in STUDIO_MODELS"
           :key="m.id"
@@ -92,7 +119,23 @@ const currentModel = computed(() =>
         </button>
       </div>
 
-      <div class="studio__key-row">
+      <!-- Free model selector -->
+      <div v-else class="studio__model-row">
+        <button
+          v-for="m in FREE_MODELS"
+          :key="m.id"
+          class="studio__model-btn"
+          :class="{ 'studio__model-btn--active': store.freeModel === m.id }"
+          :style="store.freeModel === m.id ? { '--model-color': m.color } : {}"
+          @click="store.freeModel = m.id"
+        >
+          <span class="studio__model-label">{{ m.label }}</span>
+          <span class="studio__model-desc">{{ m.desc }}</span>
+        </button>
+      </div>
+
+      <!-- API key (hidden for free mode) -->
+      <div v-if="!isFree" class="studio__key-row">
         <label class="studio__key-label">{{ i18n.t('studio.apiKeyLabel') }}</label>
         <div class="studio__key-input-wrap">
           <input
@@ -109,12 +152,16 @@ const currentModel = computed(() =>
             @click="showKey = !showKey"
           >{{ showKey ? '●' : '○' }}</button>
         </div>
-        <span
-          v-if="store.apiKey"
-          class="studio__key-indicator studio__key-indicator--set"
-        >{{ i18n.t('studio.keySet') }}</span>
+        <span v-if="store.apiKey" class="studio__key-indicator studio__key-indicator--set">{{ i18n.t('studio.keySet') }}</span>
         <span v-else class="studio__key-indicator">{{ i18n.t('studio.keyUnset') }}</span>
       </div>
+
+      <!-- Free mode badge -->
+      <div v-else class="studio__free-badge">
+        <span class="studio__free-icon">✦</span>
+        <span>Powered by <strong>Pollinations.ai</strong> — free, no account needed</span>
+      </div>
+
     </div>
 
     <!-- Workspace ───────────────────────────────────── -->
@@ -241,7 +288,17 @@ const currentModel = computed(() =>
 
         <!-- Empty state -->
         <div v-else class="studio__empty">
-          <template v-if="!store.apiKey">
+          <template v-if="isFree">
+            <div class="studio__empty-icon">✦</div>
+            <p class="studio__empty-title">Free AI ready</p>
+            <p class="studio__empty-sub">Ask anything — no API key needed. Powered by Pollinations.ai.</p>
+            <ul class="studio__empty-tips">
+              <li>{{ i18n.t('studio.tip1') }}</li>
+              <li>{{ i18n.t('studio.tip2') }}</li>
+              <li>{{ i18n.t('studio.tip3') }}</li>
+            </ul>
+          </template>
+          <template v-else-if="!store.apiKey">
             <div class="studio__empty-icon">🔑</div>
             <p class="studio__empty-title">{{ i18n.t('studio.requiresKey') }}</p>
             <p class="studio__empty-sub">{{ i18n.t('studio.requiresKeyDesc') }}</p>
@@ -289,6 +346,58 @@ const currentModel = computed(() =>
   flex-shrink: 0;
   flex-wrap: wrap;
 }
+
+/* Provider toggle */
+.studio__provider-row {
+  display: flex;
+  gap: 2px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+.studio__provider-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 5px 14px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.studio__provider-btn:hover:not(.studio__provider-btn--active) { background: var(--color-surface); }
+.studio__provider-btn--active {
+  background: var(--color-accent-muted);
+}
+.studio__provider-btn--free.studio__provider-btn--active {
+  background: color-mix(in srgb, #10b981 12%, transparent);
+}
+.studio__provider-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  .studio__provider-btn--active & { color: var(--color-accent); }
+}
+.studio__provider-btn--active .studio__provider-label { color: var(--color-accent); }
+.studio__provider-btn--free.studio__provider-btn--active .studio__provider-label { color: #10b981; }
+.studio__provider-desc { font-size: 10px; color: var(--color-text-muted); }
+
+/* Free badge */
+.studio__free-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, #10b981 10%, transparent);
+  border: 1px solid color-mix(in srgb, #10b981 25%, transparent);
+}
+.studio__free-icon { color: #10b981; font-size: 14px; }
+.studio__free-badge strong { color: #10b981; }
 
 .studio__model-row {
   display: flex;

@@ -60,7 +60,7 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
 
 <style scoped>
 .note-list {
-  width: 240px;
+  width: 320px;
   flex-shrink: 0;
   border-right: 1px solid var(--color-border);
   display: flex;
@@ -149,5 +149,12 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
   font-size: 13px;
   color: var(--color-text-muted);
   text-align: center;
+}
+
+@media (max-width: 1279px) {
+  .note-list { width: 260px; }
+}
+@media (max-width: 1023px) {
+  .note-list { width: 220px; }
 }
 </style>

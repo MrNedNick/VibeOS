@@ -137,15 +137,6 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     description: 'Markdown notes with [[backlinks]] and daily journal',
   },
   {
-    id: 'snippets',
-    label: 'Snippets',
-    icon: 'Braces',
-    path: '/snippets',
-    section: 'work',
-    status: 'available',
-    description: 'Code vault with syntax highlighting and tags',
-  },
-  {
     id: 'games',
     label: 'Games',
     icon: 'Gamepad2',

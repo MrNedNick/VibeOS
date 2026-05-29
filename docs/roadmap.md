@@ -273,6 +273,14 @@ Post-S3: production connects to Supabase. Demo account seeded.
 
 ## Backlog (not yet scheduled)
 
+### Reusable component system (planned — S4/S5)
+Create a unified component library so every module is built from the same building blocks:
+- **Design tokens audit** — ensure all colors, radii, spacing, typography defined as CSS variables in `main.css`
+- **`src/ui/` component library** — already started; extend with: `UiCard`, `UiButton`, `UiBadge`, `UiInput`, `UiTextarea`, `UiSelect`, `UiModal`, `UiEmptyState`, `UiStatCard`, `UiProgressRing`, `UiAvatar`, `UiDot`
+- **Pattern**: every module should import from `@/ui` rather than defining its own variants of common elements
+- **Goal**: new modules should be assembley of `@/ui` components; visual consistency guaranteed by tokens
+- **Steps**: (1) audit existing one-off styles across modules; (2) extract to `@/ui`; (3) refactor each module to use shared components; (4) document in `docs/conventions.md`
+
 ### Finance / Money module (planned — S6+)
 Personal expense tracking and spending regulation:
 - **Expense entry**: amount, category (food / transport / housing / health / entertainment / savings / other), date, optional note
@@ -304,8 +312,8 @@ Remaining per-module responsive work:
 - **Habits/Goals/Learning/Training** — already responsive (card grids)
 All Phase 2 items are non-blocking; polish when each module is next touched.
 
-### Snippets — decision (2026-05-28)
-**Keep.** Serves developer workflow use cases: shell commands, SQL queries, API calls, config templates. Distinct from Notes (code vs prose, syntax highlighting). Portfolio value: demonstrates highlight.js, search/filter, CRUD with tags. No merge with Notes — different mental models, different access patterns. Possible future: tagging improvements, import/export.
+### Snippets — removed (2026-05-29)
+**Removed.** Module deleted: low daily-use value in a life OS context; developer snippet workflow fits better in Notes (code blocks with highlighting). All routes, registry entries, i18n keys, and event types cleaned up.
 
 ### Analytics module
 Unified personal stats: habit heatmap, task completion rate, learning hours, workout frequency, goal progress. Planned for S5.
@@ -341,12 +349,25 @@ Demoted from standalone module to Dashboard widget. Low priority.
 Shipped: Minesweeper, Memory, Snake (with 5 unlock-gated skins), Sudoku.
 Next candidates: Tetris, 15-Puzzle, Wordle-clone.
 
-### Free AI API alternatives (no billing risk)
-Research done 2026-05-28. Candidates for Studio integration without Anthropic key:
-- **Gemini Flash** — Google AI Studio free tier; 60 req/min, 1M tokens/min; no credit card for dev key
-- **GroqCloud** — free with rate limits (30 req/min on Llama3/Mixtral); fast inference; good for real-time tasks
-- **OpenRouter** — routes to multiple free models (Mistral, Phi, others); single API key; free tier available
-All require user-provided API key via Settings. No auto-billing. Integration planned for S6.
+**More skins for all games (planned):**
+- **Snake** — already has 5 skins; add more milestone-gated skins (e.g. Neon, Retro, Ocean, Rainbow)
+- **Minesweeper** — add board themes: Classic, Dark, Retro, Neon; unlock by best time
+- **Memory** — add card themes: Animals, Emoji, Symbols, Abstract; unlock by win count
+- **Sudoku** — add color themes: Classic, Dark, Pastel; unlock by puzzles solved
+Each game should persist `activeSkinId` + `unlockedSkins` in localStorage, matching Snake's pattern.
+
+### Free AI in Studio (shipped 2026-05-29)
+**Pollinations.ai** integrated as "Free AI" provider — no API key, no account required, CORS-enabled.
+- Provider toggle: Claude API ↔ Free AI in Studio top bar
+- Free models: GPT-4o mini (openai-fast), Mistral, Llama 3
+- Uses `POST https://text.pollinations.ai/` with OpenAI-compatible message format
+- Falls back to CORS error message if blocked
+
+**Other researched alternatives (require user API key):**
+- **Gemini Flash** — Google AI Studio free tier; 60 req/min; no credit card for dev key
+- **GroqCloud** — 30 req/min on Llama3/Mixtral; fast inference
+- **OpenRouter** — routes to multiple free models; single key
+Integration of these planned for S6 (user provides key in Settings).
 
 ### External data widgets (future)
 - **Weather widget** — OpenWeatherMap free tier (60 calls/min, no credit card); Dashboard widget; API key in Settings — partially planned in S5

@@ -1,10 +1,21 @@
+export type StudioProvider = 'anthropic' | 'free'
+
 export type StudioModel =
   | 'claude-opus-4-6'
   | 'claude-sonnet-4-6'
   | 'claude-haiku-4-5-20251001'
 
+export type FreeModel = 'openai-fast' | 'mistral' | 'llama'
+
 export interface StudioModelMeta {
   id: StudioModel
+  label: string
+  desc: string
+  color: string
+}
+
+export interface FreeModelMeta {
+  id: FreeModel
   label: string
   desc: string
   color: string
@@ -14,6 +25,12 @@ export const STUDIO_MODELS: StudioModelMeta[] = [
   { id: 'claude-opus-4-6',            label: 'Opus',   desc: 'Most capable',  color: '#8b5cf6' },
   { id: 'claude-sonnet-4-6',          label: 'Sonnet', desc: 'Balanced',      color: '#f59e0b' },
   { id: 'claude-haiku-4-5-20251001',  label: 'Haiku',  desc: 'Fastest',       color: '#10b981' },
+]
+
+export const FREE_MODELS: FreeModelMeta[] = [
+  { id: 'openai-fast', label: 'GPT-4o mini', desc: 'Fast · Free',    color: '#10b981' },
+  { id: 'mistral',     label: 'Mistral',     desc: 'Open source',   color: '#6366f1' },
+  { id: 'llama',       label: 'Llama 3',     desc: 'Meta · Open',   color: '#f59e0b' },
 ]
 
 export interface StudioRun {

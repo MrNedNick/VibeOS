@@ -75,7 +75,6 @@ function describeEvent(e: PlatformEvent): { icon: string; text: string } {
     case 'habit:unchecked': return { icon: 'Circle',         text: `${i18n.t('recentActivity.habitUnchecked')} — "${e.habitName}"` }
     case 'note:created':    return { icon: 'FileText',       text: `${i18n.t('recentActivity.noteCreated')} — "${e.title}"` }
     case 'note:deleted':    return { icon: 'FileX2',         text: `${i18n.t('recentActivity.noteDeleted')} — "${e.title}"` }
-    case 'snippet:created': return { icon: 'Braces',         text: `${i18n.t('recentActivity.snippet')} — "${e.title}" (${e.language})` }
     case 'card:created':    return { icon: 'LayoutGrid',     text: `${i18n.t('recentActivity.cardAdded')} — "${e.title}"` }
     case 'card:moved':      return { icon: 'ArrowRight',     text: `${i18n.t('recentActivity.cardMoved')} — "${e.title}" → ${colLabel(e.toColumnId)}` }
     case 'studio:run':      return { icon: 'Sparkles',       text: `${i18n.t('recentActivity.studioRun')} — ${e.model.split('-')[1]} · ${e.inputTokens + e.outputTokens} tok` }
@@ -101,7 +100,6 @@ function iconColor(e: PlatformEvent): string {
     case 'habit:unchecked': return 'var(--color-text-muted)'
     case 'note:created':    return 'var(--color-accent)'
     case 'note:deleted':    return 'var(--color-danger)'
-    case 'snippet:created': return '#10b981'
     case 'card:created':    return 'var(--color-accent)'
     case 'card:moved':      return '#f59e0b'
     case 'studio:run':      return '#8b5cf6'

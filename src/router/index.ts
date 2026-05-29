@@ -8,7 +8,6 @@ import { taskManagerRoutes } from '@/modules/task-manager'
 import { docsRoutes } from '@/modules/docs'
 import { notesRoutes } from '@/modules/notes'
 import { gamesRoutes } from '@/modules/games'
-import { snippetsRoutes } from '@/modules/snippets'
 import { habitsRoutes } from '@/modules/habits'
 import { kanbanRoutes } from '@/modules/kanban'
 import { studioRoutes } from '@/modules/ai-playground'
@@ -35,7 +34,6 @@ const routes: RouteRecordRaw[] = [
       ...docsRoutes,
       ...notesRoutes,
       ...gamesRoutes,
-      ...snippetsRoutes,
       ...habitsRoutes,
       ...kanbanRoutes,
       ...studioRoutes,
