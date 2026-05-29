@@ -29,7 +29,7 @@ export const PLATFORM_STATUS = [
   { labelKey: 'platformHealth.deployment',   status: 'good',    note: 'Деплой на mrnednick.github.io/VibeOS' },
   { labelKey: 'platformHealth.i18n',         status: 'good',    note: 'EN + RU, кастомный Pinia-стор, 90+ ключей' },
   { labelKey: 'platformHealth.tests',        status: 'missing', note: 'Vitest запланирован в S5' },
-  { labelKey: 'platformHealth.backend',      status: 'planned', note: 'Supabase-синхронизация запланирована в S3' },
+  { labelKey: 'platformHealth.backend',      status: 'wip',     note: 'Auth-скаффолд отгружен (demo mode, login/register UI) — Supabase-синхронизация следующая' },
   { labelKey: 'platformHealth.identity',     status: 'planned', note: 'Логотип, vibe-пакеты, лендинг — активный S1' },
 ] as const
 
@@ -63,8 +63,8 @@ export interface ModuleDetail {
 
 export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   dashboard: {
-    progress: 75,
-    milestone: 'Полоса статистики жизни — привычки/цели/обучение/тренировки на главной',
+    progress: 82,
+    milestone: 'Виджет активности GitHub — граф за 14 дней, последние коммиты, поддержка любого username',
     shippedTasks: [
       { label: 'Быстрый запуск модуля — кнопка в боковой панели', date: '2026-05-26' },
       { label: 'Панель деталей модуля с прогресс-барами', date: '2026-05-26' },
@@ -74,10 +74,12 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Полоса статистики жизни: привычки, цели, обучение, тренировки', date: '2026-05-27' },
       { label: 'Динамическая версия через __APP_VERSION__ (без хардкода v0.x)', date: '2026-05-27' },
       { label: 'Метки полосы жизни переведены через i18n (EN/RU)', date: '2026-05-28' },
+      { label: 'Виджет активности GitHub: ввод username, граф 14 дней, последние 8 коммитов, обработка 404/403', date: '2026-05-29' },
     ],
     nextTasks: [
       { label: 'S2: заменить dev-карточки на живые виджеты жизни (задачи, привычки, цели)', priority: 'high' },
       { label: 'S2: перенести метрики платформы (модули, документация) в отдельную вкладку', priority: 'high' },
+      { label: 'Виджет погоды (OpenWeatherMap, ключ уже в Settings)', priority: 'medium' },
       { label: 'Виджет с цитатой или мотивирующим текстом', priority: 'low' },
     ],
     improvements: [
@@ -169,8 +171,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   about: {
-    progress: 82,
-    milestone: 'Список модулей, быстрая статистика, ссылка на сайт, сетка стека отгружены',
+    progress: 96,
+    milestone: 'Полная страница About с личным bio, LinkedIn/GitHub, секцией проекта и стека',
     shippedTasks: [
       { label: 'Страница «О проекте» /about с SVG-логотипом VibeOS', date: '2026-05-27' },
       { label: 'Сетка стека технологий: Vue 3, Vite, Pinia, Router, Lucide, marked, highlight.js', date: '2026-05-27' },
@@ -178,11 +180,13 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Адаптив: одна колонка на мобильном', date: '2026-05-27' },
       { label: 'Список отгруженных модулей с иконками и описаниями', date: '2026-05-27' },
       { label: 'Строка быстрой статистики: модули, ошибки TS, зависимости, размер бандла', date: '2026-05-27' },
+      { label: 'Личная карточка: инициалы NN, имя, LinkedIn/GitHub кнопки, bio, языки', date: '2026-05-29' },
+      { label: 'Секция проекта: логотип VibeOS, чип версии, ссылки GitHub/live', date: '2026-05-29' },
+      { label: 'Обновлён список модулей (убраны Snippets, добавлены Analytics/Calendar), обновлены описания', date: '2026-05-29' },
     ],
     nextTasks: [
-      { label: 'Личная карточка: имя, роль, краткое bio', priority: 'high' },
-      { label: 'Ссылки: GitHub, X/Twitter, LinkedIn, email', priority: 'high' },
       { label: 'Опциональная ссылка на резюме в PDF', priority: 'low' },
+      { label: 'Секция «Сейчас / над чем работаю»', priority: 'low' },
     ],
     improvements: [
       'Раздел «Сделано с помощью» — инструменты, которыми создан VibeOS',
@@ -197,8 +201,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   'task-manager': {
-    progress: 80,
-    milestone: 'Фильтр «Сегодня» отгружен — задачи с дедлайном на сегодня видны одним кликом',
+    progress: 90,
+    milestone: 'Таймер Помодоро отгружен — SVG-кольцо, режимы работы/перерыва, задача фокуса, уведомления',
     shippedTasks: [
       { label: 'Создание, переключение, удаление задач с сохранением в localStorage', date: '2026-05-26' },
       { label: 'Вкладки-фильтры: Все / Активные / Выполненные', date: '2026-05-26' },
@@ -215,12 +219,13 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Цветной бейдж категории на элементах задачи', date: '2026-05-27' },
       { label: 'Выбор категории в строке ввода новой задачи (появляется при вводе)', date: '2026-05-27' },
       { label: 'Вкладка «Сегодня»: только невыполненные задачи с dueDate === сегодня', date: '2026-05-28' },
+      { label: 'PomodoroPanel — SVG-кольцо прогресса, пресеты 25/5 · 50/10 · 15/3, выбор задачи фокуса', date: '2026-05-29' },
+      { label: 'Счётчик сессий, режимы работа/перерыв, браузерные уведомления', date: '2026-05-29' },
+      { label: 'Кнопка «🍅 Focus» в шапке — переключает PomodoroPanel с анимацией слайда', date: '2026-05-29' },
     ],
     nextTasks: [
-      { label: 'S4: Фокус-режим с таймером Помодоро', priority: 'high' },
       { label: 'S4: Счётчик серий + тепловая карта (≥1 выполненная/день)', priority: 'high' },
       { label: 'S4: Ввод на естественном языке («завтра» → устанавливает dueDate)', priority: 'medium' },
-      { label: 'S4: Закрепить название продукта (рекомендуется: Stride)', priority: 'high' },
       { label: 'Выбор даты в поле ввода задачи', priority: 'medium' },
       { label: 'Перетаскивание для изменения порядка задач', priority: 'low' },
     ],
@@ -332,8 +337,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   'ai-playground': {
-    progress: 70,
-    milestone: 'Prompt Lab работает + событие studio:run в ленте активности',
+    progress: 88,
+    milestone: 'Многоходовой чат, Markdown-рендеринг, боковая история, инъекция данных проекта',
     shippedTasks: [
       { label: 'Студия /ai — двухпанельный макет ввода промпта и вывода ответа', date: '2026-05-27' },
       { label: 'Выбор модели: Opus / Sonnet / Haiku с визуальным разграничением', date: '2026-05-27' },
@@ -345,12 +350,15 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Горячая клавиша ⌘↵ для запуска', date: '2026-05-27' },
       { label: 'Ошибка CORS с понятным сообщением-подсказкой', date: '2026-05-27' },
       { label: 'Событие studio:run при каждом успешном запуске — видно в «Последних событиях»', date: '2026-05-27' },
+      { label: 'Многоходовой чат: хранение истории сообщений, ConvMessage[], контекст передаётся в API', date: '2026-05-29' },
+      { label: 'Markdown-рендеринг ответов AI через marked + v-html', date: '2026-05-29' },
+      { label: 'Боковая панель истории разговоров (макс. 50), автозаголовок из первого сообщения', date: '2026-05-29' },
+      { label: 'Инъекция контекста проекта — кнопка «My data» подключает цели/задачи/привычки/обучение/тренировки', date: '2026-05-29' },
+      { label: 'Бесплатный API Pollinations.ai: POST https://text.pollinations.ai/ без ключа', date: '2026-05-29' },
     ],
     nextTasks: [
       { label: 'Параллельный запуск: один промпт → Opus + Sonnet + Haiku рядом', priority: 'high' },
       { label: 'Стриминг ответов с кнопкой отмены', priority: 'high' },
-      { label: 'Исследовать бесплатные API (Gemini / GroqCloud / OpenRouter) без непредвиденных счётов', priority: 'high' },
-      { label: 'Перенести хранилище API-ключа в Настройки → Раздел «API-ключи»', priority: 'medium' },
       { label: 'Библиотека шаблонов промптов с категориями', priority: 'medium' },
       { label: 'Слайдеры температуры + top_p', priority: 'low' },
     ],
@@ -374,8 +382,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
 
 
   habits: {
-    progress: 85,
-    milestone: 'Полный модуль — отметки, серии, тепловая карта, редактирование инлайн, подтверждение удаления',
+    progress: 92,
+    milestone: 'Интеграция с Целями, Обучением и Тренировками — выполнение привычки автоматически двигает связанные модули',
     shippedTasks: [
       { label: 'Модуль Привычки /habits — список ежедневных отметок', date: '2026-05-27' },
       { label: 'Модель данных: Habit + лог за каждый день в localStorage', date: '2026-05-27' },
@@ -385,6 +393,11 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Подтверждение удаления с 4-секундным автоотменой', date: '2026-05-27' },
       { label: 'Добавление / удаление привычек с пустым состоянием', date: '2026-05-27' },
       { label: 'Улучшен макет карточки: тепловая карта вправо на широких экранах', date: '2026-05-28' },
+      { label: 'Привязка к цели: linkedGoalId — завершение привычки отмечает следующий этап цели', date: '2026-05-29' },
+      { label: 'Привязка к Обучению: linkedLearningPlanId — сессия обучения автоотмечает привычку', date: '2026-05-29' },
+      { label: 'Привязка к Тренировкам: linkedTrainingPlanId — запись тренировки автоотмечает привычку', date: '2026-05-29' },
+      { label: 'Dropdown выбора Цели в форме создания привычки', date: '2026-05-29' },
+      { label: 'Динамический импорт между сторами — избегает циклических зависимостей', date: '2026-05-29' },
     ],
     nextTasks: [
       { label: 'Достижения через шину событий (зависит от S2)', priority: 'low' },
@@ -406,8 +419,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   games: {
-    progress: 97,
-    milestone: 'Четыре игры — Сапёр (заменил 2048), Память, Змейка (обтекание стен)',
+    progress: 98,
+    milestone: '4 скина Сапёра — Classic/Dark/Retro/Neon, разблокировка по лучшему времени',
     shippedTasks: [
       { label: 'Лобби игр /games — SVG-превью, рекорды, цветные акценты', date: '2026-05-27' },
       { label: 'Память — CSS 3D-переворот, лучшее время по сложности', date: '2026-05-27' },
@@ -416,13 +429,13 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Сапёр — поле 9×9, 10 мин, безопасность первого клика (зона 3×3)', date: '2026-05-27' },
       { label: 'Сапёр — флуд-филл раскрытие, флаги правым кликом, таймер, лучшее время', date: '2026-05-27' },
       { label: 'Заменён 2048 на Сапёра (оригинальнее + демонстрирует знание алгоритмов)', date: '2026-05-27' },
+      { label: 'Скины Сапёра: Classic/Dark(120с)/Retro(90с)/Neon(60с) — разблокировка по лучшему времени', date: '2026-05-29' },
+      { label: 'CSS-переменные --ms-cell-hidden, --ms-accent и т.д. с fallback на системные токены', date: '2026-05-29' },
     ],
     nextTasks: [
       { label: 'Достижения через шину событий (зависит от S2)', priority: 'low' },
       { label: 'Рекорды в виджете на Главной', priority: 'low' },
-      { label: 'Пасхалка: скин CRT vibe-pak', priority: 'low' },
       { label: 'Новая игра: Тетрис (самый впечатляющий визуально)', priority: 'low' },
-      { label: 'Судоку — добавлено в бэклог как будущая игра', priority: 'low' },
     ],
     improvements: [
       'Лента достижений (интеграция с шиной событий)',
@@ -440,8 +453,8 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
   },
 
   goals: {
-    progress: 85,
-    milestone: 'Полный модуль — этапы, отслеживание прогресса, дедлайны, сортировка по сроку',
+    progress: 90,
+    milestone: 'Интеграция с Привычками — выполнение привычки автоматически отмечает следующий этап',
     shippedTasks: [
       { label: 'Модуль Цели /goals — список с компонентами GoalCard', date: '2026-05-27' },
       { label: 'Модель данных: Goal { id, title, description, status, category, targetDate, progress, milestones }', date: '2026-05-27' },
@@ -452,10 +465,10 @@ export const MODULE_DETAILS: Record<string, ModuleDetail> = {
       { label: 'Активные цели отсортированы по ближайшему дедлайну', date: '2026-05-27' },
       { label: 'Интеграция с Главной: счётчик активных целей в полосе жизни', date: '2026-05-27' },
       { label: 'Шина событий: goal:created, goal:completed, goal:milestone:completed', date: '2026-05-27' },
+      { label: 'Интеграция Привычки → Цель: linkedGoalId на Habit, toggleToday() отмечает следующий этап', date: '2026-05-29' },
     ],
     nextTasks: [
       { label: 'S4: Привязать задачи к целям (linkedGoalId в Task)', priority: 'high' },
-      { label: 'S4: Интеграция Привычки → Цель (выполнение привычки увеличивает прогресс)', priority: 'high' },
       { label: 'Кольцо прогресса / визуальный индикатор на GoalCard', priority: 'medium' },
       { label: 'Фильтр категорий цели (работа / обучение / тренировки / личное)', priority: 'medium' },
       { label: 'Архивирование выполненных целей с историей', priority: 'low' },
