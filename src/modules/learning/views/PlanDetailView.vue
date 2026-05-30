@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useLearningStore } from '../stores/learning.store'
 import ProgressRing from '../components/ProgressRing.vue'
@@ -7,6 +7,7 @@ import SessionLogForm from '../components/SessionLogForm.vue'
 import type { LearningSession } from '../types'
 import { estimateTargetDate, todayStr } from '../types'
 import { UiIcon } from '@/ui'
+import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 
 const route = useRoute()
 const router = useRouter()
@@ -77,6 +78,16 @@ function ratingStars(r: number): string {
 }
 
 const today = todayStr()
+
+// ── Linked habit ─────────────────────────────────────────────────────
+const habitsStore = useHabitsStore()
+const linkedHabitId = ref(plan.value?.linkedHabitId ?? '')
+
+watch(() => plan.value?.linkedHabitId, (v) => { linkedHabitId.value = v ?? '' })
+
+function saveHabitLink() {
+  store.updatePlanLink(planId.value, linkedHabitId.value || undefined)
+}
 </script>
 
 <template>
@@ -174,6 +185,25 @@ const today = todayStr()
 
       <p v-else class="detail__history-empty">
         No sessions logged yet. Start your first session above.
+      </p>
+    </div>
+
+    <!-- Linked habit -->
+    <div class="detail__link-habit">
+      <p class="detail__section-label">Linked habit</p>
+      <div class="detail__link-habit-row">
+        <select v-model="linkedHabitId" class="detail__habit-select">
+          <option value="">— none —</option>
+          <option v-for="h in habitsStore.habits" :key="h.id" :value="h.id">{{ h.name }}</option>
+        </select>
+        <button
+          class="detail__habit-save"
+          :disabled="linkedHabitId === (plan.linkedHabitId ?? '')"
+          @click="saveHabitLink"
+        >Save</button>
+      </div>
+      <p v-if="plan.linkedHabitId" class="detail__habit-hint">
+        ✓ Logging a session will auto-check this habit
       </p>
     </div>
 
@@ -426,6 +456,64 @@ const today = todayStr()
 .detail__history-empty {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ── Linked habit ────────────────────────────────────────────────── */
+.detail__link-habit {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail__link-habit .detail__section-label { margin: 0; }
+
+.detail__link-habit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail__habit-select {
+  flex: 1;
+  font-size: var(--text-sm);
+  font-family: inherit;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  outline: none;
+  cursor: pointer;
+  max-width: 280px;
+}
+
+.detail__habit-select:focus { border-color: var(--color-accent); }
+
+.detail__habit-save {
+  padding: 6px 16px;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--t-fast), opacity var(--t-fast);
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.detail__habit-save:hover:not(:disabled) { background: var(--color-accent-hover); }
+.detail__habit-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.detail__habit-hint {
+  font-size: var(--text-xs);
+  color: var(--color-success);
   margin: 0;
 }
 

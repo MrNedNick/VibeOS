@@ -52,6 +52,32 @@ Order:
 
 ## S3 — Backend + Auth
 
+> **⏸ PAUSED — 2026-05-30 (v0.6.8)**
+> All code is written and deployed. Waiting on user to create the Supabase project.
+>
+> **Checkpoint — what's done:**
+> - `src/core/services/supabase.ts` — lazy Supabase client singleton
+> - `src/core/services/supabase.types.ts` — full DB types for all tables
+> - `src/core/stores/auth.store.ts` — real signIn/signUp/signOut/getSession/onAuthStateChange
+> - `src/core/composables/useCloudSync.ts` — real pullAll/pushAll/pushRecord/deleteRecord with last-write-wins merge
+> - `src/modules/auth/views/LoginView.vue` — forgot password flow, Supabase-aware notice
+> - `src/modules/auth/views/RegisterView.vue` — email confirmation pending state, password match hint
+> - `supabase/migrations/001_init.sql` — all tables + RLS + auto user_settings on signup
+> - `.env.example` — template for credentials
+>
+> **Blocked — needs user action (in order):**
+> 1. Go to supabase.com → create new project → copy **Project URL** + **anon key**
+> 2. Create `.env.local` in repo root with those two values (see `.env.example`)
+> 3. In Supabase SQL Editor, run `supabase/migrations/001_init.sql` — creates all tables + RLS
+> 4. In Supabase Auth, create user `demo@vibeos.app` with a known password → seed as demo account
+> 5. Add `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` as GitHub Actions secrets (Settings → Secrets)
+> 6. After credentials added: restart `npm run dev` locally and test login + register
+>
+> **S3 items still TODO after credentials are ready:**
+> - Demo mode seeding (step 4 above + seed SQL for demo data)
+> - "Sign up to save" toast when demo user tries to write (useFeatureGate.ts already has the tier logic)
+> - UptimeRobot keep-alive ping (free, prevents Supabase project from pausing due to inactivity)
+
 **Goal:** personal data survives, stays private, and demo mode works for recruiters.
 
 > Architecture fully researched and documented in `docs/auth-plan.md`.  

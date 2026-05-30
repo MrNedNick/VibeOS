@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTrainingStore } from '../stores/training.store'
 import WorkoutLogForm from '../components/WorkoutLogForm.vue'
 import type { WorkoutLog } from '../types'
 import { FEELING_EMOJI, todayStr } from '../types'
 import { UiIcon } from '@/ui'
+import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 
 const route = useRoute()
 const router = useRouter()
@@ -54,6 +55,16 @@ function formatDate(iso: string): string {
   return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', {
     weekday: 'short', day: 'numeric', month: 'short',
   })
+}
+
+// ── Linked habit ─────────────────────────────────────────────────────
+const habitsStore = useHabitsStore()
+const linkedHabitId = ref(plan.value?.linkedHabitId ?? '')
+
+watch(() => plan.value?.linkedHabitId, (v) => { linkedHabitId.value = v ?? '' })
+
+function saveHabitLink() {
+  store.updatePlanLink(planId.value, linkedHabitId.value || undefined)
 }
 </script>
 
@@ -133,6 +144,25 @@ function formatDate(iso: string): string {
       </div>
 
       <p v-else class="tdetail__empty">No workouts logged yet.</p>
+    </div>
+
+    <!-- Linked habit -->
+    <div class="tdetail__link-habit">
+      <p class="tdetail__section-label">Linked habit</p>
+      <div class="tdetail__link-habit-row">
+        <select v-model="linkedHabitId" class="tdetail__habit-select">
+          <option value="">— none —</option>
+          <option v-for="h in habitsStore.habits" :key="h.id" :value="h.id">{{ h.name }}</option>
+        </select>
+        <button
+          class="tdetail__habit-save"
+          :disabled="linkedHabitId === (plan.linkedHabitId ?? '')"
+          @click="saveHabitLink"
+        >Save</button>
+      </div>
+      <p v-if="plan.linkedHabitId" class="tdetail__habit-hint">
+        ✓ Logging a workout will auto-check this habit
+      </p>
     </div>
 
     <div class="tdetail__danger">
@@ -285,6 +315,64 @@ function formatDate(iso: string): string {
 .tdetail__log-num { font-size: var(--text-xs); font-weight: 600; color: var(--color-text-secondary); }
 
 .tdetail__empty { font-size: var(--text-sm); color: var(--color-text-muted); margin: 0; }
+
+/* ── Linked habit ────────────────────────────────────────────────── */
+.tdetail__link-habit {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tdetail__link-habit .tdetail__section-label { margin: 0; }
+
+.tdetail__link-habit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tdetail__habit-select {
+  flex: 1;
+  font-size: var(--text-sm);
+  font-family: inherit;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  outline: none;
+  cursor: pointer;
+  max-width: 280px;
+}
+
+.tdetail__habit-select:focus { border-color: var(--color-accent); }
+
+.tdetail__habit-save {
+  padding: 6px 16px;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--t-fast), opacity var(--t-fast);
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.tdetail__habit-save:hover:not(:disabled) { background: var(--color-accent-hover); }
+.tdetail__habit-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.tdetail__habit-hint {
+  font-size: var(--text-xs);
+  color: var(--color-success);
+  margin: 0;
+}
 
 .tdetail__danger {
   display: flex;

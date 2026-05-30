@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
 import type { Task } from '../types'
 import { classifyTaskDueDate } from '../types'
 import { UiButton } from '@/ui'
+import { useGoalsStore } from '@/modules/goals/stores/goals.store'
+
+const goalsStore = useGoalsStore()
 
 interface Props {
   task: Task
@@ -16,6 +19,12 @@ const emit = defineEmits<{
   edit:        [id: string, text: string]
   setDueDate:  [id: string, date: string | undefined]
 }>()
+
+const linkedGoalTitle = computed(() =>
+  props.task.linkedGoalId
+    ? (goalsStore.goals.find(g => g.id === props.task.linkedGoalId)?.title ?? null)
+    : null
+)
 
 function fmtDate(iso: string): string {
   return new Date(iso + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -96,6 +105,13 @@ function cancelEdit() {
         :class="`task-item__due--${classifyTaskDueDate(task.dueDate)}`"
         :title="task.dueDate"
       >{{ fmtDate(task.dueDate) }}</span>
+
+      <!-- Linked goal chip -->
+      <span
+        v-if="linkedGoalTitle"
+        class="task-item__goal"
+        :title="`Linked to goal: ${linkedGoalTitle}`"
+      >🎯 {{ linkedGoalTitle }}</span>
     </template>
 
     <UiButton
@@ -226,6 +242,21 @@ function cancelEdit() {
 .task-item__due--overdue  { background: color-mix(in srgb, #ef4444 12%, transparent); color: #ef4444; }
 .task-item__due--today    { background: color-mix(in srgb, #f59e0b 12%, transparent); color: #f59e0b; }
 .task-item__due--upcoming { color: var(--color-text-muted); }
+
+/* Linked goal chip */
+.task-item__goal {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
 
 /* Delete */
 .task-item__delete {

@@ -6,21 +6,24 @@ import { useUiStore } from '@/core/stores/ui.store'
 import { useAuthStore } from '@/core/stores/auth.store'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
+import { useModuleVisibility } from '@/core/composables/useModuleVisibility'
 
 const route  = useRoute()
 const router = useRouter()
 const uiStore = useUiStore()
 const auth = useAuthStore()
 const i18n = useLocale()
+const { isVisible } = useModuleVisibility()
 
 function logout() {
   auth.logout()
   router.push('/welcome')
 }
 
+// System modules are always shown; life/work respect user visibility prefs
 const systemModules = computed(() => PLATFORM_MODULES.filter(m => m.section === 'system'))
-const lifeModules   = computed(() => PLATFORM_MODULES.filter(m => m.section === 'life'))
-const workModules   = computed(() => PLATFORM_MODULES.filter(m => m.section === 'work'))
+const lifeModules   = computed(() => PLATFORM_MODULES.filter(m => m.section === 'life'   && isVisible(m.id)))
+const workModules   = computed(() => PLATFORM_MODULES.filter(m => m.section === 'work'   && isVisible(m.id)))
 
 const sidebarGroups = computed(() => [
   { key: 'life',   label: i18n.t('nav.life'),   icon: 'Heart',    modules: lifeModules.value },

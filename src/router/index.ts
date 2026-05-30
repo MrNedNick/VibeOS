@@ -19,6 +19,7 @@ import { trainingRoutes } from '@/modules/training'
 import { analyticsRoutes } from '@/modules/analytics'
 import { calendarRoutes } from '@/modules/calendar'
 import { authRoutes } from '@/modules/auth'
+import { financeRoutes } from '@/modules/finance'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -47,6 +48,7 @@ const routes: RouteRecordRaw[] = [
       ...trainingRoutes,
       ...analyticsRoutes,
       ...calendarRoutes,
+      ...financeRoutes,
       { path: '/:pathMatch(.*)*', component: NotFoundView },
     ],
   },

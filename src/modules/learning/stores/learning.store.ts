@@ -60,6 +60,11 @@ export const useLearningStore = defineStore('learning:plans', () => {
     }
   }
 
+  function updatePlanLink(planId: string, habitId: string | undefined): void {
+    const plan = plans.value.find(p => p.id === planId)
+    if (plan) plan.linkedHabitId = habitId
+  }
+
   function deletePlan(id: string): void {
     plans.value = plans.value.filter(p => p.id !== id)
     sessions.value = sessions.value.filter(s => s.planId !== id)
@@ -117,6 +122,7 @@ export const useLearningStore = defineStore('learning:plans', () => {
     todayItems,
     createPlan,
     logSession,
+    updatePlanLink,
     deletePlan,
     archivePlan,
     getPlanById,

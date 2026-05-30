@@ -4,10 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { PLATFORM_MODULES, type ModuleMeta } from '@/core/registry/modules'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
+import { useModuleVisibility } from '@/core/composables/useModuleVisibility'
 
 const route  = useRoute()
 const router = useRouter()
 const i18n   = useLocale()
+const { isVisible } = useModuleVisibility()
 
 const showMore = ref(false)
 
@@ -48,14 +50,14 @@ const moreGroups = computed(() => [
     label: i18n.t('nav.life'),
     icon: 'Heart',
     color: 'var(--color-success)',
-    modules: PLATFORM_MODULES.filter(m => m.section === 'life'),
+    modules: PLATFORM_MODULES.filter(m => m.section === 'life' && isVisible(m.id)),
   },
   {
     key: 'work',
     label: i18n.t('nav.work'),
     icon: 'Briefcase',
     color: 'var(--color-accent)',
-    modules: PLATFORM_MODULES.filter(m => m.section === 'work'),
+    modules: PLATFORM_MODULES.filter(m => m.section === 'work' && isVisible(m.id)),
   },
   {
     key: 'system',

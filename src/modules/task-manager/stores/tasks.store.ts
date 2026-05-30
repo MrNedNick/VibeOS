@@ -36,9 +36,9 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     totalCount.value === 0 ? 0 : Math.round((doneCount.value / totalCount.value) * 100)
   )
 
-  function addTask(text: string, priority: TaskPriority = 'none', dueDate?: string, category?: TaskCategory) {
+  function addTask(text: string, priority: TaskPriority = 'none', dueDate?: string, category?: TaskCategory, linkedGoalId?: string) {
     const id = generateId()
-    tasks.value.push({ id, text: text.trim(), done: false, priority, dueDate, category, createdAt: Date.now() })
+    tasks.value.push({ id, text: text.trim(), done: false, priority, dueDate, category, linkedGoalId, createdAt: Date.now() })
     events.emit({ type: 'task:created', taskId: id, label: text.trim(), timestamp: new Date().toISOString() })
   }
 

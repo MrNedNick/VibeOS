@@ -4,6 +4,8 @@ import { useUiStore } from '@/core/stores/ui.store'
 import type { Theme } from '@/core/stores/ui.store'
 import { useLocale } from '@/core/i18n'
 import { useStorage } from '@/core/composables/useStorage'
+import { useModuleVisibility } from '@/core/composables/useModuleVisibility'
+import { PLATFORM_MODULES } from '@/core/registry/modules'
 
 const uiStore = useUiStore()
 const i18n    = useLocale()
@@ -42,6 +44,12 @@ const VIBE_PAKS: VibePak[] = [
     label:   'Stark',
   },
 ]
+
+// ── Module visibility ─────────────────────────────────────────────
+const { isVisible, toggleModule } = useModuleVisibility()
+
+// Only life + work modules can be toggled (system modules are always visible)
+const toggleableModules = PLATFORM_MODULES.filter(m => m.section !== 'system')
 
 // ── API keys ──────────────────────────────────────────────────────
 const anthropicKey    = useStorage<string>('platform:studio:apikey', '')
@@ -190,6 +198,34 @@ function cancelImport() {
             @click="i18n.setLocale('en')"
           >English</button>
         </div>
+      </div>
+    </section>
+
+    <!-- ── Modules ───────────────────────────────────────── -->
+    <section class="settings__section">
+      <h2 class="settings__section-title">Modules</h2>
+
+      <p class="settings__row-hint" style="margin: 0 0 4px;">
+        Toggle modules on or off in the sidebar. System modules are always shown.
+      </p>
+
+      <div
+        v-for="mod in toggleableModules"
+        :key="mod.id"
+        class="settings__row settings__module-row"
+      >
+        <div class="settings__module-info">
+          <span class="settings__row-name">{{ mod.label }}</span>
+          <p class="settings__row-hint">{{ mod.description }}</p>
+        </div>
+        <button
+          class="settings__vis-toggle"
+          :class="{ 'settings__vis-toggle--on': isVisible(mod.id) }"
+          :title="isVisible(mod.id) ? 'Click to hide' : 'Click to show'"
+          @click="toggleModule(mod.id)"
+        >
+          <span class="settings__vis-knob" />
+        </button>
       </div>
     </section>
 
@@ -642,10 +678,51 @@ function cancelImport() {
   color: var(--color-accent);
 }
 
+/* ── Module visibility toggles ────────────────────────────────── */
+.settings__module-row {
+  min-height: 48px;
+}
+
+.settings__module-info { flex: 1; min-width: 0; }
+
+.settings__vis-toggle {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 99px;
+  background: var(--color-border);
+  border: none;
+  cursor: pointer;
+  transition: background var(--t-fast);
+  flex-shrink: 0;
+}
+
+.settings__vis-toggle--on {
+  background: var(--color-accent);
+}
+
+.settings__vis-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  transition: transform var(--t-fast);
+  display: block;
+}
+
+.settings__vis-toggle--on .settings__vis-knob {
+  transform: translateX(18px);
+}
+
 @media (max-width: 767px) {
   .settings { max-width: 100%; }
   .settings__section { padding: 16px 16px; }
   .settings__row { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .settings__module-row { flex-direction: row; align-items: center; }
   .settings__clear-actions { flex-wrap: wrap; }
   .settings__key-input { min-width: 0; }
   .pak-grid { grid-template-columns: repeat(2, 1fr); }

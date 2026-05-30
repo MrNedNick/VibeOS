@@ -14,6 +14,7 @@ export function useTasks() {
   const inputText       = ref('')
   const inputPriority   = ref<TaskPriority>('none')
   const inputCategory   = ref<TaskCategory | undefined>(undefined)
+  const inputGoalId     = ref<string>('')
   let   lastDeleted: Task | null = null
 
   function cyclePriority() {
@@ -35,10 +36,11 @@ export function useTasks() {
       notify.warning('This task already exists')
       return
     }
-    store.addTask(text, inputPriority.value, undefined, inputCategory.value)
+    store.addTask(text, inputPriority.value, undefined, inputCategory.value, inputGoalId.value || undefined)
     inputText.value     = ''
     inputPriority.value = 'none'
     inputCategory.value = undefined
+    inputGoalId.value   = ''
   }
 
   function removeTask(id: string) {
@@ -101,6 +103,7 @@ export function useTasks() {
     inputText,
     inputPriority,
     inputCategory,
+    inputGoalId,
     cyclePriority,
     submitTask,
     removeTask,

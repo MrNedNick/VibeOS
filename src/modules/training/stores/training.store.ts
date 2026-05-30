@@ -56,6 +56,11 @@ export const useTrainingStore = defineStore('training:plans', () => {
     }
   }
 
+  function updatePlanLink(planId: string, habitId: string | undefined): void {
+    const plan = plans.value.find(p => p.id === planId)
+    if (plan) plan.linkedHabitId = habitId
+  }
+
   function deletePlan(id: string): void {
     plans.value = plans.value.filter(p => p.id !== id)
     logs.value = logs.value.filter(l => l.planId !== id)
@@ -88,7 +93,7 @@ export const useTrainingStore = defineStore('training:plans', () => {
   return {
     plans, logs,
     activePlans, todayItems, recentLogs,
-    createPlan, logWorkout, deletePlan,
+    createPlan, logWorkout, updatePlanLink, deletePlan,
     getPlanById, getPlanLogs,
     getStreak, getTotalMinutes, getTotalKm, isLoggedToday,
   }

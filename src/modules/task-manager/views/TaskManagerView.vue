@@ -8,13 +8,15 @@ import TaskProgress from '../components/TaskProgress.vue'
 import PomodoroPanel from '../components/PomodoroPanel.vue'
 import { useLocale } from '@/core/i18n'
 import { UiButton } from '@/ui'
+import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 
 const i18n = useLocale()
+const goalsStore = useGoalsStore()
 
 import type { TaskCategory } from '../types'
 
 const {
-  inputText, inputPriority, inputCategory,
+  inputText, inputPriority, inputCategory, inputGoalId,
   submitTask, removeTask, clearCompleted, exportTasks,
   store, MAX_LENGTH,
 } = useTasks()
@@ -152,7 +154,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       >{{ i18n.t(cat.labelKey) }}</button>
     </div>
 
-    <!-- New task category selector (only when input has text) -->
+    <!-- New task category + goal selector (only when input has text) -->
     <div v-if="inputText.trim()" class="tm-view__input-cats">
       <span class="tm-view__input-cat-label">Category:</span>
       <button
@@ -162,6 +164,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         :class="{ 'tm-view__cat--active': inputCategory === cat.val }"
         @click="inputCategory = (inputCategory === cat.val ? undefined : cat.val as TaskCategory)"
       >{{ i18n.t(cat.labelKey) }}</button>
+
+      <template v-if="goalsStore.activeGoals.length">
+        <span class="tm-view__input-cat-label tm-view__input-cat-label--sep">Goal:</span>
+        <select
+          v-model="inputGoalId"
+          class="tm-view__goal-select"
+          title="Link to a goal"
+        >
+          <option value="">— none —</option>
+          <option v-for="g in goalsStore.activeGoals" :key="g.id" :value="g.id">{{ g.title }}</option>
+        </select>
+      </template>
     </div>
 
     <!-- List -->
@@ -266,5 +280,30 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   background: var(--color-accent-muted);
   border-color: var(--color-accent);
   color: var(--color-accent);
+}
+
+.tm-view__input-cat-label--sep {
+  margin-left: 8px;
+}
+
+.tm-view__goal-select {
+  font-size: 12px;
+  font-family: inherit;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  cursor: pointer;
+  outline: none;
+  max-width: 200px;
+}
+
+.tm-view__goal-select:focus {
+  border-color: var(--color-accent);
+}
+
+@media (max-width: 767px) {
+  .tm-view__goal-select { max-width: 150px; }
 }
 </style>

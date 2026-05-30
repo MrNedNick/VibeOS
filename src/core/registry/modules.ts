@@ -153,4 +153,13 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
     status: 'available',
     description: 'Unified view of tasks, habits, learning, training and goals',
   },
+  {
+    id: 'finance',
+    label: 'Finance',
+    icon: 'Banknote',
+    path: '/finance',
+    section: 'life',
+    status: 'available',
+    description: 'Track expenses, set monthly budgets, and review spending by category',
+  },
 ]
