@@ -8,12 +8,25 @@ import NoteList from '../components/NoteList.vue'
 import NoteEditor from '../components/NoteEditor.vue'
 import NotePreview from '../components/NotePreview.vue'
 import { UiIcon } from '@/ui'
+import { useConfirm } from '@/core/composables/useConfirm'
 
 const {
   selectedId, mode, searchQuery, typeFilter,
   filteredNotes, selectedNote,
-  selectNote, newNote, todayNote, debouncedSave, deleteNote, navigateToWikiLink,
+  selectNote, newNote, todayNote, debouncedSave, deleteNote: _deleteNote, navigateToWikiLink,
 } = useNotes()
+
+const { confirm } = useConfirm()
+
+async function deleteNote(id: string) {
+  const ok = await confirm({
+    title:        'Delete this note?',
+    body:         'This action cannot be undone.',
+    danger:       true,
+    confirmLabel: 'Delete note',
+  })
+  if (ok) _deleteNote(id)
+}
 
 const notesStore = useNotesStore()
 

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-// Root component — router-view handles all layout via AppLayout
+import { UiConfirmDialog } from '@/ui'
 </script>
 
 <template>
   <router-view />
+  <!-- Global confirm dialog — singleton, mounted once here -->
+  <UiConfirmDialog />
 </template>

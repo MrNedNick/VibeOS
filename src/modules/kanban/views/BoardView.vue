@@ -6,10 +6,22 @@ import { BOARD_COLUMNS, PRIORITY_COLOR, classifyDueDate } from '../types'
 import type { BoardColumnId, CardPriority } from '../types'
 import { useLocale } from '@/core/i18n'
 import TimelineGrid from '../components/TimelineGrid.vue'
+import { useConfirm } from '@/core/composables/useConfirm'
 
 const store      = useBoardStore()
 const tasksStore = useTasksStore()
 const i18n       = useLocale()
+const { confirm } = useConfirm()
+
+async function deleteCard(cardId: string) {
+  const ok = await confirm({
+    title:        'Delete this card?',
+    body:         'The card will be permanently removed from the board.',
+    danger:       true,
+    confirmLabel: 'Delete card',
+  })
+  if (ok) store.deleteCard(cardId)
+}
 
 // ── Drag (Kanban mode only) ─────────────────────────────────────────
 const draggingId  = ref<string | null>(null)
@@ -219,26 +231,25 @@ const activeColMobile = ref<BoardColumnId>('backlog')
               :key="card.id"
               class="board-card"
               :class="{
-                'board-card--dragging': draggingId === card.id,
-                'board-card--expanded': expandedId === card.id,
+                'board-card--dragging':  draggingId === card.id,
+                'board-card--expanded':  expandedId === card.id,
               }"
               :style="{ '--priority-color': PRIORITY_COLOR[card.priority] }"
               draggable="true"
               @dragstart="onDragStart($event, card.id)"
               @dragend="onDragEnd"
             >
-              <span class="board-card__priority-strip" @click.stop="store.cyclePriority(card.id)" :title="priorityLabel(card.priority)" />
+              <!-- Left priority strip -->
+              <span
+                class="board-card__priority-strip"
+                :title="priorityLabel(card.priority)"
+                @click.stop="store.cyclePriority(card.id)"
+              />
 
               <div class="board-card__body">
-                <!-- Title row -->
-                <div v-if="editingId !== card.id" class="board-card__title-row">
-                  <span class="board-card__title" @dblclick="startEdit(card.id, card.title)">{{ card.title }}</span>
-                  <button class="board-card__expand" @click.stop="toggleExpand(card.id)">
-                    {{ expandedId === card.id ? '▴' : '▾' }}
-                  </button>
-                </div>
+                <!-- Title (inline edit mode) -->
                 <input
-                  v-else
+                  v-if="editingId === card.id"
                   ref="editInputRef"
                   v-model="editTitle"
                   class="board-card__title-input"
@@ -246,13 +257,56 @@ const activeColMobile = ref<BoardColumnId>('backlog')
                   @keydown.escape="cancelEdit"
                   @blur="confirmEdit"
                 />
-
-                <!-- Due date badge (Kanban view) -->
                 <span
-                  v-if="card.dueDate && expandedId !== card.id"
-                  class="board-card__due"
-                  :class="`board-card__due--${classifyDueDate(card.dueDate)}`"
-                >{{ fmtDate(card.dueDate) }}</span>
+                  v-else
+                  class="board-card__title"
+                  @dblclick="startEdit(card.id, card.title)"
+                >{{ card.title }}</span>
+
+                <!-- Meta row — always visible -->
+                <div class="board-card__meta">
+                  <!-- Priority dot -->
+                  <span
+                    v-if="card.priority !== 'none'"
+                    class="board-card__pri-dot"
+                    :style="{ background: PRIORITY_COLOR[card.priority] }"
+                    :title="priorityLabel(card.priority)"
+                    @click.stop="store.cyclePriority(card.id)"
+                  />
+                  <!-- Due date -->
+                  <span
+                    v-if="card.dueDate"
+                    class="board-card__due"
+                    :class="`board-card__due--${classifyDueDate(card.dueDate)}`"
+                  >{{ fmtDate(card.dueDate) }}</span>
+                  <!-- Source indicator -->
+                  <span v-if="card.sourceTaskId" class="board-card__source-dot" title="Imported from Tasks">⊙</span>
+
+                  <span class="board-card__meta-spacer" />
+
+                  <!-- Expand toggle (shows if there's a description or card is expanded) -->
+                  <button
+                    class="board-card__expand"
+                    :class="{ 'board-card__expand--open': expandedId === card.id }"
+                    @click.stop="toggleExpand(card.id)"
+                    :title="expandedId === card.id ? 'Collapse' : 'Expand'"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+
+                  <!-- Delete (hover) -->
+                  <button
+                    class="board-card__del"
+                    title="Delete card"
+                    @click.stop="deleteCard(card.id)"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 2L8 8M8 2L2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
 
                 <!-- Expanded section -->
                 <template v-if="expandedId === card.id">
@@ -262,34 +316,27 @@ const activeColMobile = ref<BoardColumnId>('backlog')
                   </div>
                   <textarea
                     v-else
-                    class="board-card__desc-edit card-desc-edit"
                     v-model="editDesc"
+                    class="board-card__desc-edit card-desc-edit"
                     rows="3"
                     :placeholder="i18n.t('kanban.descPlaceholder')"
                     @keydown.escape="editingDesc = false"
                     @blur="confirmEditDesc(card.id)"
                   />
 
-                  <!-- Action row -->
+                  <!-- Expanded actions: priority + date -->
                   <div class="board-card__actions">
                     <button
                       class="board-card__action board-card__action--priority"
                       :style="{ color: PRIORITY_COLOR[card.priority] }"
                       @click="store.cyclePriority(card.id)"
                     >{{ priorityLabel(card.priority) }}</button>
-
-                    <!-- Inline date picker -->
                     <input
                       type="date"
                       class="board-card__date-input"
                       :value="card.dueDate ?? ''"
                       @change="store.setDueDate(card.id, ($event.target as HTMLInputElement).value || undefined)"
                     />
-
-                    <button
-                      class="board-card__action board-card__action--delete"
-                      @click="store.deleteCard(card.id)"
-                    >{{ i18n.t('kanban.delete') }}</button>
                   </div>
 
                   <!-- Mobile: move to column buttons -->
@@ -303,11 +350,6 @@ const activeColMobile = ref<BoardColumnId>('backlog')
                       :style="{ '--move-dot': targetCol.color }"
                       @click.stop="store.moveCard(card.id, targetCol.id); activeColMobile = targetCol.id"
                     >{{ colLabel(targetCol.id) }}</button>
-                  </div>
-
-                  <!-- Source task indicator -->
-                  <div v-if="card.sourceTaskId" class="board-card__source">
-                    ⟵ {{ i18n.t('kanban.fromTasksLabel') }}
                   </div>
                 </template>
               </div>
@@ -602,110 +644,194 @@ const activeColMobile = ref<BoardColumnId>('backlog')
 }
 .board-col__add-btn:hover { background: var(--color-surface-elevated); color: var(--color-accent); }
 
-/* Card */
+/* ── Card ──────────────────────────────────────────────────────────── */
 .board-card {
-  display: flex; gap: 0;
+  display: flex;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   cursor: grab;
   transition: border-color var(--t-fast), box-shadow var(--t-fast), opacity var(--t-fast);
   overflow: hidden;
+  position: relative;
 }
 .board-card:hover {
-  border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border));
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border-color: color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }
 .board-card:active { cursor: grabbing; }
-.board-card--dragging { opacity: 0.4; }
-.board-card--expanded {
-  border-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
-}
+.board-card--dragging { opacity: 0.35; }
+.board-card--expanded { border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border)); }
 
+/* Priority strip */
 .board-card__priority-strip {
-  width: 4px; min-height: 100%;
-  background: var(--priority-color); flex-shrink: 0;
+  width: 3px;
+  flex-shrink: 0;
+  background: var(--priority-color);
   cursor: pointer;
+  opacity: 0.75;
   transition: width var(--t-fast), opacity var(--t-fast);
-  opacity: 0.7;
+  align-self: stretch;
 }
-.board-card__priority-strip:hover { width: 6px; opacity: 1; }
+.board-card__priority-strip:hover { width: 5px; opacity: 1; }
 
+/* Card body */
 .board-card__body {
-  flex: 1; padding: 10px 10px 8px 10px;
-  display: flex; flex-direction: column; gap: 5px; min-width: 0;
+  flex: 1;
+  padding: 9px 10px 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
-.board-card__title-row {
-  display: flex; align-items: flex-start; gap: 6px;
-}
-.board-card__title {
-  font-size: 14px; color: var(--color-text);
-  line-height: 1.4; flex: 1; min-width: 0;
-  word-break: break-word; cursor: text;
-}
-.board-card__expand {
-  font-size: 10px; color: var(--color-text-muted);
-  flex-shrink: 0; padding: 2px 4px; border-radius: 3px; margin-top: 1px;
-  transition: color var(--t-fast), background var(--t-fast);
-}
-.board-card__expand:hover { color: var(--color-accent); background: var(--color-accent-muted); }
 
+/* Title */
+.board-card__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  line-height: 1.45;
+  word-break: break-word;
+  cursor: text;
+}
 .board-card__title-input {
-  font-size: 14px; color: var(--color-text);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
   background: var(--color-surface);
   border: 1px solid var(--color-accent);
-  border-radius: 3px; padding: 2px 6px; width: 100%; outline: none;
+  border-radius: 3px;
+  padding: 2px 6px;
+  width: 100%;
+  outline: none;
+  font-family: inherit;
 }
+
+/* Meta row — priority dot + date + delete */
+.board-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 18px;
+}
+.board-card__meta-spacer { flex: 1; }
+
+/* Priority dot */
+.board-card__pri-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform var(--t-fast);
+}
+.board-card__pri-dot:hover { transform: scale(1.3); }
 
 /* Due date badge */
 .board-card__due {
-  font-size: 11px;
+  font-size: 10px;
   font-family: var(--font-mono);
   padding: 1px 5px;
   border-radius: 3px;
-  align-self: flex-start;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 .board-card__due--overdue   { background: color-mix(in srgb, #ef4444 12%, transparent); color: #ef4444; }
 .board-card__due--today     { background: color-mix(in srgb, #f59e0b 12%, transparent); color: #f59e0b; }
 .board-card__due--tomorrow  { color: var(--color-text-muted); }
 .board-card__due--this-week { color: var(--color-text-muted); }
-.board-card__due--later     { color: var(--color-text-muted); opacity: 0.6; }
+.board-card__due--later     { color: var(--color-text-muted); opacity: 0.55; }
 
-/* Description */
-.board-card__desc { font-size: 12px; line-height: 1.5; cursor: text; min-height: 20px; }
-.board-card__desc-text { color: var(--color-text-muted); white-space: pre-wrap; word-break: break-word; }
-.board-card__desc-empty { color: var(--color-text-muted); opacity: 0.5; font-style: italic; }
-.board-card__desc-edit {
-  font-size: 12px; color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-accent); border-radius: 3px;
-  padding: 4px 6px; width: 100%; outline: none; resize: none;
-  line-height: 1.5; font-family: inherit;
+/* Source dot */
+.board-card__source-dot {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  cursor: default;
 }
 
-/* Actions */
+/* Expand chevron */
+.board-card__expand {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: color var(--t-fast), background var(--t-fast), transform var(--t-fast);
+  opacity: 0;
+}
+.board-card:hover .board-card__expand,
+.board-card--expanded .board-card__expand { opacity: 1; }
+.board-card__expand:hover { color: var(--color-accent); background: var(--color-accent-muted); }
+.board-card__expand--open { transform: rotate(180deg); color: var(--color-accent); opacity: 1; }
+
+/* Delete button (hover-only) */
+.board-card__del {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  border-radius: 3px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: color var(--t-fast), background var(--t-fast), opacity var(--t-fast);
+}
+.board-card:hover .board-card__del { opacity: 1; }
+.board-card__del:hover {
+  color: #ef4444;
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+}
+
+/* Expanded: description */
+.board-card__desc {
+  font-size: 12px;
+  line-height: 1.5;
+  cursor: text;
+  min-height: 20px;
+  margin-top: 2px;
+}
+.board-card__desc-text { color: var(--color-text-muted); white-space: pre-wrap; word-break: break-word; }
+.board-card__desc-empty { color: var(--color-text-muted); opacity: 0.45; font-style: italic; }
+.board-card__desc-edit {
+  font-size: 12px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent);
+  border-radius: 3px;
+  padding: 5px 7px;
+  width: 100%;
+  outline: none;
+  resize: none;
+  line-height: 1.5;
+  font-family: inherit;
+  margin-top: 2px;
+}
+
+/* Expanded: action row (priority chip + date picker) */
 .board-card__actions {
-  display: flex; align-items: center; gap: 6px;
-  padding-top: 4px;
-  border-top: 1px solid var(--color-border); margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 4px;
 }
 .board-card__action {
-  font-size: 11px; padding: 2px 7px;
+  font-size: 11px;
+  padding: 2px 7px;
   border-radius: var(--radius-sm);
   transition: background var(--t-fast);
 }
 .board-card__action--priority {
-  font-weight: 500;
+  font-weight: 600;
   background: color-mix(in srgb, currentColor 8%, transparent);
 }
 .board-card__action--priority:hover { background: color-mix(in srgb, currentColor 15%, transparent); }
-.board-card__action--delete { color: var(--color-text-muted); margin-left: auto; }
-.board-card__action--delete:hover {
-  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-  color: var(--color-danger);
-}
-
-/* Date picker in card */
 .board-card__date-input {
   font-size: 11px;
   font-family: var(--font-mono);
@@ -718,14 +844,6 @@ const activeColMobile = ref<BoardColumnId>('backlog')
   cursor: pointer;
 }
 .board-card__date-input:focus { border-color: var(--color-accent); }
-
-/* Source task indicator */
-.board-card__source {
-  font-size: 10px;
-  color: var(--color-text-muted);
-  font-style: italic;
-  padding-top: 2px;
-}
 
 /* ── Add card modal ──────────────────────────────── */
 .modal-backdrop {

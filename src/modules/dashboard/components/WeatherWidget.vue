@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useStorage } from '@/core/composables/useStorage'
 import { UiIcon } from '@/ui'
 
@@ -12,41 +11,37 @@ interface WeatherData {
   humidity:    number
   windSpeed:   number
   description: string
-  iconCode:    string
+  isDay:       boolean
+  weatherCode: number
   fetchedAt:   string
 }
 
 // ── State ──────────────────────────────────────────────────────────────
-const apiKey     = useStorage<string>('platform:settings:openweather-key', '')
-const cityInput  = useStorage<string>('platform:dashboard:weather-city', '')
-const inputVal   = ref(cityInput.value)
-const weather    = ref<WeatherData | null>(null)
-const loading    = ref(false)
-const error      = ref<string | null>(null)
-const editing    = ref(false)
-const router     = useRouter()
+const cityInput = useStorage<string>('platform:dashboard:weather-city', '')
+const inputVal  = ref(cityInput.value)
+const weather   = ref<WeatherData | null>(null)
+const loading   = ref(false)
+const error     = ref<string | null>(null)
+const editing   = ref(false)
 
-// ── Weather icon mapping (uses OpenWeatherMap icon codes → lucide) ─────
-const ICON_MAP: Record<string, string> = {
-  '01': 'Sun',
-  '02': 'CloudSun',
-  '03': 'Cloud',
-  '04': 'Cloud',
-  '09': 'CloudDrizzle',
-  '10': 'CloudRain',
-  '11': 'CloudLightning',
-  '13': 'Snowflake',
-  '50': 'Wind',
+// ── Weather icon mapping (wttr.in weatherCode → Lucide) ───────────────
+// wttr.in weather condition codes (WMO Weather interpretation codes)
+function weatherIcon(code: number, isDay: boolean): string {
+  if (code === 0)             return isDay ? 'Sun' : 'Moon'
+  if (code <= 2)              return isDay ? 'CloudSun' : 'Cloud'
+  if (code <= 3)              return 'Cloud'
+  if (code <= 48)             return 'CloudFog'
+  if (code <= 57)             return 'CloudDrizzle'
+  if (code <= 67)             return 'CloudRain'
+  if (code <= 77)             return 'Snowflake'
+  if (code <= 82)             return 'CloudRain'
+  if (code <= 86)             return 'Snowflake'
+  if (code <= 99)             return 'CloudLightning'
+  return 'Cloud'
 }
 
-const weatherIcon = computed(() => {
-  if (!weather.value) return 'Cloud'
-  const code = weather.value.iconCode.slice(0, 2)
-  return ICON_MAP[code] ?? 'Cloud'
-})
-
-const isNight = computed(() =>
-  weather.value?.iconCode?.endsWith('n') ?? false
+const currentIcon = computed(() =>
+  weather.value ? weatherIcon(weather.value.weatherCode, weather.value.isDay) : 'Cloud'
 )
 
 // ── Relative last-fetched time ─────────────────────────────────────────
@@ -54,43 +49,54 @@ const lastFetchedLabel = computed(() => {
   if (!weather.value) return ''
   const diff = Date.now() - new Date(weather.value.fetchedAt).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1)  return 'just now'
+  if (mins < 1)   return 'just now'
   if (mins === 1) return '1m ago'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 60)  return `${mins}m ago`
   const hrs = Math.floor(mins / 60)
   return `${hrs}h ago`
 })
 
-// ── Fetch ──────────────────────────────────────────────────────────────
+// ── wttr.in fetch ──────────────────────────────────────────────────────
+// Uses the open-meteo-based JSON API — no key, no account needed
 async function fetchWeather(city: string): Promise<void> {
-  if (!apiKey.value) {
-    error.value = 'no-key'
-    return
-  }
   if (!city.trim()) return
 
   loading.value = true
   error.value   = null
 
   try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city.trim())}&appid=${apiKey.value}&units=metric`
-    const res = await fetch(url)
+    // Step 1: geocode city via Open-Meteo geocoding (free, no key)
+    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city.trim())}&count=1&language=en&format=json`
+    const geoRes = await fetch(geoUrl)
+    if (!geoRes.ok) { error.value = 'Geocoding failed — check your connection'; loading.value = false; return }
 
-    if (res.status === 401) { error.value = 'Invalid API key'; loading.value = false; return }
-    if (res.status === 404) { error.value = `City "${city}" not found`; loading.value = false; return }
-    if (!res.ok)            { error.value = `Weather API error ${res.status}`; loading.value = false; return }
+    const geoData = await geoRes.json()
+    if (!geoData.results?.length) { error.value = `City "${city}" not found`; loading.value = false; return }
 
-    const data = await res.json()
+    const loc = geoData.results[0]
+    const { latitude, longitude, name, country } = loc
+
+    // Step 2: fetch weather from Open-Meteo (free, no key)
+    const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day&wind_speed_unit=ms&timezone=auto`
+    const wRes = await fetch(wUrl)
+    if (!wRes.ok) { error.value = `Weather API error ${wRes.status}`; loading.value = false; return }
+
+    const wData = await wRes.json()
+    const c = wData.current
+
+    // WMO weather description mapping
+    const desc = wmoDescription(c.weather_code)
 
     weather.value = {
-      city:        data.name,
-      country:     data.sys.country,
-      temp:        Math.round(data.main.temp),
-      feelsLike:   Math.round(data.main.feels_like),
-      humidity:    data.main.humidity,
-      windSpeed:   Math.round(data.wind.speed),
-      description: data.weather[0].description,
-      iconCode:    data.weather[0].icon,
+      city:        name,
+      country:     country ?? '',
+      temp:        Math.round(c.temperature_2m),
+      feelsLike:   Math.round(c.apparent_temperature),
+      humidity:    c.relative_humidity_2m,
+      windSpeed:   Math.round(c.wind_speed_10m),
+      description: desc,
+      isDay:       !!c.is_day,
+      weatherCode: c.weather_code,
       fetchedAt:   new Date().toISOString(),
     }
   } catch {
@@ -98,6 +104,22 @@ async function fetchWeather(city: string): Promise<void> {
   } finally {
     loading.value = false
   }
+}
+
+function wmoDescription(code: number): string {
+  const WMO: Record<number, string> = {
+    0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+    45: 'Fog', 48: 'Icy fog',
+    51: 'Light drizzle', 53: 'Drizzle', 55: 'Heavy drizzle',
+    56: 'Light freezing drizzle', 57: 'Freezing drizzle',
+    61: 'Slight rain', 63: 'Rain', 65: 'Heavy rain',
+    66: 'Freezing rain', 67: 'Heavy freezing rain',
+    71: 'Slight snow', 73: 'Snow', 75: 'Heavy snow', 77: 'Snow grains',
+    80: 'Slight showers', 81: 'Showers', 82: 'Heavy showers',
+    85: 'Slight snow showers', 86: 'Snow showers',
+    95: 'Thunderstorm', 96: 'Thunderstorm with hail', 99: 'Thunderstorm with heavy hail',
+  }
+  return WMO[code] ?? 'Unknown'
 }
 
 function submit() {
@@ -153,17 +175,8 @@ onUnmounted(() => clearInterval(intervalId))
       </div>
     </div>
 
-    <!-- No API key -->
-    <div v-if="error === 'no-key'" class="weather__empty">
-      <p class="weather__empty-text">Add your OpenWeatherMap key in Settings to see weather.</p>
-      <button class="weather__link-btn" @click="router.push('/settings')">
-        <UiIcon name="Settings" :size="12" />
-        Open Settings
-      </button>
-    </div>
-
-    <!-- No city yet -->
-    <div v-else-if="!cityInput || editing" class="weather__setup">
+    <!-- No city yet / city edit mode -->
+    <div v-if="!cityInput || editing" class="weather__setup">
       <input
         v-model="inputVal"
         class="weather__city-input"
@@ -182,7 +195,7 @@ onUnmounted(() => clearInterval(intervalId))
       <span>Loading…</span>
     </div>
 
-    <!-- Error (non-key) -->
+    <!-- Error -->
     <div v-else-if="error" class="weather__error">
       <UiIcon name="AlertCircle" :size="14" />
       <span>{{ error }}</span>
@@ -193,8 +206,8 @@ onUnmounted(() => clearInterval(intervalId))
     <div v-else-if="weather" class="weather__body">
       <!-- Main temp row -->
       <div class="weather__main">
-        <div class="weather__icon-wrap" :class="{ 'weather__icon-wrap--night': isNight }">
-          <UiIcon :name="weatherIcon" :size="28" :stroke-width="1.4" />
+        <div class="weather__icon-wrap" :class="{ 'weather__icon-wrap--night': !weather.isDay }">
+          <UiIcon :name="currentIcon" :size="28" :stroke-width="1.4" />
         </div>
         <div class="weather__temp-block">
           <span class="weather__temp">{{ weather.temp }}°C</span>
@@ -202,7 +215,7 @@ onUnmounted(() => clearInterval(intervalId))
         </div>
         <div class="weather__location">
           <UiIcon name="MapPin" :size="12" :stroke-width="2" />
-          <span>{{ weather.city }}, {{ weather.country }}</span>
+          <span>{{ weather.city }}<template v-if="weather.country">, {{ weather.country }}</template></span>
         </div>
       </div>
 
@@ -227,7 +240,7 @@ onUnmounted(() => clearInterval(intervalId))
       </div>
     </div>
 
-    <!-- No data yet but city set -->
+    <!-- City set but no data yet -->
     <div v-else class="weather__loading">
       <span class="weather__empty-text">No data yet — click refresh.</span>
     </div>
@@ -290,36 +303,7 @@ onUnmounted(() => clearInterval(intervalId))
 }
 .weather__icon-btn:hover { background: var(--color-surface-elevated); color: var(--color-text); }
 
-/* Empty / setup states */
-.weather__empty {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 6px 0;
-}
-
-.weather__empty-text {
-  font-size: 13px;
-  color: var(--color-text-muted);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.weather__link-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-accent);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  transition: opacity var(--t-fast);
-}
-.weather__link-btn:hover { opacity: 0.75; }
-
+/* Setup */
 .weather__setup {
   display: flex;
   gap: 6px;
@@ -366,6 +350,7 @@ onUnmounted(() => clearInterval(intervalId))
   color: var(--color-text-muted);
   padding: 6px 0;
 }
+.weather__empty-text { font-size: 13px; color: var(--color-text-muted); }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
@@ -379,7 +364,7 @@ onUnmounted(() => clearInterval(intervalId))
   align-items: center;
   gap: 7px;
   font-size: 13px;
-  color: var(--color-error, #ef4444);
+  color: #ef4444;
   padding: 4px 0;
 }
 

@@ -4,8 +4,52 @@ import { useFinanceStore } from '../stores/finance.store'
 import { CATEGORY_META, EXPENSE_CATEGORIES, formatAmount, currentMonthKey } from '../types'
 import type { ExpenseCategory } from '../types'
 import { UiIcon } from '@/ui'
+import { useConfirm } from '@/core/composables/useConfirm'
 
 const store = useFinanceStore()
+
+// ── Month navigation ───────────────────────────────────────────────────────
+const selectedMonth = ref(currentMonthKey())   // 'YYYY-MM'
+const isViewingCurrentMonth = computed(() => selectedMonth.value === currentMonthKey())
+
+function prevMonth() {
+  const [y, m] = selectedMonth.value.split('-').map(Number)
+  const d = new Date(y, m - 2, 1)
+  selectedMonth.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+function nextMonth() {
+  if (isViewingCurrentMonth.value) return
+  const [y, m] = selectedMonth.value.split('-').map(Number)
+  const d = new Date(y, m, 1)
+  selectedMonth.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+// ── Month-scoped data ──────────────────────────────────────────────────────
+const viewExpenses = computed(() => store.expensesByMonth(selectedMonth.value))
+
+const viewTotal = computed(() =>
+  viewExpenses.value.reduce((s, e) => s + e.amount, 0)
+)
+
+const viewSpentByCategory = computed(() => {
+  const map: Record<string, number> = {}
+  for (const cat of EXPENSE_CATEGORIES) map[cat] = 0
+  for (const e of viewExpenses.value) map[e.category] = (map[e.category] ?? 0) + e.amount
+  return map as Record<ExpenseCategory, number>
+})
+
+const viewOverBudgetCount = computed(() =>
+  EXPENSE_CATEGORIES.filter(cat => {
+    const limit = store.budgetMap[cat] ?? 0
+    return limit > 0 && viewSpentByCategory.value[cat] > limit
+  }).length,
+)
+
+const viewCategories = computed(() =>
+  EXPENSE_CATEGORIES.filter(cat =>
+    viewSpentByCategory.value[cat] > 0 || (isViewingCurrentMonth.value && (store.budgetMap[cat] ?? 0) > 0),
+  )
+)
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
 type Tab = 'overview' | 'transactions' | 'budgets'
@@ -69,22 +113,15 @@ function onBudgetKeydown(e: KeyboardEvent, cat: ExpenseCategory) {
 }
 
 // ── Derived display ──────────────────────────────────────────────────────
-const overBudgetCount = computed(() =>
-  EXPENSE_CATEGORIES.filter(cat => {
-    const limit = store.budgetMap[cat] ?? 0
-    return limit > 0 && store.spentByCategory[cat] > limit
-  }).length,
-)
-
 const monthLabel = computed(() => {
-  const [y, m] = currentMonthKey().split('-')
+  const [y, m] = selectedMonth.value.split('-')
   return new Date(Number(y), Number(m) - 1, 1)
     .toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
 })
 
 // Category bar fill percentage (cap at 100% for display)
 function barPct(cat: ExpenseCategory): number {
-  const spent = store.spentByCategory[cat]
+  const spent = viewSpentByCategory.value[cat]
   const limit = store.budgetMap[cat] ?? 0
   if (limit <= 0) return 0
   return Math.min(100, (spent / limit) * 100)
@@ -97,15 +134,16 @@ function barColor(cat: ExpenseCategory): string {
   return '#22c55e'
 }
 
-// All categories for Overview: those with spend OR budget
-const overviewCategories = computed(() =>
-  EXPENSE_CATEGORIES.filter(cat =>
-    store.spentByCategory[cat] > 0 || (store.budgetMap[cat] ?? 0) > 0,
-  ),
-)
+const { confirm } = useConfirm()
 
-function deleteExpense(id: string) {
-  if (confirm('Delete this expense?')) store.deleteExpense(id)
+async function deleteExpense(id: string) {
+  const ok = await confirm({
+    title:        'Delete this expense?',
+    body:         'The transaction will be permanently removed.',
+    danger:       true,
+    confirmLabel: 'Delete',
+  })
+  if (ok) store.deleteExpense(id)
 }
 </script>
 
@@ -115,25 +153,39 @@ function deleteExpense(id: string) {
     <div class="finance__header">
       <div class="finance__title-group">
         <h1 class="finance__title">Finance</h1>
-        <p class="finance__sub">{{ monthLabel }}</p>
+        <!-- Month navigation -->
+        <div class="finance__month-nav">
+          <button class="finance__month-btn" title="Previous month" @click="prevMonth">
+            <UiIcon name="ChevronLeft" :size="14" />
+          </button>
+          <span class="finance__month-label">{{ monthLabel }}</span>
+          <button
+            class="finance__month-btn"
+            title="Next month"
+            :disabled="isViewingCurrentMonth"
+            @click="nextMonth"
+          >
+            <UiIcon name="ChevronRight" :size="14" />
+          </button>
+        </div>
       </div>
       <div class="finance__header-stats">
         <div class="finance__header-stat">
-          <span class="finance__header-stat-value">{{ formatAmount(store.totalThisMonth, store.currency) }}</span>
+          <span class="finance__header-stat-value">{{ formatAmount(viewTotal, store.currency) }}</span>
           <span class="finance__header-stat-label">spent</span>
         </div>
-        <div v-if="store.totalBudget > 0" class="finance__header-stat">
+        <div v-if="store.totalBudget > 0 && isViewingCurrentMonth" class="finance__header-stat">
           <span
             class="finance__header-stat-value"
-            :style="{ color: store.totalThisMonth > store.totalBudget ? '#ef4444' : '#22c55e' }"
+            :style="{ color: viewTotal > store.totalBudget ? '#ef4444' : '#22c55e' }"
           >
             {{ formatAmount(store.totalBudget, store.currency) }}
           </span>
           <span class="finance__header-stat-label">budget</span>
         </div>
-        <div v-if="overBudgetCount > 0" class="finance__over-badge">
+        <div v-if="viewOverBudgetCount > 0" class="finance__over-badge">
           <UiIcon name="AlertTriangle" :size="12" />
-          {{ overBudgetCount }} over budget
+          {{ viewOverBudgetCount }} over budget
         </div>
       </div>
       <button class="finance__add-btn" @click="openAddForm">
@@ -161,15 +213,15 @@ function deleteExpense(id: string) {
 
     <!-- ── Overview tab ─────────────────────────────────────────────── -->
     <div v-if="activeTab === 'overview'" class="finance__content">
-      <div v-if="overviewCategories.length === 0" class="finance__empty">
+      <div v-if="viewCategories.length === 0" class="finance__empty">
         <UiIcon name="PiggyBank" :size="32" />
-        <p>No expenses this month yet.</p>
-        <button class="finance__empty-btn" @click="openAddForm">Add your first expense</button>
+        <p>No expenses {{ isViewingCurrentMonth ? 'this month' : 'in ' + monthLabel }} yet.</p>
+        <button v-if="isViewingCurrentMonth" class="finance__empty-btn" @click="openAddForm">Add your first expense</button>
       </div>
 
       <div v-else class="finance__categories">
         <div
-          v-for="cat in overviewCategories"
+          v-for="cat in viewCategories"
           :key="cat"
           class="cat-row"
         >
@@ -177,7 +229,7 @@ function deleteExpense(id: string) {
           <div class="cat-row__body">
             <div class="cat-row__top">
               <span class="cat-row__name">{{ CATEGORY_META[cat].label }}</span>
-              <span class="cat-row__spent">{{ formatAmount(store.spentByCategory[cat], store.currency) }}</span>
+              <span class="cat-row__spent">{{ formatAmount(viewSpentByCategory[cat], store.currency) }}</span>
               <span v-if="store.budgetMap[cat]" class="cat-row__limit">
                 / {{ formatAmount(store.budgetMap[cat], store.currency) }}
               </span>
@@ -195,15 +247,15 @@ function deleteExpense(id: string) {
 
     <!-- ── Transactions tab ─────────────────────────────────────────── -->
     <div v-else-if="activeTab === 'transactions'" class="finance__content">
-      <div v-if="store.recentExpenses.length === 0" class="finance__empty">
+      <div v-if="viewExpenses.length === 0" class="finance__empty">
         <UiIcon name="Receipt" :size="32" />
-        <p>No transactions recorded yet.</p>
-        <button class="finance__empty-btn" @click="openAddForm">Add your first expense</button>
+        <p>No transactions in {{ monthLabel }}.</p>
+        <button v-if="isViewingCurrentMonth" class="finance__empty-btn" @click="openAddForm">Add your first expense</button>
       </div>
 
       <div v-else class="finance__transactions">
         <div
-          v-for="expense in store.recentExpenses"
+          v-for="expense in viewExpenses"
           :key="expense.id"
           class="txn"
         >
@@ -396,7 +448,7 @@ function deleteExpense(id: string) {
   flex-wrap: wrap;
 }
 
-.finance__title-group { flex: 1; min-width: 0; }
+.finance__title-group { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 
 .finance__title {
   font-size: 27px;
@@ -405,10 +457,40 @@ function deleteExpense(id: string) {
   margin: 0;
 }
 
-.finance__sub {
-  font-size: 14px;
+/* Month navigation */
+.finance__month-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.finance__month-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--color-text-muted);
-  margin: 2px 0 0;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+  flex-shrink: 0;
+}
+.finance__month-btn:hover:not(:disabled) {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+.finance__month-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.finance__month-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 130px;
+  text-align: center;
 }
 
 .finance__header-stats {

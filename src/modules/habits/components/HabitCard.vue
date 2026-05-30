@@ -9,6 +9,7 @@ import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useLearningStore } from '@/modules/learning/stores/learning.store'
 import { useTrainingStore } from '@/modules/training/stores/training.store'
 import { useHabitsStore } from '../stores/habits.store'
+import { useConfirm } from '@/core/composables/useConfirm'
 
 const props = defineProps<{
   habit: Habit
@@ -71,23 +72,16 @@ function onEditKeydown(e: KeyboardEvent) {
 }
 
 // ── Confirm delete ────────────────────────────────────────────────────
-const confirming = ref(false)
-let confirmTimer: ReturnType<typeof setTimeout> | null = null
+const { confirm } = useConfirm()
 
-function askConfirm() {
-  confirming.value = true
-  confirmTimer = setTimeout(() => { confirming.value = false }, 4000)
-}
-
-function confirmDelete() {
-  if (confirmTimer) clearTimeout(confirmTimer)
-  confirming.value = false
-  emit('delete', props.habit.id)
-}
-
-function cancelConfirm() {
-  if (confirmTimer) clearTimeout(confirmTimer)
-  confirming.value = false
+async function askConfirm() {
+  const ok = await confirm({
+    title:        `Delete "${props.habit.name}"?`,
+    body:         'All streak data and check-in history will be lost.',
+    danger:       true,
+    confirmLabel: 'Delete habit',
+  })
+  if (ok) emit('delete', props.habit.id)
 }
 
 // ── Link / connect ────────────────────────────────────────────────────
@@ -179,38 +173,24 @@ function saveLinks() {
         </div>
 
         <div class="habit-card__actions">
-          <!-- Confirm delete state -->
-          <template v-if="confirming">
-            <span class="habit-card__confirm-label">{{ i18n.t('habits.deleteConfirm') }}</span>
-            <button class="habit-card__confirm-yes" @click="confirmDelete">
-              {{ i18n.t('habits.deleteYes') }}
-            </button>
-            <button class="habit-card__confirm-no" @click="cancelConfirm">
-              {{ i18n.t('habits.deleteNo') }}
-            </button>
-          </template>
-
-          <!-- Normal state -->
-          <template v-else>
-            <button
-              class="habit-card__toggle"
-              :class="{ 'habit-card__toggle--done': doneToday }"
-              :title="`${doneToday ? i18n.t('habits.toggleDoneTitle') : i18n.t('habits.toggleTodoTitle')} (${todayFormatted})`"
-              @click="emit('toggle', habit.id)"
-            >
-              <svg v-if="doneToday" width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M3.5 9.5l3.5 3.5 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <svg v-else width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
-              </svg>
-            </button>
-            <button
-              class="habit-card__delete"
-              :title="i18n.t('habits.deleteConfirm')"
-              @click="askConfirm"
-            >×</button>
-          </template>
+          <button
+            class="habit-card__toggle"
+            :class="{ 'habit-card__toggle--done': doneToday }"
+            :title="`${doneToday ? i18n.t('habits.toggleDoneTitle') : i18n.t('habits.toggleTodoTitle')} (${todayFormatted})`"
+            @click="emit('toggle', habit.id)"
+          >
+            <svg v-if="doneToday" width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M3.5 9.5l3.5 3.5 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <svg v-else width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </button>
+          <button
+            class="habit-card__delete"
+            :title="i18n.t('habits.deleteConfirm')"
+            @click="askConfirm"
+          >×</button>
         </div>
       </div>
 
@@ -412,38 +392,6 @@ function saveLinks() {
   gap: 6px;
   flex-shrink: 0;
 }
-
-/* Confirm delete inline */
-.habit-card__confirm-label {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
-.habit-card__confirm-yes {
-  padding: 4px 10px;
-  border-radius: var(--radius-xs);
-  font-size: 12px;
-  font-weight: 600;
-  background: var(--color-danger);
-  color: #fff;
-  cursor: pointer;
-  transition: opacity var(--t-fast);
-}
-.habit-card__confirm-yes:hover { opacity: 0.85; }
-
-.habit-card__confirm-no {
-  padding: 4px 10px;
-  border-radius: var(--radius-xs);
-  font-size: 12px;
-  font-weight: 500;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-elevated);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: background var(--t-fast);
-}
-.habit-card__confirm-no:hover { background: var(--color-border); }
 
 /* Toggle button */
 .habit-card__toggle {

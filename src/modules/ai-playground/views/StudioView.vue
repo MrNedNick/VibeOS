@@ -2,6 +2,7 @@
 import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { marked } from 'marked'
 import { useStudioStore } from '../stores/studio.store'
+import { useConfirm } from '@/core/composables/useConfirm'
 import { STUDIO_MODELS, FREE_MODELS } from '../types'
 import { UiIcon } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
@@ -102,23 +103,16 @@ const inputEl     = ref<HTMLTextAreaElement | null>(null)
 const copiedId    = ref<string | null>(null)
 
 // ── Clear history confirm ──────────────────────────
-const confirmingClear = ref(false)
-let clearHistoryTimer: ReturnType<typeof setTimeout> | null = null
+const { confirm } = useConfirm()
 
-function askClearHistory() {
-  confirmingClear.value = true
-  clearHistoryTimer = setTimeout(() => { confirmingClear.value = false }, 5000)
-}
-
-function doClearHistory() {
-  if (clearHistoryTimer) clearTimeout(clearHistoryTimer)
-  confirmingClear.value = false
-  store.clearHistory()
-}
-
-function cancelClearHistory() {
-  if (clearHistoryTimer) clearTimeout(clearHistoryTimer)
-  confirmingClear.value = false
+async function askClearHistory() {
+  const ok = await confirm({
+    title:        'Clear all history?',
+    body:         'All saved conversations will be permanently deleted.',
+    danger:       true,
+    confirmLabel: 'Delete all',
+  })
+  if (ok) store.clearHistory()
 }
 
 // ── Sidebar helpers ────────────────────────────────
@@ -246,12 +240,7 @@ onMounted(() => inputEl.value?.focus())
     <aside class="studio__sidebar">
       <div class="studio__sidebar-header">
         <span class="studio__sidebar-title">History</span>
-        <template v-if="confirmingClear">
-          <button class="studio__sidebar-clear-yes" @click="doClearHistory">Delete all</button>
-          <button class="studio__sidebar-clear-no" @click="cancelClearHistory">Cancel</button>
-        </template>
         <button
-          v-else
           class="studio__sidebar-clear"
           :disabled="!store.savedConversations.length"
           title="Clear all history"
@@ -587,34 +576,6 @@ onMounted(() => inputEl.value?.focus())
 }
 .studio__sidebar-clear:hover:not(:disabled) { color: var(--color-danger); border-color: var(--color-danger); }
 .studio__sidebar-clear:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.studio__sidebar-clear-yes {
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius-xs);
-  background: var(--color-danger);
-  color: #fff;
-  cursor: pointer;
-  font-family: inherit;
-  transition: opacity var(--t-fast);
-}
-.studio__sidebar-clear-yes:hover { opacity: 0.85; }
-
-.studio__sidebar-clear-no {
-  padding: 3px 7px;
-  font-size: 11px;
-  font-weight: 500;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xs);
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  font-family: inherit;
-  transition: color var(--t-fast), background var(--t-fast);
-}
-.studio__sidebar-clear-no:hover { background: var(--color-surface-elevated); color: var(--color-text); }
 
 .studio__sidebar-list {
   flex: 1;
