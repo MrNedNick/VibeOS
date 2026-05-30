@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3.
+> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3, updated 2026-05-30 (v4) after visual audit sprint.
 > Repositioned: VibeOS evolves from developer showcase to personal life operating system.
 > See `docs/strategy.md` for the full product context.
 > See `docs/privacy-security.md` for the auth/demo/security plan.
@@ -120,25 +120,26 @@ Order:
 4. ✅ **Personal Analytics module** — period selector, habit heatmap, task/learning/training charts, goals progress
 5. ✅ **Calendar module** — monthly grid, 5 dot types, click-day detail panel
 6. ✅ **Dashboard life stats strip** — habits today, active goals, learning today, training today
-7. ✅ **Snippets** — retained; already complete
-8. ⬜ **Weather widget** — OpenWeatherMap free tier; Dashboard widget (API key in Settings)
+7. ✅ **Snippets** — removed (low daily-use value; code fits in Notes)
+8. ✅ **Weather widget** — OpenWeatherMap free tier; built-in API key hardcoded in widget so it works for all visitors; no user config needed
 
 ---
 
 ## S6 — AI Integration
 
-**Goal:** AI becomes a planning assistant, not just a prompt lab. User-provided API key, no auto-billing.
-
-All features are user-initiated (button click). Nothing runs automatically.
+**Goal:** AI becomes a planning assistant across all life modules. Free tier via Pollinations.ai (no key needed); Anthropic/Gemini/Groq with user key as secondary. Everything user-initiated — nothing runs automatically.
 
 Order:
-1. **AI service layer** — `core/services/ai.ts`; wraps Anthropic API; reads user's key from Settings → Studio; shows token estimate before each call
+1. **AI service layer** — `core/services/ai.ts`; wraps free Pollinations.ai + optional Anthropic key; shows token estimate before each call; all modules consume same service
 2. **Daily digest** — button on Dashboard: summarize today's tasks + habits + goals in 2-3 sentences
 3. **Goal planning** — in Goal detail view: "AI: suggest tasks and milestones for this goal"
-4. **Learning plan generator** — "I want to learn [topic] in [N] weeks — generate a plan"
-5. **Workout analysis** — after logging a workout: "Analyze this session and suggest what to improve"
-6. **Priority assistant** — "What should I focus on today?" — AI reads current tasks + goals + today's schedule
-7. **Command Palette AI** — "Ask AI: [anything]" command → Studio-like response inline
+4. **Learning plan generator** — "I want to learn [topic] in [N] weeks — generate a plan" button in Learning module; AI creates a full structured learning plan
+5. **Learning session analysis** — after logging a session: "What should I focus on next?" based on session notes and plan progress
+6. **Workout/Training analysis** — after logging a workout: "Analyze this session and suggest what to improve"; AI reads training plan + recent sessions
+7. **Training plan generator** — "Generate a [goal] training plan for [N] weeks" — AI builds a structured workout plan
+8. **Priority assistant** — "What should I focus on today?" — AI reads current tasks + goals + today's schedule
+9. **Command Palette AI** — "Ask AI: [anything]" command → Studio-like response inline
+10. **Additional free providers** — Gemini Flash (Google AI Studio key), GroqCloud (fast Llama3/Mixtral), OpenRouter (multi-model); all optional with user key
 
 ---
 
@@ -155,6 +156,47 @@ Order:
 ---
 
 ## Recently shipped (history)
+
+### 2026-05-30 — Visual audit sprint (v0.7.0)
+
+**Visual quality pass across 6 modules based on live walkthrough feedback:**
+
+**Analytics module — full CSS redesign:**
+- Root cause: all CSS variables used old token names (`--bg-card`, `--text-primary`, `--accent`, `--border`) that don't exist in the current design system → complete visual breakdown
+- Fixed all tokens to current VibeOS system (`--color-surface`, `--color-text`, `--color-text-secondary`, `--color-accent`, `--color-border`)
+- Improved: larger stat card values, proper period picker border, habit grid rows as visible cards, bar chart grid-line backgrounds, goals displayed as individual bordered cards
+
+**HabitCard — structural layout redesign:**
+- Introduced `habit-card__body` wrapper containing `habit-card__left` (info + actions) and `habit-card__heatmap`
+- At ≥900px: body switches to `flex-direction: row`; left panel is `flex: 0 0 300px` with right border as divider; heatmap fills remaining space
+- `habit-card__connect` remains a direct child of `habit-card` — always renders as full-width footer below both panels (no longer collapses into a third column on desktop)
+
+**Dashboard — removed 4 dev-facing stat cards:**
+- Removed "Active Modules", "Roadmap Tasks", "Overall Progress", "Documentation" StatCards from the top strip
+- Kept: life stats strip (habits, goals, learning, training today), Recent Activity panel, AllTasksPanel
+- Cleaned up: removed `StatCard` import, `TOTAL_DOC_PAGES`, `availableCount`, `platformProgress`, `platformTotalTasks` computeds and `.dashboard__stats` CSS
+
+**About page — identity update:**
+- Name: "Nikita Nedyalkov" (full name)
+- Title: "App Developer" (was "Frontend Developer")
+- Experience: "6+ years"
+- Removed company (XOVI GmbH) and location (Cologne, Germany)
+- Bio rewritten as broader app developer (UI to backend architecture, Vue 3 + React + TypeScript)
+
+**Studio — Clear History confirmation:**
+- Two-step confirmation: clicking "Clear" shows "Delete all" + "Cancel" buttons; auto-cancels after 5 seconds
+- Prevents accidental history wipe; no external modal needed
+
+**Settings — OpenWeather API key removed:**
+- Removed the OpenWeather API key field and associated state
+- Weather widget uses a built-in key; no user config required
+
+**Sprint tasks also shipped in this session (v0.6.9):**
+- Task 3: Tasks → Goals integration (`linkedGoalId` on task creation, goal chip on task items)
+- Task 4: LearningPlan + TrainingPlan linked habit pickers in PlanDetailViews
+- Task 5: Settings module visibility toggles + `useModuleVisibility` composable + sidebar/bottom tab filtering
+
+---
 
 ### 2026-05-29 (session — Studio chat redesign + Calendar fixes + Notes wider + Snippets removed) — v0.5.8
 
@@ -405,6 +447,59 @@ Redesign `/about` from info card to a proper personal portfolio/selling page.
 
 ---
 
+### Global ConfirmDialog component (planned — S6, high priority)
+A reusable project-level confirmation modal consumed by any module that needs a destructive action confirmed.
+
+**Motivation:** Studio's "Clear History" needed inline two-step logic because there was no shared confirm modal. Board "Delete card", Notes "Delete note", Settings "Clear all data" all need the same pattern.
+
+**Implementation:**
+- `src/ui/UiConfirmDialog.vue` — modal with title, body text, confirm button (danger), cancel button
+- Teleports to `<body>` via Vue's `<Teleport>`
+- `useConfirm()` composable: returns a `confirm(opts)` promise-based API; caller `await`s it; resolves `true`/`false`
+- Usage: `const ok = await confirm({ title: 'Delete history?', body: 'This cannot be undone.', danger: true })`
+- Replaces the inline two-step logic in Studio; wire into Board, Notes, Settings "clear all" as well
+- Keyboard: Enter confirms, Escape cancels
+- Focus trap within modal while open
+
+**Scope of refactor after building:**
+1. Studio sidebar: replace `confirmingClear` two-step with `useConfirm()`
+2. Settings → Data: replace existing 5s "Are you sure?" with `useConfirm()`
+3. Notes: wire delete note through `useConfirm()`
+4. Board: wire delete card through `useConfirm()`
+5. Habits: wire delete habit through `useConfirm()`
+
+---
+
+### Kanban Board card redesign (planned — S4 depth)
+Current board cards are too narrow and tall — the layout doesn't use horizontal space well.
+
+**Issues:**
+- Cards are cramped vertically with most horizontal space wasted
+- Title wraps too aggressively at current card width
+- No visual breathing room between card content elements
+
+**Planned changes:**
+- Increase card max-width, ensure columns use full available width
+- Reorganize card content: title top, then a compact meta row (priority chip + due date + category icon) below
+- Add subtle color strip on left edge for priority (matches TaskItem pattern)
+- Hover state: lift shadow, not just border color change
+- Reduce card padding on mobile for denser view
+
+---
+
+### Weather widget — built-in API key (planned — S5 completion)
+Remove requirement for users to enter their own OpenWeather API key.
+
+**Status:** API key field removed from Settings (v0.7.0). Weather widget needs the built-in key wired up.
+
+**Implementation:**
+- Store the API key as a Vite env variable (`VITE_WEATHER_API_KEY`) or hardcoded constant in `WeatherWidget.vue`
+- For GitHub Pages deploy: add key as GitHub Actions secret; inject via `vite.config.ts` `define`
+- Widget uses the built-in key; falls back gracefully if request fails (show "–" not error)
+- Remove any remaining references to user-configured weather key from Settings store/composables
+
+---
+
 ### Reusable component system (planned — S4/S5)
 Create a unified component library so every module is built from the same building blocks:
 - **Design tokens audit** — ensure all colors, radii, spacing, typography defined as CSS variables in `main.css`
@@ -413,15 +508,22 @@ Create a unified component library so every module is built from the same buildi
 - **Goal**: new modules should be assembley of `@/ui` components; visual consistency guaranteed by tokens
 - **Steps**: (1) audit existing one-off styles across modules; (2) extract to `@/ui`; (3) refactor each module to use shared components; (4) document in `docs/conventions.md`
 
-### Finance / Money module (planned — S6+)
-Personal expense tracking and spending regulation:
-- **Expense entry**: amount, category (food / transport / housing / health / entertainment / savings / other), date, optional note
-- **Budget limits**: set monthly cap per category; visual remaining indicator
+### Finance / Money module (planned — S6+, needs improvement)
+Personal expense tracking and spending regulation. Current state needs significant design improvement before it's usable daily.
+
+**Current issues (flagged in visual audit 2026-05-30):**
+- Visual design needs a full pass to match the rest of the app's quality level
+- Currency widget/view needs a clearer purpose and better data entry UX
+
+**Planned improvements:**
+- **Expense entry**: amount, category (food / transport / housing / health / entertainment / savings / other), date, optional note; quick-add inline form
+- **Budget limits**: set monthly cap per category; visual remaining indicator (progress ring or bar)
 - **Monthly overview**: bar chart spend by category, total spent vs budget, over-budget warnings
-- **Transactions list**: recent expenses, inline quick-add form
+- **Transactions list**: recent expenses, sortable, filterable by category and date range
 - **Dashboard widget**: current month snapshot, "X categories over budget" alert
+- **Multi-currency**: select display currency; conversion via free ExchangeRate-API (1500 req/month)
 - **Data**: `platform:finance:expenses` and `platform:finance:budgets` in localStorage; export CSV
-- **Future**: bank CSV import, multi-currency, recurring transactions
+- **Future**: bank CSV import, recurring transactions
 - **Long-term**: candidate for extraction as standalone personal finance app
 
 ### iOS Habit Tracker app (future standalone project)
@@ -452,6 +554,24 @@ Unified personal stats: habit heatmap, task completion rate, learning hours, wor
 
 ### Tabs / window manager
 Open modules as tabs in the shell (`<KeepAlive>`) so state survives navigation. Optional "stage view" with draggable windows for screenshots. High effort — defer past S7.
+
+### Logo redesign (planned — S8)
+Current logo (`▮ VibeOS`) is functional but not distinctive enough as a visual identity mark.
+
+**Direction (from visual audit 2026-05-30):** needs a proper rethink — something that works as a favicon, a sidebar mark, and a header brand simultaneously.
+
+**Options to explore:**
+- Geometric mark (abstract symbol representing the "OS" concept)
+- Stylized initials "VO" in a custom typeface treatment
+- Keep the block cursor concept but render it as a custom SVG with more visual weight
+- A minimal icon that works at 16px, 32px, and 128px
+
+**Deliverables:**
+1. SVG logo mark (works as favicon + sidebar icon)
+2. Full logotype (mark + "VibeOS" wordmark)
+3. Update: `public/favicon.svg`, sidebar brand element, About page hero, README
+
+---
 
 ### Additional vibe-paks
 After v1 ships with 2 packs: Soft Glass (backdrop-filter blur) and CRT Retro (green phosphor + scanlines).
@@ -559,10 +679,11 @@ These are the meaningful improvements to do next — not features for features' 
 - **GitHub activity widget** — already listed; REST API, 5000 req/hour unauthenticated
 
 ### Settings future ideas
-- Module visibility toggles (show/hide modules from sidebar)
+- ✅ **Module visibility toggles** — show/hide modules from sidebar (shipped v0.6.9 via `useModuleVisibility` composable)
+- ✅ **Data import** — restore from JSON backup (shipped)
+- ✅ **OpenWeather API key removed** — built-in key used instead; no user config needed (v0.7.0)
 - Notification preferences (browser notifications for habits reminders)
 - Privacy settings (local-only vs synced data preference)
-- Data import (restore from JSON backup)
 
 ### Learning module future improvements
 - Resource library with URL bookmarks and notes per resource
