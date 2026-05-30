@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3, updated 2026-05-30 (v4) after visual audit sprint.
+> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3, updated 2026-05-30 (v4) after visual audit sprint, updated 2026-05-30 (v5) after AI integration + UX sprint.
 > Repositioned: VibeOS evolves from developer showcase to personal life operating system.
 > See `docs/strategy.md` for the full product context.
 > See `docs/privacy-security.md` for the auth/demo/security plan.
@@ -131,8 +131,8 @@ Order:
 
 Order:
 1. **AI service layer** — `core/services/ai.ts`; wraps free Pollinations.ai + optional Anthropic key; shows token estimate before each call; all modules consume same service
-2. **Daily digest** — button on Dashboard: summarize today's tasks + habits + goals in 2-3 sentences
-3. **Goal planning** — in Goal detail view: "AI: suggest tasks and milestones for this goal"
+2. ✅ **Daily digest** — `DigestWidget.vue` on Dashboard: on-demand digest using live data from all stores (tasks, goals, habits, learning, training); Pollinations.ai free
+3. ✅ **Goal planning** — "Suggest" button in Goal detail milestones section; AI returns bullet list of milestones; each chip adds directly to goal with one click
 4. **Learning plan generator** — "I want to learn [topic] in [N] weeks — generate a plan" button in Learning module; AI creates a full structured learning plan
 5. **Learning session analysis** — after logging a session: "What should I focus on next?" based on session notes and plan progress
 6. **Workout/Training analysis** — after logging a workout: "Analyze this session and suggest what to improve"; AI reads training plan + recent sessions
@@ -156,6 +156,23 @@ Order:
 ---
 
 ## Recently shipped (history)
+
+### 2026-05-30 — AI integration + UX sprint (v0.7.1 → v0.7.2)
+
+**Batch 1 — v0.7.1 (Global ConfirmDialog + Kanban redesign + Finance months + Weather rewrite):**
+- `useConfirm` composable + `UiConfirmDialog.vue` — global singleton promise-based confirm dialog replacing inline two-step patterns across HabitCard, NotesView, BoardView, FinanceView, StudioView, GoalDetailView
+- Kanban card redesign — compact meta row (priority dot + due badge + source dot + hover-delete icon); expand chevron rotates; description in collapsed accordion
+- Finance month navigation — `‹ Month › ` nav in header, all stats/transactions scoped to selected month
+- Weather widget rewritten — Open-Meteo geocoding + forecast API (100% free, no key); WMO weather code → Lucide icon + description
+
+**Batch 2 — v0.7.2 (completedAt tracking, Goals filter, AI integrations, confirm migrations):**
+- Completed `useConfirm` migration — Learning + Training PlanDetailViews; removed all dead CSS from danger zones
+- Tasks `completedAt` timestamp — set on `toggleTask` when marking done; `doneThisWeek` computed; "🗓 N this week" pill in TaskManagerView
+- Goals category filter bar — horizontal filter strip shows when 2+ categories in use; filters active goals grid
+- AI Goal Planner (S6 item 3) — "Suggest" button in GoalDetailView milestones section; calls Pollinations.ai; returns clickable chips that add milestones with one click
+- Dashboard AI Digest (S6 item 2) — `DigestWidget.vue` full-width card on Dashboard; on-demand digest from live platform data; loading/error/dismiss states
+
+---
 
 ### 2026-05-30 — Visual audit sprint (v0.7.0)
 
