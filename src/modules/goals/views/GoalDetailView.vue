@@ -5,6 +5,7 @@ import { useGoalsStore } from '../stores/goals.store'
 import MilestoneList from '../components/MilestoneList.vue'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '../types'
 import { UiIcon } from '@/ui'
+import { useConfirm } from '@/core/composables/useConfirm'
 
 const route = useRoute()
 const router = useRouter()
@@ -41,41 +42,73 @@ const dueDisplay = computed(() => {
   }
 })
 
-// Complete goal
-const confirmingComplete = ref(false)
-let completeTimer: ReturnType<typeof setTimeout> | null = null
+const { confirm } = useConfirm()
 
-function askComplete() {
-  confirmingComplete.value = true
-  completeTimer = setTimeout(() => { confirmingComplete.value = false }, 4000)
+// ── AI milestone suggestions ──────────────────────────────────────────
+const suggestLoading = ref(false)
+const suggestError = ref<string | null>(null)
+const suggestions = ref<string[]>([])
+
+async function suggestMilestones() {
+  if (!goal.value) return
+  suggestLoading.value = true
+  suggestError.value = null
+  suggestions.value = []
+
+  const existing = goal.value.milestones.map(m => m.title)
+  const existingNote = existing.length ? `Existing milestones: ${existing.join(', ')}. ` : ''
+  const prompt = `I'm working on a goal: "${goal.value.title}" (category: ${goal.value.category}). ${existingNote}Suggest 5 specific, actionable milestones I can add. Reply ONLY with a bullet list, one per line, starting each with "- ".`
+
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'openai',
+        private: true,
+      }),
+    })
+    if (!res.ok) { suggestError.value = 'AI request failed'; return }
+    const text = await res.text()
+    suggestions.value = text
+      .split('\n')
+      .map(l => l.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '').trim())
+      .filter(l => l.length > 3 && l.length < 150)
+      .slice(0, 8)
+    if (!suggestions.value.length) suggestError.value = 'No suggestions returned — try again'
+  } catch {
+    suggestError.value = 'Network error — check your connection'
+  } finally {
+    suggestLoading.value = false
+  }
 }
 
-function confirmComplete() {
-  if (completeTimer) clearTimeout(completeTimer)
-  store.completeGoal(goalId.value)
-  confirmingComplete.value = false
+function addSuggestion(title: string) {
+  store.addMilestone(goalId.value, title)
+  suggestions.value = suggestions.value.filter(s => s !== title)
 }
 
-// Delete goal
-const confirmingDelete = ref(false)
-let deleteTimer: ReturnType<typeof setTimeout> | null = null
-
-function askDelete() {
-  confirmingDelete.value = true
-  deleteTimer = setTimeout(() => { confirmingDelete.value = false }, 4000)
+async function askComplete() {
+  const ok = await confirm({
+    title:        'Mark goal as complete?',
+    body:         'This will archive the goal. You can view it in Completed.',
+    confirmLabel: 'Complete goal',
+  })
+  if (ok) store.completeGoal(goalId.value)
 }
 
-function confirmDelete() {
-  if (deleteTimer) clearTimeout(deleteTimer)
-  store.deleteGoal(goalId.value)
-  router.replace('/goals')
-}
-
-function cancelConfirm() {
-  if (completeTimer) clearTimeout(completeTimer)
-  if (deleteTimer) clearTimeout(deleteTimer)
-  confirmingComplete.value = false
-  confirmingDelete.value = false
+async function askDelete() {
+  const ok = await confirm({
+    title:        `Delete "${goal.value?.title}"?`,
+    body:         'All milestones and notes will be permanently removed.',
+    danger:       true,
+    confirmLabel: 'Delete goal',
+  })
+  if (ok) {
+    store.deleteGoal(goalId.value)
+    router.replace('/goals')
+  }
 }
 </script>
 
@@ -116,13 +149,38 @@ function cancelConfirm() {
 
     <!-- Milestones -->
     <div class="gdetail__section">
-      <p class="gdetail__section-label">Milestones</p>
+      <div class="gdetail__section-header">
+        <p class="gdetail__section-label">Milestones</p>
+        <button
+          class="gdetail__ai-btn"
+          :disabled="suggestLoading"
+          @click="suggestMilestones"
+        >
+          <span v-if="suggestLoading" class="gdetail__ai-spinner">◌</span>
+          <span v-else>✦</span>
+          {{ suggestLoading ? 'Thinking…' : 'Suggest' }}
+        </button>
+      </div>
       <MilestoneList
         :milestones="goal.milestones"
         @toggle="store.toggleMilestone(goalId, $event)"
         @add="store.addMilestone(goalId, $event)"
         @delete="store.deleteMilestone(goalId, $event)"
       />
+      <!-- AI suggestions -->
+      <div v-if="suggestError" class="gdetail__suggest-error">{{ suggestError }}</div>
+      <div v-if="suggestions.length > 0" class="gdetail__suggest-list">
+        <button
+          v-for="s in suggestions"
+          :key="s"
+          class="gdetail__suggest-chip"
+          @click="addSuggestion(s)"
+          :title="'Add: ' + s"
+        >
+          <span class="gdetail__suggest-plus">+</span>
+          {{ s }}
+        </button>
+      </div>
     </div>
 
     <!-- Notes -->
@@ -138,26 +196,14 @@ function cancelConfirm() {
 
     <!-- Actions -->
     <div class="gdetail__actions">
-      <template v-if="goal.status === 'active'">
-        <template v-if="confirmingComplete">
-          <span class="gdetail__confirm-text">Mark this goal as completed?</span>
-          <button class="gdetail__btn gdetail__btn--success" @click="confirmComplete">Complete</button>
-          <button class="gdetail__btn gdetail__btn--ghost" @click="cancelConfirm">Cancel</button>
-        </template>
-        <button v-else class="gdetail__btn gdetail__btn--outline" @click="askComplete">
-          Mark complete
-        </button>
-      </template>
+      <button v-if="goal.status === 'active'" class="gdetail__btn gdetail__btn--outline" @click="askComplete">
+        Mark complete
+      </button>
     </div>
 
     <!-- Danger zone -->
     <div class="gdetail__danger">
-      <template v-if="confirmingDelete">
-        <span class="gdetail__danger-confirm">Delete this goal permanently?</span>
-        <button class="gdetail__danger-yes" @click="confirmDelete">Delete</button>
-        <button class="gdetail__danger-no" @click="cancelConfirm">Cancel</button>
-      </template>
-      <button v-else class="gdetail__danger-btn" @click="askDelete">Delete goal</button>
+      <button class="gdetail__danger-btn" @click="askDelete">Delete goal</button>
     </div>
 
   </div>
@@ -252,6 +298,86 @@ function cancelConfirm() {
 
 .gdetail__section { display: flex; flex-direction: column; gap: 10px; }
 
+.gdetail__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gdetail__section-header .gdetail__section-label { margin: 0; }
+
+.gdetail__ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.gdetail__ai-btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+.gdetail__ai-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.gdetail__ai-spinner { display: inline-block; animation: spin-slow 1.2s linear infinite; }
+
+.gdetail__suggest-error {
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  padding: 4px 0;
+}
+
+.gdetail__suggest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gdetail__suggest-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--t-fast);
+}
+
+.gdetail__suggest-chip:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+  background: var(--color-accent-muted);
+}
+
+.gdetail__suggest-plus {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
 .gdetail__section-label {
   font-size: var(--text-xs);
   font-weight: 600;
@@ -310,8 +436,6 @@ function cancelConfirm() {
 
 .gdetail__btn--ghost:hover { color: var(--color-text); }
 
-.gdetail__confirm-text { font-size: var(--text-sm); color: var(--color-text-secondary); }
-
 .gdetail__danger {
   display: flex;
   align-items: center;
@@ -322,11 +446,6 @@ function cancelConfirm() {
 
 .gdetail__danger-btn { background: none; border: none; font-size: var(--text-sm); color: var(--color-text-muted); cursor: pointer; padding: 0; transition: color var(--t-fast); font-family: inherit; }
 .gdetail__danger-btn:hover { color: var(--color-danger); }
-.gdetail__danger-confirm { font-size: var(--text-sm); color: var(--color-text-secondary); }
-.gdetail__danger-yes { padding: 5px 14px; border-radius: var(--radius); border: 1px solid var(--color-danger); background: transparent; color: var(--color-danger); font-size: var(--text-sm); cursor: pointer; transition: all var(--t-fast); font-family: inherit; }
-.gdetail__danger-yes:hover { background: var(--color-danger); color: #fff; }
-.gdetail__danger-no { background: none; border: none; font-size: var(--text-sm); color: var(--color-text-muted); cursor: pointer; font-family: inherit; transition: color var(--t-fast); }
-.gdetail__danger-no:hover { color: var(--color-text); }
 
 @media (max-width: 767px) {
   .gdetail__title { font-size: var(--text-2xl, 22px); }

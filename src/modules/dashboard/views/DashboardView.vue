@@ -15,6 +15,7 @@ import RecentActivityPanel from '../components/RecentActivityPanel.vue'
 import DashboardTodayPanel from '../components/DashboardTodayPanel.vue'
 import GitHubWidget from '../components/GitHubWidget.vue'
 import WeatherWidget from '../components/WeatherWidget.vue'
+import DigestWidget from '../components/DigestWidget.vue'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 
@@ -171,6 +172,9 @@ const APP_VERSION = __APP_VERSION__
       <GitHubWidget class="dashboard__widget-github" />
       <WeatherWidget class="dashboard__widget-weather" />
     </div>
+
+    <!-- AI Digest ────────────────────────────────────────────────────── -->
+    <DigestWidget />
 
     <!-- Workspace: module list + detail panel ───────────────────── -->
     <div class="dashboard__workspace">

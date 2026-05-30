@@ -36,6 +36,17 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     totalCount.value === 0 ? 0 : Math.round((doneCount.value / totalCount.value) * 100)
   )
 
+  const doneThisWeek = computed(() => {
+    const now = new Date()
+    const dayOfWeek = now.getDay() // 0 = Sun
+    const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Monday = start
+    const weekStart = new Date(now)
+    weekStart.setDate(now.getDate() - diff)
+    weekStart.setHours(0, 0, 0, 0)
+    const weekStartIso = weekStart.toISOString()
+    return tasks.value.filter(t => t.done && t.completedAt && t.completedAt >= weekStartIso).length
+  })
+
   function addTask(text: string, priority: TaskPriority = 'none', dueDate?: string, category?: TaskCategory, linkedGoalId?: string) {
     const id = generateId()
     tasks.value.push({ id, text: text.trim(), done: false, priority, dueDate, category, linkedGoalId, createdAt: Date.now() })
@@ -52,7 +63,10 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     if (!task) return
     task.done = !task.done
     if (task.done) {
-      events.emit({ type: 'task:completed', taskId: id, label: task.text, timestamp: new Date().toISOString() })
+      task.completedAt = new Date().toISOString()
+      events.emit({ type: 'task:completed', taskId: id, label: task.text, timestamp: task.completedAt })
+    } else {
+      task.completedAt = undefined
     }
   }
 
@@ -92,6 +106,7 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     totalCount,
     todayCount,
     progress,
+    doneThisWeek,
     addTask,
     toggleTask,
     updateTask,

@@ -7,6 +7,7 @@ import type { WorkoutLog } from '../types'
 import { FEELING_EMOJI, todayStr } from '../types'
 import { UiIcon } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
+import { useConfirm } from '@/core/composables/useConfirm'
 
 const route = useRoute()
 const router = useRouter()
@@ -32,23 +33,19 @@ function submitLog(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {
   showLog.value = false
 }
 
-const confirmingDelete = ref(false)
-let deleteTimer: ReturnType<typeof setTimeout> | null = null
+const { confirm } = useConfirm()
 
-function askDelete() {
-  confirmingDelete.value = true
-  deleteTimer = setTimeout(() => { confirmingDelete.value = false }, 4000)
-}
-
-function confirmDelete() {
-  if (deleteTimer) clearTimeout(deleteTimer)
-  store.deletePlan(planId.value)
-  router.replace('/training')
-}
-
-function cancelDelete() {
-  if (deleteTimer) clearTimeout(deleteTimer)
-  confirmingDelete.value = false
+async function askDelete() {
+  const ok = await confirm({
+    title:        'Delete this plan?',
+    body:         'All workout history will be permanently removed.',
+    danger:       true,
+    confirmLabel: 'Delete plan',
+  })
+  if (ok) {
+    store.deletePlan(planId.value)
+    router.replace('/training')
+  }
 }
 
 function formatDate(iso: string): string {
@@ -166,12 +163,7 @@ function saveHabitLink() {
     </div>
 
     <div class="tdetail__danger">
-      <template v-if="confirmingDelete">
-        <span class="tdetail__danger-confirm">Delete this plan and all workout history?</span>
-        <button class="tdetail__danger-yes" @click="confirmDelete">Delete</button>
-        <button class="tdetail__danger-no" @click="cancelDelete">Cancel</button>
-      </template>
-      <button v-else class="tdetail__danger-btn" @click="askDelete">Delete plan</button>
+      <button class="tdetail__danger-btn" @click="askDelete">Delete plan</button>
     </div>
 
     <WorkoutLogForm
@@ -384,11 +376,6 @@ function saveHabitLink() {
 
 .tdetail__danger-btn { background: none; border: none; font-size: var(--text-sm); color: var(--color-text-muted); cursor: pointer; padding: 0; transition: color var(--t-fast); font-family: inherit; }
 .tdetail__danger-btn:hover { color: var(--color-danger); }
-.tdetail__danger-confirm { font-size: var(--text-sm); color: var(--color-text-secondary); }
-.tdetail__danger-yes { padding: 5px 14px; border-radius: var(--radius); border: 1px solid var(--color-danger); background: transparent; color: var(--color-danger); font-size: var(--text-sm); cursor: pointer; transition: all var(--t-fast); font-family: inherit; }
-.tdetail__danger-yes:hover { background: var(--color-danger); color: #fff; }
-.tdetail__danger-no { background: none; border: none; font-size: var(--text-sm); color: var(--color-text-muted); cursor: pointer; font-family: inherit; transition: color var(--t-fast); }
-.tdetail__danger-no:hover { color: var(--color-text); }
 
 @media (max-width: 767px) {
   .tdetail__title { font-size: var(--text-2xl, 22px); }

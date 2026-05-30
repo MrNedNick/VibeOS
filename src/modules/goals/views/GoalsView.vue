@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useGoalsStore } from '../stores/goals.store'
 import GoalCard from '../components/GoalCard.vue'
 import type { GoalCategory } from '../types'
-import { CATEGORY_EMOJI } from '../types'
+import { CATEGORY_EMOJI, CATEGORY_LABEL } from '../types'
 import { UiIcon } from '@/ui'
 
 const store = useGoalsStore()
@@ -58,6 +58,17 @@ function onFormKeydown(e: KeyboardEvent) {
 
 // ── Filter ───────────────────────────────────────────────────────────
 const showCompleted = ref(false)
+const activeCategory = ref<GoalCategory | 'all'>('all')
+
+const activeCategoriesInUse = computed<GoalCategory[]>(() => {
+  const cats = new Set(store.activeGoals.map(g => g.category))
+  return Array.from(cats)
+})
+
+const filteredActiveGoals = computed(() => {
+  if (activeCategory.value === 'all') return store.activeGoals
+  return store.activeGoals.filter(g => g.category === activeCategory.value)
+})
 
 // ── Keyboard shortcut ────────────────────────────────────────────────
 function onKeydown(e: KeyboardEvent) {
@@ -126,13 +137,32 @@ const todayLabel = computed(() =>
       </div>
     </div>
 
+    <!-- Category filter bar (shown when 2+ categories in use) -->
+    <div v-if="activeCategoriesInUse.length > 1" class="goals__cats">
+      <button
+        class="goals__cat"
+        :class="{ 'goals__cat--active': activeCategory === 'all' }"
+        @click="activeCategory = 'all'"
+      >All</button>
+      <button
+        v-for="cat in activeCategoriesInUse"
+        :key="cat"
+        class="goals__cat"
+        :class="{ 'goals__cat--active': activeCategory === cat }"
+        @click="activeCategory = cat"
+      >{{ CATEGORY_EMOJI[cat] }} {{ CATEGORY_LABEL[cat] }}</button>
+    </div>
+
     <!-- Active goals grid -->
-    <div v-if="store.activeGoals.length > 0" class="goals__grid">
+    <div v-if="filteredActiveGoals.length > 0" class="goals__grid">
       <GoalCard
-        v-for="goal in store.activeGoals"
+        v-for="goal in filteredActiveGoals"
         :key="goal.id"
         :goal="goal"
       />
+    </div>
+    <div v-else-if="store.activeGoals.length > 0 && filteredActiveGoals.length === 0" class="goals__cat-empty">
+      No goals in this category.
     </div>
 
     <!-- Completed goals -->
@@ -270,6 +300,44 @@ const todayLabel = computed(() =>
 .goals__btn--primary:hover { background: var(--color-accent-hover); }
 .goals__btn--ghost { background: transparent; color: var(--color-text-secondary); border-color: var(--color-border); }
 .goals__btn--ghost:hover { color: var(--color-text); }
+
+/* Category filter */
+.goals__cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.goals__cat {
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.goals__cat:hover:not(.goals__cat--active) {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+}
+
+.goals__cat--active {
+  background: var(--color-accent-muted);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.goals__cat-empty {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  padding: 24px 0;
+  text-align: center;
+}
 
 /* Grid */
 .goals__grid {

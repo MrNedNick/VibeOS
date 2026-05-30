@@ -77,6 +77,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             {{ i18n.t('tasks.remaining', { n: store.activeCount }) }} · {{ i18n.t('tasks.done', { n: store.doneCount }) }}
           </span>
           <span v-else>{{ i18n.t('tasks.empty') }}</span>
+          <span v-if="store.doneThisWeek > 0" class="tm-view__week-pill">🗓 {{ store.doneThisWeek }} this week</span>
           <span class="tm-view__hint">j/k · space · d · /</span>
         </p>
       </div>
@@ -225,6 +226,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+}
+
+.tm-view__week-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+  border-radius: 99px;
+  padding: 2px 8px;
+  margin: 0 4px;
 }
 
 .tm-view__hint {

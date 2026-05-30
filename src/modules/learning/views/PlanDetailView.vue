@@ -8,6 +8,7 @@ import type { LearningSession } from '../types'
 import { estimateTargetDate, todayStr } from '../types'
 import { UiIcon } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
+import { useConfirm } from '@/core/composables/useConfirm'
 
 const route = useRoute()
 const router = useRouter()
@@ -38,23 +39,19 @@ function submitLog(data: Omit<LearningSession, 'id'>) {
 }
 
 // ── Confirm delete ───────────────────────────────────────────────────
-const confirmingDelete = ref(false)
-let deleteTimer: ReturnType<typeof setTimeout> | null = null
+const { confirm } = useConfirm()
 
-function askDelete() {
-  confirmingDelete.value = true
-  deleteTimer = setTimeout(() => { confirmingDelete.value = false }, 4000)
-}
-
-function confirmDelete() {
-  if (deleteTimer) clearTimeout(deleteTimer)
-  store.deletePlan(planId.value)
-  router.replace('/learning')
-}
-
-function cancelDelete() {
-  if (deleteTimer) clearTimeout(deleteTimer)
-  confirmingDelete.value = false
+async function askDelete() {
+  const ok = await confirm({
+    title:        'Delete this plan?',
+    body:         'All session history will be permanently removed.',
+    danger:       true,
+    confirmLabel: 'Delete plan',
+  })
+  if (ok) {
+    store.deletePlan(planId.value)
+    router.replace('/learning')
+  }
 }
 
 // ── Formatting helpers ───────────────────────────────────────────────
@@ -209,14 +206,7 @@ function saveHabitLink() {
 
     <!-- Danger zone -->
     <div class="detail__danger">
-      <template v-if="confirmingDelete">
-        <span class="detail__danger-confirm">Delete this plan and all session history?</span>
-        <button class="detail__danger-yes" @click="confirmDelete">Delete</button>
-        <button class="detail__danger-no" @click="cancelDelete">Cancel</button>
-      </template>
-      <button v-else class="detail__danger-btn" @click="askDelete">
-        Delete plan
-      </button>
+      <button class="detail__danger-btn" @click="askDelete">Delete plan</button>
     </div>
 
     <!-- Session log modal -->
@@ -538,40 +528,6 @@ function saveHabitLink() {
 }
 
 .detail__danger-btn:hover { color: var(--color-danger); }
-
-.detail__danger-confirm {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-}
-
-.detail__danger-yes {
-  padding: 5px 14px;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-danger);
-  background: transparent;
-  color: var(--color-danger);
-  font-size: var(--text-sm);
-  cursor: pointer;
-  transition: all var(--t-fast);
-  font-family: inherit;
-}
-
-.detail__danger-yes:hover {
-  background: var(--color-danger);
-  color: #fff;
-}
-
-.detail__danger-no {
-  background: none;
-  border: none;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  font-family: inherit;
-  transition: color var(--t-fast);
-}
-
-.detail__danger-no:hover { color: var(--color-text); }
 
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 767px) {

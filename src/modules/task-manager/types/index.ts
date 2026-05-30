@@ -11,6 +11,7 @@ export interface Task {
   dueDate?: string       // 'YYYY-MM-DD'
   linkedGoalId?: string
   createdAt: number
+  completedAt?: string   // ISO timestamp, set when done=true
 }
 
 // ── Due date helpers ─────────────────────────────────────────────
