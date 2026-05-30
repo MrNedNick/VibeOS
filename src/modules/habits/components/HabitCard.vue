@@ -140,80 +140,88 @@ function saveLinks() {
 
 <template>
   <div class="habit-card" :class="{ 'habit-card--done': doneToday }">
-    <div class="habit-card__top">
-      <div class="habit-card__identity">
-        <span class="habit-card__emoji">{{ habit.emoji }}</span>
 
-        <div class="habit-card__info">
-          <!-- Edit mode -->
-          <input
-            v-if="editing"
-            ref="editInput"
-            v-model="editName"
-            class="habit-card__edit-input"
-            :placeholder="i18n.t('habits.editPlaceholder')"
-            maxlength="60"
-            @keydown="onEditKeydown"
-            @blur="saveEdit"
-          />
-          <!-- Display mode -->
-          <span
-            v-else
-            class="habit-card__name"
-            :title="i18n.t('habits.editPlaceholder')"
-            @click="startEdit"
-          >{{ habit.name }}</span>
+    <!-- ── Main body row (info left + heatmap right on desktop) ──── -->
+    <div class="habit-card__body">
 
-          <div class="habit-card__meta">
-            <span :class="['habit-card__streak', streak === 0 ? 'habit-card__streak--zero' : '']">
-              {{ streakLabel }}
-            </span>
-            <span class="habit-card__total">{{ totalLabel }}</span>
+      <!-- Left: identity + stats + actions -->
+      <div class="habit-card__left">
+        <div class="habit-card__identity">
+          <span class="habit-card__emoji">{{ habit.emoji }}</span>
+
+          <div class="habit-card__info">
+            <!-- Edit mode -->
+            <input
+              v-if="editing"
+              ref="editInput"
+              v-model="editName"
+              class="habit-card__edit-input"
+              :placeholder="i18n.t('habits.editPlaceholder')"
+              maxlength="60"
+              @keydown="onEditKeydown"
+              @blur="saveEdit"
+            />
+            <!-- Display mode -->
+            <span
+              v-else
+              class="habit-card__name"
+              :title="i18n.t('habits.editPlaceholder')"
+              @click="startEdit"
+            >{{ habit.name }}</span>
+
+            <div class="habit-card__meta">
+              <span :class="['habit-card__streak', streak === 0 ? 'habit-card__streak--zero' : '']">
+                {{ streakLabel }}
+              </span>
+              <span class="habit-card__total">{{ totalLabel }}</span>
+            </div>
           </div>
+        </div>
+
+        <div class="habit-card__actions">
+          <!-- Confirm delete state -->
+          <template v-if="confirming">
+            <span class="habit-card__confirm-label">{{ i18n.t('habits.deleteConfirm') }}</span>
+            <button class="habit-card__confirm-yes" @click="confirmDelete">
+              {{ i18n.t('habits.deleteYes') }}
+            </button>
+            <button class="habit-card__confirm-no" @click="cancelConfirm">
+              {{ i18n.t('habits.deleteNo') }}
+            </button>
+          </template>
+
+          <!-- Normal state -->
+          <template v-else>
+            <button
+              class="habit-card__toggle"
+              :class="{ 'habit-card__toggle--done': doneToday }"
+              :title="`${doneToday ? i18n.t('habits.toggleDoneTitle') : i18n.t('habits.toggleTodoTitle')} (${todayFormatted})`"
+              @click="emit('toggle', habit.id)"
+            >
+              <svg v-if="doneToday" width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M3.5 9.5l3.5 3.5 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <svg v-else width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+            </button>
+            <button
+              class="habit-card__delete"
+              :title="i18n.t('habits.deleteConfirm')"
+              @click="askConfirm"
+            >×</button>
+          </template>
         </div>
       </div>
 
-      <div class="habit-card__actions">
-        <!-- Confirm delete state -->
-        <template v-if="confirming">
-          <span class="habit-card__confirm-label">{{ i18n.t('habits.deleteConfirm') }}</span>
-          <button class="habit-card__confirm-yes" @click="confirmDelete">
-            {{ i18n.t('habits.deleteYes') }}
-          </button>
-          <button class="habit-card__confirm-no" @click="cancelConfirm">
-            {{ i18n.t('habits.deleteNo') }}
-          </button>
-        </template>
-
-        <!-- Normal state -->
-        <template v-else>
-          <button
-            class="habit-card__toggle"
-            :class="{ 'habit-card__toggle--done': doneToday }"
-            :title="`${doneToday ? i18n.t('habits.toggleDoneTitle') : i18n.t('habits.toggleTodoTitle')} (${todayFormatted})`"
-            @click="emit('toggle', habit.id)"
-          >
-            <svg v-if="doneToday" width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M3.5 9.5l3.5 3.5 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <svg v-else width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
-            </svg>
-          </button>
-          <button
-            class="habit-card__delete"
-            :title="i18n.t('habits.deleteConfirm')"
-            @click="askConfirm"
-          >×</button>
-        </template>
+      <!-- Right: heatmap -->
+      <div class="habit-card__heatmap">
+        <HabitHeatmap :completed-dates="habit.completedDates" :weeks="16" />
       </div>
+
     </div>
 
-    <div class="habit-card__heatmap">
-      <HabitHeatmap :completed-dates="habit.completedDates" :weeks="16" />
-    </div>
-
-    <!-- ── Connected to ─────────────────────────────────────────────── -->
+    <!-- ── Connected to (full-width footer) ────────────────────────── -->
     <div class="habit-card__connect">
       <!-- Summary row (always visible if links exist) -->
       <div class="habit-card__connect-row">
@@ -296,10 +304,8 @@ function saveLinks() {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 18px 20px 14px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
   transition: border-color var(--t-fast);
   overflow: hidden;
 }
@@ -308,11 +314,19 @@ function saveLinks() {
   border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border));
 }
 
-.habit-card__top {
+/* ── Body row ───────────────────────────────────────────────── */
+.habit-card__body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Left panel ─────────────────────────────────────────────── */
+.habit-card__left {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  padding: 18px 20px 14px;
 }
 
 .habit-card__identity {
@@ -488,42 +502,37 @@ function saveLinks() {
 
 .habit-card__heatmap {
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding: 0 20px 14px;
   scrollbar-width: none;
 }
 .habit-card__heatmap::-webkit-scrollbar { display: none; }
 
-/* Mobile: compact stacked layout */
+/* Mobile: always show delete on touch */
 @media (max-width: 767px) {
-  .habit-card { border-radius: var(--radius-lg); }
-  .habit-card__heatmap {
-    padding: 0 12px 12px;
-    /* Show last few weeks instead of full year to fit */
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  /* Always show delete button (no hover on touch) */
   .habit-card__delete { opacity: 0.5; }
+  .habit-card__heatmap { padding: 0 16px 14px; }
 }
 
 @media (min-width: 900px) {
-  .habit-card {
+  /* On desktop: body switches to horizontal row */
+  .habit-card__body {
     flex-direction: row;
     align-items: stretch;
-    gap: 0;
   }
 
-  .habit-card__top {
-    flex: 0 0 280px;
+  /* Left panel — fixed width, vertical stack */
+  .habit-card__left {
+    flex: 0 0 300px;
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
-    padding: 18px 20px 14px;
+    padding: 20px 22px 18px;
     border-right: 1px solid var(--color-border);
     justify-content: space-between;
+    gap: 14px;
   }
 
   .habit-card__identity {
+    align-items: flex-start;
     flex: 1;
   }
 
@@ -531,21 +540,22 @@ function saveLinks() {
     align-self: flex-start;
   }
 
+  /* Right panel — heatmap centered */
   .habit-card__heatmap {
     flex: 1;
     min-width: 0;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding: 14px 20px;
-    overflow-x: auto;
+    justify-content: center;
+    padding: 18px 24px;
   }
+
 }
 
-/* ── Connect section ───────────────────────────────────────── */
+/* ── Connect section (full-width footer) ──────────────────── */
 .habit-card__connect {
   border-top: 1px solid var(--color-border);
-  padding-top: 10px;
+  padding: 10px 20px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;

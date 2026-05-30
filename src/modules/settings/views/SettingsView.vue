@@ -52,10 +52,8 @@ const { isVisible, toggleModule } = useModuleVisibility()
 const toggleableModules = PLATFORM_MODULES.filter(m => m.section !== 'system')
 
 // ── API keys ──────────────────────────────────────────────────────
-const anthropicKey    = useStorage<string>('platform:studio:apikey', '')
-const openWeatherKey  = useStorage<string>('platform:settings:openweather-key', '')
-const showAnthropic   = ref(false)
-const showOpenWeather = ref(false)
+const anthropicKey  = useStorage<string>('platform:studio:apikey', '')
+const showAnthropic = ref(false)
 
 // ── Data section ──────────────────────────────────────────────────
 const clearConfirm  = ref(false)
@@ -257,29 +255,6 @@ function cancelImport() {
         </div>
       </div>
 
-      <!-- OpenWeather -->
-      <div class="settings__row settings__row--col">
-        <div>
-          <span class="settings__row-name">{{ i18n.t('settings.openWeatherKeyLabel') }}</span>
-          <p class="settings__row-hint">{{ i18n.t('settings.openWeatherKeyHint') }}</p>
-        </div>
-        <div class="settings__key-row">
-          <input
-            v-model="openWeatherKey"
-            :type="showOpenWeather ? 'text' : 'password'"
-            class="settings__key-input"
-            placeholder="abc123…"
-            spellcheck="false"
-            autocomplete="off"
-          />
-          <button class="settings__key-toggle" @click="showOpenWeather = !showOpenWeather">
-            {{ showOpenWeather ? i18n.t('settings.keyHide') : i18n.t('settings.keyShow') }}
-          </button>
-          <span class="settings__key-status" :class="{ 'settings__key-status--set': openWeatherKey }">
-            {{ openWeatherKey ? i18n.t('settings.keySet') : i18n.t('settings.keyNotSet') }}
-          </span>
-        </div>
-      </div>
     </section>
 
     <!-- ── Data ────────────────────────────────────────── -->

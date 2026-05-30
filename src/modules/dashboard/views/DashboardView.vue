@@ -8,9 +8,7 @@ import { useLearningStore } from '@/modules/learning/stores/learning.store'
 import { useTrainingStore } from '@/modules/training/stores/training.store'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { computeStreak } from '@/modules/habits/types'
-import { TOTAL_DOC_PAGES } from '@/modules/docs/data/docs-registry'
 import { MODULE_DETAILS, PLATFORM_STATUS } from '../data/platform-notes'
-import StatCard from '../components/StatCard.vue'
 import ModuleDetailPanel from '../components/ModuleDetailPanel.vue'
 import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '../components/AllTasksPanel.vue'
 import RecentActivityPanel from '../components/RecentActivityPanel.vue'
@@ -112,20 +110,6 @@ const aggregatedShipped = computed<AggregatedShipped[]>(() => {
   return result.sort((a, b) => b.date.localeCompare(a.date))
 })
 
-// ── Platform-level task stats (from MODULE_DETAILS — not task manager) ──
-const platformTotalTasks = computed(() =>
-  aggregatedTasks.value.length + aggregatedShipped.value.length
-)
-const platformProgress = computed(() =>
-  platformTotalTasks.value === 0
-    ? 0
-    : Math.round((aggregatedShipped.value.length / platformTotalTasks.value) * 100)
-)
-
-// ── Top-level stats ─────────────────────────────────────────────
-const availableCount = computed(() =>
-  PLATFORM_MODULES.filter(m => m.status === 'available').length
-)
 
 const STATUS_ICON_NAMES: Record<string, string> = { good: 'Check', missing: 'X', planned: 'Clock3' }
 const APP_VERSION = __APP_VERSION__
@@ -141,44 +125,6 @@ const APP_VERSION = __APP_VERSION__
         <p class="dashboard__date">{{ today }}</p>
       </div>
       <span class="dashboard__version">v{{ APP_VERSION }} · VibeOS</span>
-    </div>
-
-    <!-- Widget strip ────────────────────────────────────────────── -->
-    <div class="dashboard__stats">
-      <StatCard
-        icon="Package"
-        :label="i18n.t('dashboard.statModules')"
-        :value="`${availableCount} / ${PLATFORM_MODULES.length}`"
-        :sub="i18n.t('dashboard.planned', { n: PLATFORM_MODULES.length - availableCount })"
-        clickable
-        @click="selectedId = OVERVIEW_ID"
-      />
-      <StatCard
-        icon="List"
-        :label="i18n.t('dashboard.statTasks')"
-        :value="aggregatedTasks.length"
-        :sub="i18n.t('dashboard.shippedCount', { n: aggregatedShipped.length })"
-        clickable
-        @click="selectedId = OVERVIEW_ID"
-      />
-      <StatCard
-        icon="TrendingUp"
-        :label="i18n.t('dashboard.statProgress')"
-        :value="`${platformProgress}%`"
-        :sub="i18n.t('dashboard.progressOf', { done: aggregatedShipped.length, total: platformTotalTasks })"
-        :progress="platformProgress"
-        :accent="platformProgress > 0"
-        clickable
-        @click="selectedId = OVERVIEW_ID"
-      />
-      <StatCard
-        icon="FileText"
-        :label="i18n.t('dashboard.statDocs')"
-        :value="TOTAL_DOC_PAGES"
-        :sub="i18n.t('dashboard.pagesWritten')"
-        clickable
-        @click="selectedId = 'docs'"
-      />
     </div>
 
     <!-- Life module stats ───────────────────────────────────────── -->
@@ -367,13 +313,6 @@ const APP_VERSION = __APP_VERSION__
   font-size: 14px;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
-}
-
-/* Stats */
-.dashboard__stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
 }
 
 /* Life stats strip */
@@ -644,9 +583,8 @@ const APP_VERSION = __APP_VERSION__
 .panel-enter-from   { opacity: 0; transform: translateX(6px); }
 .panel-leave-to     { opacity: 0; }
 
-/* Responsive — md: 2×2 widget grid */
+/* Responsive — md: 2×2 life stats grid */
 @media (max-width: 1279px) {
-  .dashboard__stats      { grid-template-columns: repeat(2, 1fr); }
   .dashboard__life-stats { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -662,8 +600,6 @@ const APP_VERSION = __APP_VERSION__
   .dashboard__date       { font-size: 13px; }
   .dashboard__version    { display: none; }
 
-  /* 2×2 stat cards */
-  .dashboard__stats      { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   /* 2×2 life stats */
   .dashboard__life-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
 

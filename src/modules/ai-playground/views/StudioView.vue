@@ -101,6 +101,26 @@ const messagesEl  = ref<HTMLElement | null>(null)
 const inputEl     = ref<HTMLTextAreaElement | null>(null)
 const copiedId    = ref<string | null>(null)
 
+// ── Clear history confirm ──────────────────────────
+const confirmingClear = ref(false)
+let clearHistoryTimer: ReturnType<typeof setTimeout> | null = null
+
+function askClearHistory() {
+  confirmingClear.value = true
+  clearHistoryTimer = setTimeout(() => { confirmingClear.value = false }, 5000)
+}
+
+function doClearHistory() {
+  if (clearHistoryTimer) clearTimeout(clearHistoryTimer)
+  confirmingClear.value = false
+  store.clearHistory()
+}
+
+function cancelClearHistory() {
+  if (clearHistoryTimer) clearTimeout(clearHistoryTimer)
+  confirmingClear.value = false
+}
+
 // ── Sidebar helpers ────────────────────────────────
 function fmtDate(iso: string): string {
   const d = new Date(iso)
@@ -226,11 +246,16 @@ onMounted(() => inputEl.value?.focus())
     <aside class="studio__sidebar">
       <div class="studio__sidebar-header">
         <span class="studio__sidebar-title">History</span>
+        <template v-if="confirmingClear">
+          <button class="studio__sidebar-clear-yes" @click="doClearHistory">Delete all</button>
+          <button class="studio__sidebar-clear-no" @click="cancelClearHistory">Cancel</button>
+        </template>
         <button
+          v-else
           class="studio__sidebar-clear"
           :disabled="!store.savedConversations.length"
           title="Clear all history"
-          @click="store.clearHistory()"
+          @click="askClearHistory"
         >Clear</button>
       </div>
 
@@ -562,6 +587,34 @@ onMounted(() => inputEl.value?.focus())
 }
 .studio__sidebar-clear:hover:not(:disabled) { color: var(--color-danger); border-color: var(--color-danger); }
 .studio__sidebar-clear:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.studio__sidebar-clear-yes {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: var(--color-danger);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity var(--t-fast);
+}
+.studio__sidebar-clear-yes:hover { opacity: 0.85; }
+
+.studio__sidebar-clear-no {
+  padding: 3px 7px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.studio__sidebar-clear-no:hover { background: var(--color-surface-elevated); color: var(--color-text); }
 
 .studio__sidebar-list {
   flex: 1;

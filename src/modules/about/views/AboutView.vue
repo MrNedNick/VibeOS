@@ -6,13 +6,11 @@ const i18n = useLocale()
 
 // ── Author ────────────────────────────────────────────────────────────
 const AUTHOR = {
-  name:       'Nikita N.',
+  name:       'Nikita Nedyalkov',
   initials:   'NN',
-  title:      'Frontend Developer',
-  company:    'XOVI GmbH',
-  location:   'Cologne, Germany',
-  experience: '5+ years',
-  bio:        'Frontend developer with 5+ years of experience building modern web applications. Specialising in Vue 3, React, and TypeScript. VibeOS is a personal life OS built to track goals, habits, learning, training — and actually get used every day.',
+  title:      'App Developer',
+  experience: '6+ years',
+  bio:        'App developer with 6+ years of experience designing and building end-to-end digital products — from UI to backend architecture. Specialising in Vue 3, React, and TypeScript. VibeOS is a personal life OS built to track goals, habits, learning, and training, and actually get used every day.',
   languages:  ['English', 'Russian', 'Ukrainian', 'German', 'Bulgarian'],
 }
 
@@ -24,7 +22,7 @@ const SOCIAL = [
 // ── Stack ─────────────────────────────────────────────────────────────
 const STACK = [
   { name: 'Vue 3',       desc: 'Composition API + TypeScript',    icon: '⚡' },
-  { name: 'React',       desc: 'Used in production at XOVI GmbH', icon: '⚛️' },
+  { name: 'React',       desc: 'Hooks, context, modern patterns',  icon: '⚛️' },
   { name: 'Vite 6',      desc: 'Build tool & dev server',         icon: '🔥' },
   { name: 'Pinia',       desc: 'State management',                icon: '🍍' },
   { name: 'Vue Router 4',desc: 'Client-side routing',             icon: '🗺' },
@@ -90,10 +88,7 @@ const LIVE_SITE_URL = 'https://mrnednick.github.io/VibeOS'
         <p class="about__author-meta">
           <span class="about__author-title">{{ AUTHOR.title }}</span>
           <span class="about__author-sep">·</span>
-          <span>{{ AUTHOR.company }}</span>
-          <span class="about__author-sep">·</span>
-          <UiIcon name="MapPin" :size="12" class="about__author-pin" />
-          <span>{{ AUTHOR.location }}</span>
+          <span>{{ AUTHOR.experience }} experience</span>
         </p>
         <p class="about__bio">{{ AUTHOR.bio }}</p>
         <div class="about__tags">

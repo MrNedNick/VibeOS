@@ -473,48 +473,49 @@ const goalsProgress = computed(() =>
 }
 
 .analytics__title {
-  font-size: 1.5rem;
+  font-size: 27px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--color-text);
   margin: 0;
 }
 
 .analytics__period {
   display: flex;
   gap: 4px;
-  background: var(--bg-secondary);
-  border-radius: 10px;
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
   padding: 3px;
+  border: 1px solid var(--color-border);
 }
 
 .period-btn {
   padding: 6px 14px;
   border: none;
-  border-radius: 7px;
-  font-size: 0.8125rem;
+  border-radius: var(--radius-xs);
+  font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
   background: transparent;
-  color: var(--text-secondary);
-  transition: all 0.15s ease;
+  color: var(--color-text-muted);
+  transition: all var(--t-fast);
   min-width: 44px;
   min-height: 32px;
 }
 
 .period-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-card);
+  color: var(--color-text);
+  background: var(--color-surface);
 }
 
 .period-btn--active {
-  background: var(--accent);
+  background: var(--color-accent);
   color: #fff;
 }
 
 .period-btn--active:hover {
-  background: var(--accent);
+  background: var(--color-accent-hover);
   color: #fff;
-  opacity: 0.9;
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -527,68 +528,68 @@ const goalsProgress = computed(() =>
 }
 
 .stat-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 18px 20px;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  transition: border-color 0.15s;
+  gap: 14px;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
 }
 
 .stat-card:hover {
-  border-color: var(--accent);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
 }
 
 .stat-card__icon {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
-.stat-card__icon--tasks    { background: rgba(99,  102, 241, 0.15); color: #818cf8; }
-.stat-card__icon--habits   { background: rgba(16,  185, 129, 0.15); color: #34d399; }
-.stat-card__icon--learning { background: rgba(245, 158,  11, 0.15); color: #fbbf24; }
-.stat-card__icon--training { background: rgba(239,  68,  68, 0.15); color: #f87171; }
+.stat-card__icon--tasks    { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+.stat-card__icon--habits   { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+.stat-card__icon--learning { background: rgba(245,158,  11, 0.15); color: #fbbf24; }
+.stat-card__icon--training { background: rgba(239, 68,  68, 0.15); color: #f87171; }
 
-.stat-card__body {
-  min-width: 0;
-}
+.stat-card__body { min-width: 0; }
 
 .stat-card__value {
-  font-size: 1.5rem;
+  font-size: var(--text-2xl, 26px);
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--color-text);
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-card__label {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-top: 2px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 3px;
+  font-weight: 500;
 }
 
 .stat-card__sub {
-  font-size: 0.6875rem;
-  color: var(--text-secondary);
+  font-size: 11px;
+  color: var(--color-text-muted);
   margin-top: 2px;
-  opacity: 0.6;
 }
 
 /* ────────────────────────────────────────────────────────────
    Section
 ──────────────────────────────────────────────────────────── */
 .analytics__section {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 20px 24px;
+  padding: 22px 24px;
 }
 
 .analytics__section--last {
@@ -596,17 +597,18 @@ const goalsProgress = computed(() =>
 }
 
 .section-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 16px;
-  letter-spacing: 0.01em;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+  margin: 0 0 18px;
 }
 
 .empty-state {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  padding: 12px 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  padding: 16px 0;
   text-align: center;
 }
 
@@ -616,7 +618,7 @@ const goalsProgress = computed(() =>
 .habit-grid-wrap {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -624,26 +626,37 @@ const goalsProgress = computed(() =>
 .habit-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  border: 1px solid transparent;
+  transition: border-color var(--t-fast);
+}
+
+.habit-row:hover {
+  border-color: var(--color-border);
 }
 
 .habit-row__meta {
   display: flex;
   align-items: center;
-  gap: 6px;
-  width: 150px;
+  gap: 8px;
+  width: 170px;
   flex-shrink: 0;
 }
 
 .habit-row__emoji {
-  font-size: 1rem;
+  font-size: 16px;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .habit-row__name {
-  font-size: 0.8125rem;
-  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -652,10 +665,11 @@ const goalsProgress = computed(() =>
 }
 
 .habit-row__rate {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-accent);
   flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .habit-row__cells {
@@ -664,29 +678,32 @@ const goalsProgress = computed(() =>
   flex: 1;
   flex-wrap: nowrap;
   overflow-x: auto;
+  scrollbar-width: none;
 }
 
+.habit-row__cells::-webkit-scrollbar { display: none; }
+
 .habit-cell {
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
   border-radius: 3px;
-  background: var(--bg-secondary);
+  background: var(--color-border);
   flex-shrink: 0;
-  transition: transform 0.1s;
+  transition: transform var(--t-fast);
   cursor: default;
 }
 
 .habit-cell:hover {
-  transform: scale(1.3);
+  transform: scale(1.4);
 }
 
 .habit-cell--done {
-  background: var(--accent);
+  background: var(--color-accent);
   opacity: 0.85;
 }
 
 .habit-cell--today {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-accent);
   outline-offset: 1px;
 }
 
@@ -700,14 +717,23 @@ const goalsProgress = computed(() =>
 .bar-chart {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .bar-chart__bars {
   display: flex;
   align-items: flex-end;
-  gap: 4px;
-  height: 120px;
+  gap: 5px;
+  height: 130px;
+  background: repeating-linear-gradient(
+    to top,
+    var(--color-border) 0px,
+    var(--color-border) 1px,
+    transparent 1px,
+    transparent 25%
+  );
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 4px;
 }
 
 .bar-col {
@@ -716,7 +742,7 @@ const goalsProgress = computed(() =>
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   height: 100%;
 }
 
@@ -732,19 +758,19 @@ const goalsProgress = computed(() =>
 
 .bar-col__fill {
   width: 100%;
-  border-radius: 3px 3px 0 0;
+  border-radius: 4px 4px 0 0;
   min-height: 0;
-  transition: height 0.3s ease;
+  transition: height 0.4s var(--ease);
 }
 
-.bar-col__fill--primary   { background: var(--accent); opacity: 0.45; }
-.bar-col__fill--secondary { background: var(--accent); opacity: 0.95; border-radius: 3px; }
-.bar-col__fill--learning  { background: #fbbf24; opacity: 0.85; }
-.bar-col__fill--training  { background: #f87171; opacity: 0.85; }
+.bar-col__fill--primary   { background: var(--color-accent); opacity: 0.35; }
+.bar-col__fill--secondary { background: var(--color-accent); opacity: 1; border-radius: 4px; }
+.bar-col__fill--learning  { background: #fbbf24; opacity: 0.9; }
+.bar-col__fill--training  { background: #f87171; opacity: 0.9; }
 
 .bar-col__label {
-  font-size: 0.5rem;
-  color: var(--text-secondary);
+  font-size: 9px;
+  color: var(--color-text-muted);
   text-align: center;
   line-height: 1.2;
   width: 100%;
@@ -757,20 +783,20 @@ const goalsProgress = computed(() =>
 .bar-chart__legend {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
 }
 
 .legend-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: 3px;
   flex-shrink: 0;
 }
 
-.legend-dot--primary   { background: var(--accent); opacity: 0.45; }
-.legend-dot--secondary { background: var(--accent); }
+.legend-dot--primary   { background: var(--color-accent); opacity: 0.35; }
+.legend-dot--secondary { background: var(--color-accent); }
 .legend-dot--learning  { background: #fbbf24; }
 .legend-dot--training  { background: #f87171; }
 
@@ -780,13 +806,22 @@ const goalsProgress = computed(() =>
 .goals-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .goal-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
+  padding: 12px 14px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  transition: border-color var(--t-fast);
+}
+
+.goal-item:hover {
+  border-color: var(--color-accent);
 }
 
 .goal-item__header {
@@ -797,8 +832,9 @@ const goalsProgress = computed(() =>
 }
 
 .goal-item__title {
-  font-size: 0.875rem;
-  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -807,123 +843,78 @@ const goalsProgress = computed(() =>
 }
 
 .goal-item__pct {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-accent);
   flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .goal-item__bar {
-  height: 6px;
-  background: var(--bg-secondary);
-  border-radius: 3px;
+  height: 5px;
+  background: var(--color-border);
+  border-radius: 99px;
   overflow: hidden;
 }
 
 .goal-item__bar-fill {
   height: 100%;
-  background: var(--accent);
-  border-radius: 3px;
-  transition: width 0.4s ease;
+  background: var(--color-accent);
+  border-radius: 99px;
+  transition: width 0.5s var(--ease);
   min-width: 4px;
 }
 
 .goal-item__date {
-  font-size: 0.6875rem;
-  color: var(--text-secondary);
-  opacity: 0.7;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
 }
 
 .goals-completed-badge {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  padding: 8px 12px;
-  background: var(--bg-secondary);
+  font-size: 13px;
+  color: var(--color-success);
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 20%, transparent);
   border-radius: var(--radius);
   text-align: center;
+  font-weight: 500;
 }
 
 /* ────────────────────────────────────────────────────────────
    Responsive — tablet
 ──────────────────────────────────────────────────────────── */
 @media (max-width: 1023px) {
-  .analytics__overview {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .habit-row__meta {
-    width: 120px;
-  }
+  .analytics__overview { grid-template-columns: repeat(2, 1fr); }
+  .habit-row__meta { width: 130px; }
 }
 
 /* ────────────────────────────────────────────────────────────
    Responsive — mobile (iPhone)
 ──────────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
-  .analytics {
-    gap: 16px;
-  }
-
-  .analytics__header {
-    gap: 10px;
-  }
-
-  .analytics__title {
-    font-size: 1.25rem;
-  }
-
-  .analytics__section {
-    padding: 14px 16px;
-  }
+  .analytics { gap: 16px; }
+  .analytics__header { gap: 10px; }
+  .analytics__title { font-size: 22px; }
+  .analytics__section { padding: 14px 16px; }
 
   .analytics__overview {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
 
-  .stat-card {
-    padding: 12px;
-    gap: 8px;
-  }
+  .stat-card { padding: 14px; gap: 10px; }
+  .stat-card__icon { width: 32px; height: 32px; font-size: 16px; }
+  .stat-card__value { font-size: 22px; }
 
-  .stat-card__icon {
-    width: 30px;
-    height: 30px;
-    font-size: 0.875rem;
-  }
+  .habit-row { padding: 6px 8px; gap: 8px; }
+  .habit-row__meta { width: 90px; }
+  .habit-row__name { font-size: 12px; }
+  .habit-cell { width: 10px; height: 10px; border-radius: 2px; }
+  .habit-row__cells { gap: 2px; }
 
-  .stat-card__value {
-    font-size: 1.25rem;
-  }
-
-  .habit-row {
-    gap: 8px;
-  }
-
-  .habit-row__meta {
-    width: 80px;
-  }
-
-  .habit-row__name {
-    font-size: 0.6875rem;
-  }
-
-  .habit-cell {
-    width: 9px;
-    height: 9px;
-    border-radius: 2px;
-  }
-
-  .habit-row__cells {
-    gap: 2px;
-  }
-
-  .bar-chart__bars {
-    height: 80px;
-  }
-
-  .bar-col__label {
-    font-size: 0.4375rem;
-  }
+  .bar-chart__bars { height: 90px; }
+  .bar-col__label { font-size: 8px; }
 }
 </style>
