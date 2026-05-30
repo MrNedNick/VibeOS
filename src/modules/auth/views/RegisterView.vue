@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon } from '@/ui'
@@ -14,7 +14,15 @@ const email       = ref('')
 const password    = ref('')
 const confirm     = ref('')
 const error       = ref<string | null>(null)
-const loading     = ref(false)
+
+// "Check your email" state (when Supabase email confirmation is enabled)
+const confirmationPending = ref(false)
+
+const canSubmit = computed(() =>
+  email.value.trim().length > 0 &&
+  password.value.length >= 8 &&
+  password.value === confirm.value,
+)
 
 async function submit() {
   error.value = null
@@ -32,14 +40,20 @@ async function submit() {
     return
   }
 
-  loading.value = true
-  const result = await auth.register(email.value.trim(), password.value, displayName.value.trim() || undefined)
-  loading.value = false
+  const result = await auth.register(
+    email.value.trim(),
+    password.value,
+    displayName.value.trim() || undefined,
+  )
 
   if (result.error) {
     error.value = result.error
-  } else {
+  } else if (auth.isLoggedIn) {
+    // Email confirmation disabled — user is logged in immediately
     router.replace('/')
+  } else {
+    // Email confirmation required — show "check your email"
+    confirmationPending.value = true
   }
 }
 
@@ -55,7 +69,7 @@ function onKeydown(e: KeyboardEvent) {
 
 <template>
   <div class="auth-page">
-    <div class="auth-card">
+    <div class="auth-card" @keydown="onKeydown">
       <!-- Logo -->
       <div class="auth-logo" @click="router.push('/welcome')">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -67,84 +81,125 @@ function onKeydown(e: KeyboardEvent) {
         <span class="auth-logo__ver">v{{ APP_VERSION }}</span>
       </div>
 
-      <h1 class="auth-title">Create account</h1>
-      <p class="auth-sub">Set up your personal life OS.</p>
+      <!-- ── Email confirmation pending ─────────────────────────────── -->
+      <template v-if="confirmationPending">
+        <h1 class="auth-title">Check your email</h1>
+        <p class="auth-sub">Almost there — one more step.</p>
 
-      <!-- Notice: Supabase not configured -->
-      <div class="auth-notice">
-        <UiIcon name="Info" :size="14" />
-        Sign-up is coming soon. Use <strong>Demo mode</strong> to explore everything now.
-      </div>
-
-      <!-- Form (disabled until Supabase is wired) -->
-      <div class="auth-form" @keydown="onKeydown">
-        <div class="auth-field">
-          <label class="auth-label">Display name <span class="auth-optional">(optional)</span></label>
-          <input
-            v-model="displayName"
-            type="text"
-            class="auth-input"
-            placeholder="Your name"
-            autocomplete="name"
-            :disabled="loading"
-          />
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">Email</label>
-          <input
-            v-model="email"
-            type="email"
-            class="auth-input"
-            placeholder="you@example.com"
-            autocomplete="email"
-            :disabled="loading"
-          />
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">Password</label>
-          <input
-            v-model="password"
-            type="password"
-            class="auth-input"
-            placeholder="Min. 8 characters"
-            autocomplete="new-password"
-            :disabled="loading"
-          />
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">Confirm password</label>
-          <input
-            v-model="confirm"
-            type="password"
-            class="auth-input"
-            placeholder="Repeat password"
-            autocomplete="new-password"
-            :disabled="loading"
-          />
+        <div class="auth-success">
+          <UiIcon name="MailCheck" :size="20" />
+          <div>
+            <p style="margin: 0 0 6px; font-weight: 600;">Confirmation link sent</p>
+            <p style="margin: 0; font-size: 13px;">
+              We sent a confirmation link to <strong>{{ email }}</strong>.
+              Click it to activate your account, then sign in.
+            </p>
+          </div>
         </div>
 
-        <div v-if="error" class="auth-error">
-          <UiIcon name="AlertCircle" :size="14" />
-          {{ error }}
-        </div>
-
-        <button class="auth-btn auth-btn--primary" :disabled="loading" @click="submit">
-          <span v-if="loading">Creating account…</span>
-          <span v-else>Create account</span>
+        <button class="auth-btn auth-btn--primary" @click="router.replace('/login')">
+          Go to sign in
         </button>
-      </div>
+      </template>
 
-      <div class="auth-divider"><span>or</span></div>
+      <!-- ── Registration form ──────────────────────────────────────── -->
+      <template v-else>
+        <h1 class="auth-title">Create account</h1>
+        <p class="auth-sub">Set up your personal life OS.</p>
 
-      <button class="auth-btn auth-btn--demo" @click="tryDemo">
-        <UiIcon name="Play" :size="14" />
-        Try demo — no account needed
-      </button>
+        <!-- Not configured → demo CTA prominent, form visible but secondary -->
+        <div v-if="!auth.isSupabaseConfigured" class="auth-notice">
+          <UiIcon name="Info" :size="14" />
+          Sign-up requires Supabase. Use <strong>Demo mode</strong> to explore everything now.
+        </div>
 
-      <p class="auth-footer-link">
-        Already have an account?
-        <button class="auth-text-btn" @click="router.push('/login')">Sign in</button>
-      </p>
+        <div class="auth-form">
+          <div class="auth-field">
+            <label class="auth-label">Display name <span class="auth-optional">(optional)</span></label>
+            <input
+              v-model="displayName"
+              type="text"
+              class="auth-input"
+              placeholder="Your name"
+              autocomplete="name"
+              :disabled="auth.loading"
+            />
+          </div>
+          <div class="auth-field">
+            <label class="auth-label">Email</label>
+            <input
+              v-model="email"
+              type="email"
+              class="auth-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              :disabled="auth.loading"
+            />
+          </div>
+          <div class="auth-field">
+            <label class="auth-label">Password <span class="auth-optional">(min. 8 chars)</span></label>
+            <input
+              v-model="password"
+              type="password"
+              class="auth-input"
+              placeholder="Create a strong password"
+              autocomplete="new-password"
+              :disabled="auth.loading"
+            />
+          </div>
+          <div class="auth-field">
+            <label class="auth-label">Confirm password</label>
+            <input
+              v-model="confirm"
+              type="password"
+              class="auth-input"
+              placeholder="Repeat password"
+              autocomplete="new-password"
+              :disabled="auth.loading"
+            />
+          </div>
+
+          <!-- Inline password match indicator -->
+          <div
+            v-if="confirm.length > 0 && password !== confirm"
+            class="auth-field-hint auth-field-hint--error"
+          >
+            <UiIcon name="X" :size="12" /> Passwords don't match
+          </div>
+          <div
+            v-else-if="confirm.length > 0 && password === confirm"
+            class="auth-field-hint auth-field-hint--ok"
+          >
+            <UiIcon name="Check" :size="12" /> Passwords match
+          </div>
+
+          <div v-if="error" class="auth-error">
+            <UiIcon name="AlertCircle" :size="14" />
+            {{ error }}
+          </div>
+
+          <button
+            class="auth-btn auth-btn--primary"
+            :disabled="auth.loading || !canSubmit"
+            @click="submit"
+          >
+            <span v-if="auth.loading">Creating account…</span>
+            <span v-else>Create account</span>
+          </button>
+        </div>
+
+        <div class="auth-divider"><span>or</span></div>
+
+        <button class="auth-btn auth-btn--demo" @click="tryDemo">
+          <UiIcon name="Play" :size="14" />
+          Try demo — no account needed
+        </button>
+
+        <p class="auth-footer-link">
+          Already have an account?
+          <button class="auth-text-btn" @click="router.push('/login')">Sign in</button>
+        </p>
+      </template>
     </div>
   </div>
 </template>
@@ -224,6 +279,19 @@ function onKeydown(e: KeyboardEvent) {
   line-height: 1.5;
 }
 
+.auth-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, #22c55e 8%, transparent);
+  border: 1px solid color-mix(in srgb, #22c55e 25%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  line-height: 1.5;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -264,6 +332,16 @@ function onKeydown(e: KeyboardEvent) {
 .auth-input:disabled { opacity: 0.5; cursor: not-allowed; }
 .auth-input::placeholder { color: var(--color-text-muted); }
 
+.auth-field-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  margin-top: -8px;
+}
+.auth-field-hint--error { color: #ef4444; }
+.auth-field-hint--ok    { color: #22c55e; }
+
 .auth-error {
   display: flex;
   align-items: flex-start;
@@ -289,6 +367,7 @@ function onKeydown(e: KeyboardEvent) {
   font-weight: 600;
   cursor: pointer;
   transition: opacity var(--t-fast), background var(--t-fast);
+  border: none;
 }
 .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -345,9 +424,6 @@ function onKeydown(e: KeyboardEvent) {
 .auth-text-btn:hover { opacity: 0.8; }
 
 @media (max-width: 480px) {
-  .auth-card {
-    padding: 28px 20px;
-    gap: 16px;
-  }
+  .auth-card { padding: 28px 20px; gap: 16px; }
 }
 </style>

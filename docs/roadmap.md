@@ -304,6 +304,81 @@ Post-S3: production connects to Supabase. Demo account seeded.
 
 ## Backlog (not yet scheduled)
 
+### Full UI Redesign — Revolut-style modern design (planned — S8)
+Complete visual redesign of the entire platform. Goal: looks like a premium product, not a dev tool.
+
+**Inspiration:** Revolut app, Linear, Vercel, Raycast — clean surfaces, tight spacing, purposeful animation, bold typography.
+
+**Design principles:**
+- **Dark-first** — deep near-black surfaces (`#0a0a0f`, `#111118`), not flat grey
+- **Accent is earned** — one color pops; everything else is muted
+- **Spacing discipline** — 4px grid strictly; sections breathe but don't waste space
+- **Micro-interactions** — hover glows, number counters, smooth transitions everywhere
+- **Typography hierarchy** — weight contrast, not size contrast; SF Pro / Inter
+- **Glassmorphism selectively** — blur panels for overlays and cards, not everything
+- **Status as design element** — progress rings, streaks, activity dots feel alive
+
+**Scope:**
+1. **Design token audit** — extend `main.css` with full palette: `--color-surface-0/1/2/3`, `--color-glow-*`, `--shadow-*`, elevation system
+2. **Typography scale** — define `--text-xs` through `--text-3xl` with matching `line-height`
+3. **Motion tokens** — `--ease-spring`, `--ease-smooth`, `--duration-fast/base/slow`
+4. **Component library restyle** — every `@/ui` component redesigned to new system
+5. **Module-by-module pass** — Dashboard → Sidebar → Games → All modules
+6. **Vibe-paks v2** — redesign all 5 themes to match new visual system
+
+**Research phase (before implementation):**
+- Screenshot Revolut app key screens
+- Study Raycast design system for reference
+- Define 10 key screens to redesign first (Dashboard, Sidebar, Login, Goals, Analytics most visible)
+
+---
+
+### Component Library page — `/ui-kit` (planned — S8)
+A live, interactive showcase of every `@/ui` component — like Storybook but inside VibeOS itself.
+
+**Purpose:** shows recruiters the depth of the design system; documents components for development.
+
+**Page structure:**
+- Left sidebar: component categories (Inputs, Feedback, Data Display, Navigation, Layout)
+- Main area: component cards — each shows live example + code snippet
+- Theme switcher at top (tests all vibe-paks at once)
+- Search bar to filter components
+
+**Components to document:**
+- `UiButton` — all variants (primary/secondary/ghost/danger) + sizes + loading state
+- `UiBadge` — colors, sizes
+- `UiInput` / `UiTextarea` / `UiSelect` — states (default/focus/error/disabled)
+- `UiProgressRing` — sizes, colors, label options
+- `UiEmptyState` — with/without icon, with/without CTA
+- `UiIcon` — full icon grid from lucide-vue-next
+- `UiCard` (once built) — elevations, variants
+- `UiModal` (once built) — sizes, with/without header/footer
+- `UiStat` (once built) — number, trend, ring variants
+
+**Route:** `/ui-kit` visible only in dev mode or accessible via Settings → Developer
+
+---
+
+### About page v3 — Personal selling page (planned — S8)
+Redesign `/about` from info card to a proper personal portfolio/selling page.
+
+**Goal:** a recruiter landing here should understand in 10 seconds: who you are, what you build, why you're worth hiring.
+
+**Structure:**
+1. **Hero** — name, title, current role (XOVI GmbH), 2-line positioning statement ("I build full-stack products..."), LinkedIn + GitHub CTA buttons
+2. **What I'm good at** — 3-4 skill groups as visual cards, not bullet lists (Frontend Systems, TypeScript, Vue Ecosystem, Product Thinking)
+3. **VibeOS itself** — "This is what I built" — module count, lines of code approx, key decisions explained (auth, data model, AI layer)
+4. **Timeline / career story** — horizontal scrollable timeline or vertical scroll; each role has a 1-line impact statement
+5. **Languages** — flag chips: Ukrainian, Russian, German (B1), English (B2)
+6. **Contact section** — LinkedIn, GitHub, email — large tap targets, no forms
+7. **Philosophy statement** — "I ship because..." personal engineering ethos
+
+**Tone:** confident, direct, no corporate fluff. Like a really good README.
+
+**Visual:** dark, premium feel matching new design system. Photos optional (can be avatar/initials).
+
+---
+
 ### Reusable component system (planned — S4/S5)
 Create a unified component library so every module is built from the same building blocks:
 - **Design tokens audit** — ensure all colors, radii, spacing, typography defined as CSS variables in `main.css`

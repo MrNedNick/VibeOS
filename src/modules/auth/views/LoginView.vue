@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon } from '@/ui'
@@ -9,17 +9,22 @@ const auth = useAuthStore()
 
 const APP_VERSION = __APP_VERSION__
 
-const email     = ref('')
-const password  = ref('')
-const error     = ref<string | null>(null)
-const loading   = ref(false)
+const email    = ref('')
+const password = ref('')
+const error    = ref<string | null>(null)
+
+// Show password reset form
+const showReset  = ref(false)
+const resetEmail = ref('')
+const resetSent  = ref(false)
+const resetError = ref<string | null>(null)
+
+const canSubmit = computed(() => email.value.trim().length > 0 && password.value.length > 0)
 
 async function submit() {
-  if (!email.value.trim() || !password.value) return
-  error.value  = null
-  loading.value = true
+  if (!canSubmit.value) return
+  error.value = null
   const result = await auth.login(email.value.trim(), password.value)
-  loading.value = false
   if (result.error) {
     error.value = result.error
   } else {
@@ -32,15 +37,28 @@ function tryDemo() {
   router.replace('/')
 }
 
+async function sendReset() {
+  if (!resetEmail.value.trim()) return
+  resetError.value = null
+  const result = await auth.sendPasswordReset(resetEmail.value.trim())
+  if (result.error) {
+    resetError.value = result.error
+  } else {
+    resetSent.value = true
+  }
+}
+
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') submit()
+  if (e.key === 'Enter') {
+    if (showReset.value) sendReset()
+    else submit()
+  }
 }
 </script>
 
 <template>
   <div class="auth-page">
-    <!-- Card -->
-    <div class="auth-card">
+    <div class="auth-card" @keydown="onKeydown">
       <!-- Logo -->
       <div class="auth-logo" @click="router.push('/welcome')">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -52,58 +70,120 @@ function onKeydown(e: KeyboardEvent) {
         <span class="auth-logo__ver">v{{ APP_VERSION }}</span>
       </div>
 
-      <h1 class="auth-title">Sign in</h1>
-      <p class="auth-sub">Welcome back to your personal life OS.</p>
+      <!-- ── Password Reset mode ──────────────────────────────────────── -->
+      <template v-if="showReset">
+        <h1 class="auth-title">Reset password</h1>
+        <p class="auth-sub">We'll send a reset link to your email.</p>
 
-      <!-- Form -->
-      <div class="auth-form" @keydown="onKeydown">
-        <div class="auth-field">
-          <label class="auth-label">Email</label>
-          <input
-            v-model="email"
-            type="email"
-            class="auth-input"
-            placeholder="you@example.com"
-            autocomplete="email"
-            :disabled="loading"
-          />
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">Password</label>
-          <input
-            v-model="password"
-            type="password"
-            class="auth-input"
-            placeholder="••••••••"
-            autocomplete="current-password"
-            :disabled="loading"
-          />
+        <template v-if="!resetSent">
+          <div class="auth-form">
+            <div class="auth-field">
+              <label class="auth-label">Email</label>
+              <input
+                v-model="resetEmail"
+                type="email"
+                class="auth-input"
+                placeholder="you@example.com"
+                autocomplete="email"
+                :disabled="auth.loading"
+              />
+            </div>
+
+            <div v-if="resetError" class="auth-error">
+              <UiIcon name="AlertCircle" :size="14" />
+              {{ resetError }}
+            </div>
+
+            <button class="auth-btn auth-btn--primary" :disabled="auth.loading" @click="sendReset">
+              <span v-if="auth.loading">Sending…</span>
+              <span v-else>Send reset link</span>
+            </button>
+          </div>
+        </template>
+
+        <div v-else class="auth-success">
+          <UiIcon name="MailCheck" :size="16" />
+          Check your email — reset link sent to <strong>{{ resetEmail }}</strong>.
         </div>
 
-        <div v-if="error" class="auth-error">
-          <UiIcon name="AlertCircle" :size="14" />
-          {{ error }}
+        <p class="auth-footer-link">
+          <button class="auth-text-btn" @click="showReset = false; resetSent = false">
+            ← Back to sign in
+          </button>
+        </p>
+      </template>
+
+      <!-- ── Normal login mode ───────────────────────────────────────── -->
+      <template v-else>
+        <h1 class="auth-title">Sign in</h1>
+        <p class="auth-sub">Welcome back to your personal life OS.</p>
+
+        <!-- Notice when Supabase not configured -->
+        <div v-if="!auth.isSupabaseConfigured" class="auth-notice">
+          <UiIcon name="Info" :size="14" />
+          Real auth isn't active yet — use <strong>Demo mode</strong> to explore everything now.
         </div>
 
-        <button class="auth-btn auth-btn--primary" :disabled="loading" @click="submit">
-          <span v-if="loading">Signing in…</span>
-          <span v-else>Sign in</span>
+        <div class="auth-form">
+          <div class="auth-field">
+            <label class="auth-label">Email</label>
+            <input
+              v-model="email"
+              type="email"
+              class="auth-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              :disabled="auth.loading"
+            />
+          </div>
+          <div class="auth-field">
+            <div class="auth-label-row">
+              <label class="auth-label">Password</label>
+              <button
+                v-if="auth.isSupabaseConfigured"
+                class="auth-text-btn auth-text-btn--small"
+                @click.prevent="showReset = true"
+              >
+                Forgot password?
+              </button>
+            </div>
+            <input
+              v-model="password"
+              type="password"
+              class="auth-input"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              :disabled="auth.loading"
+            />
+          </div>
+
+          <div v-if="error" class="auth-error">
+            <UiIcon name="AlertCircle" :size="14" />
+            {{ error }}
+          </div>
+
+          <button
+            class="auth-btn auth-btn--primary"
+            :disabled="auth.loading || !canSubmit"
+            @click="submit"
+          >
+            <span v-if="auth.loading">Signing in…</span>
+            <span v-else>Sign in</span>
+          </button>
+        </div>
+
+        <div class="auth-divider"><span>or</span></div>
+
+        <button class="auth-btn auth-btn--demo" @click="tryDemo">
+          <UiIcon name="Play" :size="14" />
+          Try demo — no account needed
         </button>
-      </div>
 
-      <div class="auth-divider"><span>or</span></div>
-
-      <!-- Demo CTA -->
-      <button class="auth-btn auth-btn--demo" @click="tryDemo">
-        <UiIcon name="Play" :size="14" />
-        Try demo — no account needed
-      </button>
-
-      <!-- Register link -->
-      <p class="auth-footer-link">
-        Don't have an account?
-        <button class="auth-text-btn" @click="router.push('/register')">Create one</button>
-      </p>
+        <p class="auth-footer-link">
+          Don't have an account?
+          <button class="auth-text-btn" @click="router.push('/register')">Create one</button>
+        </p>
+      </template>
     </div>
   </div>
 </template>
@@ -171,6 +251,34 @@ function onKeydown(e: KeyboardEvent) {
   margin: -12px 0 0;
 }
 
+/* Notice */
+.auth-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+
+/* Success */
+.auth-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, #22c55e 8%, transparent);
+  border: 1px solid color-mix(in srgb, #22c55e 25%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  line-height: 1.5;
+}
+
 /* Form */
 .auth-form {
   display: flex;
@@ -182,6 +290,12 @@ function onKeydown(e: KeyboardEvent) {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.auth-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .auth-label {
@@ -233,6 +347,7 @@ function onKeydown(e: KeyboardEvent) {
   font-weight: 600;
   cursor: pointer;
   transition: opacity var(--t-fast), background var(--t-fast);
+  border: none;
 }
 .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -289,10 +404,12 @@ function onKeydown(e: KeyboardEvent) {
 }
 .auth-text-btn:hover { opacity: 0.8; }
 
+.auth-text-btn--small {
+  font-size: 12px;
+  font-weight: 500;
+}
+
 @media (max-width: 480px) {
-  .auth-card {
-    padding: 28px 20px;
-    gap: 16px;
-  }
+  .auth-card { padding: 28px 20px; gap: 16px; }
 }
 </style>
