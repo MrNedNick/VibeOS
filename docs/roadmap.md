@@ -16,7 +16,7 @@
 | S4 — Core Life Modules | Goals + task unification | ✅ complete |
 | S5 — Life Depth | Learning + Training + Analytics | ✅ complete |
 | S6 — AI Integration | AI as planning layer | ✅ complete — 9 features |
-| S7 — Polish | Credibility + reliability | 🔄 active — error boundaries ✅, Vitest ✅, CI ✅, Lighthouse ✅, a11y ✅, badge ❌ |
+| S7 — Polish | Credibility + reliability | ✅ complete — error boundaries ✅, Vitest ✅, CI ✅, Lighthouse ✅, a11y ✅, bundle badge ✅ |
 | S8 — Design System | Unified component library | ✅ complete — v0.8.x |
 | **S9 — Full Redesign** | Premium visual identity | ✅ **complete** — v0.9.x |
 | **S10 — Vibe-pak Consolidation** | 4 clean paks, Revolut + CRT redesign | ✅ **complete** — v1.0.x |
@@ -145,7 +145,7 @@ Order:
 
 ---
 
-## S7 — Polish & Testing 🔄 active (v1.0.4+)
+## S7 — Polish & Testing ✅ complete (v1.0.4–v1.0.7)
 
 - ✅ **Vitest + Vue Test Utils** — 59 tests across 5 files (v1.0.4)
   - `goals.types.test.ts` — calcProgress (7 cases), daysUntil (3 cases)
@@ -164,8 +164,8 @@ Order:
   - Added `aria-label` to sidebar `<aside>` and `<nav>`, `aria-current="page"` on active nav items
   - Added `aria-label` to bottom nav `<nav>` and "All modules" sheet dialog
 - ✅ **Error boundaries** — all module routes wrapped; graceful fallback UI
-- **Preview deploys per PR** — Vercel free tier
-- **Bundle size badge** in README
+- **Preview deploys per PR** — Vercel free tier (deferred — not blocking)
+- ✅ **Bundle size badge** in README — 528 kB gzip total, shields.io static badge (v1.0.7)
 
 ---
 

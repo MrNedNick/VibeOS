@@ -4,6 +4,8 @@
 
 Live → **https://mrnednick.github.io/VibeOS**
 
+![Bundle Size](https://img.shields.io/badge/bundle-528_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-59_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square)
+
 ---
 
 ## What it is
