@@ -8,7 +8,8 @@ import TaskProgress from '../components/TaskProgress.vue'
 import PomodoroPanel from '../components/PomodoroPanel.vue'
 import HabitHeatmap from '@/modules/habits/components/HabitHeatmap.vue'
 import { useLocale } from '@/core/i18n'
-import { UiButton } from '@/ui'
+import { UiButton, UiSectionLabel, UiFilterChips } from '@/ui'
+import type { FilterChipOption } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { aiComplete } from '@/core/composables/useAI'
 
@@ -31,6 +32,10 @@ const CATEGORIES: { val: TaskCategory | 'all'; labelKey: string }[] = [
   { val: 'personal', labelKey: 'tasks.catPersonal' },
   { val: 'goal',     labelKey: 'tasks.catGoal'     },
 ]
+
+const categoryOptions = computed<FilterChipOption[]>(() =>
+  CATEGORIES.map(cat => ({ value: cat.val, label: i18n.t(cat.labelKey) }))
+)
 
 const focusedId    = ref<string | null>(null)
 const taskInputRef = ref<InstanceType<typeof TaskInput>>()
@@ -174,7 +179,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     <Transition name="heat-slide">
       <div v-if="showHeatmap" class="tm-view__heatmap-panel">
         <div class="tm-view__heatmap-header">
-          <span class="tm-view__heatmap-label">Task Activity</span>
+          <UiSectionLabel size="sm">Task Activity</UiSectionLabel>
           <span class="tm-view__heatmap-meta">{{ taskCompletedDates.length }} tasks completed · last 20 weeks</span>
         </div>
         <div class="tm-view__heatmap-wrap">
@@ -216,15 +221,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     />
 
     <!-- Category filter chips -->
-    <div class="tm-view__cats">
-      <button
-        v-for="cat in CATEGORIES"
-        :key="cat.val"
-        class="tm-view__cat"
-        :class="{ 'tm-view__cat--active': store.categoryFilter === cat.val }"
-        @click="store.setCategoryFilter(cat.val)"
-      >{{ i18n.t(cat.labelKey) }}</button>
-    </div>
+    <UiFilterChips
+      :model-value="store.categoryFilter as string"
+      :options="categoryOptions"
+      variant="pills"
+      @update:model-value="store.setCategoryFilter($event as TaskCategory | 'all')"
+    />
 
     <!-- New task category + goal selector (only when input has text) -->
     <div v-if="inputText.trim()" class="tm-view__input-cats">
@@ -337,14 +339,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   gap: 12px;
 }
 
-.tm-view__heatmap-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-secondary);
-}
-
 .tm-view__heatmap-meta {
   font-size: 12px;
   color: var(--color-text-muted);
@@ -391,22 +385,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .ai-fade-enter-from   { opacity: 0; transform: translateY(-6px); }
 .ai-fade-leave-to     { opacity: 0; }
 
-/* Category chips */
-.tm-view__cats,
+/* Input category chips */
 .tm-view__input-cats {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
+  margin-top: -10px;
 }
-
-.tm-view__input-cats { margin-top: -10px; }
 
 .tm-view__input-cat-label {
   font-size: 12px;
   color: var(--color-text-muted);
   margin-right: 2px;
 }
+
+.tm-view__input-cat-label--sep { margin-left: 8px; }
 
 .tm-view__cat {
   padding: 4px 10px;
@@ -431,10 +425,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   background: var(--color-accent-muted);
   border-color: var(--color-accent);
   color: var(--color-accent);
-}
-
-.tm-view__input-cat-label--sep {
-  margin-left: 8px;
 }
 
 .tm-view__goal-select {
