@@ -1,5 +1,7 @@
 # Conventions
 
+> Updated 2026-05-31. Reflects v0.8.3.
+
 ## Naming
 
 | What | Convention | Example |
@@ -53,6 +55,57 @@ import { UiButton } from '@/ui'
 ```
 
 Never use relative paths that go up more than one level (`../../`).
+
+## AI Composable Convention
+
+Use `aiComplete(prompt)` from `@/core/composables/useAI` for all Pollinations.ai calls.
+Never write `fetch('https://text.pollinations.ai/')` inline in components or stores.
+
+```typescript
+import { aiComplete } from '@/core/composables/useAI'
+// ...
+const result = await aiComplete(prompt)  // throws on failure
+```
+
+For reactive loading state, use `useAI()` composable instead.
+
+## Skeleton Loading Convention
+
+Every component that loads async data must ship with a skeleton state:
+- Show skeleton while `loading === true`
+- Skeleton matches the height/shape of real content (no layout shift)
+- Use `UiSkeleton` from `@/ui`
+
+## @/ui Component Usage (S8 Design System)
+
+All shared UI patterns live in `src/ui/`. Import from `@/ui`:
+
+```ts
+import {
+  UiSectionLabel, UiProgressBar, UiStat,
+  UiFilterChips, UiCard, UiField,
+  UiButton, UiBadge, UiInput, UiSkeleton,
+  UiEmptyState, UiProgressRing, UiIcon,
+} from '@/ui'
+```
+
+**Never define one-off versions of these patterns in module scoped styles.** If a pattern doesn't exist in `@/ui` yet, add it there first.
+
+### Quick reference
+
+| Component | Use for | Key props |
+|-----------|---------|-----------|
+| `UiSectionLabel` | Uppercase section headings | `size="sm\|md"`, `as="p\|h2…"` |
+| `UiProgressBar` | Horizontal fill bars | `value` (0–100), `color`, `height`, `showLabel` |
+| `UiStat` | Large number + label | `value`, `label`, `icon`, `color`, `mono`, `size`, `align` |
+| `UiFilterChips` | Tab/chip filter rows | `options`, `v-model`, `variant="tabs\|pills"`, `size` |
+| `UiCard` | Surface containers | `padding`, `hoverable`, `clickable`, `surface`, `as` |
+| `UiField` | Form field with label | `label`, `hint`, `error`, `required`, `fieldId` |
+| `UiSkeleton` | Loading placeholders | `width`, `height`, `rounded`, `inline` |
+| `UiEmptyState` | Empty lists/views | `icon`, `title`, `subtitle`, `action-label` |
+| `UiButton` | All buttons | `variant`, `size`, `loading`, `disabled` |
+| `UiBadge` | Status tags | `color`, `size` |
+| `UiProgressRing` | Circular progress | `value`, `size`, `label` |
 
 ## Comments
 
