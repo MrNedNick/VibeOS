@@ -18,7 +18,7 @@
 | S6 — AI Integration | AI as planning layer | ✅ complete — 9 features |
 | S7 — Polish | Credibility + reliability | 🔶 partial — error boundaries ✅, Vitest + CI ❌ |
 | S8 — Design System | Unified component library | ✅ complete — v0.8.x |
-| **S9 — Full Redesign** | Premium visual identity | 🔄 **active** — v0.9.x |
+| **S9 — Full Redesign** | Premium visual identity | ✅ **complete** — v0.9.x |
 
 ---
 
@@ -231,7 +231,7 @@ Order:
 - ✅ Notes — goal-icon #f59e0b → --color-warning, NoteListItem padding 11px/16px + color-mix hover
 - ✅ About — full portfolio page rewrite: hero card, "What I'm good at" skill cards, VibeOS section with decisions table, stats, modules list, language chips with levels
 
-**Phase 4 — Vibe-paks v2** 🔄 in progress (v0.9.4+)
+**Phase 4 — Vibe-paks v2** ✅ complete (v0.9.4–v0.9.9)
 
 Each vibe-pak needs to be audited and updated to fully use the S8/S9 token system.
 
@@ -248,7 +248,7 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 3. ✅ **CRT Retro** — stronger phosphor glow (inner halo + outer bloom), --hover-tint-pct 8%, clearer surface hierarchy (v0.9.6)
 4. ✅ **Brutalist** — strict 2px-step offset progression (0/2/4/6/8px), --hover-tint-pct 0% (snap-invert handled via !important), surface-3 darker for depth (v0.9.7)
 5. ✅ **Light** — crisp blue-grey shadows (accent-tinted, no black opacity), --hover-tint-pct 4% for subtle polished feel (v0.9.8)
-6. **Dark** (default — already good, minor tweaks only)
+6. ✅ **Dark** — shadow-2 gets subtle accent tint (0.07 blue), --hover-tint-pct 7% via :root default (v0.9.9)
 
 **What to change per pak:**
 - `--shadow-1..4` values that match the pak's mood (glow, flat, crisp, none)

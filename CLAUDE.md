@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v0.9.8 — 2026-05-31**
+**Version: v0.9.9 — 2026-05-31**
 
 | Sprint | Status |
 |--------|--------|
@@ -18,9 +18,9 @@
 | S6 — AI Integration | ✅ complete |
 | S7 — Polish | 🔶 partial — error boundaries ✅, Vitest + CI ❌ still pending |
 | S8 — Design System | ✅ complete — unified @/ui, tokens, skeletons, widget customization |
-| S9 — Full Redesign | 🔄 active — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 🔜 next |
+| S9 — Full Redesign | ✅ complete — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ |
 
-**Active next work: S9 Phase 4 — Vibe-paks v2 (🔄 Synthwave ✅, Soft Glass 🔜)** (see roadmap.md for full spec)
+**S9 complete ✅ — Next: S7 Vitest tests or Finance UX pass** (see roadmap.md for options)
 
 ---
 

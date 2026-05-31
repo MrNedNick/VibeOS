@@ -69,10 +69,10 @@
 
   /* Elevation system — 0=flat → 4=top-layer (modals) */
   --shadow-0: none;
-  --shadow-1: 0 1px 3px  rgba(0, 0, 0, 0.50);   /* inline elements */
-  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.60);   /* cards */
-  --shadow-3: 0 8px 28px rgba(0, 0, 0, 0.70);   /* panels, drawers */
-  --shadow-4: 0 16px 48px rgba(0, 0, 0, 0.80);  /* modals, command palette */
+  --shadow-1: 0 1px 3px  rgba(0, 0, 0, 0.50);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.60), 0 1px 4px rgba(79, 142, 247, 0.07);
+  --shadow-3: 0 8px 28px rgba(0, 0, 0, 0.70);
+  --shadow-4: 0 16px 48px rgba(0, 0, 0, 0.80);
 
   /* Hover tint — accent % mixed into card background on hover (theme-overridable) */
   --hover-tint-pct: 7%;
