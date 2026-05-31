@@ -157,6 +157,16 @@ Order:
 
 ## Recently shipped (history)
 
+### 2026-05-31 — Habit UX + achievements panel + notes-goals + finance recurring (v0.7.8 → v0.7.9)
+
+- **Habit at-risk filter** — `⚠️ At risk (N)` filter chip in HabitsView shown when any habit has streak > 2 but not yet checked today; filters list to at-risk habits only; amber styling distinct from category chips
+- **Habit weekly summary** — 7-day progress bar card at top of HabitsView: completion %, total check-ins out of possible slots, current best streak; color-coded green/accent/warning based on performance
+- **Achievements panel** — new Dashboard sidebar entry (🏆 Trophy) showing all 10 achievements as a 2-col grid; unlocked items highlighted in amber with checkmark; gradient progress bar; locked items greyed out; motivational footer message
+- **Notes → Goals linking** — `linkedGoalId?: string` on Note type; `setNoteGoal()` and `getNotesForGoal()` in notes store; 🎯 goal selector in NotesView toolbar (shown when active goals exist); "Linked notes" section in GoalDetailView listing note titles + dates
+- **Finance recurring expenses** — `recurring?: boolean` on Expense; `toggleRecurring()` + `addFromRecurring()` in store; 🔄 toggle on each transaction row (hidden until hover, visible when active); recurring section at top of Transactions tab shows known recurring expenses as quick-add chips for current month
+
+---
+
 ### 2026-05-31 — Skip day + templates + board filter + vibe-paks + achievements (v0.7.7 → v0.7.8)
 
 - **Habit skip day** — `skippedDates?: string[]` on Habit; `toggleSkip()` store method; `computeStreak()` updated to treat skipped days as transparent (don't break, don't count); striped CSS pattern for skipped cells in past-days calendar; right-click any past cell to toggle skip
