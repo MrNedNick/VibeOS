@@ -90,7 +90,7 @@ watch(route, () => { showMore.value = false })
 
 <template>
   <!-- ── Bottom tab bar ──────────────────────────────────────────── -->
-  <nav class="bottom-nav" role="tablist">
+  <nav class="bottom-nav" role="tablist" aria-label="Mobile navigation">
     <!-- The 4 main tabs -->
     <button
       v-for="tab in BOTTOM_TABS"
@@ -132,7 +132,7 @@ watch(route, () => { showMore.value = false })
   <Teleport to="body">
     <Transition name="more-sheet">
       <div v-if="showMore" class="more-overlay" @click.self="showMore = false">
-        <div class="more-sheet" role="dialog" aria-modal="true">
+        <div class="more-sheet" role="dialog" aria-modal="true" aria-label="All modules">
 
           <!-- Handle -->
           <div class="more-sheet__handle-area" @click="showMore = false">
@@ -248,13 +248,18 @@ watch(route, () => { showMore.value = false })
 
 .bottom-nav__tab-label {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
   line-height: 1.2;
+  /* Override inherited --color-text-muted for contrast compliance (WCAG AA) */
+  color: var(--color-text-secondary);
+}
+.bottom-nav__tab--active .bottom-nav__tab-label {
+  color: var(--color-accent);
 }
 
 /* Active pill indicator behind the icon */

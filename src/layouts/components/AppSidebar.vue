@@ -59,7 +59,7 @@ function goHome() {
 </script>
 
 <template>
-  <aside class="sidebar" :class="sidebarClasses">
+  <aside class="sidebar" :class="sidebarClasses" aria-label="Sidebar navigation">
 
     <!-- Brand — clickable, navigates to home -->
     <button class="sidebar__brand" :title="'VibeOS'" @click="goHome">
@@ -74,7 +74,7 @@ function goHome() {
     </button>
 
     <!-- Navigation -->
-    <nav class="sidebar__nav">
+    <nav class="sidebar__nav" aria-label="Main navigation">
       <template v-for="group in sidebarGroups" :key="group.key">
         <div class="sidebar__group" :class="`sidebar__group--${group.key}`">
           <!-- Section header -->
@@ -98,6 +98,7 @@ function goHome() {
             :title="mod.status === 'available' || mod.status === 'wip'
               ? mod.description
               : `${mod.label} — ${mod.sprint ?? i18n.t('nav.soon')}`"
+            :aria-current="isActive(mod) ? 'page' : undefined"
             @click="navigate(mod)"
           >
             <span class="sidebar__icon">

@@ -45,7 +45,7 @@ const i18n = useLocale()
   font-size: 72px;
   font-weight: 800;
   line-height: 1;
-  color: var(--color-border);
+  color: var(--color-text-muted);
   letter-spacing: -0.04em;
   font-family: var(--font-mono);
 }
@@ -60,7 +60,7 @@ const i18n = useLocale()
 
 .not-found__sub {
   font-size: 15px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.6;
 }
