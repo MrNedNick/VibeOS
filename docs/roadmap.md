@@ -419,6 +419,50 @@ Post-S3: production connects to Supabase. Demo account seeded.
 
 ## Backlog (not yet scheduled)
 
+### Habit tracker v2 — strong focus, daily retention (HIGH PRIORITY)
+
+The habit tracker should be the #1 daily-use feature — the thing users open every morning. Currently it works but lacks the hooks that make tracking feel rewarding and frictionless. Everything below should be treated as a focused sprint.
+
+**Retroactive check-ins (explicitly requested):**
+- Allow marking any past day as done — user forgets to check in, shouldn't lose streak
+- Mini calendar grid on each HabitCard showing last 14 days with toggleable cells
+- Long-press / tap on heatmap cell to toggle that specific day
+- Store needs `toggleDate(id, date)` that adds/removes any date string (not just today)
+- UI guard: can only edit up to 30 days back (no unlimited history rewriting)
+
+**At-risk streak warnings:**
+- When streak > 2 and habit not done today: show amber "⚠️ streak at risk" badge
+- Dashboard life-stats card turns amber when any habit is at risk
+- HabitsView gets an "At risk" filter chip showing endangered habits first
+- Optional: end-of-day push notification (browser Notifications API)
+
+**Streak milestone celebrations:**
+- When streak crosses 7 / 14 / 30 / 60 / 100 days: toast notification + subtle animation
+- Milestone badges on habit card (🎖️ small icon appears at certain thresholds)
+- History of milestone dates stored per habit
+
+**Daily engagement hooks:**
+- Quick check-in from Dashboard (HabitsPanel already shows toggles — keep them prominent)
+- Habit reordering (drag to sort — most important habits at the top)
+- "Habit of the day" spotlight (random unchecked habit shown prominently)
+- Weekly summary: "Last week you completed X/Y habits, best streak: Z"
+
+**Simplification & UX:**
+- First-time empty state is too bare — add 3–4 template habits (Read 10 min, Drink water, Exercise, Meditate)
+- Habit creation: emoji picker should be richer, not just a text input
+- Make the daily check-in button larger and easier to tap on mobile (currently 40px circle — bump to 48px min)
+- Reduce the "Connect to goal" section visibility for new users (hide behind a toggle until they have goals)
+- Habit card purpose field (✅ done) — surface it more prominently as a subtitle
+
+**Depth features:**
+- Optional check-in notes: short text when marking done ("great run today", "only 5 min but done")
+- Habit categories (health / productivity / learning / social / other) with colored indicators
+- Skip day (vacation mode): mark a day as intentionally skipped without breaking streak
+- Longest streak (all-time record) shown alongside current streak
+- Habit creation date + "age" badge (e.g. "Day 45")
+
+---
+
 ### Full UI Redesign — Revolut-style modern design (planned — S8)
 Complete visual redesign of the entire platform. Goal: looks like a premium product, not a dev tool.
 
