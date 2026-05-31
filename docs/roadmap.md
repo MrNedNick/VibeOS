@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3, updated 2026-05-30 (v4) after visual audit sprint, updated 2026-05-30 (v5) after AI integration + UX sprint, updated 2026-05-31 (v6) after AI assistants + habit purpose sprint, updated 2026-05-31 (v7) after heatmap + finance charts + palette AI sprint.
+> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3, updated 2026-05-30 (v4) after visual audit sprint, updated 2026-05-30 (v5) after AI integration + UX sprint, updated 2026-05-31 (v6) after AI assistants + habit purpose sprint, updated 2026-05-31 (v7) after heatmap + finance charts + palette AI sprint, updated 2026-05-31 (v8) S8 sprint formalised — widget customization, skeleton loaders, /ui-kit, unified component architecture.
 > Repositioned: VibeOS evolves from developer showcase to personal life operating system.
 > See `docs/strategy.md` for the full product context.
 > See `docs/privacy-security.md` for the auth/demo/security plan.
@@ -18,6 +18,8 @@
 | **S5 — Life Depth** | Learning + Training + Analytics | Learning module, Training module, Personal Analytics, full Dashboard |
 | **S6 — AI Integration** | AI as planning layer | Daily digest, goal planning, learning plans, workout analysis (user key only) |
 | **S7 — Polish** | Credibility + reliability | Vitest + CI gate, Lighthouse, a11y, error boundaries, preview deploys |
+| **S8 — Design System** | Unified component library | `/ui-kit` page, skeleton loaders, widget customization, component architecture |
+| **S9 — Full Redesign** | Premium visual identity | Revolut-style overhaul using S8 component system |
 
 ---
 
@@ -152,6 +154,64 @@ Order:
 - **Error boundaries** — all module routes wrapped; graceful fallback UI
 - **Preview deploys per PR** — Vercel free tier
 - **Bundle size badge** in README
+
+---
+
+## S8 — Design System 🔜 (next)
+
+**Goal:** every UI component lives in one place; the app can be fully restyled by editing `@/ui` alone. Deliver a live `/ui-kit` component catalogue so every future design iteration is fast and visible.
+
+**Why this sprint must come before full redesign (S9):** Without a unified component system, a visual overhaul requires touching 15+ files for every style change. S8 is the architectural prerequisite.
+
+**Order (each item is a focused session):**
+
+1. **Skeleton loaders — `UiSkeleton.vue`** ← HIGH PRIORITY, fix visible UX bug
+   - Build `UiSkeleton.vue` in `@/ui`: props `width`, `height`, `rounded`; shimmer animation using CSS gradient + keyframes; color tokens `--color-surface-elevated` / `--color-border`
+   - Fix WeatherWidget: set `min-height` to full card size, show skeleton while loading — eliminates the small-to-large layout shift on every page load
+   - Fix GitHubWidget, DigestWidget, FinanceWidget: same skeleton pattern
+   - Convention: all async-loading widgets must use `UiSkeleton` by default; documented in `docs/conventions.md`
+
+2. **Configurable Dashboard widgets** ← HIGH PRIORITY
+   - Define `WidgetConfig[]` type: `{ id: string; visible: boolean; order: number }`
+   - Store config in `useStorage('platform:dashboard:widgets', defaultConfig)`
+   - Dashboard renders widgets by `order`, filtered by `visible`
+   - Add "Customize" button in Dashboard header → opens a widget picker panel (show/hide toggles + drag-to-reorder)
+   - Drag-to-reorder: same HTML5 drag pattern as habit reordering
+   - All widget cards normalized to consistent `min-height` — no layout shifts regardless of content state
+   - Widget catalogue: Weather, Finance, AI Digest, Goals panel, Habits panel, Achievements panel, GitHub Activity (future)
+
+3. **Unified component architecture audit**
+   - Scan all modules for one-off UI patterns: `.cat-chip`, `.section-label`, `.form-btn`, card containers, stat displays, progress bars, filter chip rows, empty states, form field wrappers
+   - Extract each to `@/ui` with typed props: `UiCard`, `UiSectionLabel`, `UiStat`, `UiProgressBar`, `UiFilterChips`, `UiEmptyState`, `UiField`, `UiModal`
+   - Refactor modules to use `@/ui` imports (one module per session to keep sessions short)
+   - Goal: changing a component style = editing one file in `@/ui`
+   - **Before starting:** use Claude in Chrome to scan all views and catalog every unique one-off pattern
+
+4. **`/ui-kit` component library page** ← LARGE TASK, multi-session
+   - Route: `/ui-kit` — accessible from Settings → Developer (hidden in production)
+   - Structure: left sidebar with categories, main area with live component cards (example + code snippet + prop table)
+   - Theme switcher at top: preview all 6 vibe-paks at once
+   - Categories: Colors, Typography, Spacing, Shadows/Elevation, Motion, Inputs, Feedback, Data Display, Navigation, Layout
+   - Documents every `@/ui` component + all design tokens
+   - **Reference:** `docs/design-system-reference.md` — use Claude in Chrome to analyze the reference before implementation; plan the exact structure before writing code
+   - **✅ Reference analysis complete** — see `docs/ui-kit-plan.md` for full sidebar structure, component card pattern, prop table format, implementation sequence, and technical notes
+   - **Prerequisite:** items 1–3 should be done first so there are components to document
+
+5. **Design token extension** (in `main.css`)
+   - Full elevation system: `--shadow-0` through `--shadow-4`
+   - Typography scale: `--text-xs` through `--text-3xl` with `line-height`
+   - Motion tokens: `--ease-spring`, `--ease-smooth`, `--duration-fast`, `--duration-base`, `--duration-slow`
+   - Extended surface palette: `--color-surface-0/1/2/3` for elevation hierarchy
+
+---
+
+## S9 — Full Redesign 🔜 (after S8)
+
+**Goal:** premium visual identity — Revolut/Linear/Raycast aesthetic. Requires S8 component system to be in place.
+
+**Key constraint:** all style changes go through `@/ui` and `main.css` tokens only. No per-module style surgery.
+
+Items: design token audit → component restyle → module-by-module pass → vibe-paks v2. See Backlog for full spec.
 
 ---
 
@@ -468,102 +528,24 @@ Post-S3: production connects to Supabase. Demo account seeded.
 
 ## Backlog (not yet scheduled)
 
-### Habit tracker v2 — strong focus, daily retention (HIGH PRIORITY)
+### Habit tracker — remaining items (most of v2 shipped in v0.7.6–v0.7.9)
 
-The habit tracker should be the #1 daily-use feature — the thing users open every morning. Currently it works but lacks the hooks that make tracking feel rewarding and frictionless. Everything below should be treated as a focused sprint.
+All major habit depth features are shipped. Remaining items:
 
-**Retroactive check-ins (explicitly requested):**
-- Allow marking any past day as done — user forgets to check in, shouldn't lose streak
-- Mini calendar grid on each HabitCard showing last 14 days with toggleable cells
-- Long-press / tap on heatmap cell to toggle that specific day
-- Store needs `toggleDate(id, date)` that adds/removes any date string (not just today)
-- UI guard: can only edit up to 30 days back (no unlimited history rewriting)
-
-**At-risk streak warnings:**
-- When streak > 2 and habit not done today: show amber "⚠️ streak at risk" badge
-- Dashboard life-stats card turns amber when any habit is at risk
-- HabitsView gets an "At risk" filter chip showing endangered habits first
-- Optional: end-of-day push notification (browser Notifications API)
-
-**Streak milestone celebrations:**
-- When streak crosses 7 / 14 / 30 / 60 / 100 days: toast notification + subtle animation
-- Milestone badges on habit card (🎖️ small icon appears at certain thresholds)
-- History of milestone dates stored per habit
-
-**Daily engagement hooks:**
-- Quick check-in from Dashboard (HabitsPanel already shows toggles — keep them prominent)
-- Habit reordering (drag to sort — most important habits at the top)
-- "Habit of the day" spotlight (random unchecked habit shown prominently)
-- Weekly summary: "Last week you completed X/Y habits, best streak: Z"
-
-**Simplification & UX:**
-- First-time empty state is too bare — add 3–4 template habits (Read 10 min, Drink water, Exercise, Meditate)
-- Habit creation: emoji picker should be richer, not just a text input
-- Make the daily check-in button larger and easier to tap on mobile (currently 40px circle — bump to 48px min)
-- Reduce the "Connect to goal" section visibility for new users (hide behind a toggle until they have goals)
-- Habit card purpose field (✅ done) — surface it more prominently as a subtitle
-
-**Depth features:**
-- Optional check-in notes: short text when marking done ("great run today", "only 5 min but done")
-- Habit categories (health / productivity / learning / social / other) with colored indicators
-- Skip day (vacation mode): mark a day as intentionally skipped without breaking streak
-- Longest streak (all-time record) shown alongside current streak
-- Habit creation date + "age" badge (e.g. "Day 45")
+- **Push notifications** — browser Notifications API; end-of-day "⚠️ streak at risk" reminder (post-S8)
+- **"Habit of the day" spotlight** — random unchecked habit shown prominently in Dashboard
+- **Emoji picker** — richer emoji picker in habit creation (current: text input; target: grid or search)
+- **Mobile check-in tap target** — bump check button to 48px min for easier mobile tap
 
 ---
 
-### Full UI Redesign — Revolut-style modern design (planned — S8)
-Complete visual redesign of the entire platform. Goal: looks like a premium product, not a dev tool.
+### Configurable Dashboard widgets — moved to S8 sprint (item 2)
+### Skeleton loaders — moved to S8 sprint (item 1)
+### Component Library `/ui-kit` — moved to S8 sprint (item 4)
+### Unified component architecture — moved to S8 sprint (item 3)
+### Full UI Redesign — moved to S9 sprint
 
-**Inspiration:** Revolut app, Linear, Vercel, Raycast — clean surfaces, tight spacing, purposeful animation, bold typography.
-
-**Design principles:**
-- **Dark-first** — deep near-black surfaces (`#0a0a0f`, `#111118`), not flat grey
-- **Accent is earned** — one color pops; everything else is muted
-- **Spacing discipline** — 4px grid strictly; sections breathe but don't waste space
-- **Micro-interactions** — hover glows, number counters, smooth transitions everywhere
-- **Typography hierarchy** — weight contrast, not size contrast; SF Pro / Inter
-- **Glassmorphism selectively** — blur panels for overlays and cards, not everything
-- **Status as design element** — progress rings, streaks, activity dots feel alive
-
-**Scope:**
-1. **Design token audit** — extend `main.css` with full palette: `--color-surface-0/1/2/3`, `--color-glow-*`, `--shadow-*`, elevation system
-2. **Typography scale** — define `--text-xs` through `--text-3xl` with matching `line-height`
-3. **Motion tokens** — `--ease-spring`, `--ease-smooth`, `--duration-fast/base/slow`
-4. **Component library restyle** — every `@/ui` component redesigned to new system
-5. **Module-by-module pass** — Dashboard → Sidebar → Games → All modules
-6. **Vibe-paks v2** — redesign all 5 themes to match new visual system
-
-**Research phase (before implementation):**
-- Screenshot Revolut app key screens
-- Study Raycast design system for reference
-- Define 10 key screens to redesign first (Dashboard, Sidebar, Login, Goals, Analytics most visible)
-
----
-
-### Component Library page — `/ui-kit` (planned — S8)
-A live, interactive showcase of every `@/ui` component — like Storybook but inside VibeOS itself.
-
-**Purpose:** shows recruiters the depth of the design system; documents components for development.
-
-**Page structure:**
-- Left sidebar: component categories (Inputs, Feedback, Data Display, Navigation, Layout)
-- Main area: component cards — each shows live example + code snippet
-- Theme switcher at top (tests all vibe-paks at once)
-- Search bar to filter components
-
-**Components to document:**
-- `UiButton` — all variants (primary/secondary/ghost/danger) + sizes + loading state
-- `UiBadge` — colors, sizes
-- `UiInput` / `UiTextarea` / `UiSelect` — states (default/focus/error/disabled)
-- `UiProgressRing` — sizes, colors, label options
-- `UiEmptyState` — with/without icon, with/without CTA
-- `UiIcon` — full icon grid from lucide-vue-next
-- `UiCard` (once built) — elevations, variants
-- `UiModal` (once built) — sizes, with/without header/footer
-- `UiStat` (once built) — number, trend, ring variants
-
-**Route:** `/ui-kit` visible only in dev mode or accessible via Settings → Developer
+> All four items are now formally planned in the S8 sprint section above. See S8 for full specs.
 
 ---
 
@@ -587,66 +569,22 @@ Redesign `/about` from info card to a proper personal portfolio/selling page.
 
 ---
 
-### Global ConfirmDialog component (planned — S6, high priority)
-A reusable project-level confirmation modal consumed by any module that needs a destructive action confirmed.
-
-**Motivation:** Studio's "Clear History" needed inline two-step logic because there was no shared confirm modal. Board "Delete card", Notes "Delete note", Settings "Clear all data" all need the same pattern.
-
-**Implementation:**
-- `src/ui/UiConfirmDialog.vue` — modal with title, body text, confirm button (danger), cancel button
-- Teleports to `<body>` via Vue's `<Teleport>`
-- `useConfirm()` composable: returns a `confirm(opts)` promise-based API; caller `await`s it; resolves `true`/`false`
-- Usage: `const ok = await confirm({ title: 'Delete history?', body: 'This cannot be undone.', danger: true })`
-- Replaces the inline two-step logic in Studio; wire into Board, Notes, Settings "clear all" as well
-- Keyboard: Enter confirms, Escape cancels
-- Focus trap within modal while open
-
-**Scope of refactor after building:**
-1. Studio sidebar: replace `confirmingClear` two-step with `useConfirm()`
-2. Settings → Data: replace existing 5s "Are you sure?" with `useConfirm()`
-3. Notes: wire delete note through `useConfirm()`
-4. Board: wire delete card through `useConfirm()`
-5. Habits: wire delete habit through `useConfirm()`
+### Global ConfirmDialog component ✅ (shipped v0.7.1)
+`useConfirm()` + `UiConfirmDialog.vue` shipped. All modules migrated.
 
 ---
 
-### Kanban Board card redesign (planned — S4 depth)
-Current board cards are too narrow and tall — the layout doesn't use horizontal space well.
-
-**Issues:**
-- Cards are cramped vertically with most horizontal space wasted
-- Title wraps too aggressively at current card width
-- No visual breathing room between card content elements
-
-**Planned changes:**
-- Increase card max-width, ensure columns use full available width
-- Reorganize card content: title top, then a compact meta row (priority chip + due date + category icon) below
-- Add subtle color strip on left edge for priority (matches TaskItem pattern)
-- Hover state: lift shadow, not just border color change
-- Reduce card padding on mobile for denser view
+### Kanban Board card redesign ✅ (shipped v0.7.1)
+Compact meta row with priority dot + due badge + source dot + hover-delete icon. Expand chevron. Done.
 
 ---
 
-### Weather widget — built-in API key (planned — S5 completion)
-Remove requirement for users to enter their own OpenWeather API key.
-
-**Status:** API key field removed from Settings (v0.7.0). Weather widget needs the built-in key wired up.
-
-**Implementation:**
-- Store the API key as a Vite env variable (`VITE_WEATHER_API_KEY`) or hardcoded constant in `WeatherWidget.vue`
-- For GitHub Pages deploy: add key as GitHub Actions secret; inject via `vite.config.ts` `define`
-- Widget uses the built-in key; falls back gracefully if request fails (show "–" not error)
-- Remove any remaining references to user-configured weather key from Settings store/composables
+### Weather widget — built-in API key ✅ (shipped v0.7.0)
+Switched to Open-Meteo (free, no key). API key field removed from Settings. Done.
 
 ---
 
-### Reusable component system (planned — S4/S5)
-Create a unified component library so every module is built from the same building blocks:
-- **Design tokens audit** — ensure all colors, radii, spacing, typography defined as CSS variables in `main.css`
-- **`src/ui/` component library** — already started; extend with: `UiCard`, `UiButton`, `UiBadge`, `UiInput`, `UiTextarea`, `UiSelect`, `UiModal`, `UiEmptyState`, `UiStatCard`, `UiProgressRing`, `UiAvatar`, `UiDot`
-- **Pattern**: every module should import from `@/ui` rather than defining its own variants of common elements
-- **Goal**: new modules should be assembley of `@/ui` components; visual consistency guaranteed by tokens
-- **Steps**: (1) audit existing one-off styles across modules; (2) extract to `@/ui`; (3) refactor each module to use shared components; (4) document in `docs/conventions.md`
+### Reusable component system — moved to S8 sprint (item 3)
 
 ### Finance / Money module (planned — S6+, needs improvement)
 Personal expense tracking and spending regulation. Current state needs significant design improvement before it's usable daily.
