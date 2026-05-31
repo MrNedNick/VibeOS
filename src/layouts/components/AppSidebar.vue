@@ -331,9 +331,9 @@ function goHome() {
   gap: 10px;
   padding: 7px 8px;
   border-radius: var(--radius-sm);
-  transition: background var(--t-fast), color var(--t-fast);
+  transition: background var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
   color: var(--color-text-secondary);
-  font-size: 15px;
+  font-size: var(--text-base);
   font-weight: 500;
   overflow: hidden;
   white-space: nowrap;
@@ -353,6 +353,7 @@ function goHome() {
 .sidebar__item--active {
   background: var(--color-accent-muted);
   color: var(--color-accent);
+  box-shadow: inset 2.5px 0 0 var(--color-accent);
 }
 
 .sidebar__item--disabled {
@@ -502,7 +503,7 @@ function goHome() {
   padding: 7px 8px;
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 500;
   width: 100%;
   text-align: left;
@@ -526,7 +527,7 @@ function goHome() {
   padding: 7px 8px;
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--text-xs);
   font-weight: 500;
   width: 100%;
   text-align: left;

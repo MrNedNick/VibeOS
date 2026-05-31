@@ -48,7 +48,7 @@ withDefaults(defineProps<{
 
 /* Surface */
 .ui-card--surface-base   { background: var(--color-surface); }
-.ui-card--surface-raised { background: var(--color-surface-elevated); }
+.ui-card--surface-raised { background: var(--color-surface-elevated); box-shadow: var(--shadow-1); }
 
 /* Padding */
 .ui-card--pad-none { padding: 0; gap: 0; }
@@ -59,7 +59,7 @@ withDefaults(defineProps<{
 /* Hoverable */
 .ui-card--hoverable:hover {
   border-color: var(--color-accent);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-2);
 }
 
 /* Clickable */
@@ -69,5 +69,6 @@ withDefaults(defineProps<{
 }
 .ui-card--clickable:active {
   transform: translateY(1px);
+  box-shadow: var(--shadow-0);
 }
 </style>

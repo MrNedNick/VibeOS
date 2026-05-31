@@ -250,7 +250,7 @@ const moduleLabel = computed(() => {
 }
 .header-title__icon { color: var(--color-text-secondary); }
 .header-title__label {
-  font-size: 15px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-text);
   white-space: nowrap;
@@ -277,17 +277,18 @@ const moduleLabel = computed(() => {
   color: var(--color-text);
 }
 .header-search__text {
-  font-size: 13px;
+  font-size: var(--text-xs);
   white-space: nowrap;
 }
 .header-search__kbd {
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-family: var(--font-mono);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xs);
   padding: 1px 5px;
   color: var(--color-text-muted);
+  letter-spacing: 0;
 }
 
 /* ── Mobile overrides (≤ 767px) ─────────────────────────────────────── */

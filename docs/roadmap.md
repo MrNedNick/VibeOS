@@ -18,8 +18,8 @@
 | **S5 — Life Depth** | Learning + Training + Analytics | Learning module, Training module, Personal Analytics, full Dashboard |
 | **S6 — AI Integration** | AI as planning layer | Daily digest, goal planning, learning plans, workout analysis (user key only) |
 | **S7 — Polish** | Credibility + reliability | Vitest + CI gate, Lighthouse, a11y, error boundaries, preview deploys |
-| **S8 — Design System** | Unified component library | `/ui-kit` page, skeleton loaders, widget customization, component architecture |
-| **S9 — Full Redesign** | Premium visual identity | Revolut-style overhaul using S8 component system |
+| **S8 — Design System** ✅ | Unified component library | `/ui-kit` page, skeleton loaders, widget customization, component architecture |
+| **S9 — Full Redesign** 🔜 | Premium visual identity | Revolut-style overhaul using S8 component system |
 
 ---
 
@@ -157,7 +157,7 @@ Order:
 
 ---
 
-## S8 — Design System 🔜 (next)
+## S8 — Design System ✅ (complete — v0.8.x)
 
 **Goal:** every UI component lives in one place; the app can be fully restyled by editing `@/ui` alone. Deliver a live `/ui-kit` component catalogue so every future design iteration is fast and visible.
 
@@ -165,20 +165,16 @@ Order:
 
 **Order (each item is a focused session):**
 
-1. **Skeleton loaders — `UiSkeleton.vue`** ← HIGH PRIORITY, fix visible UX bug
-   - Build `UiSkeleton.vue` in `@/ui`: props `width`, `height`, `rounded`; shimmer animation using CSS gradient + keyframes; color tokens `--color-surface-elevated` / `--color-border`
-   - Fix WeatherWidget: set `min-height` to full card size, show skeleton while loading — eliminates the small-to-large layout shift on every page load
-   - Fix GitHubWidget, DigestWidget, FinanceWidget: same skeleton pattern
-   - Convention: all async-loading widgets must use `UiSkeleton` by default; documented in `docs/conventions.md`
+1. **Skeleton loaders — `UiSkeleton.vue`** ✅ complete
+   - `UiSkeleton.vue` in `@/ui` with shimmer animation, `width/height/rounded` props
+   - Applied to WeatherWidget, DigestWidget, GitHubWidget — eliminates layout shift on load
+   - Convention: all async widgets use `UiSkeleton`
 
-2. **Configurable Dashboard widgets** ← HIGH PRIORITY
-   - Define `WidgetConfig[]` type: `{ id: string; visible: boolean; order: number }`
-   - Store config in `useStorage('platform:dashboard:widgets', defaultConfig)`
+2. **Configurable Dashboard widgets** ✅ complete
+   - `WidgetConfig[]` type + `useWidgetsStore` with `useStorage('platform:dashboard:widgets')`
    - Dashboard renders widgets by `order`, filtered by `visible`
-   - Add "Customize" button in Dashboard header → opens a widget picker panel (show/hide toggles + drag-to-reorder)
-   - Drag-to-reorder: same HTML5 drag pattern as habit reordering
-   - All widget cards normalized to consistent `min-height` — no layout shifts regardless of content state
-   - Widget catalogue: Weather, Finance, AI Digest, Goals panel, Habits panel, Achievements panel, GitHub Activity (future)
+   - "Widgets" button in header → `DashboardWidgetCustomizer.vue` (drag-to-reorder + eye toggle + reset)
+   - All widget cards normalized to `min-height: 148px`
 
 3. **Unified component architecture audit** ✅ complete
    - Scan all modules for one-off UI patterns: `.cat-chip`, `.section-label`, `.form-btn`, card containers, stat displays, progress bars, filter chip rows, empty states, form field wrappers
@@ -207,13 +203,29 @@ Order:
 
 ---
 
-## S9 — Full Redesign 🔜 (after S8)
+## S9 — Full Redesign 🔜 ACTIVE (v0.9.x)
 
-**Goal:** premium visual identity — Revolut/Linear/Raycast aesthetic. Requires S8 component system to be in place.
+**Goal:** premium visual identity — Revolut/Linear/Raycast aesthetic. Requires S8 component system to be in place (✅ S8 complete).
 
 **Key constraint:** all style changes go through `@/ui` and `main.css` tokens only. No per-module style surgery.
 
-Items: design token audit → component restyle → module-by-module pass → vibe-paks v2. See Backlog for full spec.
+**Phase 1 — Visual Foundation** ✅ complete (v0.9.0)
+- Sidebar: Linear-style left-border active indicator (`box-shadow: inset 2.5px 0 0 var(--color-accent)`)
+- UiCard: default `--shadow-1` on raised surface, hover → `--shadow-2`, press → `--shadow-0`
+- UiButton primary: glow on hover (`color-mix` accent shadow), press state with `translateY(1px)`
+- Typography: `text-rendering: optimizeLegibility` + `font-feature-settings: rlig/calt` on body
+- Token migrations: sidebar, header font-size values → design tokens
+
+**Phase 2 — Component Restyle** (next)
+- UiInput, UiField, UiStat, UiSectionLabel visual improvements
+- AppHeader refinements
+- Dashboard card layout improvements
+
+**Phase 3 — Module-by-module pass** (after Phase 2)
+- Per-module visual review and polish
+
+**Phase 4 — Vibe-paks v2** (after Phase 3)
+- Refine all 6 themes with new elevation/surface tokens
 
 ---
 

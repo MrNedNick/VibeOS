@@ -36,7 +36,8 @@ const {
   font-size: var(--text-sm);
   font-weight: 500;
   border-radius: var(--radius-sm);
-  transition: background var(--t-fast), color var(--t-fast), opacity var(--t-fast);
+  transition: background var(--t-fast), color var(--t-fast), opacity var(--t-fast),
+              box-shadow var(--t-fast), transform var(--t-fast);
   white-space: nowrap;
 }
 
@@ -50,8 +51,16 @@ const {
 .ui-btn--primary {
   background: var(--color-accent);
   color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
-.ui-btn--primary:hover:not(:disabled) { background: var(--color-accent-hover); }
+.ui-btn--primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+.ui-btn--primary:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
 
 .ui-btn--ghost {
   background: transparent;
