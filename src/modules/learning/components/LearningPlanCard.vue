@@ -84,15 +84,17 @@ function openDetail() {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  box-shadow: var(--shadow-1);
 }
 
 .plan-card:hover {
-  box-shadow: var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--color-accent) 50%, var(--color-border));
+  box-shadow: var(--shadow-2);
 }
 
 .plan-card--done {
@@ -173,8 +175,8 @@ function openDetail() {
 }
 
 .plan-card__bar {
-  height: 4px;
-  background: var(--color-border);
+  height: 5px;
+  background: var(--color-surface-elevated);
   border-radius: 99px;
   overflow: hidden;
 }

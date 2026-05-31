@@ -612,7 +612,7 @@ async function generateWithAI() {
   text-align: center;
 }
 
-.learning__empty-icon { color: #6366f1; opacity: 0.5; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; }
+.learning__empty-icon { color: var(--color-accent); opacity: 0.5; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; }
 
 .learning__empty-title {
   font-size: var(--text-lg);

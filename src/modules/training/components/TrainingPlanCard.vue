@@ -66,14 +66,18 @@ const sessionCount = computed(() => store.getPlanLogs(props.plan.id).length)
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  box-shadow: var(--shadow-1);
 }
 
-.tplan-card:hover { box-shadow: var(--shadow-sm); }
+.tplan-card:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 50%, var(--color-border));
+  box-shadow: var(--shadow-2);
+}
 .tplan-card--done { border-color: var(--color-success); }
 
 .tplan-card__top {

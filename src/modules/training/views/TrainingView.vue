@@ -516,7 +516,7 @@ const todayLabel = computed(() =>
   text-align: center;
 }
 
-.training__empty-icon { color: #f97316; opacity: 0.5; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; }
+.training__empty-icon { color: var(--color-warning-dark, #f97316); opacity: 0.5; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; }
 .training__empty-title { font-size: var(--text-lg); font-weight: 600; color: var(--color-text); margin: 4px 0 0; }
 .training__empty-sub { font-size: var(--text-sm); color: var(--color-text-muted); margin: 0 0 10px; max-width: 340px; }
 

@@ -347,7 +347,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .notes-goal-select:focus-within { border-color: var(--color-accent); }
 
 .notes-goal-icon {
-  color: #f59e0b;
+  color: var(--color-warning);
   flex-shrink: 0;
 }
 

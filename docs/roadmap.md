@@ -228,6 +228,9 @@ Order:
 - ✅ Goals — GoalCard surface raised + shadow-1, GoalsView gap 32px, GoalDetailView sections gap 28px, embedded panels shadow-1
 - ✅ Habits — HabitsView #f59e0b → --color-warning everywhere, weekly summary shadow-1, HabitCard shadow-1+done-shadow-2, emoji 30px, padding bumped
 - ✅ Tasks — title font-weight 700, heatmap panel + AI card surface-elevated + shadow-1 + more padding, TaskItem padding 11px 14px + color-mix hover + rgba→color-mix category badges
+- ✅ Learning + Training — PlanCards: shadow-sm→shadow-1 base + shadow-2 hover + border tint, gap 16px, bar 5px; empty-icon hardcoded hex → CSS vars
+- ✅ Notes — goal-icon #f59e0b → --color-warning, NoteListItem padding 11px/16px + color-mix hover
+- ✅ About — full portfolio page rewrite: hero card, "What I'm good at" skill cards, VibeOS section with decisions table, stats, modules list, language chips with levels
 
 **Phase 4 — Vibe-paks v2** (after Phase 3)
 - Refine all 6 themes with new elevation/surface tokens

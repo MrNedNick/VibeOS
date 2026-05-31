@@ -81,14 +81,14 @@ const date = computed(() => {
 
 <style scoped>
 .note-item {
-  padding: 10px 14px;
+  padding: 11px 16px;
   cursor: pointer;
   border-bottom: 1px solid var(--color-border);
   transition: background var(--t-fast);
 }
 
 .note-item:hover:not(.note-item--active) {
-  background: var(--color-surface-elevated);
+  background: color-mix(in srgb, var(--color-accent) 4%, var(--color-surface-elevated));
 }
 
 .note-item--active {
