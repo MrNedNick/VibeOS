@@ -5,7 +5,8 @@ import TrainingPlanCard from '../components/TrainingPlanCard.vue'
 import WorkoutLogForm from '../components/WorkoutLogForm.vue'
 import type { SportType, WorkoutLog } from '../types'
 import { SPORT_EMOJI, FEELING_EMOJI, todayStr } from '../types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel, UiFilterChips } from '@/ui'
+import type { FilterChipOption } from '@/ui'
 import { aiComplete } from '@/core/composables/useAI'
 
 const store = useTrainingStore()
@@ -29,12 +30,17 @@ const SPORT_OPTIONS: { val: SportType; label: string }[] = [
   { val: 'other', label: '🏋️ Other' },
 ]
 
-const FREQ_OPTIONS = [
-  { val: 2, label: '2×/week' },
-  { val: 3, label: '3×/week' },
-  { val: 5, label: 'Weekdays' },
-  { val: 7, label: 'Daily' },
+const FREQ_OPTIONS: FilterChipOption[] = [
+  { value: '2', label: '2×/week' },
+  { value: '3', label: '3×/week' },
+  { value: '5', label: 'Weekdays' },
+  { value: '7', label: 'Daily' },
 ]
+
+const formSessionsStr = computed({
+  get: () => String(formSessions.value),
+  set: (v: string) => { formSessions.value = Number(v) },
+})
 
 function openForm() {
   showForm.value = true
@@ -181,16 +187,7 @@ const todayLabel = computed(() =>
 
         <div class="training__form-field">
           <span class="training__form-label">Frequency</span>
-          <div class="training__chips">
-            <button
-              v-for="opt in FREQ_OPTIONS"
-              :key="opt.val"
-              type="button"
-              class="training__chip"
-              :class="{ 'training__chip--active': formSessions === opt.val }"
-              @click="formSessions = opt.val"
-            >{{ opt.label }}</button>
-          </div>
+          <UiFilterChips v-model="formSessionsStr" :options="FREQ_OPTIONS" size="sm" />
         </div>
       </div>
 
@@ -226,7 +223,7 @@ const todayLabel = computed(() =>
 
     <!-- Today strip -->
     <div v-if="store.todayItems.length > 0" class="training__today">
-      <p class="training__section-label">Today</p>
+      <UiSectionLabel class="training__section-label">Today</UiSectionLabel>
       <div class="training__today-list">
         <div
           v-for="item in store.todayItems"
@@ -260,7 +257,7 @@ const todayLabel = computed(() =>
 
     <!-- Recent workouts -->
     <div v-if="store.recentLogs.length > 0" class="training__recent">
-      <p class="training__section-label">Recent workouts</p>
+      <UiSectionLabel class="training__section-label">Recent workouts</UiSectionLabel>
       <div class="training__log-list">
         <div
           v-for="log in store.recentLogs"
@@ -408,26 +405,6 @@ const todayLabel = computed(() =>
 .training__input--grow { flex: 1; min-width: 0; }
 .training__input--select { min-width: 160px; appearance: auto; }
 
-.training__chips { display: flex; gap: 6px; }
-
-.training__chip {
-  padding: 5px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: var(--text-xs);
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--t-fast);
-}
-
-.training__chip--active {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: #fff;
-}
-
 .training__btn {
   display: inline-flex;
   align-items: center;
@@ -455,14 +432,7 @@ const todayLabel = computed(() =>
 .training__btn--ai-toggle:hover { background: var(--color-accent-muted); }
 
 /* Section label */
-.training__section-label {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 10px;
-}
+.training__section-label { margin-bottom: 10px; }
 
 /* Today strip */
 .training__today-list { display: flex; flex-direction: column; gap: 8px; }

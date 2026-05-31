@@ -5,7 +5,7 @@ import { useTrainingStore } from '../stores/training.store'
 import WorkoutLogForm from '../components/WorkoutLogForm.vue'
 import type { WorkoutLog, ResourceType } from '../types'
 import { FEELING_EMOJI, todayStr, RESOURCE_META, RESOURCE_TYPES } from '../types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel, UiStat } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { aiComplete } from '@/core/composables/useAI'
@@ -124,20 +124,16 @@ function safeDomain(url: string): string {
 
     <div class="tdetail__stats">
       <div class="tdetail__stat">
-        <span class="tdetail__stat-value">🔥 {{ streak }}</span>
-        <span class="tdetail__stat-label">day streak</span>
+        <UiStat :value="'🔥 ' + streak" label="day streak" />
       </div>
       <div class="tdetail__stat">
-        <span class="tdetail__stat-value">{{ totalHours }}h</span>
-        <span class="tdetail__stat-label">total time</span>
+        <UiStat :value="totalHours + 'h'" label="total time" />
       </div>
       <div v-if="totalKm > 0" class="tdetail__stat">
-        <span class="tdetail__stat-value">{{ totalKm }} km</span>
-        <span class="tdetail__stat-label">total distance</span>
+        <UiStat :value="totalKm + ' km'" label="total distance" />
       </div>
       <div class="tdetail__stat">
-        <span class="tdetail__stat-value">{{ sessionLogs.length }}</span>
-        <span class="tdetail__stat-label">sessions</span>
+        <UiStat :value="sessionLogs.length" label="sessions" />
       </div>
     </div>
 
@@ -170,7 +166,7 @@ function safeDomain(url: string): string {
     </div>
 
     <div class="tdetail__history">
-      <p class="tdetail__section-label">Workout history</p>
+      <UiSectionLabel class="tdetail__section-label">Workout history</UiSectionLabel>
 
       <div v-if="sessionLogs.length > 0" class="tdetail__log-list">
         <div
@@ -199,7 +195,7 @@ function safeDomain(url: string): string {
     <!-- Resources -->
     <div class="tdetail__resources">
       <div class="tdetail__resources-header">
-        <p class="tdetail__section-label">Resources</p>
+        <UiSectionLabel class="tdetail__section-label">Resources</UiSectionLabel>
         <button class="tdetail__resources-add-btn" @click="showAddResource = !showAddResource">
           <UiIcon :name="showAddResource ? 'X' : 'Plus'" :size="13" />
           {{ showAddResource ? 'Cancel' : 'Add resource' }}
@@ -243,7 +239,7 @@ function safeDomain(url: string): string {
 
     <!-- Linked habit -->
     <div class="tdetail__link-habit">
-      <p class="tdetail__section-label">Linked habit</p>
+      <UiSectionLabel class="tdetail__section-label">Linked habit</UiSectionLabel>
       <div class="tdetail__link-habit-row">
         <select v-model="linkedHabitId" class="tdetail__habit-select">
           <option value="">— none —</option>
@@ -336,9 +332,6 @@ function safeDomain(url: string): string {
   gap: 4px;
 }
 
-.tdetail__stat-value { font-size: var(--text-lg); font-weight: 700; color: var(--color-text); }
-.tdetail__stat-label { font-size: var(--text-xs); color: var(--color-text-muted); }
-
 .tdetail__today {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -371,14 +364,7 @@ function safeDomain(url: string): string {
 
 .tdetail__log-btn:hover { background: var(--color-accent-hover); }
 
-.tdetail__section-label {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 12px;
-}
+.tdetail__section-label { margin-bottom: 12px; }
 
 .tdetail__log-list { display: flex; flex-direction: column; gap: 8px; }
 
@@ -450,7 +436,7 @@ function safeDomain(url: string): string {
   gap: 10px;
 }
 
-.tdetail__link-habit .tdetail__section-label { margin: 0; }
+.tdetail__link-habit .tdetail__section-label { margin-bottom: 0; }
 
 .tdetail__link-habit-row {
   display: flex;
