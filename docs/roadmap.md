@@ -19,6 +19,7 @@
 | S7 — Polish | Credibility + reliability | 🔶 partial — error boundaries ✅, Vitest + CI ❌ |
 | S8 — Design System | Unified component library | ✅ complete — v0.8.x |
 | **S9 — Full Redesign** | Premium visual identity | ✅ **complete** — v0.9.x |
+| **S10 — Vibe-pak Consolidation** | 4 clean paks, Revolut + CRT redesign | ✅ **complete** — v1.0.x |
 
 ---
 
@@ -378,7 +379,7 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 
 ---
 
-### T5 — Code cleanup: 4-pak system
+### T5 — Code cleanup: 4-pak system ✅ (v1.0.3)
 
 **Scope:** TS types, i18n, Settings UI, CommandPalette  
 **Complexity:** low — bookkeeping after T1+T2+T3+T4 are done
