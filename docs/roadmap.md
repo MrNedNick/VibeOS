@@ -180,12 +180,13 @@ Order:
    - All widget cards normalized to consistent `min-height` — no layout shifts regardless of content state
    - Widget catalogue: Weather, Finance, AI Digest, Goals panel, Habits panel, Achievements panel, GitHub Activity (future)
 
-3. **Unified component architecture audit**
+3. **Unified component architecture audit** ✅ complete
    - Scan all modules for one-off UI patterns: `.cat-chip`, `.section-label`, `.form-btn`, card containers, stat displays, progress bars, filter chip rows, empty states, form field wrappers
    - Extract each to `@/ui` with typed props: `UiCard`, `UiSectionLabel`, `UiStat`, `UiProgressBar`, `UiFilterChips`, `UiEmptyState`, `UiField`, `UiModal`
    - Refactor modules to use `@/ui` imports (one module per session to keep sessions short)
    - Goal: changing a component style = editing one file in `@/ui`
    - **Before starting:** use Claude in Chrome to scan all views and catalog every unique one-off pattern
+   - **✅ Phase 3 complete (v0.8.4):** Analytics, Finance, Tasks, Goals, Learning, Training, Dashboard, Habits all migrated — section labels → UiSectionLabel, progress bars → UiProgressBar, stats → UiStat, filter chips → UiFilterChips, card containers → UiCard
 
 4. **`/ui-kit` component library page** ← LARGE TASK, multi-session
    - Route: `/ui-kit` — accessible from Settings → Developer (hidden in production)
