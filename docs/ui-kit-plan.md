@@ -2,432 +2,523 @@
 
 > Reference analysis completed: 2026-05-31  
 > Reference site: `https://8b8d8a1d.xovi-ai.pages.dev/#catalog/colors` (XOVI AI Design System)  
-> Analysis method: JS bundle extraction (site is a Svelte SPA — Claude in Chrome unavailable, bundle parsed directly)
+> Analysis method: Visual inspection via Claude in Chrome (full browse of all sections + screenshots) + JS bundle extraction for navigation structure
 
 ---
 
-## 1. Reference Site — Full Sidebar Navigation Structure
+## 1. Reference Site — Full Sidebar Navigation (Confirmed Visually)
 
-The reference site has **4 groups** in its sidebar, rendered as a left-rail catalog:
+The sidebar has a header "Xovi AI — Catalog" + "← Back to app" link, then **4 collapsible groups**:
 
-### Group: Tokens (design foundations)
-| Key | Label |
-|-----|-------|
-| `playground` | Playground (OKLCH color tuner) |
-| `colors` | Colors |
-| `state-layers` | State Layers |
-| `typography` | Typography |
-| `spacing` | Spacing |
-| `shape` | Shape |
-| `elevation` | Elevation |
-| `motion` | Motion |
-| `floating` | Floating (positioning) |
-| `fonts` | Fonts |
-| `icons` | Icons |
+### Group: Tokens
+| Sidebar label | Route key |
+|--------------|-----------|
+| Playground | `playground` |
+| Colors | `colors` |
+| State Layers | `state-layers` |
+| Typography | `typography` |
+| Spacing | `spacing` |
+| Shape | `shape` |
+| Elevation | `elevation` |
+| Motion | `motion` |
+| Floating | `floating` |
+| Fonts | `fonts` |
+| Icons | `icons` |
 
-### Group: Components (primitive UI)
-| Key | Label |
-|-----|-------|
-| `switch` | Switch |
-| `checkbox` | Checkbox |
-| `radio` | Radio button |
-| `icon-button` | Icon Button |
-| `button` | Button |
-| `divider` | Divider |
-| `dialog` | Dialog |
-| `snackbar` | Snackbar |
-| `linear-progress` | Linear Progress |
-| `circular-progress` | Circular Progress |
-| `tooltip` | Tooltip |
-| `menu-item` | Menu Item |
-| `menu` | Menu |
-| `side-sheet` | Side Sheet |
-| `badge` | Badge |
-| `chip` | Chip |
-| `tab-bar` | Tab Bar |
-| `nav-item` | Nav Item |
-| `navigation-drawer` | Navigation Drawer |
-| `list` | List + List Item |
-| `text-field` | Text Field |
-| `date-picker` | Date Picker |
+### Group: Components
+| Sidebar label | Route key |
+|--------------|-----------|
+| Switch | `switch` |
+| Checkbox | `checkbox` |
+| Radio button | `radio` |
+| Icon Button | `icon-button` |
+| Button | `button` |
+| Divider | `divider` |
+| Dialog | `dialog` |
+| Snackbar | `snackbar` |
+| Linear Progress | `linear-progress` |
+| Circular Progress | `circular-progress` |
+| Tooltip | `tooltip` |
+| Menu Item | `menu-item` |
+| Menu | `menu` |
+| Side Sheet | `side-sheet` |
+| Badge | `badge` |
+| Chip | `chip` |
+| Tab Bar | `tab-bar` |
+| Nav Item | `nav-item` |
+| Navigation Drawer | `navigation-drawer` |
+| List + List Item | `list` |
+| Text Field | `text-field` |
+| Date Picker | `date-picker` |
 
-### Group: Layout (app-specific composites — skip for VibeOS)
-Product-specific components (Report Status Bar, Offering panels, Score cards etc.) — **not applicable** to VibeOS. The pattern they establish is what matters, not the components themselves.
+### Group: Layout (product-specific — for reference only, not to copy)
+Pre-First-Run Banner · Report Status Bar · Report History Bar · Report In-Progress Bar · Report Configurator Bar · Upsell Dialog · Section Header · Help Inline Message · Offering Readiness Panel · Offering Section Card · Offering Field Error Block · Offering Field Row · Score · Score Gauge · Score Card · Attribute Accordion · Attribute Rule Card · Value Label · Temporary Chip
 
-### Group: Surfaces (full page views — skip for VibeOS)
-Full-page surface components specific to XOVI product.
+### Group: Surfaces (product-specific — skip)
+Full-page surfaces (Edit Offering, etc.)
 
 ---
 
-## 2. Component Card Pattern
+## 2. Component Card Pattern (Confirmed Visually)
 
-Each section is an `<article class="showcase">` composed of exactly **4 slots** in this order:
+Each component page is a single scrolling `<article class="showcase">`. Sections appear in this fixed order:
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  HEADER                                             │
-│  h1: Component name (Headline Small type)           │
-│  p:  Purpose — one-sentence "what + when to use"   │
-│  p:  Canon: source file path / M3 spec URL          │
-├─────────────────────────────────────────────────────┤
-│  INTERACTIVE (optional)                             │
-│  ┌──────────────────┐  ┌──────────────────────┐    │
-│  │  pg-stage        │  │  pg-controls         │    │
-│  │  (live rendered  │  │  checkbox toggles:   │    │
-│  │   component)     │  │  disabled / error /  │    │
-│  │                  │  │  icon / indeterminate │    │
-│  └──────────────────┘  └──────────────────────┘    │
-│  pg-readout: "selected = true" (live state text)   │
-├─────────────────────────────────────────────────────┤
-│  DEMO (optional)                                    │
-│  Static examples — all visual variants side by side │
-│  (filled / outlined / tonal / text variants etc.)   │
-├─────────────────────────────────────────────────────┤
-│  DETAILS — Props table                              │
-│  h3: "Props"                                        │
-│  hint: convention note                              │
-│  ┌──────────┬────────────────┬────────────────┐    │
-│  │ Prop     │ Type           │ Purpose        │    │
-│  ├──────────┼────────────────┼────────────────┤    │
-│  │ selected │ boolean        │ ...            │    │
-│  │ disabled │ boolean        │ ...            │    │
-│  │ onClick  │ () => void     │ ...            │    │
-│  └──────────┴────────────────┴────────────────┘    │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  HEADER                                                         │
+│  h1: Component Name  (Headline Small typography)                │
+│  p:  Purpose — one-sentence "what it is + when to use it"       │
+│  CANON: src/lib/components/primitives/Switch.svelte             │
+│          · https://m3.material.io/components/switch/overview    │
+├─────────────────────────────────────────────────────────────────┤
+│  PLAYGROUND  (interactive, always present for UI components)    │
+│  ┌─────────────────────────────┐  ┌──────────────────────────┐  │
+│  │  Live component render      │  │  pg-controls             │  │
+│  │  (updates in real time)     │  │  (inputs/radios/checks)  │  │
+│  └─────────────────────────────┘  └──────────────────────────┘  │
+│  pg-readout: "selected = false" / "clicks = 0" / "last = —"    │
+│  Note: instruction text above the stage explains what to do     │
+├─────────────────────────────────────────────────────────────────┤
+│  DEMO  (optional — static examples)                             │
+│  Named sub-sections (h3), each showing a specific variant:      │
+│  e.g. "Filled with icons", "Error state", "Disabled"           │
+│  e.g. "Assist chips", "Filter chip group", "Input chips"        │
+├─────────────────────────────────────────────────────────────────┤
+│  PROPS                                                          │
+│  h3: "Props"                                                    │
+│  p: "All props are required — no defaults inside the component  │
+│      (per layout-rhythm.design-policy.md R10)"                  │
+│  ┌──────────────────┬───────────────────┬──────────────────┐   │
+│  │ PROP             │ TYPE              │ PURPOSE          │   │
+│  ├──────────────────┼───────────────────┼──────────────────┤   │
+│  │ selected         │ boolean           │ ON/OFF value...  │   │
+│  │ disabled         │ boolean           │ Blocks click...  │   │
+│  │ onToggle         │ () => void        │ Called on click  │   │
+│  │ ariaLabel        │ string            │ Accessible name  │   │
+│  └──────────────────┴───────────────────┴──────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│  ADDITIONAL SECTIONS (optional, component-specific)             │
+│  · Spacing — exact padding/gap values with M3 spec reference    │
+│  · Accessibility — role, aria-*, focus-trap, ESC, scroll lock   │
+│  · Usage — "Use when" / "Do not use when" bullet lists          │
+│  · Skipped from M3 — intentional omissions with reason          │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Key design decisions from the reference:**
-- Prop table columns are exactly **Prop | Type | Purpose** (not "Description" — "Purpose" is intentional)
-- Prop names are `<code>` styled, types are `<code>` styled
-- "Canon" reference in the header is a link to the source `.svelte` / `.vue` file path
-- Interactive section uses native CSS pseudo-classes for hover/focus states — no JS needed for those
-- Disabled / error / indeterminate states are controlled via prop toggles in `pg-controls`
-- `pg-readout` shows live state as text (e.g. `selected = true`) for debugging clarity
-- The reference enforces "all props required" (no defaults inside component) — VibeOS may keep defaults where sensible for DX
+### Interactive Playground Controls — 3 patterns observed:
+
+**Simple (Switch, Checkbox):**
+- Checkboxes only: `☑ icon`, `☐ disabled`
+- Readout: `selected = false`
+
+**Rich controls (Button):**
+- Text input: LABEL ("Continue")
+- Text input: ICON OPTIONAL (e.g. "check, arrow-forward")
+- Radio group: VARIANT (filled / tonal / outlined / text)
+- Radio group: TONE (default / error / danger / warning / info / success)
+- Radio group: SHAPE (round / square)
+- Radio group: SIZE (xs 32px / s 40px / m 48px)
+- Checkbox: disabled
+- Readout: `clicks = 0`
+
+**Two-column complex (Dialog):**
+- Left column: TITLE (toggle + text input), BODY CONTENT (textarea), show divider (checkbox), WIDTH (radio: s 320 / m 480 / l 720 / custom px)
+- Right column: PRIMARY ACTION (present toggle + label + variant radios), SECONDARY ACTION (same)
+- "Open dialog" button → opens actual dialog overlay
+- Readout: `last = —` (shows which action was clicked)
+
+### "Skipped from M3" section — key pattern to adopt in VibeOS:
+- Text Field skips: Prefix/suffix text, Multi-line textarea, Character counter, Size variants
+- Dialog skips: Hero icon prop, Fixed text content prop, Full-screen variant, Separate scroll regions
+- Documents WHY each was skipped — invaluable for team communication
 
 ---
 
-## 3. Token Display Formats
+## 3. Token Display Formats (Confirmed Visually)
 
-### Colors
-- Groups (families): Primary, Secondary, Tertiary, Error, Background/Surface, Surface Containers (tonal), Outline/Shadow/Scrim, Inverse, Fixed
-- Each group: group heading + grid of swatches
-- Each swatch: rendered with actual CSS var as background + on-color as text
-  - Shows: **role name** (large text) + `--css-var-name` (small code)
-- No hex values shown — variables only (role-based system)
+### Colors section
+- **Layout:** groups as h3 headings → grid of 4 swatches per row
+- **Groups:** Primary · Secondary · Tertiary · Error · Background/Surface · Surface Containers (tonal hierarchy) · Outline/Shadow/Scrim · Inverse · Fixed (persist across light/dark)
+- **Each swatch:** colored box (background = CSS var, text = on-color CSS var)
+  - Role name in large bold (e.g. "Primary Container")
+  - CSS var in code style (e.g. `--md-sys-color-primary-container`)
+  - No hex values — role-based only
 
-### Typography
-- 15 roles in groups: Display, Headline, Title, Body, Label
-- Each row renders text at actual scale
-- Shows: **role name** + size/weight/tracking specs + utility class name as code
+### State Layers section
+- Shows 3 opacity swatches per color role: **08%** · **10%** · **16%**
+- Greyed boxes because opacity overlays look muted
+- Grouped by role: Primary, On Primary, Primary Container, On Primary Container, etc.
 
-### Spacing
-- Bar visualization per step
-- Shows: **px value** (large) + `--sp-N` CSS variable + proportional bar
+### Typography section
+- **Two-column row layout** (not a grid)
+- Left: **Role name** (bold) + specs on next line: `57px / 64px / -0.25px / Regular (400)` + `.typescale-display-large` utility class in code style
+- Right: actual text rendered at that exact scale ("The quick brown fox...")
+- 15 roles total in 5 groups: Display (3) · Headline (3) · Title (3) · Body (3) · Label (3)
 
-### Shape (border-radius)
-- Visual rounded box per token
-- Shows: **name** + px value + CSS variable
+### Spacing section
+- **Horizontal bar chart** for each step
+- Row format: `4px  --sp-4  HELPER 4PX  [short bar]`
+- Row format: `8px  --sp-8  PRIMARY 8PX [longer bar]`
+- 12 steps: 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64
+- "PRIMARY 8PX" badge on 8px-multiples, "HELPER 4PX" badge on 4px helpers
+- **Grid rule** section below: bullet points explaining when to use primary vs helper grid
 
-### Elevation
-- Table: Level (0–5) | dp value | CSS variable | Typical use
-- Each level rendered with actual box-shadow
+### Shape section
+- **Grid of visual cards** (2 rows × 5 columns)
+- Each card: colored rounded square visually demonstrating the radius + Name below + px value + CSS var
+- 10 levels: None(0) · Extra-small(4) · Small(8) · Medium(12) · Large(16) · Large-increased(20) · Extra-large(28) · Extra-large-increased(32) · Extra-extra-large(48) · Full(1000px — capsule)
+- **Usage table** below: CORNER | PX | WHERE TO USE
 
-### Motion
-- Single canonical: 200ms Emphasized curve `cubic-bezier(0.2, 0, 0, 1)`
-- Examples: Svelte `transition:slide` snippet + CSS `transition` snippet
+### Elevation section
+- **6 visual cards** (Level 0–5) in a responsive grid, each rendered with actual `box-shadow`
+- Each card: "Level N" label + "Ndp" + CSS var (`--md-sys-elevation-level-N`)
+- **Guidance** section: bullet points (Tonal first / Few levels / Resting 0-3 / Interaction 4-5)
+- **Component defaults table**: LEVEL | DP | TYPICAL USE
+
+### Motion section
+- **Playground:** clickable "Toggle position" button — small blue square slides using the canonical transition
+- Instruction: "The block uses `transition: transform var(--md-sys-motion-standard)` — same timing as any component using the shortcut"
+- **Easing curve visualization:** SVG bezier curve graph showing `cubic-bezier(0.2, 0, 0, 1)` shape
+- Description: "Emphasized (M3) — decelerates smoothly near the end, subtle initial slowness"
+- **Tokens table**: TOKEN | CSS VARIABLE | VALUE | JS EXPORT (SRC/LIB/MOTION.TS)
+  - Duration short-4 → `--md-sys-motion-duration-short4` → `200ms` → `motionDurationShort4`
+  - Easing emphasized → `--md-sys-motion-easing-emphasized` → `cubic-bezier(0.2, 0, 0, 1)` → `easingEmphasized`
+  - Standard (composite) → `--md-sys-motion-standard` → `200ms cubic-bezier(0.2, 0, 0, 1)` → use both above
+
+### Fonts section
+- **Typefaces** section: 2 cards side by side — BRAND card + PLAIN card
+  - Brand: "Roboto" large, `--md-ref-typeface-brand`, "Used by Display/Headline/Title Large — expressive roles"
+  - Plain: "Roboto" large, `--md-ref-typeface-plain`, "Used by Title Medium/Small, Body, Label — UI roles"
+- **Weights** section: 3 rows (Regular 400 / Medium 500 / Bold/SemiBold 600) each with CSS var + sample text
+- **Tracking primitives**: None + Small with CSS vars
+- Note: Bold aliases SemiBold (600), not 700
+
+### Icons section
+- **Playground**: NAME input + SIZE (PX) input → live icon renders + code snippet `<Icon name="check" size={24} />`
+- **Search bar**: searches 16,143 icons by name or alias
+- **Category filter chips**: All · Actions · Activities · Android · Audio & Video · Business · Communicate · Hardware · Home · Household · Images · Maps · Privacy · Social · Text · Transit · Travel · UI Actions
+- **Icon grid**: shows 200 at a time, "Show 200 more" link, names below each icon
 
 ---
 
-## 4. Component States — How They're Shown
+## 4. Component States — How They're Shown (Confirmed Visually)
 
-The reference pattern for interactive states:
+| State | How shown in reference |
+|-------|----------------------|
+| **Default** | Always in pg-stage |
+| **Hover** | User hovers in pg-stage (native CSS `:hover`) |
+| **Focus** | User tabs to element (`:focus-visible`) |
+| **Click/Press** | User clicks (state layer visible) |
+| **Disabled** | Toggle in pg-controls → prop → CSS `:disabled` / 38% opacity |
+| **Error** | Toggle checkbox in pg-controls → `error` prop → red border/label |
+| **Selected/Active** | Toggle checkbox → `selected` prop → secondary-container fill |
+| **Indeterminate** | Toggle checkbox → `indeterminate` prop (Checkbox only) |
+| **Loading** | Separate Playground control where applicable |
 
-| State | How shown |
-|-------|-----------|
-| Default | Always visible in pg-stage |
-| Hover | Native CSS `:hover` — user hovers in browser |
-| Focus | Native CSS `:focus-visible` — user tabs to it |
-| Disabled | Toggle checkbox in pg-controls → `disabled` prop |
-| Error | Toggle checkbox in pg-controls → `error` prop |
-| Indeterminate | Toggle checkbox → `indeterminate` prop (Checkbox only) |
-| Selected/Active | Toggle in pg-controls; state shown in pg-readout |
-| Loading | Prop toggle where applicable |
-
-**For VibeOS:** same pattern works. Vue 3 Composition API: bind boolean props to `ref()` in the page, render checkboxes to toggle them, show `{{ propName }} = {{ value }}` as readout.
+**Key insight:** The live stage in the playground IS the component — not a mock. Hover/focus work because the real component is rendered. Only toggleable props need explicit controls.
 
 ---
 
-## 5. Sections to Implement — Priority Order
+## 5. Chip Component Deep-Dive (most relevant for VibeOS UiFilterChips)
 
-### Priority 1 — Token pages (build these first, they're the foundation)
+**One primitive, 4 behaviors via props:**
+- **Assist chips** (action prompts) — icon + label, not selectable, triggers action
+- **Filter chips** (multi-select) — `selected` prop, checkmark appears when selected
+- **Input chips** (removable) — `closable` prop adds X trailing button, fires close event
+- **Suggestion chips** — text only, triggers action like Assist
 
-| Section | VibeOS token source | Notes |
-|---------|--------------------|-|
-| **Colors** | `--color-*` in `main.css` | Show all color roles per vibe-pak (6 paks) |
-| **Typography** | `--text-*`, `--font-*` | Show 8-level scale with actual rendered text |
-| **Spacing** | Not yet tokenized | Define `--sp-*` tokens first (S8 item 5) |
-| **Shadows/Elevation** | `--shadow-sm/md/lg` → extend to 5 levels | Show per elevation level |
-| **Shape/Radius** | `--radius-*` | Show visual rounded boxes |
-| **Motion** | `--ease-*`, `--t-fast/t/t-slow` | Show animation previews |
-
-### Priority 2 — Core UI Components
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| **UiButton** | ✅ exists | Document variants: primary / secondary / ghost / danger |
-| **UiInput / UiField** | ✅ exists | Document states: default / focus / error / disabled |
-| **UiCard** | ✅ exists | Document slots and variant (bordered / elevated) |
-| **UiSkeleton** | ✅ exists | Document props: width / height / rounded / shimmer |
-| **UiBadge** | ✅ exists | Document color variants |
-| **UiProgressBar** | ✅ exists | Document determinate / indeterminate |
-| **UiProgressRing** | ✅ exists | Document props |
-| **UiSectionLabel** | ✅ exists | Document props |
-| **UiStat** | ✅ exists | Document props |
-| **UiEmptyState** | ✅ exists | Document slots |
-| **UiFilterChips** | ✅ exists | Document props and emits |
-| **UiIcon** | ✅ exists | Document size variants, icon name search |
-| **UiConfirmDialog** | ✅ exists | Document `useConfirm()` composable pattern |
-| **UiModal** | ❌ not yet | Extract from module-level dialogs in S8 item 3 |
-
-### Priority 3 — Components to extract in S8 item 3
-
-These patterns appear across modules but aren't yet in `@/ui`:
-
-| Pattern | Found in | Target component |
-|---------|----------|-----------------|
-| Stat card (icon + value + label) | Dashboard, Analytics | `UiStat` (already exists, verify props) |
-| Category chip row | Tasks, Habits, Learning | `UiFilterChips` (already exists) |
-| Section header with help toggle | Goals, Learning | `UiSectionLabel` (exists; may need expansion) |
-| Form field wrapper | All forms | `UiField` (exists; verify) |
-| List item row | Various | `UiListItem` (new) |
-| Tab bar | Analytics, Settings | `UiTabBar` (new) |
-| Toast / notification | Achievement, AI analysis | `UiToast` (new) |
+**Demo section shows all 4 side-by-side:**
+- Assist: "Add to calendar", "Set reminder", "Share" (with leading icons)
+- Filter: "New" · "✓ Popular" · "On sale" · "Free shipping"
+- Input: "React ×" · "TypeScript ×" · "Svelte ×" (removable)
+- Suggestion: "Sounds good" · "Tell me more" · "Maybe later"
+- Disabled: greyed chips, both deselected and selected states
 
 ---
 
 ## 6. VibeOS /ui-kit Page — Planned Structure
 
 ### Route
-`/ui-kit` — accessible via Settings → Developer tab (hidden in production builds via `import.meta.env.PROD`)
+`/ui-kit` — accessible via Settings → Developer tab (hidden in production via `import.meta.env.PROD`)
 
 ### Layout
 ```
 ┌──────────────────────┬──────────────────────────────────────────┐
-│  SIDEBAR (220px)     │  MAIN CONTENT                           │
-│                      │                                          │
-│  🎨 Tokens           │  <article class="showcase">              │
-│    Colors            │    [Header]                              │
-│    Typography        │    [Interactive]                         │
-│    Spacing           │    [Demo]                                │
-│    Shadows           │    [Details / Prop table]                │
+│  SIDEBAR (220px)     │  MAIN CONTENT (scrollable)              │
+│  fixed left          │                                          │
+│  ─────────────────── │  <article class="showcase">              │
+│  🎨 Tokens           │    [Header]                              │
+│    Colors            │    [Playground]                          │
+│    Typography        │    [Demo]                                │
+│    Spacing           │    [Props table]                         │
+│    Shadows           │    [Additional sections]                 │
 │    Radius            │                                          │
 │    Motion            │                                          │
-│                      │                                          │
+│  ─────────────────── │                                          │
 │  🧩 Components       │                                          │
 │    UiButton          │                                          │
 │    UiInput           │                                          │
-│    UiCard            │                                          │
-│    UiSkeleton        │                                          │
 │    ... (all @/ui)    │                                          │
-│                      │                                          │
+│  ─────────────────── │                                          │
 │  📐 Patterns         │                                          │
 │    EmptyState        │                                          │
 │    ConfirmDialog     │                                          │
 │    FilterChips       │                                          │
-│    ProgressBar       │                                          │
-│                      │                                          │
 │  ─────────────────── │                                          │
-│  Theme: [picker]     │                                          │
+│  Theme: [pak picker] │                                          │
 └──────────────────────┴──────────────────────────────────────────┘
 ```
 
 ### Sidebar groups for VibeOS
-
 ```
 Tokens
-  - Colors
-  - Typography
-  - Spacing
-  - Shadows & Elevation
-  - Border Radius
-  - Motion & Easing
+  Colors
+  Typography
+  Spacing
+  Shadows & Elevation
+  Border Radius
+  Motion & Easing
 
 Components
-  - UiButton
-  - UiInput
-  - UiField
-  - UiCard
-  - UiBadge
-  - UiIcon
-  - UiSkeleton
-  - UiProgressBar
-  - UiProgressRing
-  - UiSectionLabel
-  - UiStat
-  - UiFilterChips
+  UiButton
+  UiInput
+  UiField
+  UiCard
+  UiBadge
+  UiIcon
+  UiSkeleton
+  UiProgressBar
+  UiProgressRing
+  UiSectionLabel
+  UiStat
+  UiFilterChips
 
 Patterns
-  - UiEmptyState
-  - UiConfirmDialog
-  - UiModal (when built)
-  - UiToast (when built)
-  - UiListItem (when built)
-  - UiTabBar (when built)
+  UiEmptyState
+  UiConfirmDialog
+  UiModal (when built)
+  UiToast (when built)
+  UiListItem (when built)
+  UiTabBar (when built)
 ```
 
 ---
 
-## 7. Technical Implementation Notes
+## 7. Sections to Implement — Priority Order
+
+### Priority 1 — Token pages (foundation)
+
+| Section | VibeOS source | Display format |
+|---------|--------------|----------------|
+| **Colors** | `--color-*` in `main.css` + 6 vibe-paks | Swatch grid: role name + CSS var, rendered with actual colors |
+| **Typography** | `--text-*`, `--font-*` | Two-col rows: specs left, rendered text right |
+| **Spacing** | Define `--sp-*` tokens (S8 item 5) | Bar chart: px + var + type badge + proportional bar |
+| **Shadows** | `--shadow-sm/md/lg` → extend to 5 levels | Visual cards: Level 0-5 with actual shadows |
+| **Border Radius** | `--radius-*` | Grid cards: rounded box + name + px + var |
+| **Motion** | `--ease-*`, `--t-fast/t/t-slow` | Animated demo block + bezier curve + tokens table |
+
+### Priority 2 — Core Components
+
+| Component | Status | Key props to document |
+|-----------|--------|----------------------|
+| **UiButton** | ✅ exists | variant, size, loading, disabled, icon |
+| **UiInput** | ✅ exists | type, placeholder, error, leadingIcon, trailingIcon, helperText |
+| **UiField** | ✅ exists | label, error, hint |
+| **UiCard** | ✅ exists | bordered/elevated variant, slots |
+| **UiSkeleton** | ✅ exists | width, height, rounded, variant (text/avatar/block) |
+| **UiBadge** | ✅ exists | color variants, size |
+| **UiProgressBar** | ✅ exists | value, max, color |
+| **UiProgressRing** | ✅ exists | value, max, size |
+| **UiSectionLabel** | ✅ exists | label, icon |
+| **UiStat** | ✅ exists | label, value, icon, trend |
+| **UiFilterChips** | ✅ exists | options, modelValue, multi |
+| **UiIcon** | ✅ exists | name (Lucide), size |
+
+### Priority 3 — Patterns (documented with composable API)
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **UiEmptyState** | ✅ exists | icon, title, description, action slot |
+| **UiConfirmDialog** | ✅ exists | document `useConfirm()` composable pattern |
+| **UiModal** | ❌ build in S8.3 | title, closeable, scrim, size |
+| **UiToast** | ❌ build in S8.3 | message, status, duration, `useToast()` |
+| **UiTabBar** | ❌ build in S8.3 | tabs[], modelValue |
+| **UiListItem** | ❌ build in S8.3 | leading icon/avatar, label, sublabel, trailing |
+
+---
+
+## 8. Technical Implementation Notes
 
 ### Theme Switcher
-- Add a `data-theme` picker at the top of the sidebar (or floating in the header of /ui-kit)
-- VibeOS already uses `[data-theme='X']` CSS selectors — all color tokens will update automatically
-- Show all 6 vibe-paks: Default Dark, Synthwave, Ocean, Forest, Sunset, Mono (or current set)
-- Implemented as a simple row of color dots that `document.documentElement.setAttribute('data-theme', pak)`
-- The entire catalog updates live — no page reload needed
+The reference site does **not** have a classic theme switcher — it's a single M3 Blue Light theme. **VibeOS has this as a differentiator.**
 
-### Prop Table in Vue 3
+Implementation:
 ```vue
-<!-- Props are defined as a static array per component section -->
-const props = [
-  { prop: 'variant', type: "'primary' | 'secondary' | 'ghost' | 'danger'", purpose: 'Visual style of the button' },
+<!-- In /ui-kit sidebar footer -->
+<div class="theme-picker">
+  <button
+    v-for="pak in vibePaks"
+    :key="pak.id"
+    :style="{ background: pak.accentColor }"
+    :class="{ active: currentTheme === pak.id }"
+    @click="document.documentElement.setAttribute('data-theme', pak.id)"
+    :title="pak.name"
+  />
+</div>
+```
+- All CSS vars update instantly — entire catalog reflects the chosen vibe-pak
+- No page reload needed (CSS custom properties on `:root` cascade immediately)
+
+### ShowcaseCard.vue — Reusable wrapper
+```ts
+// Props
+interface ShowcaseCardProps {
+  title: string
+  purpose: string
+  canon?: string   // e.g. "src/ui/components/UiButton.vue"
+}
+// Slots: #playground, #demo, #props, #extra (for Accessibility / Usage / Skipped)
+```
+
+### PropTable.vue — Reusable prop table
+```ts
+interface PropDef {
+  prop: string
+  type: string         // rendered as <code>
+  purpose: string      // plain text
+}
+// Prop: props: PropDef[]
+// Prop: note?: string   // hint text above table
+```
+
+### PgStage.vue — Interactive demo wrapper
+```vue
+<template>
+  <div class="playground">
+    <p class="pg-hint">{{ hint }}</p>
+    <div class="pg-body">
+      <div class="pg-stage">
+        <slot name="stage" />       <!-- the live component -->
+      </div>
+      <div class="pg-controls">
+        <slot name="controls" />    <!-- checkboxes, radios, inputs -->
+      </div>
+    </div>
+    <code class="pg-readout" v-if="readout">{{ readout }}</code>
+  </div>
+</template>
+```
+
+### Prop table in Vue 3
+```vue
+<!-- Per component section — define as static const, not hardcoded HTML -->
+<script setup>
+const props: PropDef[] = [
+  { prop: 'variant', type: "'primary' | 'secondary' | 'ghost' | 'danger'", purpose: 'Visual style' },
   { prop: 'disabled', type: 'boolean', purpose: 'Prevents interaction, dims to 38% opacity' },
   { prop: 'onClick', type: '() => void', purpose: 'Click / Space / Enter handler' },
 ]
+</script>
+<template>
+  <PropTable :props="props" note="All props required unless marked optional" />
+</template>
 ```
-- Rendered via `v-for` in a `<table>` — not hardcoded HTML
-- Prop names and types wrapped in `<code>`
-- Purpose column is plain text
 
-### Interactive Demo Pattern
+### Motion demo pattern (adapted for Vue)
 ```vue
-<!-- In each component section -->
-<div class="pg-stage">
-  <UiButton :variant="variant" :disabled="disabled" @click="() => {}">
-    Click me
-  </UiButton>
-</div>
-<div class="pg-controls">
-  <label><input type="checkbox" v-model="disabled" /> disabled</label>
-  <label><input type="checkbox" v-model="loading" /> loading</label>
-</div>
-<code class="pg-readout">variant = "{{ variant }}", disabled = {{ disabled }}</code>
+<script setup>
+import { ref } from 'vue'
+const toggled = ref(false)
+</script>
+<template>
+  <div class="pg-stage">
+    <div class="motion-box" :class="{ toggled }" />
+    <button @click="toggled = !toggled">Toggle position</button>
+  </div>
+</template>
+<style scoped>
+.motion-box {
+  transition: transform var(--t); /* uses VibeOS motion token */
+}
+.motion-box.toggled { transform: translateX(200px); }
+</style>
 ```
-- One `ref()` per toggleable prop
-- The stage renders the actual `@/ui` component — not a mock
-- This means the catalog is always in sync with real component behavior
-
-### Code Snippet Block
-- Show a short usage example per component
-- Use `<pre><code>` with syntax highlighting (can use `highlight.js` already imported)
-- Keep snippets minimal — just the most common use case
-
-### Navigation
-- Left sidebar uses `router-link` or `hash-based` scroll to section
-- Sections are rendered all on one page (long scroll) or as separate routes (simpler)
-- **Recommendation:** single long-scroll page per group (Tokens page, Components page) — avoids 30+ routes
 
 ### File structure
 ```
 src/modules/ui-kit/
   views/
-    UiKitView.vue           # root layout: sidebar + router-outlet
-    sections/
+    UiKitView.vue            # root: sidebar + main
+    sections/tokens/
       ColorsSection.vue
       TypographySection.vue
       SpacingSection.vue
       ShadowsSection.vue
       RadiusSection.vue
       MotionSection.vue
+    sections/components/
       UiButtonSection.vue
       UiInputSection.vue
+      UiCardSection.vue
+      UiSkeletonSection.vue
       ... (one per component)
+    sections/patterns/
+      UiEmptyStateSection.vue
+      UiConfirmDialogSection.vue
+      ...
   components/
-    ShowcaseCard.vue        # reusable article wrapper (header + slots for interactive/demo/details)
-    PropTable.vue           # reusable table (receives props: PropDef[])
-    PgStage.vue             # interactive demo stage wrapper
-    TokenSwatch.vue         # color swatch card
-```
-
-### ShowcaseCard.vue props
-```ts
-interface ShowcaseCardProps {
-  title: string
-  purpose: string
-  canon?: string            // source file path
-}
-// Slots: #interactive, #demo, #details
-```
-
-### PropTable.vue props
-```ts
-interface PropDef {
-  prop: string
-  type: string
-  purpose: string
-  required?: boolean        // default true (matches reference philosophy)
-}
-interface PropTableProps {
-  props: PropDef[]
-  note?: string             // hint text shown above table
-}
+    ShowcaseCard.vue         # article wrapper with slots
+    PropTable.vue            # receives PropDef[]
+    PgStage.vue              # playground wrapper
+    TokenSwatch.vue          # color swatch: role + CSS var
+    TokenRow.vue             # typography / spacing row
 ```
 
 ---
 
-## 8. Components to Document (Complete List)
+## 9. Components to Document (Complete List)
 
-Combines existing `@/ui` components + new ones from S8 item 3 audit:
+### Existing @/ui — document as-is
+`UiBadge` · `UiButton` · `UiCard` · `UiConfirmDialog` · `UiEmptyState` · `UiField` · `UiFilterChips` · `UiIcon` · `UiInput` · `UiProgressBar` · `UiProgressRing` · `UiSectionLabel` · `UiSkeleton` · `UiStat` · `UiPlannedView`
 
-### Existing @/ui (document as-is)
-- `UiBadge` — color variants, size
-- `UiButton` — variant, size, loading, disabled, icon slot
-- `UiCard` — bordered / elevated variants, slots
-- `UiConfirmDialog` — `useConfirm()` composable, async confirm pattern
-- `UiEmptyState` — icon, title, description, action slot
-- `UiField` — label, error, hint, slots
-- `UiFilterChips` — options, modelValue, multi-select
-- `UiIcon` — name (Lucide), size, color
-- `UiInput` — type, placeholder, error, prefix/suffix
-- `UiPlannedView` — (document or remove if not used)
-- `UiProgressBar` — value, max, color variants
-- `UiProgressRing` — value, max, size, stroke
-- `UiSectionLabel` — label, icon
-- `UiSkeleton` — width, height, rounded, variant (text / avatar / block)
-- `UiStat` — label, value, icon, trend
-
-### New components to build in S8 item 3
-- `UiModal` — title, closeable, scrim, size variants
-- `UiToast` — message, status (success/warning/error/info), duration
-- `UiTabBar` — tabs[], modelValue, onChange
-- `UiListItem` — leading (icon/avatar), label, sublabel, trailing slot
-- `UiDivider` — horizontal / vertical, spacing
+### New components to extract in S8 item 3
+| Pattern | Found in | Target |
+|---------|----------|--------|
+| Modal overlay | All dialogs | `UiModal` |
+| Toast notification | AchievementToast, AI analysis | `UiToast` |
+| Horizontal tab bar | Analytics, Settings | `UiTabBar` |
+| List row (icon+label+meta) | Various | `UiListItem` |
+| Horizontal rule | Various | `UiDivider` |
 
 ---
 
-## 9. Implementation Sequence (Sessions)
+## 10. Implementation Sequence
 
-| Session | Work |
-|---------|------|
-| **S8-A** (this doc) | Analysis + plan |
-| **S8-B** | Tokens pages: Colors, Typography, Spacing, Shadows, Radius, Motion |
-| **S8-C** | UiButton, UiInput, UiField, UiCard sections (with live interactive) |
-| **S8-D** | UiBadge, UiIcon, UiSkeleton, UiProgressBar, UiProgressRing |
-| **S8-E** | UiStat, UiSectionLabel, UiFilterChips, UiEmptyState |
-| **S8-F** | Patterns: UiConfirmDialog, UiModal (if built), UiToast (if built) |
-| **S8-G** | Theme switcher integration, polish, responsive check |
+| Session | Work | Prerequisite |
+|---------|------|-------------|
+| **S8-A** (this doc) | Analysis + plan | — |
+| **S8-B** | Token pages: Colors, Typography, Spacing | S8 item 5 (token extension) |
+| **S8-C** | Token pages: Shadows, Radius, Motion + theme switcher | S8-B |
+| **S8-D** | UiButton, UiInput, UiField sections | S8 item 3 |
+| **S8-E** | UiCard, UiSkeleton, UiBadge, UiIcon | S8 item 3 |
+| **S8-F** | UiProgressBar, UiProgressRing, UiStat, UiSectionLabel, UiFilterChips | S8 item 3 |
+| **S8-G** | Patterns: UiEmptyState, UiConfirmDialog, new components | S8 item 3 |
+| **S8-H** | Polish: responsive, search, theme switcher, accessibility | All above |
 
 ---
 
-## 10. Design Decisions for VibeOS /ui-kit
+## 11. Design Decisions for VibeOS /ui-kit
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
-| Routing | Hash-based scroll within 3 routes (Tokens / Components / Patterns) | Avoids 30+ router entries; simpler; fast navigation |
-| Prop table columns | Prop / Type / Purpose | Matches reference; "Purpose" is more useful than generic "Description" |
-| Code snippets | Show, using `<pre><code>` | Essential for developer documentation |
-| Interactive demo | Yes for all components | Core value of a live catalog |
-| Theme switcher | Yes — vibe-pak selector | VibeOS's unique feature; shows all themes in one place |
-| Production visibility | Hidden (`import.meta.env.PROD`) | Developer tool only |
-| Canon reference | Points to `src/ui/components/ComponentName.vue` | Quick jump to source |
+| Card sections | Header → Playground → Demo → Props → Extra | Exact reference pattern, confirmed visually |
+| Prop table columns | Prop / Type / Purpose | "Purpose" (not "Description") — what the reference uses |
+| "Skipped from VibeOS defaults" section | Add this to components where applicable | Honest documentation; prevents "why doesn't X work?" |
+| "Accessibility" section | Add to Modal, Dialog, Tooltip, Snackbar | Critical for quality; reference does this for every complex component |
+| Code snippets | Show minimal `<template>` usage example per component | Dev reference value |
+| Interactive demo | Yes — renders actual `@/ui` component | Auto-syncs with implementation |
+| Theme switcher | Vibe-pak picker in sidebar footer | VibeOS differentiator; shows all 6 themes live |
+| Production visibility | Hidden (`import.meta.env.PROD`) | Dev tool only |
+| Routing | Hash-based scroll on 3 routes (Tokens / Components / Patterns) | Avoids 30+ router entries |
+| Canon reference | `src/ui/components/ComponentName.vue` | Quick jump to source |
+| Motion tokens table | TOKEN / CSS VARIABLE / VALUE columns | Reference uses 4 cols; JS Export not needed for Vue project |
