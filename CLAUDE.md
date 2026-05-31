@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v0.9.6 — 2026-05-31**
+**Version: v0.9.7 — 2026-05-31**
 
 | Sprint | Status |
 |--------|--------|

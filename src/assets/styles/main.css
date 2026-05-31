@@ -193,21 +193,24 @@
   --radius-lg: 0px;
   --radius-xl: 0px;
 
-  /* Hard offset shadows instead of blur */
+  /* Hard offset — zero blur, strict 2px step progression, flat design */
   --shadow-sm: 2px 2px 0px #000000;
-  --shadow:    3px 3px 0px #000000;
-  --shadow-lg: 5px 5px 0px #000000;
+  --shadow:    4px 4px 0px #000000;
+  --shadow-lg: 6px 6px 0px #000000;
 
   --shadow-0: none;
   --shadow-1: 2px 2px 0px #000000;
-  --shadow-2: 3px 3px 0px #000000;
-  --shadow-3: 5px 5px 0px #000000;
+  --shadow-2: 4px 4px 0px #000000;
+  --shadow-3: 6px 6px 0px #000000;
   --shadow-4: 8px 8px 0px #000000;
+
+  /* Brutalist hover: snap invert via !important rules — no color-mix tint */
+  --hover-tint-pct: 0%;
 
   --color-surface-0: #f0ede8;
   --color-surface-1: #ffffff;
   --color-surface-2: #e8e5e0;
-  --color-surface-3: #e0ddd8;
+  --color-surface-3: #d8d5d0;
 }
 
 /* Brutalist: heavier borders on key structural elements */
