@@ -28,11 +28,15 @@ const inputRef = ref<HTMLInputElement>()
 const listRef  = ref<HTMLElement>()
 
 // ── Sub-input (action mode) ───────────────────────────────────────────
-type ActionMode = 'new-task' | 'new-note' | 'new-goal' | null
+type ActionMode = 'new-task' | 'new-note' | 'new-goal' | 'ask-ai' | null
 
 const activeAction  = ref<ActionMode>(null)
 const subInputValue = ref('')
 const subInputRef   = ref<HTMLInputElement>()
+
+// AI result state
+const aiResult  = ref<string | null>(null)
+const aiLoading = ref(false)
 
 // Computed labels (reactive to locale)
 const actionMeta = computed(() => ({
@@ -51,22 +55,55 @@ const actionMeta = computed(() => ({
     placeholder: i18n.t('palette.goalPlaceholder'),
     icon: 'Target',
   },
+  'ask-ai': {
+    label: 'Ask AI',
+    placeholder: 'Ask anything about your goals, tasks, habits…',
+    icon: 'Sparkles',
+  },
 }))
 
 function enterActionMode(mode: NonNullable<ActionMode>) {
   activeAction.value = mode
   subInputValue.value = ''
+  aiResult.value = null
+  aiLoading.value = false
   nextTick(() => subInputRef.value?.focus())
 }
 
 function cancelActionMode() {
   activeAction.value = null
+  aiResult.value = null
+  aiLoading.value = false
   nextTick(() => inputRef.value?.focus())
 }
 
 async function confirmAction() {
   const val = subInputValue.value.trim()
   if (!val || !activeAction.value) return
+
+  if (activeAction.value === 'ask-ai') {
+    // Fire AI query — stay open, show result inline
+    aiLoading.value = true
+    aiResult.value  = null
+    try {
+      const res = await fetch('https://text.pollinations.ai/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: val }],
+          model: 'openai',
+          private: true,
+        }),
+      })
+      if (res.ok) aiResult.value = (await res.text()).trim()
+      else aiResult.value = 'Request failed — try again.'
+    } catch {
+      aiResult.value = 'Could not reach AI — check your connection.'
+    } finally {
+      aiLoading.value = false
+    }
+    return  // don't close palette
+  }
 
   if (activeAction.value === 'new-task') {
     tasksStore.addTask(val)
@@ -126,6 +163,14 @@ const commands = computed<Command[]>(() => [
     icon:   'Target',
     group:  i18n.t('palette.actionsGroup'),
     action: () => enterActionMode('new-goal'),
+  },
+  {
+    id:       'action:ask-ai',
+    label:    '✦ Ask AI…',
+    icon:     'Sparkles',
+    group:    i18n.t('palette.actionsGroup'),
+    keywords: ['ai', 'ask', 'question', 'help', 'suggest', 'analyze', 'what', 'how', 'why'],
+    action:   () => enterActionMode('ask-ai'),
   },
 
   // ── Habits toggle ─────────────────────────────────────────────────
@@ -218,9 +263,11 @@ const groups = computed(() => {
 // ── Focus management ───────────────────────────────────────────────────
 watch(() => palette.isOpen, async (open) => {
   if (open) {
-    query.value      = ''
-    selIdx.value     = 0
+    query.value        = ''
+    selIdx.value       = 0
     activeAction.value = null
+    aiResult.value     = null
+    aiLoading.value    = false
     await nextTick()
     inputRef.value?.focus()
   }
@@ -345,22 +392,48 @@ function onSubInputKeydown(e: KeyboardEvent) {
 
             <div class="palette__divider" />
 
-            <div class="palette__sub-input-wrap">
-              <input
-                ref="subInputRef"
-                v-model="subInputValue"
-                class="palette__input palette__input--sub"
-                :placeholder="actionMeta[activeAction].placeholder"
-                autocomplete="off"
-                spellcheck="false"
-                @keydown="onSubInputKeydown"
-              />
-            </div>
+            <!-- AI result display (ask-ai mode, after query submitted) -->
+            <template v-if="activeAction === 'ask-ai' && (aiLoading || aiResult)">
+              <div class="palette__ai-query">
+                <UiIcon name="Sparkles" :size="12" />
+                {{ subInputValue }}
+              </div>
+              <div class="palette__ai-body">
+                <div v-if="aiLoading" class="palette__ai-loading">
+                  <UiIcon name="Loader" :size="15" class="palette__ai-spinner" />
+                  Thinking…
+                </div>
+                <p v-else class="palette__ai-response">{{ aiResult }}</p>
+              </div>
+              <div class="palette__footer palette__footer--action">
+                <span><kbd>Esc</kbd> Close</span>
+                <button class="palette__ai-ask-again" @click="() => { aiResult = null; nextTick(() => subInputRef?.focus()) }">
+                  Ask again
+                </button>
+              </div>
+            </template>
 
-            <div class="palette__footer palette__footer--action">
-              <span><kbd>↵</kbd> {{ i18n.t('palette.createConfirm') }}</span>
-              <span class="palette__footer-hint">{{ i18n.t('palette.backHint') }}</span>
-            </div>
+            <!-- Normal sub-input (create actions + ask-ai before submit) -->
+            <template v-else>
+              <div class="palette__sub-input-wrap">
+                <input
+                  ref="subInputRef"
+                  v-model="subInputValue"
+                  class="palette__input palette__input--sub"
+                  :placeholder="actionMeta[activeAction].placeholder"
+                  autocomplete="off"
+                  spellcheck="false"
+                  @keydown="onSubInputKeydown"
+                />
+              </div>
+              <div class="palette__footer palette__footer--action">
+                <span>
+                  <kbd>↵</kbd>
+                  {{ activeAction === 'ask-ai' ? 'Send' : i18n.t('palette.createConfirm') }}
+                </span>
+                <span class="palette__footer-hint">{{ i18n.t('palette.backHint') }}</span>
+              </div>
+            </template>
           </template>
 
         </div>
@@ -611,6 +684,64 @@ kbd {
   font-weight: 500;
   width: 100%;
 }
+
+/* ── AI query/result ─────────────────────────────────────────────────── */
+.palette__ai-query {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.palette__ai-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 18px 16px;
+  min-height: 80px;
+}
+
+.palette__ai-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  padding: 8px 0;
+}
+
+@keyframes palette-spin {
+  to { transform: rotate(360deg); }
+}
+
+.palette__ai-spinner {
+  animation: palette-spin 1s linear infinite;
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+.palette__ai-response {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-text);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.palette__ai-ask-again {
+  font-size: 12px;
+  color: var(--color-accent);
+  padding: 2px 8px;
+  border: 1px solid var(--color-accent-muted);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.palette__ai-ask-again:hover { background: var(--color-accent-muted); }
 
 /* ── Open/close transition ────────────────────────────────────────────── */
 .palette-enter-active {

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useTasks } from '../composables/useTasks'
 import TaskInput from '../components/TaskInput.vue'
 import TaskFilters from '../components/TaskFilters.vue'
 import TaskList from '../components/TaskList.vue'
 import TaskProgress from '../components/TaskProgress.vue'
 import PomodoroPanel from '../components/PomodoroPanel.vue'
+import HabitHeatmap from '@/modules/habits/components/HabitHeatmap.vue'
 import { useLocale } from '@/core/i18n'
 import { UiButton } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
@@ -32,7 +33,15 @@ const CATEGORIES: { val: TaskCategory | 'all'; labelKey: string }[] = [
 
 const focusedId    = ref<string | null>(null)
 const taskInputRef = ref<InstanceType<typeof TaskInput>>()
-const showPomodoro = ref(false)
+const showPomodoro  = ref(false)
+const showHeatmap   = ref(false)
+
+// Task completion dates for the activity heatmap (from completedAt timestamps)
+const taskCompletedDates = computed(() =>
+  store.tasks
+    .filter(t => t.done && t.completedAt)
+    .map(t => t.completedAt!.slice(0, 10)),
+)
 
 // ── AI priority assistant ──────────────────────────────────────────
 const aiPriority        = ref<string | null>(null)
@@ -117,6 +126,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           @click="showPomodoro = !showPomodoro"
         >🍅 Focus</UiButton>
         <UiButton
+          v-if="taskCompletedDates.length > 0"
+          variant="ghost"
+          size="sm"
+          :title="showHeatmap ? 'Hide activity heatmap' : 'Show task completion activity'"
+          @click="showHeatmap = !showHeatmap"
+        >📊 Activity</UiButton>
+        <UiButton
           v-if="store.totalCount > 0"
           variant="ghost"
           size="sm"
@@ -155,6 +171,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <button class="tm-view__ai-dismiss" @click="aiPriority = null">×</button>
         </div>
         <p class="tm-view__ai-text">{{ aiPriority }}</p>
+      </div>
+    </Transition>
+
+    <!-- Activity heatmap (collapsible) -->
+    <Transition name="heat-slide">
+      <div v-if="showHeatmap" class="tm-view__heatmap-panel">
+        <div class="tm-view__heatmap-header">
+          <span class="tm-view__heatmap-label">Task Activity</span>
+          <span class="tm-view__heatmap-meta">{{ taskCompletedDates.length }} tasks completed · last 20 weeks</span>
+        </div>
+        <div class="tm-view__heatmap-wrap">
+          <HabitHeatmap :completed-dates="taskCompletedDates" :weeks="20" />
+        </div>
       </div>
     </Transition>
 
@@ -293,6 +322,50 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   opacity: 0.5;
   font-family: var(--font-mono);
 }
+
+/* Activity heatmap panel */
+.tm-view__heatmap-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tm-view__heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tm-view__heatmap-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+
+.tm-view__heatmap-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.tm-view__heatmap-wrap {
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.tm-view__heatmap-wrap::-webkit-scrollbar { display: none; }
+
+.heat-slide-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.heat-slide-leave-active { transition: opacity 0.15s ease; }
+.heat-slide-enter-from   { opacity: 0; transform: translateY(-8px); }
+.heat-slide-leave-to     { opacity: 0; }
 
 /* Pomodoro transition */
 .pomo-slide-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }

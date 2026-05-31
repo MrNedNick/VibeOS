@@ -6,6 +6,8 @@ import type { ExpenseCategory } from '../types'
 import { UiIcon } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
 
+const todayDateStr = new Date().toISOString().split('T')[0]
+
 const store = useFinanceStore()
 
 // ── Month navigation ───────────────────────────────────────────────────────
@@ -134,6 +136,47 @@ function barColor(cat: ExpenseCategory): string {
   return '#22c55e'
 }
 
+// ── Day-by-day spending chart ──────────────────────────────────────────
+const daysInMonth = computed(() => {
+  const [y, m] = selectedMonth.value.split('-').map(Number)
+  const last = new Date(y, m, 0).getDate()
+  const result: { day: string; total: number }[] = []
+  for (let d = 1; d <= last; d++) {
+    const dayStr = `${selectedMonth.value}-${String(d).padStart(2, '0')}`
+    const total = viewExpenses.value
+      .filter(e => e.date === dayStr)
+      .reduce((s, e) => s + e.amount, 0)
+    result.push({ day: dayStr, total })
+  }
+  return result
+})
+
+const maxDaySpend = computed(() =>
+  Math.max(...daysInMonth.value.map(d => d.total), 0.01),
+)
+
+const hasDayData = computed(() =>
+  daysInMonth.value.some(d => d.total > 0),
+)
+
+// ── CSV export ────────────────────────────────────────────────────────
+function exportTransactionsCSV() {
+  if (!viewExpenses.value.length) return
+  const rows = ['Date,Category,Note,Amount']
+  for (const e of viewExpenses.value) {
+    const note = e.note ? `"${e.note.replace(/"/g, '""')}"` : ''
+    rows.push(`${e.date},${CATEGORY_META[e.category].label},${note},${e.amount.toFixed(2)}`)
+  }
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' })
+  const url  = URL.createObjectURL(blob)
+  const a    = Object.assign(document.createElement('a'), {
+    href: url,
+    download: `expenses-${selectedMonth.value}.csv`,
+  })
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 const { confirm } = useConfirm()
 
 async function deleteExpense(id: string) {
@@ -219,30 +262,79 @@ async function deleteExpense(id: string) {
         <button v-if="isViewingCurrentMonth" class="finance__empty-btn" @click="openAddForm">Add your first expense</button>
       </div>
 
-      <div v-else class="finance__categories">
-        <div
-          v-for="cat in viewCategories"
-          :key="cat"
-          class="cat-row"
-        >
-          <div class="cat-row__icon">{{ CATEGORY_META[cat].icon }}</div>
-          <div class="cat-row__body">
-            <div class="cat-row__top">
-              <span class="cat-row__name">{{ CATEGORY_META[cat].label }}</span>
-              <span class="cat-row__spent">{{ formatAmount(viewSpentByCategory[cat], store.currency) }}</span>
-              <span v-if="store.budgetMap[cat]" class="cat-row__limit">
-                / {{ formatAmount(store.budgetMap[cat], store.currency) }}
-              </span>
-            </div>
-            <div v-if="store.budgetMap[cat]" class="cat-row__bar-wrap">
+      <template v-else>
+        <!-- Category stacked proportion bar -->
+        <div class="finance__breakdown">
+          <div class="finance__breakdown-label">Category breakdown</div>
+          <div class="finance__breakdown-bar">
+            <div
+              v-for="cat in viewCategories"
+              :key="cat"
+              class="finance__breakdown-seg"
+              :style="{
+                width: (viewSpentByCategory[cat] / viewTotal * 100) + '%',
+                background: CATEGORY_META[cat].color,
+              }"
+              :title="`${CATEGORY_META[cat].label}: ${formatAmount(viewSpentByCategory[cat], store.currency)} (${Math.round(viewSpentByCategory[cat] / viewTotal * 100)}%)`"
+            />
+          </div>
+          <!-- Legend row -->
+          <div class="finance__breakdown-legend">
+            <span
+              v-for="cat in viewCategories"
+              :key="cat"
+              class="finance__breakdown-legend-item"
+              :style="{ '--cat': CATEGORY_META[cat].color }"
+            >
+              {{ CATEGORY_META[cat].icon }} {{ Math.round(viewSpentByCategory[cat] / viewTotal * 100) }}%
+            </span>
+          </div>
+        </div>
+
+        <!-- Day-by-day spending chart -->
+        <div v-if="hasDayData" class="finance__day-chart">
+          <div class="finance__day-chart-label">Daily spending — {{ monthLabel }}</div>
+          <div class="finance__day-bars">
+            <div
+              v-for="d in daysInMonth"
+              :key="d.day"
+              class="finance__day-bar-wrap"
+              :title="d.total > 0 ? `${d.day}: ${formatAmount(d.total, store.currency)}` : d.day"
+            >
               <div
-                class="cat-row__bar"
-                :style="{ width: barPct(cat) + '%', background: barColor(cat) }"
+                class="finance__day-bar"
+                :class="{ 'finance__day-bar--today': d.day === todayDateStr, 'finance__day-bar--empty': d.total === 0 }"
+                :style="{ height: d.total > 0 ? `${Math.max(4, (d.total / maxDaySpend) * 100)}%` : '2px' }"
               />
             </div>
           </div>
         </div>
-      </div>
+
+        <div class="finance__categories">
+          <div
+            v-for="cat in viewCategories"
+            :key="cat"
+            class="cat-row"
+          >
+            <div class="cat-row__icon">{{ CATEGORY_META[cat].icon }}</div>
+            <div class="cat-row__body">
+              <div class="cat-row__top">
+                <span class="cat-row__name">{{ CATEGORY_META[cat].label }}</span>
+                <span class="cat-row__spent">{{ formatAmount(viewSpentByCategory[cat], store.currency) }}</span>
+                <span v-if="store.budgetMap[cat]" class="cat-row__limit">
+                  / {{ formatAmount(store.budgetMap[cat], store.currency) }}
+                </span>
+              </div>
+              <div v-if="store.budgetMap[cat]" class="cat-row__bar-wrap">
+                <div
+                  class="cat-row__bar"
+                  :style="{ width: barPct(cat) + '%', background: barColor(cat) }"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- ── Transactions tab ─────────────────────────────────────────── -->
@@ -253,7 +345,15 @@ async function deleteExpense(id: string) {
         <button v-if="isViewingCurrentMonth" class="finance__empty-btn" @click="openAddForm">Add your first expense</button>
       </div>
 
-      <div v-else class="finance__transactions">
+      <template v-else>
+        <div class="finance__txn-header">
+          <span class="finance__txn-count">{{ viewExpenses.length }} transaction{{ viewExpenses.length !== 1 ? 's' : '' }}</span>
+          <button class="finance__csv-btn" title="Export as CSV" @click="exportTransactionsCSV">
+            <UiIcon name="Download" :size="13" />
+            CSV
+          </button>
+        </div>
+      <div class="finance__transactions">
         <div
           v-for="expense in viewExpenses"
           :key="expense.id"
@@ -275,6 +375,7 @@ async function deleteExpense(id: string) {
           </button>
         </div>
       </div>
+      </template>
     </div>
 
     <!-- ── Budgets tab ──────────────────────────────────────────────── -->
@@ -1040,6 +1141,135 @@ async function deleteExpense(id: string) {
   color: #fff;
 }
 .fm-btn--primary:hover { opacity: 0.88; }
+
+/* ── Spending breakdown bar ─────────────────────────────────────── */
+.finance__breakdown {
+  max-width: 560px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.finance__breakdown-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.finance__breakdown-bar {
+  height: 10px;
+  border-radius: 5px;
+  display: flex;
+  overflow: hidden;
+  gap: 1px;
+  background: var(--color-surface-elevated);
+}
+
+.finance__breakdown-seg {
+  height: 100%;
+  transition: width var(--t-base);
+  cursor: default;
+  min-width: 2px;
+}
+.finance__breakdown-seg:first-child { border-radius: 5px 0 0 5px; }
+.finance__breakdown-seg:last-child  { border-radius: 0 5px 5px 0; }
+
+.finance__breakdown-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.finance__breakdown-legend-item {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cat, var(--color-text-muted));
+  opacity: 0.85;
+}
+
+/* ── Day-by-day chart ───────────────────────────────────────────── */
+.finance__day-chart {
+  max-width: 560px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.finance__day-chart-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.finance__day-bars {
+  display: flex;
+  gap: 2px;
+  height: 56px;
+  align-items: flex-end;
+}
+
+.finance__day-bar-wrap {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  cursor: default;
+}
+
+.finance__day-bar {
+  width: 100%;
+  background: var(--color-accent);
+  border-radius: 2px 2px 0 0;
+  opacity: 0.65;
+  transition: height 0.3s ease, opacity var(--t-fast);
+  min-height: 2px;
+}
+.finance__day-bar:hover:not(.finance__day-bar--empty) { opacity: 1; }
+.finance__day-bar--today { opacity: 0.9; }
+.finance__day-bar--empty {
+  background: var(--color-border);
+  opacity: 0.4;
+  border-radius: 2px;
+}
+
+/* ── Transactions header ────────────────────────────────────────── */
+.finance__txn-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 560px;
+  margin-bottom: 12px;
+}
+
+.finance__txn-count {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.finance__csv-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  cursor: pointer;
+  transition: border-color var(--t-fast), color var(--t-fast);
+}
+.finance__csv-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
 
 @media (max-width: 767px) {
   .finance__header { gap: 10px; }
