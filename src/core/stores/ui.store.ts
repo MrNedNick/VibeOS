@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { storagGet, storageSet } from '@/core/utils/storage'
 
-export type Theme = 'dark' | 'light' | 'synthwave' | 'brutalist' | 'softglass' | 'crt'
+export type Theme = 'dark' | 'light' | 'brutalist' | 'softglass' | 'crt'
 
 const THEME_KEY = 'platform:ui:theme'
 const SIDEBAR_KEY = 'platform:ui:sidebar'
@@ -15,7 +15,7 @@ export const useUiStore = defineStore('core:ui', () => {
   const mobileSidebarOpen = ref<boolean>(false)
 
   /** True for dark-background themes */
-  const isDark = computed(() => theme.value === 'dark' || theme.value === 'synthwave' || theme.value === 'crt')
+  const isDark = computed(() => theme.value === 'dark' || theme.value === 'crt')
 
   function applyTheme() {
     // dark → '' (default), everything else → its own data-theme value
@@ -49,7 +49,10 @@ export const useUiStore = defineStore('core:ui', () => {
   function toggleMobileDrawer() { mobileSidebarOpen.value = !mobileSidebarOpen.value }
 
   function init() {
-    applyTheme()
+    // Migrate removed pak IDs to safe defaults
+    const stored = storagGet<string>(THEME_KEY, '')
+    if (stored === 'synthwave') setTheme('dark')
+    else applyTheme()
   }
 
   return {

@@ -32,12 +32,6 @@ const VIBE_PAKS: VibePak[] = [
     label:   'Clean',
   },
   {
-    id:      'synthwave',
-    nameKey: 'settings.themeSynthwave',
-    swatches: ['#0b0917', '#e040fb', '#f0e6ff'],
-    label:   'Synthwave',
-  },
-  {
     id:      'brutalist',
     nameKey: 'settings.themeBrutalist',
     swatches: ['#f0ede8', '#000000', '#000000'],
