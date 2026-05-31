@@ -130,7 +130,7 @@ Order:
 **Goal:** AI becomes a planning assistant across all life modules. Free tier via Pollinations.ai (no key needed); Anthropic/Gemini/Groq with user key as secondary. Everything user-initiated — nothing runs automatically.
 
 Order:
-1. **AI service layer** — `core/services/ai.ts`; wraps free Pollinations.ai + optional Anthropic key; shows token estimate before each call; all modules consume same service
+1. ✅ **AI service layer** — `src/core/composables/useAI.ts`; `aiComplete()` standalone helper used by all 8 modules; `useAI()` composable with reactive loading/error for new features
 2. ✅ **Daily digest** — `DigestWidget.vue` on Dashboard: on-demand digest using live data from all stores (tasks, goals, habits, learning, training); Pollinations.ai free
 3. ✅ **Goal planning** — "Suggest" button in Goal detail milestones section; AI returns bullet list of milestones; each chip adds directly to goal with one click
 4. ✅ **Learning plan generator** — "✦ Fill with AI" button in Learning module; enter a topic and AI fills title, emoji, minutesPerSession, targetHours, daysPerWeek
@@ -156,6 +156,15 @@ Order:
 ---
 
 ## Recently shipped (history)
+
+### 2026-05-31 — AI service layer + Dashboard panels + Learning resources (v0.7.4 → v0.7.5)
+
+- **AI service layer (S6/1)** — `src/core/composables/useAI.ts` with `aiComplete(prompt)` standalone helper and `useAI()` composable; all 8 inline fetch-to-Pollinations blocks refactored (TaskManagerView, DigestWidget, GoalDetailView, LearningView, Learning PlanDetailView, TrainingView, Training PlanDetailView, CommandPalette); no behavior changes
+- **Dashboard Goals panel (S2/4)** — New "Goals" row in Dashboard sidebar → live panel: active goals with progress %, milestone counts, color-coded progress bars, due-date warnings; "View all" link; empty state with CTA
+- **Dashboard Habits panel (S2/4)** — New "Habits" row → live panel: 7-day consistency bar chart, per-habit today status with inline toggle, streak indicators; overflow link for 7+ habits
+- **Learning plan resources** — URL bookmark library per plan; type picker (article/video/book/course/podcast/other); mark-as-done toggle; domain shown below title; delete; persisted in plan data; added in PlanDetailView between session history and habit link sections
+
+---
 
 ### 2026-05-31 — Task heatmap + Finance charts + Palette AI (v0.7.3 → v0.7.4)
 
