@@ -3,7 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useFinanceStore } from '../stores/finance.store'
 import { CATEGORY_META, EXPENSE_CATEGORIES, formatAmount, currentMonthKey } from '../types'
 import type { ExpenseCategory } from '../types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel, UiFilterChips, UiProgressBar } from '@/ui'
+import type { FilterChipOption } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
 
 const todayDateStr = new Date().toISOString().split('T')[0]
@@ -56,6 +57,17 @@ const viewCategories = computed(() =>
 // ── Tabs ──────────────────────────────────────────────────────────────────
 type Tab = 'overview' | 'transactions' | 'budgets'
 const activeTab = ref<Tab>('overview')
+
+const TAB_OPTIONS: FilterChipOption[] = [
+  { value: 'overview',     label: 'Overview' },
+  { value: 'transactions', label: 'Transactions' },
+  { value: 'budgets',      label: 'Budgets' },
+]
+
+const activeTabStr = computed({
+  get: () => activeTab.value as string,
+  set: (v: string) => { activeTab.value = v as Tab },
+})
 
 // ── Add expense form ─────────────────────────────────────────────────────
 const showAddForm = ref(false)
@@ -129,11 +141,11 @@ function barPct(cat: ExpenseCategory): number {
   return Math.min(100, (spent / limit) * 100)
 }
 
-function barColor(cat: ExpenseCategory): string {
+function barColorToken(cat: ExpenseCategory): 'success' | 'warning' | 'danger' {
   const pct = barPct(cat)
-  if (pct >= 100) return '#ef4444'
-  if (pct >= 80)  return '#f59e0b'
-  return '#22c55e'
+  if (pct >= 100) return 'danger'
+  if (pct >= 80)  return 'warning'
+  return 'success'
 }
 
 // ── Day-by-day spending chart ──────────────────────────────────────────
@@ -245,19 +257,7 @@ async function deleteExpense(id: string) {
 
     <!-- Tabs -->
     <div class="finance__tabs">
-      <button
-        v-for="tab in (['overview', 'transactions', 'budgets'] as Tab[])"
-        :key="tab"
-        class="finance__tab"
-        :class="{ 'finance__tab--active': activeTab === tab }"
-        @click="activeTab = tab"
-      >
-        <UiIcon
-          :name="tab === 'overview' ? 'PieChart' : tab === 'transactions' ? 'List' : 'Wallet'"
-          :size="13"
-        />
-        {{ tab.charAt(0).toUpperCase() + tab.slice(1) }}
-      </button>
+      <UiFilterChips v-model="activeTabStr" :options="TAB_OPTIONS" />
     </div>
 
     <!-- ── Overview tab ─────────────────────────────────────────────── -->
@@ -271,7 +271,7 @@ async function deleteExpense(id: string) {
       <template v-else>
         <!-- Category stacked proportion bar -->
         <div class="finance__breakdown">
-          <div class="finance__breakdown-label">Category breakdown</div>
+          <UiSectionLabel size="sm">Category breakdown</UiSectionLabel>
           <div class="finance__breakdown-bar">
             <div
               v-for="cat in viewCategories"
@@ -299,7 +299,7 @@ async function deleteExpense(id: string) {
 
         <!-- Day-by-day spending chart -->
         <div v-if="hasDayData" class="finance__day-chart">
-          <div class="finance__day-chart-label">Daily spending — {{ monthLabel }}</div>
+          <UiSectionLabel size="sm">Daily spending — {{ monthLabel }}</UiSectionLabel>
           <div class="finance__day-bars">
             <div
               v-for="d in daysInMonth"
@@ -331,12 +331,12 @@ async function deleteExpense(id: string) {
                   / {{ formatAmount(store.budgetMap[cat], store.currency) }}
                 </span>
               </div>
-              <div v-if="store.budgetMap[cat]" class="cat-row__bar-wrap">
-                <div
-                  class="cat-row__bar"
-                  :style="{ width: barPct(cat) + '%', background: barColor(cat) }"
-                />
-              </div>
+              <UiProgressBar
+                v-if="store.budgetMap[cat]"
+                :value="barPct(cat)"
+                :color="barColorToken(cat)"
+                class="cat-row__progress"
+              />
             </div>
           </div>
         </div>
@@ -692,32 +692,9 @@ async function deleteExpense(id: string) {
 
 /* Tabs */
 .finance__tabs {
-  display: flex;
-  gap: 2px;
+  padding: 12px 0;
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
-}
-
-.finance__tab {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: color var(--t-fast), border-color var(--t-fast);
-  margin-bottom: -1px;
-}
-.finance__tab:hover { color: var(--color-text-secondary); }
-.finance__tab--active {
-  color: var(--color-accent);
-  border-bottom-color: var(--color-accent);
-  font-weight: 600;
 }
 
 /* Content area */
@@ -799,19 +776,7 @@ async function deleteExpense(id: string) {
   font-family: var(--font-mono);
 }
 
-.cat-row__bar-wrap {
-  height: 4px;
-  background: var(--color-surface-elevated);
-  border-radius: 2px;
-  margin-top: 8px;
-  overflow: hidden;
-}
-
-.cat-row__bar {
-  height: 100%;
-  border-radius: 2px;
-  transition: width var(--t-base);
-}
+.cat-row__progress { margin-top: 8px; }
 
 /* Transactions */
 .finance__transactions {
@@ -1262,13 +1227,6 @@ async function deleteExpense(id: string) {
   gap: 8px;
 }
 
-.finance__breakdown-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
-}
 
 .finance__breakdown-bar {
   height: 10px;
@@ -1310,13 +1268,6 @@ async function deleteExpense(id: string) {
   gap: 8px;
 }
 
-.finance__day-chart-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
-}
 
 .finance__day-bars {
   display: flex;
