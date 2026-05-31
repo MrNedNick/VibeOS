@@ -6,7 +6,7 @@ import ProgressRing from '../components/ProgressRing.vue'
 import SessionLogForm from '../components/SessionLogForm.vue'
 import type { LearningSession, ResourceType } from '../types'
 import { estimateTargetDate, todayStr, RESOURCE_META, RESOURCE_TYPES } from '../types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel, UiProgressBar, UiStat } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { aiComplete } from '@/core/composables/useAI'
@@ -149,27 +149,21 @@ function safeDomain(url: string): string {
     </div>
 
     <!-- Progress bar -->
-    <div class="detail__progress-bar">
-      <div class="detail__progress-fill" :style="{ width: progress + '%' }" />
-    </div>
+    <UiProgressBar :value="progress" :height="6" />
 
     <!-- Stats row -->
     <div class="detail__stats">
       <div class="detail__stat">
-        <span class="detail__stat-value">🔥 {{ streak }}</span>
-        <span class="detail__stat-label">day streak</span>
+        <UiStat :value="'🔥 ' + streak" label="day streak" />
       </div>
       <div class="detail__stat">
-        <span class="detail__stat-value">{{ hoursLogged }}h</span>
-        <span class="detail__stat-label">of {{ plan.targetHours }}h</span>
+        <UiStat :value="hoursLogged + 'h'" :label="'of ' + plan.targetHours + 'h'" />
       </div>
       <div class="detail__stat">
-        <span class="detail__stat-value">{{ sessions.filter(s => s.status === 'completed').length }}</span>
-        <span class="detail__stat-label">sessions done</span>
+        <UiStat :value="sessions.filter(s => s.status === 'completed').length" label="sessions done" />
       </div>
       <div class="detail__stat">
-        <span class="detail__stat-value">{{ formatShortDate(targetDate) }}</span>
-        <span class="detail__stat-label">est. finish</span>
+        <UiStat :value="formatShortDate(targetDate)" label="est. finish" />
       </div>
     </div>
 
@@ -208,7 +202,7 @@ function safeDomain(url: string): string {
 
     <!-- Session history -->
     <div class="detail__history">
-      <p class="detail__section-label">Session history</p>
+      <UiSectionLabel class="detail__section-label">Session history</UiSectionLabel>
 
       <div v-if="sessions.length > 0" class="detail__session-list">
         <div
@@ -240,7 +234,7 @@ function safeDomain(url: string): string {
     <!-- Resources -->
     <div class="detail__resources">
       <div class="detail__resources-header">
-        <p class="detail__section-label">Resources</p>
+        <UiSectionLabel class="detail__section-label">Resources</UiSectionLabel>
         <button
           class="detail__resources-add-btn"
           @click="showAddResource = !showAddResource"
@@ -325,7 +319,7 @@ function safeDomain(url: string): string {
 
     <!-- Linked habit -->
     <div class="detail__link-habit">
-      <p class="detail__section-label">Linked habit</p>
+      <UiSectionLabel class="detail__section-label">Linked habit</UiSectionLabel>
       <div class="detail__link-habit-row">
         <select v-model="linkedHabitId" class="detail__habit-select">
           <option value="">— none —</option>
@@ -411,21 +405,6 @@ function safeDomain(url: string): string {
   margin: 4px 0 0;
 }
 
-/* ── Progress bar ────────────────────────────────────────────────── */
-.detail__progress-bar {
-  height: 6px;
-  background: var(--color-border);
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.detail__progress-fill {
-  height: 100%;
-  background: var(--color-accent);
-  border-radius: 99px;
-  transition: width 0.6s var(--ease);
-}
-
 /* ── Stats row ───────────────────────────────────────────────────── */
 .detail__stats {
   display: grid;
@@ -441,17 +420,6 @@ function safeDomain(url: string): string {
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-
-.detail__stat-value {
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.detail__stat-label {
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
 }
 
 /* ── Today block ─────────────────────────────────────────────────── */
@@ -506,14 +474,7 @@ function safeDomain(url: string): string {
 .detail__log-btn:hover { background: var(--color-accent-hover); }
 
 /* ── Section label ───────────────────────────────────────────────── */
-.detail__section-label {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 12px;
-}
+.detail__section-label { margin-bottom: 12px; }
 
 /* ── Session history ─────────────────────────────────────────────── */
 .detail__session-list {
@@ -789,7 +750,7 @@ function safeDomain(url: string): string {
   gap: 10px;
 }
 
-.detail__link-habit .detail__section-label { margin: 0; }
+.detail__link-habit .detail__section-label { margin-bottom: 0; }
 
 .detail__link-habit-row {
   display: flex;

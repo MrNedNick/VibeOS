@@ -5,7 +5,8 @@ import LearningPlanCard from '../components/LearningPlanCard.vue'
 import SessionLogForm from '../components/SessionLogForm.vue'
 import type { LearningCategory, LearningSession } from '../types'
 import { todayStr } from '../types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel, UiFilterChips } from '@/ui'
+import type { FilterChipOption } from '@/ui'
 import { aiComplete } from '@/core/composables/useAI'
 
 const store = useLearningStore()
@@ -101,11 +102,16 @@ const todayLabel = computed(() =>
   }),
 )
 
-const FREQ_OPTIONS: { val: 3 | 5 | 7; label: string }[] = [
-  { val: 3, label: '3×/week' },
-  { val: 5, label: 'Weekdays' },
-  { val: 7, label: 'Daily' },
+const FREQ_OPTIONS: FilterChipOption[] = [
+  { value: '3', label: '3×/week' },
+  { value: '5', label: 'Weekdays' },
+  { value: '7', label: 'Daily' },
 ]
+
+const formDaysStr = computed({
+  get: () => String(formDays.value),
+  set: (v: string) => { formDays.value = Number(v) as 3 | 5 | 7 },
+})
 
 // ── AI plan generator ────────────────────────────────────────────────
 const aiPrompt      = ref('')
@@ -194,16 +200,7 @@ async function generateWithAI() {
         </label>
         <div class="learning__form-field">
           <span class="learning__form-label">Frequency</span>
-          <div class="learning__chips">
-            <button
-              v-for="opt in FREQ_OPTIONS"
-              :key="opt.val"
-              type="button"
-              class="learning__chip"
-              :class="{ 'learning__chip--active': formDays === opt.val }"
-              @click="formDays = opt.val"
-            >{{ opt.label }}</button>
-          </div>
+          <UiFilterChips v-model="formDaysStr" :options="FREQ_OPTIONS" size="sm" />
         </div>
       </div>
 
@@ -239,7 +236,7 @@ async function generateWithAI() {
 
     <!-- Today strip -->
     <div v-if="store.todayItems.length > 0" class="learning__today">
-      <p class="learning__section-label">Today</p>
+      <UiSectionLabel class="learning__section-label">Today</UiSectionLabel>
       <div class="learning__today-list">
         <div
           v-for="item in store.todayItems"
@@ -442,29 +439,6 @@ async function generateWithAI() {
 .learning__input--grow { flex: 1; min-width: 0; }
 .learning__input--num { width: 76px; }
 
-.learning__chips {
-  display: flex;
-  gap: 6px;
-}
-
-.learning__chip {
-  padding: 5px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: var(--text-xs);
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--t-fast);
-}
-
-.learning__chip--active {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: #fff;
-}
-
 /* ── Buttons ─────────────────────────────────────────────────────── */
 .learning__btn {
   display: inline-flex;
@@ -518,14 +492,7 @@ async function generateWithAI() {
 .learning__btn--ai-toggle:hover { background: var(--color-accent-muted); }
 
 /* ── Section label ───────────────────────────────────────────────── */
-.learning__section-label {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 10px;
-}
+.learning__section-label { margin-bottom: 10px; }
 
 /* ── Today strip ─────────────────────────────────────────────────── */
 .learning__today-list {
