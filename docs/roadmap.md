@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3, updated 2026-05-30 (v4) after visual audit sprint, updated 2026-05-30 (v5) after AI integration + UX sprint, updated 2026-05-31 (v6) after AI assistants + habit purpose sprint.
+> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3, updated 2026-05-30 (v4) after visual audit sprint, updated 2026-05-30 (v5) after AI integration + UX sprint, updated 2026-05-31 (v6) after AI assistants + habit purpose sprint, updated 2026-05-31 (v7) after heatmap + finance charts + palette AI sprint.
 > Repositioned: VibeOS evolves from developer showcase to personal life operating system.
 > See `docs/strategy.md` for the full product context.
 > See `docs/privacy-security.md` for the auth/demo/security plan.
@@ -138,7 +138,7 @@ Order:
 6. ✅ **Workout/Training analysis** — after logging a workout: AI card with specific improvement suggestions; reads sport type, duration, distance, feeling, streak
 7. ✅ **Training plan generator** — "✦ Fill with AI" in Training module; enters topic → AI fills title, emoji, sportType, sessionsPerWeek
 8. ✅ **Priority assistant** — "✦ Focus" button in Tasks: AI reads pending tasks (priority, due dates, categories) and suggests 2-3 most important with reasoning
-9. **Command Palette AI** — "Ask AI: [anything]" command → Studio-like response inline
+9. ✅ **Command Palette AI** — "✦ Ask AI…" in ⌘K Actions; inline response stays in palette; Ask again button; loading spinner
 10. **Additional free providers** — Gemini Flash (Google AI Studio key), GroqCloud (fast Llama3/Mixtral), OpenRouter (multi-model); all optional with user key
 
 ---
@@ -156,6 +156,14 @@ Order:
 ---
 
 ## Recently shipped (history)
+
+### 2026-05-31 — Task heatmap + Finance charts + Palette AI (v0.7.3 → v0.7.4)
+
+- **Task activity heatmap (S4/5)** — GitHub-style 20-week completion grid in TaskManagerView; appears when user has completed at least one task; uses `completedAt` timestamps; reuses `HabitHeatmap` component; toggled via "📊 Activity" button in header
+- **Finance spending charts** — Stacked category breakdown bar (proportional widths + color segments + % legend) at top of Overview tab; day-by-day spending bar chart for the selected month with today highlighted; CSV export button in Transactions tab with filename `expenses-YYYY-MM.csv`
+- **Command Palette AI (S6/9)** — "✦ Ask AI…" command in ⌘K Actions group; enters sub-input mode; on Enter: calls Pollinations.ai without closing the palette; response displayed inline with "Ask again" button to reset; loading spinner during fetch
+
+---
 
 ### 2026-05-31 — AI assistants + habit purpose (v0.7.2 → v0.7.3)
 
