@@ -130,7 +130,7 @@ const THEME_OPTIONS: { id: Theme; labelKey: string; icon: string }[] = [
   { id: 'light',     labelKey: 'palette.themeLight',     icon: 'Sun'      },
 
   { id: 'brutalist', labelKey: 'palette.themeBrutalist', icon: 'Bold'     },
-  { id: 'softglass', labelKey: 'palette.themeSoftglass', icon: 'Glasses'  },
+
   { id: 'crt',       labelKey: 'palette.themeCrt',       icon: 'Monitor'  },
 ]
 

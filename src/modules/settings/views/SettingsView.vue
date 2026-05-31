@@ -28,20 +28,14 @@ const VIBE_PAKS: VibePak[] = [
   {
     id:      'light',
     nameKey: 'settings.themeLight',
-    swatches: ['#f0f0f5', '#2563eb', '#0d0d12'],
-    label:   'Clean',
+    swatches: ['#eef1f7', '#2563eb', '#0d1117'],
+    label:   'Frosted',
   },
   {
     id:      'brutalist',
     nameKey: 'settings.themeBrutalist',
     swatches: ['#f0ede8', '#000000', '#000000'],
     label:   'Stark',
-  },
-  {
-    id:      'softglass',
-    nameKey: 'settings.themeSoftglass',
-    swatches: ['#eef1f7', '#4f7ef7', '#1a1d2e'],
-    label:   'Frosted',
   },
   {
     id:      'crt',

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { storagGet, storageSet } from '@/core/utils/storage'
 
-export type Theme = 'dark' | 'light' | 'brutalist' | 'softglass' | 'crt'
+export type Theme = 'dark' | 'light' | 'brutalist' | 'crt'
 
 const THEME_KEY = 'platform:ui:theme'
 const SIDEBAR_KEY = 'platform:ui:sidebar'
@@ -52,6 +52,7 @@ export const useUiStore = defineStore('core:ui', () => {
     // Migrate removed pak IDs to safe defaults
     const stored = storagGet<string>(THEME_KEY, '')
     if (stored === 'synthwave') setTheme('dark')
+    else if (stored === 'softglass') setTheme('light')
     else applyTheme()
   }
 

@@ -268,31 +268,31 @@
   }
 }
 
-/* Light theme overrides */
+/* ─── Vibe-pak: Light ─────────────────────────────────────────── */
+/* Frosted glass — warm off-white bg, translucent surfaces, distinct header. Revolut-polished. */
 [data-theme='light'] {
-  --color-bg:               #f0f0f5;
-  --color-surface:          #ffffff;
-  --color-surface-elevated: #f6f6fa;
-  --color-border:           #dcdce4;
-  --color-border-subtle:    #ebebf0;
+  --color-bg:               #eef1f7;
+  --color-surface:          rgba(255, 255, 255, 0.82);
+  --color-surface-elevated: rgba(255, 255, 255, 0.92);
+  --color-border:           rgba(180, 185, 210, 0.40);
+  --color-border-subtle:    rgba(180, 185, 210, 0.22);
 
   --color-accent:           #2563eb;
   --color-accent-hover:     #1d4ed8;
-  --color-accent-muted:     rgba(37, 99, 235, 0.1);
+  --color-accent-muted:     rgba(37, 99, 235, 0.10);
 
   --color-success:          #16a34a;
   --color-danger:           #dc2626;
   --color-warning:          #d97706;
 
-  --color-text:             #0d0d12;
-  --color-text-secondary:   #44444e;   /* was #71717a — better contrast on light */
-  --color-text-muted:       #88888f;
+  --color-text:             #0d1117;
+  --color-text-secondary:   #3c4252;
+  --color-text-muted:       #7a8099;
 
   --shadow-sm: 0 1px 3px rgba(37, 99, 235, 0.08), 0 1px 2px rgba(100, 116, 160, 0.05);
   --shadow:    0 3px 10px rgba(37, 99, 235, 0.10), 0 2px 4px rgba(100, 116, 160, 0.06);
   --shadow-lg: 0 6px 20px rgba(37, 99, 235, 0.12), 0 4px 8px rgba(100, 116, 160, 0.07);
 
-  /* Crisp blue-grey — accent-tinted, no black opacity, polished for recruiters */
   --shadow-0: none;
   --shadow-1: 0 1px 3px  rgba(37, 99, 235, 0.08), 0 1px 2px  rgba(100, 116, 160, 0.05);
   --shadow-2: 0 3px 10px rgba(37, 99, 235, 0.11), 0 2px 4px  rgba(100, 116, 160, 0.07);
@@ -301,69 +301,34 @@
 
   --hover-tint-pct: 4%;
 
-  --color-surface-0: #f0f0f5;
-  --color-surface-1: #ffffff;
-  --color-surface-2: #f6f6fa;
-  --color-surface-3: #ededf2;
-}
-
-/* Soft Glass theme — frosted, light, clean */
-[data-theme='softglass'] {
-  --color-bg:               #eef1f7;
-  --color-surface:          rgba(255, 255, 255, 0.72);
-  --color-surface-elevated: rgba(255, 255, 255, 0.88);
-  --color-border:           rgba(180, 185, 210, 0.45);
-  --color-border-subtle:    rgba(180, 185, 210, 0.25);
-
-  --color-accent:           #4f7ef7;
-  --color-accent-hover:     #3b6ce0;
-  --color-accent-muted:     rgba(79, 126, 247, 0.12);
-
-  --color-success:          #22a863;
-  --color-danger:           #e84040;
-  --color-warning:          #e09020;
-
-  --color-text:             #1a1d2e;
-  --color-text-secondary:   #404460;
-  --color-text-muted:       #8890aa;
-
-  --shadow-sm: 0 2px 8px  rgba(79, 126, 247, 0.12), 0 1px 2px rgba(60, 70, 120, 0.08);
-  --shadow:    0 4px 16px rgba(79, 126, 247, 0.16), 0 2px 6px rgba(60, 70, 120, 0.10);
-  --shadow-lg: 0 8px 32px rgba(79, 126, 247, 0.20), 0 4px 10px rgba(60, 70, 120, 0.12);
-
-  /* Accent-tinted two-layer glass shadow — soft blue bloom aligned with backdrop-filter */
-  --shadow-0: none;
-  --shadow-1: 0 2px 8px  rgba(79, 126, 247, 0.12), 0 1px 2px  rgba(60, 70, 120, 0.07);
-  --shadow-2: 0 4px 16px rgba(79, 126, 247, 0.18), 0 2px 6px  rgba(60, 70, 120, 0.10);
-  --shadow-3: 0 8px 30px rgba(79, 126, 247, 0.22), 0 4px 10px rgba(60, 70, 120, 0.12);
-  --shadow-4: 0 16px 52px rgba(79, 126, 247, 0.26), 0 8px 18px rgba(60, 70, 120, 0.14);
-
-  --hover-tint-pct: 6%;
+  --radius:    10px;
+  --radius-lg: 14px;
 
   --color-surface-0: #e4e8f4;
-  --color-surface-1: rgba(255, 255, 255, 0.72);
-  --color-surface-2: rgba(255, 255, 255, 0.88);
-  --color-surface-3: rgba(255, 255, 255, 0.96);
-
-  --radius:     10px;
-  --radius-lg:  14px;
+  --color-surface-1: rgba(255, 255, 255, 0.82);
+  --color-surface-2: rgba(255, 255, 255, 0.92);
+  --color-surface-3: rgba(255, 255, 255, 0.98);
 }
 
-[data-theme='softglass'] .app-layout,
-[data-theme='softglass'] .sidebar,
-[data-theme='softglass'] .app-header {
+/* Light: frosted structural layers */
+[data-theme='light'] .app-layout,
+[data-theme='light'] .sidebar,
+[data-theme='light'] .app-header {
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
 }
 
-[data-theme='softglass'] .sidebar {
-  background: rgba(255, 255, 255, 0.65);
+[data-theme='light'] .sidebar {
+  background: rgba(255, 255, 255, 0.68);
   border-right: 1px solid rgba(180, 185, 210, 0.35);
 }
 
-[data-theme='softglass'] .app-header {
-  background: rgba(238, 241, 247, 0.80);
+/* Header clearly white against the #eef1f7 bg — not same tone */
+[data-theme='light'] .app-header {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(180, 185, 210, 0.40);
 }
+
 
 /* CRT Retro theme — green phosphor terminal */
 [data-theme='crt'] {

@@ -275,12 +275,12 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 | **Light** | merge + restyle | Soft Glass bg + distinct header + Revolut polish |
 | **Brutalist** | keep as-is | Already clean, no changes needed |
 | **CRT Retro** | redesign | New color palette — eye-friendly terminal |
-| ~~Synthwave~~ | remove | Too niche, removed |
-| ~~Soft Glass~~ | merged into Light | Background becomes Light's new base |
+| ~~Synthwave~~ | ✅ removed (v1.0.0) | Deleted from CSS, types, i18n, UI |
+| ~~Soft Glass~~ | ✅ merged into Light (v1.0.0) | Frosted bg + distinct header now in Light |
 
 ---
 
-### T1 — Remove Synthwave pak
+### T1 — Remove Synthwave pak ✅ (v1.0.0)
 
 **Scope:** CSS + TS type + Settings + CommandPalette  
 **Complexity:** low — pure deletion
@@ -294,7 +294,7 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 
 ---
 
-### T2 — Merge Soft Glass → Light (new unified Light pak)
+### T2 — Merge Soft Glass → Light (new unified Light pak) ✅ (v1.0.0)
 
 **Scope:** CSS redesign of `[data-theme='light']`, removal of `[data-theme='softglass']`  
 **Complexity:** medium — two blocks become one, design decisions needed
@@ -349,7 +349,7 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 
 ---
 
-### T4 — CRT Retro: color analysis + redesign
+### T4 — CRT Retro: color analysis + redesign 🔜 (palette chosen: C — Muted Phosphor Green)
 
 **Scope:** `[data-theme='crt']` CSS redesign  
 **Complexity:** medium — needs palette decision first
