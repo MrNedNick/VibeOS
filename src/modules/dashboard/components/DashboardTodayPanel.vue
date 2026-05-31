@@ -9,6 +9,7 @@ import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { calcProgress, daysUntil } from '@/modules/goals/types'
 import { useLocale } from '@/core/i18n'
 import { useNotesStore } from '@/modules/notes/stores/notes.store'
+import { UiSectionLabel } from '@/ui'
 import { deriveTitle } from '@/modules/notes/types'
 
 const router       = useRouter()
@@ -125,7 +126,7 @@ function priorityLabel(p: string): string {
     <!-- ── Tasks (always visible) ─────────────────────────────── -->
     <section class="today__section">
       <div class="today__section-header">
-        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionTasks') }}</span>
+        <UiSectionLabel as="span">{{ i18n.t('dashboardToday.sectionTasks') }}</UiSectionLabel>
         <span v-if="todayTasks.length" class="today__section-count">{{ tasksDone }}/{{ todayTasks.length }}</span>
         <button class="today__open-btn" @click="router.push('/tasks')">
           {{ i18n.t('dashboardToday.openBtn') }} →
@@ -168,7 +169,7 @@ function priorityLabel(p: string): string {
     <!-- ── Habits ─────────────────────────────────────────────── -->
     <section v-if="habits.length" class="today__section">
       <div class="today__section-header">
-        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionHabits') }}</span>
+        <UiSectionLabel as="span">{{ i18n.t('dashboardToday.sectionHabits') }}</UiSectionLabel>
         <span class="today__section-count" :class="{ 'today__section-count--done': habitsDone === habits.length }">
           {{ habitsDone }}/{{ habits.length }}
         </span>
@@ -204,7 +205,7 @@ function priorityLabel(p: string): string {
     <!-- ── Learning ───────────────────────────────────────────── -->
     <section v-if="learningItems.length" class="today__section">
       <div class="today__section-header">
-        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionLearning') }}</span>
+        <UiSectionLabel as="span">{{ i18n.t('dashboardToday.sectionLearning') }}</UiSectionLabel>
         <span class="today__section-count" :class="{ 'today__section-count--done': learningDone === learningItems.length }">
           {{ learningDone }}/{{ learningItems.length }}
         </span>
@@ -232,7 +233,7 @@ function priorityLabel(p: string): string {
     <!-- ── Training ───────────────────────────────────────────── -->
     <section v-if="trainingItems.length" class="today__section">
       <div class="today__section-header">
-        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionTraining') }}</span>
+        <UiSectionLabel as="span">{{ i18n.t('dashboardToday.sectionTraining') }}</UiSectionLabel>
         <span class="today__section-count" :class="{ 'today__section-count--done': trainingDone === trainingItems.length }">
           {{ trainingDone }}/{{ trainingItems.length }}
         </span>
@@ -260,7 +261,7 @@ function priorityLabel(p: string): string {
     <!-- ── Goals ─────────────────────────────────────────────── -->
     <section v-if="activeGoals.length" class="today__section">
       <div class="today__section-header">
-        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionGoals') }}</span>
+        <UiSectionLabel as="span">{{ i18n.t('dashboardToday.sectionGoals') }}</UiSectionLabel>
         <span class="today__section-count">{{ activeGoals.length }}</span>
         <button class="today__open-btn" @click="router.push('/goals')">
           {{ i18n.t('dashboardToday.openBtn') }} →
@@ -293,7 +294,7 @@ function priorityLabel(p: string): string {
     <!-- ── Pinned notes ────────────────────────────────────────── -->
     <section v-if="pinnedNotes.length" class="today__section">
       <div class="today__section-header">
-        <span class="today__section-title">{{ i18n.t('dashboardToday.sectionPinnedNotes') }}</span>
+        <UiSectionLabel as="span">{{ i18n.t('dashboardToday.sectionPinnedNotes') }}</UiSectionLabel>
         <span class="today__section-count">{{ pinnedNotes.length }}</span>
         <button class="today__open-btn" @click="router.push('/notes')">
           {{ i18n.t('dashboardToday.openBtn') }} →
@@ -361,14 +362,6 @@ function priorityLabel(p: string): string {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.today__section-title {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
 }
 
 .today__section-count {

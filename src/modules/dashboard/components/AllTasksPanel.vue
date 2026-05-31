@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel } from '@/ui'
 import { useLocale } from '@/core/i18n'
 
 export interface AggregatedTask {
@@ -75,7 +75,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 
     <!-- Top 5 -->
     <div class="all-tasks__section">
-      <p class="all-tasks__section-label">{{ i18n.t('allTasksPanel.top5') }}</p>
+      <UiSectionLabel>{{ i18n.t('allTasksPanel.top5') }}</UiSectionLabel>
       <div class="task-list">
         <div
           v-for="(task, i) in top5"
@@ -97,7 +97,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 
     <!-- Rest -->
     <div v-if="rest.length" class="all-tasks__section">
-      <p class="all-tasks__section-label">{{ i18n.t('allTasksPanel.remaining', { n: rest.length }) }}</p>
+      <UiSectionLabel>{{ i18n.t('allTasksPanel.remaining', { n: rest.length }) }}</UiSectionLabel>
       <div class="task-list">
         <div
           v-for="(task, i) in rest"
@@ -120,9 +120,7 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
     <!-- Shipped -->
     <div v-if="shippedTasks && shippedTasks.length" class="all-tasks__section">
       <div class="all-tasks__shipped-header">
-        <p class="all-tasks__section-label all-tasks__section-label--success">
-          {{ i18n.t('allTasksPanel.shipped') }} ({{ shippedTasks.length }})
-        </p>
+        <UiSectionLabel class="all-tasks__section-label--success">{{ i18n.t('allTasksPanel.shipped') }} ({{ shippedTasks.length }})</UiSectionLabel>
         <button
           v-if="shippedRest.length"
           class="all-tasks__shipped-toggle"
@@ -242,14 +240,6 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
 
 /* Sections */
 .all-tasks__section { display: flex; flex-direction: column; gap: 8px; }
-
-.all-tasks__section-label {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-}
 
 /* Task list */
 .task-list { display: flex; flex-direction: column; gap: 5px; }

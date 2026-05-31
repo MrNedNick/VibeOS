@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '@/modules/goals/types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel } from '@/ui'
 
 const router     = useRouter()
 const goalsStore = useGoalsStore()
@@ -38,7 +38,7 @@ function dueLabel(targetDate?: string): string {
 <template>
   <div class="goals-panel">
     <div class="goals-panel__header">
-      <span class="goals-panel__title">Active Goals</span>
+      <UiSectionLabel as="span">Active Goals</UiSectionLabel>
       <button class="goals-panel__all" @click="router.push('/goals')">
         View all <UiIcon name="ArrowRight" :size="12" />
       </button>
@@ -120,13 +120,6 @@ function dueLabel(targetDate?: string): string {
   margin-bottom: 14px;
 }
 
-.goals-panel__title {
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--color-text-secondary);
-}
 
 .goals-panel__all {
   display: flex;

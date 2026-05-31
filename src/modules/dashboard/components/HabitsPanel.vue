@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { computeStreak, todayStr } from '@/modules/habits/types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel } from '@/ui'
 
 const router      = useRouter()
 const habitsStore = useHabitsStore()
@@ -45,7 +45,7 @@ function toggleHabit(id: string) {
 <template>
   <div class="habits-panel">
     <div class="habits-panel__header">
-      <span class="habits-panel__title">Habits Today</span>
+      <UiSectionLabel as="span">Habits Today</UiSectionLabel>
       <div class="habits-panel__summary">
         <span
           class="habits-panel__count"
@@ -135,13 +135,6 @@ function toggleHabit(id: string) {
   gap: 8px;
 }
 
-.habits-panel__title {
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--color-text-secondary);
-}
 
 .habits-panel__summary {
   display: flex;
