@@ -19,8 +19,9 @@
 | S7 — Polish | 🔶 partial — error boundaries ✅, Vitest + CI ❌ still pending |
 | S8 — Design System | ✅ complete — unified @/ui, tokens, skeletons, widget customization |
 | S9 — Full Redesign | ✅ complete — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ |
+| S10 — Vibe-pak Consolidation | 🔜 planned — reduce to 4 paks, Revolut direction, CRT redesign |
 
-**S9 complete ✅ — Next: S7 Vitest tests or Finance UX pass** (see roadmap.md for options)
+**S9 complete ✅ — Active next: S10 T1+T2 (Remove Synthwave, merge Light+SoftGlass, Revolut direction)**
 
 ---
 

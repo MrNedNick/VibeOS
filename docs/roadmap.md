@@ -261,7 +261,208 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 
 ---
 
+---
+
+## S10 — Vibe-pak Consolidation + Revolut Direction 🔜 next
+
+**Goal:** reduce from 6 paks to 4 clean, well-defined identities. Drop Synthwave (too niche). Merge Light + Soft Glass into a single, better Light. Push Dark and Light toward the Revolut/Linear premium aesthetic. Redesign CRT Retro with eye-friendly colors.
+
+**Result:** 4 paks that are actually distinct, maintainable, and visually intentional.
+
+| Pak | Status | Direction |
+|-----|--------|-----------|
+| **Dark** | keep + restyle | Revolut direction — deep navy, not pure black |
+| **Light** | merge + restyle | Soft Glass bg + distinct header + Revolut polish |
+| **Brutalist** | keep as-is | Already clean, no changes needed |
+| **CRT Retro** | redesign | New color palette — eye-friendly terminal |
+| ~~Synthwave~~ | remove | Too niche, removed |
+| ~~Soft Glass~~ | merged into Light | Background becomes Light's new base |
+
+---
+
+### T1 — Remove Synthwave pak
+
+**Scope:** CSS + TS type + Settings + CommandPalette  
+**Complexity:** low — pure deletion
+
+- `main.css`: delete entire `[data-theme='synthwave']` block + the two rule groups below it (focus/active glow rules)
+- `ui.store.ts`: remove `'synthwave'` from `Theme` type union; remove `'synthwave'` from `isDark` computed
+- `SettingsView.vue`: remove Synthwave entry from `VIBE_PAKS` array
+- `CommandPalette.vue`: remove Synthwave entry from themes list
+- `SettingsView.vue` (or store init): if stored theme === 'synthwave', reset to 'dark'
+- i18n: remove `settings.themeSynthwave` + `palette.themeSynthwave` translation keys in all locale files
+
+---
+
+### T2 — Merge Soft Glass → Light (new unified Light pak)
+
+**Scope:** CSS redesign of `[data-theme='light']`, removal of `[data-theme='softglass']`  
+**Complexity:** medium — two blocks become one, design decisions needed
+
+**What Light inherits from Soft Glass:**
+- Background: `#eef1f7` (warm off-white — better than the current flat `#f0f0f5`)
+- Surface approach: translucent/frosted cards (`rgba(255,255,255,0.82)` instead of flat `#ffffff`)
+- `backdrop-filter: blur(16px)` on sidebar + header — keeps the glass aesthetic alive
+- Slightly larger radii (`--radius: 10px, --radius-lg: 14px`)
+
+**What Light adds / fixes:**
+- **Header MUST be distinct from bg** — current Soft Glass header bleeds into background
+  - Fix: header bg `rgba(255, 255, 255, 0.92)` with a clear `border-bottom: 1px solid rgba(180, 185, 210, 0.4)`
+  - Or: a slightly darker solid bg like `#dde2ec` — clearly separated
+- **Revolut-direction polish:** cleaner border colors, tighter spacing feel, more contrast between surfaces
+- Blue accent `#2563eb` (current Light) or adjust to `#3b5bdb` (slightly deeper, more premium)
+- `--hover-tint-pct: 4%` (keep subtle)
+- `--color-surface-3` clearly distinct from surface-2 for modal/panel elevation
+
+**After merge:**
+- Delete `[data-theme='softglass']` entire block from `main.css`
+- Remove Soft Glass from `ui.store.ts` Theme type
+- Remove from `SettingsView.vue` VIBE_PAKS
+- Remove from `CommandPalette.vue` themes list
+- localStorage migration: if stored theme === 'softglass', reset to 'light'
+
+---
+
+### T3 — Dark pak: Revolut direction
+
+**Scope:** `:root` CSS redesign (the default/dark theme)  
+**Complexity:** medium — affects entire app feel
+
+**Problems with current Dark:**
+- Background `#0a0a0a` is pure black — feels "developer terminal" not "premium app"
+- Surfaces are flat grey with minimal personality
+- Accent `#4f8ef7` is a generic blue — not distinctive enough
+- Borders `#2a2a30` have zero warmth
+
+**Revolut-direction changes:**
+- Background: `#0b0f1a` or `#0d1117` — deep navy, not pure black; subtle blue undertone
+- Surface-0: `#0b0f1a` (= bg)
+- Surface-1: `#131b28` — dark navy card
+- Surface-2: `#1a2436` — elevated panel
+- Surface-3: `#212e42` — modal/drawer
+- Border: `#1e2d42` / border-subtle: `#162030` — cool blue-grey borders, not flat dark grey
+- Accent: Consider shifting to `#5c7cfa` (Revolut indigo-adjacent) or keep `#4f8ef7` but verify contrast
+- `--hover-tint-pct`: maybe raise to 8% (deeper color = more visible tint needed)
+- Shadow-2: remove the accent micro-tint (added in Phase 4) — replace with proper navy depth
+
+**Must verify after change:** all modules on Dark theme still readable — especially text contrast on new navy surfaces.
+
+---
+
+### T4 — CRT Retro: color analysis + redesign
+
+**Scope:** `[data-theme='crt']` CSS redesign  
+**Complexity:** medium — needs palette decision first
+
+**Problem with current CRT:**
+- `#00e040` phosphor green on `#030b03` near-black = eye strain for long sessions
+- Pure monospace stack (`'Courier New'`) makes the UI feel broken/retro in a bad way
+- The "retro" feel is there but readability suffers
+- Surface hierarchy #030b03 → #091509 is barely noticeable
+
+**Palette options to analyze (choose one before implementing):**
+
+| Option | Bg | Accent | Text | Feel |
+|--------|-----|--------|------|------|
+| A — Amber DOS | `#1a1200` | `#ffb347` | `#ffd080` | warm, readable, classic |
+| B — IBM Blue Phosphor | `#001428` | `#4fc3f7` | `#b3e5fc` | cool, tech, sharp |
+| C — Soft Green (muted phosphor) | `#091209` | `#52c46a` | `#a8d8a8` | same vibe, much easier on eyes |
+| D — Amber-Green hybrid | `#0f1208` | `#a3d977` | `#c8e6a0` | yellow-green, readable, fresh |
+
+**Analysis questions to answer before implementing:**
+1. Should font stay monospace? (authentic terminal) or switch to mixed (sans body, mono code)?
+2. Should scan-line overlay stay? (it adds authenticity but hurts readability at high DPI)
+3. What differentiates CRT from Dark — enough contrast in identity?
+
+**After analysis:** pick palette, implement all tokens, verify Dashboard + Notes (text-heavy) readability.
+
+---
+
+### T5 — Code cleanup: 4-pak system
+
+**Scope:** TS types, i18n, Settings UI, CommandPalette  
+**Complexity:** low — bookkeeping after T1+T2+T3+T4 are done
+
+- `ui.store.ts`: `Theme = 'dark' | 'light' | 'brutalist' | 'crt'`
+- `isDark` computed: `theme === 'dark' || theme === 'crt'`
+- `SettingsView.vue`: 4-entry VIBE_PAKS with updated swatches for new Dark and Light
+- `CommandPalette.vue`: 4-entry theme list
+- i18n EN+RU: add/update keys for new pak names if renamed; remove deleted pak keys
+- Settings pak-card grid: 4 cards — verify layout looks right (currently 6 = 2 rows of 3; 4 = 1 row of 4 or 2×2)
+
+---
+
+### Execution order
+
+```
+T1 (Remove Synthwave) → T2 (Merge Light+SoftGlass) → T3 (Dark redesign)
+                      → T4 (CRT analysis first, then implement)
+                      → T5 (cleanup — last, after all paks final)
+```
+
+T1 and T2 can be done in one session.  
+T3 (Dark) should be done after Light is final — so Dark/Light contrast can be compared.  
+T4 needs the analysis conversation first — user chooses palette direction, then implement.
+
+---
+
 ## ── NEXT CHAT INSTRUCTIONS ────────────────────────────────────────────
+
+**Session: S10 Phase 1 — Remove Synthwave + Merge Light/SoftGlass**
+
+Start the next chat with this prompt:
+
+```
+Сессия — S10: Vibe-pak Consolidation (T1 + T2)
+
+Прочитай перед началом:
+- /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
+- /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S10 описан там
+
+Контекст: v0.9.9, S9 полностью завершён.
+
+Задача 1 (T1): Удалить Synthwave пак полностью
+- main.css: удалить [data-theme='synthwave'] блок и все его CSS правила ниже
+- ui.store.ts: убрать 'synthwave' из Theme типа и isDark
+- SettingsView.vue: убрать из VIBE_PAKS
+- CommandPalette.vue: убрать из themes
+- Миграция: если localStorage theme === 'synthwave' → 'dark'
+- i18n: удалить themeSynthwave + themeSynthwave ключи
+
+Задача 2 (T2): Объединить Soft Glass в Light
+- Новый Light берёт фон #eef1f7 от Soft Glass
+- Карточки: rgba(255,255,255,0.82) + backdrop-filter blur(16px) на sidebar/header
+- Хедер: чётко отличается от bg (не одного цвета!) — белый/полупрозрачный с бордером
+- Direction: Revolut-стиль — чистый, premium
+- Удалить [data-theme='softglass'] блок и все softglass ссылки
+- Миграция: если localStorage theme === 'softglass' → 'light'
+
+Правила: type-check → 0 ошибок. После T1 — коммит. После T2 — коммит.
+Версии: 0.9.9 → 1.0.0 после T2 (мержинг паков — значимая смена).
+```
+
+**Session: S10 Phase 2 — Dark Revolut + CRT Analysis**
+
+After T1+T2 complete, start a new chat:
+
+```
+Сессия — S10 Phase 2: Dark Revolut redesign + CRT Retro analysis
+
+Прочитай: CLAUDE.md + roadmap.md (S10 T3 + T4 описаны там)
+
+T3: Редизайн Dark под Revolut:
+- bg #0b0f1a (deep navy), surface-1 #131b28, surface-2 #1a2436, surface-3 #212e42
+- border #1e2d42, border-subtle #162030
+- Проверь контрастность всего текста на новых поверхностях
+
+T4: CRT Retro — выбери палитру:
+Покажи пользователю 4 варианта (A-D из roadmap.md S10 T4)
+и жди выбор перед тем как что-то менять.
+
+После выбора реализуй CRT, затем T5 cleanup.
+```
+
+---
 
 **Session: S9 Phase 4 — Vibe-paks v2**
 
