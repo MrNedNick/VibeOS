@@ -16,10 +16,13 @@
 | S4 — Core Life Modules | Goals + task unification | ✅ complete |
 | S5 — Life Depth | Learning + Training + Analytics | ✅ complete |
 | S6 — AI Integration | AI as planning layer | ✅ complete — 9 features |
-| S7 — Polish | Credibility + reliability | ✅ complete — error boundaries ✅, Vitest ✅, CI ✅, Lighthouse ✅, a11y ✅, bundle badge ✅ |
-| S8 — Design System | Unified component library | ✅ complete — v0.8.x |
+| S7 — Polish | Credibility + reliability | ✅ complete — Vitest ✅, CI ✅, Lighthouse 82 ✅, a11y 100 ✅ |
+| S8 — Design System | Unified component library | 🔄 active — items 1–3 ✅, item 4 (/ui-kit page) ❌ |
 | **S9 — Full Redesign** | Premium visual identity | ✅ **complete** — v0.9.x |
 | **S10 — Vibe-pak Consolidation** | 4 clean paks, Revolut + CRT redesign | ✅ **complete** — v1.0.x |
+| **S11 — Welcome & Positioning** | Life accelerator framing + premium welcome page | 🔜 planned — T1 needs user copy decisions |
+| **S12 — AI Depth** | AI in every module (Habits, Notes, Finance, Analytics) | 🔜 planned — analysis-first sprint |
+| **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 
 ---
 
@@ -416,6 +419,201 @@ T1 (Remove Synthwave) → T2 (Merge Light+SoftGlass) → T3 (Dark redesign)
 T1 and T2 can be done in one session.  
 T3 (Dark) should be done after Light is final — so Dark/Light contrast can be compared.  
 T4 needs the analysis conversation first — user chooses palette direction, then implement.
+
+---
+
+## S11 — Welcome Page & Positioning 🔜 planned
+
+**Goal:** turn VibeOS from "personal life OS" into a clearly positioned **life efficiency accelerator** — a product that makes you faster, sharper, and more intentional. Welcome page becomes the primary conversion surface for recruiters and potential users.
+
+**Why this sprint matters:** current positioning is generic ("life OS" is a category, not a promise). The new positioning is a specific value claim: *VibeOS accelerates you — it connects your goals, habits, learning, and work into one feedback loop so nothing slips and you compound faster.*
+
+---
+
+### T1 — Positioning update
+
+**Scope:** copy everywhere the product describes itself  
+**Complexity:** medium — many touch points, requires consistency
+
+**Current:** "A personal life operating system"  
+**New direction:** "Your personal life accelerator" / "The system that compounds your growth"
+
+**Touch points to update:**
+- `WelcomeView.vue` — hero headline + subheadline + feature section copy
+- `README.md` — tagline + "What it is" section
+- `AboutView.vue` — VibeOS description block
+- `docs/strategy.md` — product positioning section
+- `<title>` and `<meta description>` in `index.html`
+
+**Tone:** direct, confident, no fluff. Not "helps you manage tasks" — "you close every day knowing nothing slipped." Not "tracks habits" — "builds the proof that you show up."
+
+**Before implementing:** read current `WelcomeView.vue` and `docs/strategy.md` in full. Draft copy for hero + 3 feature pillars. Confirm direction with user before writing code.
+
+> ⚠️ **Requires user decisions before implementation** — see T1 pre-session checklist below.
+
+**T1 pre-session checklist (user reviews before session):**
+1. Hero headline — pick one or write your own:
+   - "The system that makes you compound" 
+   - "Your personal life accelerator"
+   - "One place. Every goal. No excuses."
+2. Subheadline (15–20 words) — what is the main promise?
+3. 3 feature pillars — which 3 modules best represent the value? (Goals + Habits + AI? Learning + Training + Dashboard?)
+4. CTA button label — "Launch App" / "Try it now" / "Enter VibeOS"
+
+---
+
+### T2 — Welcome page premium redesign
+
+**Scope:** `src/modules/welcome/WelcomeView.vue` — full redesign  
+**Complexity:** high — design-heavy, multi-section landing page
+
+**Goal:** a recruiter or potential user lands here and in 10 seconds understands: *this person ships real products.* Conversion target: they click "Launch App" and explore.
+
+**Structure:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  NAV — logo + "Sign in" link (minimal, no clutter)              │
+├─────────────────────────────────────────────────────────────────┤
+│  HERO — full viewport                                           │
+│  Headline: big, punchy, 2–3 words per line                      │
+│  Sub: one sentence value promise                                 │
+│  CTA: "Launch App" (primary, accent) + "See how it works" (ghost)│
+│  Visual: animated dashboard mockup or module grid               │
+├─────────────────────────────────────────────────────────────────┤
+│  PROOF STRIP — 3–4 stat chips                                   │
+│  "16 modules" · "AI in every workflow" · "4 design themes"      │
+│  "100% free · no account needed to try"                         │
+├─────────────────────────────────────────────────────────────────┤
+│  3 FEATURE PILLARS — icon + headline + 2-line description        │
+│  e.g. Goals+Habits / Learning+Training / AI+Dashboard           │
+├─────────────────────────────────────────────────────────────────┤
+│  AI SECTION — "Built-in AI, zero setup"                         │
+│  Explain Pollinations.ai free tier — no key, no account         │
+│  Show 2–3 example prompts as chips                              │
+├─────────────────────────────────────────────────────────────────┤
+│  VIBE-PAKS PREVIEW — "4 visual identities"                      │
+│  4 swatches side by side, theme name + accent color             │
+├─────────────────────────────────────────────────────────────────┤
+│  FINAL CTA — "Ready? Your data stays local."                    │
+│  "Launch App" button + privacy reassurance line                 │
+├─────────────────────────────────────────────────────────────────┤
+│  FOOTER — GitHub link + version badge                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Visual direction:** premium dark-first (matches Dark pak). Same S9 tokens — no new CSS primitives. Generous whitespace, large type hierarchy, subtle gradient accents via `color-mix`. No stock imagery — use the app's own UI as the visual.
+
+> ⚠️ **Depends on T1 copy decisions** — implement after T1 copy is confirmed.
+
+---
+
+## S12 — AI Depth: Every Module 🔜 planned
+
+**Goal:** every module that touches user data gets at least one meaningful AI action. Current coverage: Goals ✅ · Tasks ✅ · Learning ✅ · Training ✅ · Dashboard ✅. Remaining: Habits ❌ · Notes ❌ · Finance ❌ · Analytics ❌.
+
+**Architecture:** `useAI()` composable already exists (`src/core/composables/useAI.ts`). Pattern: user-initiated button → loading state → dismissable result card. Free via Pollinations.ai, no key needed.
+
+**Pre-session analysis required** — Claude must read each module's store + view before implementing. The AI prompt must be grounded in real data structures.
+
+---
+
+### T1 — Habits AI: "Pattern insights"
+
+**What:** after user opens HabitsView or clicks "✦ Analyse" button → AI reads:  
+- Habit names, categories, current streaks, best streaks
+- Check-in pattern (last 14 days — which days are consistently missed)
+- Correlation hints (which habits cluster by completion day)
+
+**Output:** 2–3 insight bullets, e.g.:
+- "You consistently skip Exercise on Wednesdays and Sundays — consider lowering frequency."
+- "Your best streaks are in the Learning category — you're building momentum there."
+- "Read 15 min and Meditate are completed together 80% of the time — they reinforce each other."
+
+**UI:** collapsible "✦ Pattern insights" card at top of HabitsView, generated on demand.
+
+**Prompt structure:** inject last 14 days of per-habit check data + streaks. Ask for 2–3 observations. No generic advice — only observations grounded in the provided data.
+
+---
+
+### T2 — Notes AI: "Summarise + extract"
+
+**What:** two buttons in NotesView toolbar (visible when a note is open and has >200 chars):
+1. **"✦ Summarise"** → distils note into 3–5 bullet points
+2. **"✦ Action items"** → extracts todos/next steps from the note text
+
+**Output:** appears as a floating card below the editor (doesn't replace note content).
+
+**Edge cases:** empty note → button hidden. Short note (<200 chars) → button hidden. AI card is dismissable and not persisted.
+
+**Prompt:** pass the raw note markdown. Ask for bullets only, no preamble.
+
+---
+
+### T3 — Finance AI: "Spending analysis"
+
+**What:** "✦ Analyse spending" button in FinanceView Overview tab → AI reads:
+- Current month expenses by category (total per category)
+- Budget limits per category (if set)
+- Over-budget categories
+- Biggest single expenses
+
+**Output:** 3–4 observations + 1–2 actionable suggestions, e.g.:
+- "Food accounts for 38% of this month's spending — your highest category."
+- "Transport is over budget by €42. Consider if any trips can be combined."
+- "You have no expenses logged in Savings this month."
+
+**Prompt:** inject structured spending summary (categories + amounts + budget limits). Responses in the same currency as the user's data.
+
+---
+
+### T4 — Analytics AI: "Monthly report"
+
+**What:** "✦ Generate monthly report" button in AnalyticsView → reads ALL module data for the selected period and produces a narrative summary:
+- Habit consistency %
+- Tasks completed vs created
+- Learning hours logged
+- Training sessions
+- Goals progress
+
+**Output:** 1 paragraph narrative, like a personal review. E.g.: "This month you completed 87% of your habits, your best result in 3 months. You logged 12 hours of learning across 2 plans, and your Fitness goal moved from 40% to 65%. Your main gap was tasks: 43% completion rate, down from last month."
+
+**This is the highest-value AI feature** — it synthesises across all modules and gives the user a real reflection of their month.
+
+---
+
+### Implementation notes
+
+- All features use `useAI()` — same pattern as existing integrations
+- All are **user-initiated** — no automatic runs
+- All results are **dismissable** — no persistent AI output
+- All prompts pass **only data from the user's current session** — no cross-session context
+- Test each feature manually: empty state → loading → result → dismiss
+
+---
+
+## S13 — Design Pass 🔜 planned (requires user decisions)
+
+**Goal:** quality pass on modules that haven't been touched since S9. User reviews current state of each module and flags what feels off — spacing, hierarchy, color use, empty states, mobile layout.
+
+**Why deferred:** design decisions require the user's eye on the actual running app. This sprint can't be planned purely from code — it needs a live walkthrough session first.
+
+**Pre-session process:**
+1. User opens the live app on MacBook (lg breakpoint) and iPhone (sm breakpoint)
+2. User notes which modules feel visually weak or inconsistent
+3. User brings specific screenshots or descriptions to the session
+4. Claude implements the agreed changes
+
+**Candidate modules (likely need work):**
+- **Finance** — known UX issues from roadmap backlog; dense layout
+- **Board** — Kanban/Timeline haven't been touched since S4
+- **Studio** — chat interface was shipped fast; layout may feel unpolished
+- **Analytics** — charts are functional but visually basic
+- **Calendar** — month grid works but right-panel layout needs review
+
+**Constraint:** all changes must follow S9 visual rules (color-mix, --shadow-*, --leading-*, UiCard for containers). No new CSS primitives.
+
+> ⚠️ **Start this sprint with a live review conversation, not with code.** User provides direction, Claude implements. Wrong order = wrong result.
 
 ---
 
