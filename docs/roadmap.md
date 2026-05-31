@@ -245,7 +245,7 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 **Per-pak audit order:**
 1. ✅ **Synthwave** — layered glow (bloom + depth drop), --hover-tint-pct 10%, surface-1..3 bumped brighter (v0.9.4)
 2. ✅ **Soft Glass** — two-layer accent-blue glass shadow, --hover-tint-pct 6%, aligned with backdrop-filter (v0.9.5)
-3. **CRT Retro** (scan-line + glow shadows — unique character)
+3. ✅ **CRT Retro** — stronger phosphor glow (inner halo + outer bloom), --hover-tint-pct 8%, clearer surface hierarchy (v0.9.6)
 4. **Brutalist** (shadow-less by design — verify no shadows bleed through)
 5. **Light** (most used by recruiters — must look polished)
 6. **Dark** (default — already good, minor tweaks only)
