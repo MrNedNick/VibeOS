@@ -1,27 +1,27 @@
 /* ─── Design tokens ─────────────────────────────────────────────── */
 :root {
-  /* Colors — Dark theme (default) */
-  --color-bg:               #0a0a0a;
-  --color-surface:          #141414;
-  --color-surface-elevated: #1e1e22;
+  /* Colors — Dark theme (default) — Revolut direction: deep navy, not pure black */
+  --color-bg:               #0b0f1a;
+  --color-surface:          #131b28;
+  --color-surface-elevated: #1a2436;
 
   /* Surface elevation hierarchy — 0=ground → 3=panels (used in S9 redesign) */
-  --color-surface-0: #0a0a0a;   /* ground — same as --color-bg */
-  --color-surface-1: #141414;   /* 1st level — same as --color-surface */
-  --color-surface-2: #1e1e22;   /* 2nd level — same as --color-surface-elevated */
-  --color-surface-3: #272730;   /* 3rd level — raised cards, floating panels */
+  --color-surface-0: #0b0f1a;   /* ground — deep navy */
+  --color-surface-1: #131b28;   /* 1st level — dark navy card */
+  --color-surface-2: #1a2436;   /* 2nd level — elevated panel */
+  --color-surface-3: #212e42;   /* 3rd level — modal/drawer */
 
-  --color-border:           #2a2a30;
-  --color-border-subtle:    #1e1e24;
+  --color-border:           #1e2d42;
+  --color-border-subtle:    #162030;
 
-  --color-accent:           #4f8ef7;
-  --color-accent-hover:     #3b7ef0;
-  --color-accent-muted:     rgba(79, 142, 247, 0.12);
+  --color-accent:           #5c7cfa;
+  --color-accent-hover:     #4a6cf7;
+  --color-accent-muted:     rgba(92, 124, 250, 0.12);
 
   --color-success:          #34d058;
   --color-danger:           #f06060;
   --color-warning:          #f0a030;
-  --color-info:             #4f8ef7;
+  --color-info:             #5c7cfa;
 
   /* Text — improved contrast for dark mode */
   --color-text:             #f0f0f4;
@@ -70,12 +70,12 @@
   /* Elevation system — 0=flat → 4=top-layer (modals) */
   --shadow-0: none;
   --shadow-1: 0 1px 3px  rgba(0, 0, 0, 0.50);
-  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.60), 0 1px 4px rgba(79, 142, 247, 0.07);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.60), 0 2px 8px rgba(0, 10, 30, 0.40);
   --shadow-3: 0 8px 28px rgba(0, 0, 0, 0.70);
   --shadow-4: 0 16px 48px rgba(0, 0, 0, 0.80);
 
   /* Hover tint — accent % mixed into card background on hover (theme-overridable) */
-  --hover-tint-pct: 7%;
+  --hover-tint-pct: 8%;
 
   /* Easing */
   --ease:        cubic-bezier(0.4, 0, 0.2, 1);

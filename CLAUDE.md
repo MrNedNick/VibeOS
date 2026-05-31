@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v1.0.0 — 2026-05-31**
+**Version: v1.0.1 — 2026-05-31**
 
 | Sprint | Status |
 |--------|--------|
@@ -19,9 +19,9 @@
 | S7 — Polish | 🔶 partial — error boundaries ✅, Vitest + CI ❌ still pending |
 | S8 — Design System | ✅ complete — unified @/ui, tokens, skeletons, widget customization |
 | S9 — Full Redesign | ✅ complete — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ |
-| S10 — Vibe-pak Consolidation | 🔄 active — T1 ✅ T2 ✅ T3 🔜 T4 🔜 (CRT palette chosen: Muted Green) |
+| S10 — Vibe-pak Consolidation | 🔄 active — T1 ✅ T2 ✅ T3 ✅ T4 🔜 (CRT palette chosen: Muted Green) |
 
-**Active next: S10 T3 (Dark → Revolut navy) + T4 (CRT → Muted Green #52c46a)**
+**Active next: S10 T4 (CRT → Muted Green #52c46a) + T5 cleanup**
 
 ---
 

@@ -22,8 +22,8 @@ const VIBE_PAKS: VibePak[] = [
   {
     id:      'dark',
     nameKey: 'settings.themeDark',
-    swatches: ['#0a0a0a', '#4f8ef7', '#f0f0f4'],
-    label:   'Default',
+    swatches: ['#0b0f1a', '#5c7cfa', '#f0f0f4'],
+    label:   'Navy',
   },
   {
     id:      'light',

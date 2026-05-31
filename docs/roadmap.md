@@ -323,7 +323,7 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 
 ---
 
-### T3 — Dark pak: Revolut direction
+### T3 — Dark pak: Revolut direction ✅ (v1.0.1)
 
 **Scope:** `:root` CSS redesign (the default/dark theme)  
 **Complexity:** medium — affects entire app feel
