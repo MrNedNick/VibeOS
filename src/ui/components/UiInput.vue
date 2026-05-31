@@ -28,22 +28,26 @@ const emit = defineEmits<{ enter: [] }>()
 <style scoped>
 .ui-input {
   width: 100%;
-  height: 38px;
-  padding: 0 12px;
+  height: 40px;
+  padding: 0 13px;
   font-size: var(--text-base);
   color: var(--color-text);
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  transition: border-color var(--t-fast);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
   outline: none;
 }
 
-.ui-input::placeholder { color: var(--color-text-muted); }
+.ui-input::placeholder { color: var(--color-text-muted); opacity: 0.6; }
 
 .ui-input:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-muted);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.ui-input:hover:not(:focus):not(:disabled) {
+  border-color: var(--color-text-muted);
 }
 
 .ui-input:disabled { opacity: 0.45; cursor: not-allowed; }

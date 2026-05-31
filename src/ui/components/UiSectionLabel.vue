@@ -22,9 +22,9 @@ withDefaults(defineProps<{
 
 <style scoped>
 .ui-section-label {
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--color-text-muted);
   margin: 0;
   line-height: 1.2;

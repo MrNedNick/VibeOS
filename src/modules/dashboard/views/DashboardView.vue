@@ -382,7 +382,7 @@ const APP_VERSION = __APP_VERSION__
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   height: 100%;
 }
 
@@ -460,16 +460,20 @@ const APP_VERSION = __APP_VERSION__
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
+  padding: 13px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: border-color var(--t-fast);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-1);
 }
-.life-stat:hover { border-color: var(--color-accent); }
+.life-stat:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-2);
+}
 
 .life-stat__icon {
   font-size: 20px;

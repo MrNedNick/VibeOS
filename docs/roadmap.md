@@ -216,10 +216,12 @@ Order:
 - Typography: `text-rendering: optimizeLegibility` + `font-feature-settings: rlig/calt` on body
 - Token migrations: sidebar, header font-size values → design tokens
 
-**Phase 2 — Component Restyle** (next)
-- UiInput, UiField, UiStat, UiSectionLabel visual improvements
-- AppHeader refinements
-- Dashboard card layout improvements
+**Phase 2 — Component Restyle** ✅ complete (v0.9.1)
+- UiInput: высота 38→40px, hover-border, focus-glow через `color-mix`, placeholder opacity
+- UiSectionLabel: font-weight 700→500, letter-spacing 0.08→0.06em (менее агрессивно)
+- AppHeader search: padding 5→6px, border-radius sm→md, gap 7→8px, font-size xs→sm, hover с accent-tinted bg
+- Dashboard: gap 24→20px, life-stat карточки — shadow-1 по умолчанию + shadow-2 on hover
+- platform-notes.ts: полная актуализация всех модулей, TECH_DEBT, PLATFORM_STATUS
 
 **Phase 3 — Module-by-module pass** (after Phase 2)
 - Per-module visual review and polish

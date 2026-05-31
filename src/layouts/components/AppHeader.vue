@@ -260,14 +260,14 @@ const moduleLabel = computed(() => {
 .header-search {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 10px;
+  gap: 8px;
+  padding: 6px 12px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: var(--color-surface-elevated);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: border-color var(--t-fast), color var(--t-fast);
+  transition: border-color var(--t-fast), color var(--t-fast), background var(--t-fast);
   flex-shrink: 0;
   min-height: 0;
   min-width: 0;
@@ -275,9 +275,11 @@ const moduleLabel = computed(() => {
 .header-search:hover {
   border-color: var(--color-accent);
   color: var(--color-text);
+  background: color-mix(in srgb, var(--color-surface-elevated) 70%, var(--color-accent-muted));
 }
 .header-search__text {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
+  font-weight: 450;
   white-space: nowrap;
 }
 .header-search__kbd {
@@ -286,9 +288,10 @@ const moduleLabel = computed(() => {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xs);
-  padding: 1px 5px;
+  padding: 1px 6px;
   color: var(--color-text-muted);
   letter-spacing: 0;
+  opacity: 0.8;
 }
 
 /* ── Mobile overrides (≤ 767px) ─────────────────────────────────────── */
