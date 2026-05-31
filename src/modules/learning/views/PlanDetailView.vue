@@ -4,11 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { useLearningStore } from '../stores/learning.store'
 import ProgressRing from '../components/ProgressRing.vue'
 import SessionLogForm from '../components/SessionLogForm.vue'
-import type { LearningSession } from '../types'
-import { estimateTargetDate, todayStr } from '../types'
+import type { LearningSession, ResourceType } from '../types'
+import { estimateTargetDate, todayStr, RESOURCE_META, RESOURCE_TYPES } from '../types'
 import { UiIcon } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useConfirm } from '@/core/composables/useConfirm'
+import { aiComplete } from '@/core/composables/useAI'
 
 const route = useRoute()
 const router = useRouter()
@@ -41,14 +42,7 @@ async function analyzeSession(data: Omit<LearningSession, 'id'>) {
   if (!plan.value) return
   aiAnalyzing.value = true
   const prompt = `I just completed a ${data.actualMinutes}-min learning session for "${plan.value.title}". ${data.topic ? 'Topic: ' + data.topic + '.' : ''} ${data.notes ? 'Notes: ' + data.notes + '.' : ''} Current progress: ${progress.value}% of ${plan.value.targetHours}h goal. What 2-3 things should I focus on in my NEXT session? Be specific and brief (3 sentences max).`
-  try {
-    const res = await fetch('https://text.pollinations.ai/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], model: 'openai', private: true }),
-    })
-    if (res.ok) aiAnalysis.value = (await res.text()).trim()
-  } catch { /* silent */ } finally { aiAnalyzing.value = false }
+  aiComplete(prompt).then(r => { aiAnalysis.value = r }).catch(() => {}).finally(() => { aiAnalyzing.value = false })
 }
 
 function submitLog(data: Omit<LearningSession, 'id'>) {
@@ -103,6 +97,32 @@ watch(() => plan.value?.linkedHabitId, (v) => { linkedHabitId.value = v ?? '' })
 
 function saveHabitLink() {
   store.updatePlanLink(planId.value, linkedHabitId.value || undefined)
+}
+
+// ── Resources ────────────────────────────────────────────────────────
+const resources = computed(() => store.getPlanResources(planId.value))
+
+const showAddResource = ref(false)
+const newResUrl   = ref('')
+const newResTitle = ref('')
+const newResType  = ref<ResourceType>('article')
+
+function submitResource() {
+  if (!newResUrl.value.trim()) return
+  store.addResource(planId.value, {
+    url:   newResUrl.value.trim(),
+    title: newResTitle.value.trim() || newResUrl.value.trim(),
+    type:  newResType.value,
+  })
+  newResUrl.value   = ''
+  newResTitle.value = ''
+  newResType.value  = 'article'
+  showAddResource.value = false
+}
+
+function safeDomain(url: string): string {
+  try { return new URL(url).hostname.replace('www.', '') }
+  catch { return url }
 }
 </script>
 
@@ -214,6 +234,92 @@ function saveHabitLink() {
 
       <p v-else class="detail__history-empty">
         No sessions logged yet. Start your first session above.
+      </p>
+    </div>
+
+    <!-- Resources -->
+    <div class="detail__resources">
+      <div class="detail__resources-header">
+        <p class="detail__section-label">Resources</p>
+        <button
+          class="detail__resources-add-btn"
+          @click="showAddResource = !showAddResource"
+        >
+          <UiIcon :name="showAddResource ? 'X' : 'Plus'" :size="13" />
+          {{ showAddResource ? 'Cancel' : 'Add resource' }}
+        </button>
+      </div>
+
+      <!-- Add form -->
+      <div v-if="showAddResource" class="detail__res-form">
+        <input
+          v-model="newResUrl"
+          class="detail__res-input"
+          placeholder="https://..."
+          @keydown.enter="submitResource"
+        />
+        <input
+          v-model="newResTitle"
+          class="detail__res-input"
+          placeholder="Title (optional)"
+          @keydown.enter="submitResource"
+        />
+        <div class="detail__res-form-row">
+          <div class="detail__res-types">
+            <button
+              v-for="t in RESOURCE_TYPES"
+              :key="t"
+              class="detail__res-type"
+              :class="{ 'detail__res-type--active': newResType === t }"
+              :title="RESOURCE_META[t].label"
+              @click="newResType = t"
+            >{{ RESOURCE_META[t].icon }}</button>
+          </div>
+          <button
+            class="detail__res-submit"
+            :disabled="!newResUrl.trim()"
+            @click="submitResource"
+          >Add</button>
+        </div>
+      </div>
+
+      <!-- Resource list -->
+      <div v-if="resources.length > 0" class="detail__res-list">
+        <div
+          v-for="res in resources"
+          :key="res.id"
+          class="detail__res-item"
+          :class="{ 'detail__res-item--done': res.done }"
+        >
+          <span class="detail__res-icon">{{ RESOURCE_META[res.type].icon }}</span>
+          <div class="detail__res-body">
+            <a
+              :href="res.url"
+              class="detail__res-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              :title="res.url"
+            >{{ res.title }}</a>
+            <span class="detail__res-domain">{{ safeDomain(res.url) }}</span>
+          </div>
+          <button
+            class="detail__res-done"
+            :class="{ 'detail__res-done--active': res.done }"
+            :title="res.done ? 'Mark as unread' : 'Mark as done'"
+            @click="store.toggleResourceDone(planId, res.id)"
+          >
+            <UiIcon :name="res.done ? 'CheckCircle2' : 'Circle'" :size="15" :stroke-width="1.75" />
+          </button>
+          <button
+            class="detail__res-del"
+            title="Remove"
+            @click="store.deleteResource(planId, res.id)"
+          >×</button>
+        </div>
+      </div>
+
+      <p v-else-if="!showAddResource" class="detail__resources-empty">
+        No resources yet — add articles, videos, or books for this plan.
       </p>
     </div>
 
@@ -479,6 +585,197 @@ function saveHabitLink() {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   margin: 0;
+}
+
+/* ── Resources ──────────────────────────────────────────────────── */
+.detail__resources {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.detail__resources-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detail__resources-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  padding: 3px 10px;
+  border: 1px solid var(--color-accent-muted);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-muted);
+  cursor: pointer;
+  transition: opacity var(--t-fast);
+}
+.detail__resources-add-btn:hover { opacity: 0.8; }
+
+.detail__res-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.detail__res-input {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--t-fast);
+}
+.detail__res-input:focus { border-color: var(--color-accent); }
+.detail__res-input::placeholder { color: var(--color-text-muted); }
+
+.detail__res-form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.detail__res-types {
+  display: flex;
+  gap: 4px;
+}
+
+.detail__res-type {
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity var(--t-fast), border-color var(--t-fast);
+}
+.detail__res-type:hover { opacity: 0.85; }
+.detail__res-type--active {
+  opacity: 1;
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+.detail__res-submit {
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-accent);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity var(--t-fast);
+}
+.detail__res-submit:hover { opacity: 0.88; }
+.detail__res-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.detail__res-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail__res-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  transition: background var(--t-fast);
+}
+.detail__res-item:hover { background: var(--color-surface-elevated); }
+.detail__res-item--done { opacity: 0.55; }
+
+.detail__res-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.detail__res-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.detail__res-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-accent);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity var(--t-fast);
+}
+.detail__res-link:hover { opacity: 0.75; text-decoration: underline; }
+
+.detail__res-domain {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detail__res-done {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  transition: color var(--t-fast);
+}
+.detail__res-done:hover { color: var(--color-accent); }
+.detail__res-done--active { color: var(--color-accent); }
+
+.detail__res-del {
+  font-size: 16px;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-xs);
+  opacity: 0;
+  transition: opacity var(--t-fast), color var(--t-fast);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.detail__res-item:hover .detail__res-del { opacity: 1; }
+.detail__res-del:hover { color: var(--color-danger); }
+
+.detail__resources-empty {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+  font-style: italic;
 }
 
 /* ── Linked habit ────────────────────────────────────────────────── */

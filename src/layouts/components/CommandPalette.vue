@@ -11,6 +11,7 @@ import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useNotesStore } from '@/modules/notes/stores/notes.store'
 import { UiIcon } from '@/ui'
 import type { Theme } from '@/core/stores/ui.store'
+import { aiComplete } from '@/core/composables/useAI'
 
 const palette     = useCommandPaletteStore()
 const uiStore     = useUiStore()
@@ -86,17 +87,7 @@ async function confirmAction() {
     aiLoading.value = true
     aiResult.value  = null
     try {
-      const res = await fetch('https://text.pollinations.ai/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: val }],
-          model: 'openai',
-          private: true,
-        }),
-      })
-      if (res.ok) aiResult.value = (await res.text()).trim()
-      else aiResult.value = 'Request failed — try again.'
+      aiResult.value = await aiComplete(val)
     } catch {
       aiResult.value = 'Could not reach AI — check your connection.'
     } finally {

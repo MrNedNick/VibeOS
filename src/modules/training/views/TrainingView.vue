@@ -6,6 +6,7 @@ import WorkoutLogForm from '../components/WorkoutLogForm.vue'
 import type { SportType, WorkoutLog } from '../types'
 import { SPORT_EMOJI, FEELING_EMOJI, todayStr } from '../types'
 import { UiIcon } from '@/ui'
+import { aiComplete } from '@/core/composables/useAI'
 
 const store = useTrainingStore()
 
@@ -106,13 +107,7 @@ async function generateWithAI() {
   const prompt = `Create a training plan for: "${aiPrompt.value}". Reply with ONLY a JSON object, no extra text: {"title":"short plan name","emoji":"single emoji","sportType":"running or strength or cycling or swimming or yoga or hiit or walking or other","sessionsPerWeek":2 or 3 or 5 or 7}`
 
   try {
-    const res = await fetch('https://text.pollinations.ai/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], model: 'openai', private: true }),
-    })
-    if (!res.ok) { aiError.value = 'AI request failed'; return }
-    const text = await res.text()
+    const text = await aiComplete(prompt)
     const match = text.match(/\{[\s\S]*?\}/)
     if (!match) { aiError.value = 'Could not parse AI response — try again'; return }
     const data = JSON.parse(match[0])

@@ -10,6 +10,7 @@ import HabitHeatmap from '@/modules/habits/components/HabitHeatmap.vue'
 import { useLocale } from '@/core/i18n'
 import { UiButton } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
+import { aiComplete } from '@/core/composables/useAI'
 
 const i18n = useLocale()
 const goalsStore = useGoalsStore()
@@ -62,12 +63,7 @@ async function askAIPriority() {
     : 'No pending tasks.'
   const prompt = `My pending tasks:\n${list}\n\nWhat should I focus on right now? Pick the 2-3 most important and explain why. Be direct and practical (3-4 sentences max).`
   try {
-    const res = await fetch('https://text.pollinations.ai/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], model: 'openai', private: true }),
-    })
-    if (res.ok) aiPriority.value = (await res.text()).trim()
+    aiPriority.value = await aiComplete(prompt)
   } catch { /* silent */ } finally { aiPriorityLoading.value = false }
 }
 

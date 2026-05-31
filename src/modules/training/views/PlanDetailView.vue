@@ -8,6 +8,7 @@ import { FEELING_EMOJI, todayStr } from '../types'
 import { UiIcon } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useConfirm } from '@/core/composables/useConfirm'
+import { aiComplete } from '@/core/composables/useAI'
 
 const route = useRoute()
 const router = useRouter()
@@ -39,14 +40,7 @@ async function analyzeWorkout(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {
   const distNote = data.actualDistance ? `, ${data.actualDistance}km` : ''
   const feelNote = ['', 'terrible', 'bad', 'ok', 'good', 'great'][data.feeling] ?? 'ok'
   const prompt = `I just logged a ${plan.value.sportType} workout for "${plan.value.title}". Duration: ${durationNote}${distNote}. Feeling: ${feelNote}. ${data.notes ? 'Notes: ' + data.notes + '.' : ''} Streak: ${streak.value} days. What 2-3 specific things should I focus on to improve in my NEXT session? Be concise (3 sentences max).`
-  try {
-    const res = await fetch('https://text.pollinations.ai/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], model: 'openai', private: true }),
-    })
-    if (res.ok) aiAnalysis.value = (await res.text()).trim()
-  } catch { /* silent */ } finally { aiAnalyzing.value = false }
+  aiComplete(prompt).then(r => { aiAnalysis.value = r }).catch(() => {}).finally(() => { aiAnalyzing.value = false })
 }
 
 function submitLog(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {

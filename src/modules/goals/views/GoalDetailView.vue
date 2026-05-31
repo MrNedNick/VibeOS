@@ -6,6 +6,7 @@ import MilestoneList from '../components/MilestoneList.vue'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '../types'
 import { UiIcon } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
+import { aiComplete } from '@/core/composables/useAI'
 
 const route = useRoute()
 const router = useRouter()
@@ -60,17 +61,7 @@ async function suggestMilestones() {
   const prompt = `I'm working on a goal: "${goal.value.title}" (category: ${goal.value.category}). ${existingNote}Suggest 5 specific, actionable milestones I can add. Reply ONLY with a bullet list, one per line, starting each with "- ".`
 
   try {
-    const res = await fetch('https://text.pollinations.ai/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: prompt }],
-        model: 'openai',
-        private: true,
-      }),
-    })
-    if (!res.ok) { suggestError.value = 'AI request failed'; return }
-    const text = await res.text()
+    const text = await aiComplete(prompt)
     suggestions.value = text
       .split('\n')
       .map(l => l.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '').trim())

@@ -13,6 +13,8 @@ import ModuleDetailPanel from '../components/ModuleDetailPanel.vue'
 import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '../components/AllTasksPanel.vue'
 import RecentActivityPanel from '../components/RecentActivityPanel.vue'
 import DashboardTodayPanel from '../components/DashboardTodayPanel.vue'
+import GoalsPanel from '../components/GoalsPanel.vue'
+import HabitsPanel from '../components/HabitsPanel.vue'
 import GitHubWidget from '../components/GitHubWidget.vue'
 import WeatherWidget from '../components/WeatherWidget.vue'
 import DigestWidget from '../components/DigestWidget.vue'
@@ -21,6 +23,8 @@ import { UiIcon } from '@/ui'
 
 const TODAY_ID    = '__today__'
 const OVERVIEW_ID = '__overview__'
+const GOALS_ID    = '__goals__'
+const HABITS_ID   = '__habits__'
 
 const router = useRouter()
 const tasksStore = useTasksStore()
@@ -203,6 +207,28 @@ const APP_VERSION = __APP_VERSION__
           <span class="mod-row__count">{{ aggregatedTasks.length }}</span>
         </div>
 
+        <!-- Goals live panel -->
+        <div
+          class="mod-row mod-row--life"
+          :class="{ 'mod-row--active': selectedId === GOALS_ID }"
+          @click="selectedId = GOALS_ID"
+        >
+          <span class="mod-row__icon"><UiIcon name="Target" :size="15" :stroke-width="1.75" /></span>
+          <span class="mod-row__name">Goals</span>
+          <span v-if="goalsStore.activeGoals.length > 0" class="mod-row__count">{{ goalsStore.activeGoals.length }}</span>
+        </div>
+
+        <!-- Habits live panel -->
+        <div
+          class="mod-row mod-row--life"
+          :class="{ 'mod-row--active': selectedId === HABITS_ID }"
+          @click="selectedId = HABITS_ID"
+        >
+          <span class="mod-row__icon"><UiIcon name="Flame" :size="15" :stroke-width="1.75" /></span>
+          <span class="mod-row__name">Habits</span>
+          <span class="mod-row__count">{{ todayHabits.done }}/{{ todayHabits.total }}</span>
+        </div>
+
         <div class="mod-row__divider" />
 
         <!-- Individual modules -->
@@ -254,6 +280,12 @@ const APP_VERSION = __APP_VERSION__
 
           <!-- Today panel -->
           <DashboardTodayPanel v-if="selectedId === TODAY_ID" key="__today__" />
+
+          <!-- Goals live panel -->
+          <GoalsPanel v-else-if="selectedId === GOALS_ID" key="__goals__" />
+
+          <!-- Habits live panel -->
+          <HabitsPanel v-else-if="selectedId === HABITS_ID" key="__habits__" />
 
           <!-- Overview: all tasks aggregated + activity -->
           <div v-else-if="selectedId === OVERVIEW_ID" key="__overview__" class="overview-panels">
@@ -455,6 +487,10 @@ const APP_VERSION = __APP_VERSION__
 
 .mod-row--overview {
   font-weight: 600;
+}
+
+.mod-row--life {
+  font-weight: 500;
 }
 
 .mod-row__divider {

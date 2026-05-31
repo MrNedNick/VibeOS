@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { UiIcon } from '@/ui'
+import { aiComplete } from '@/core/composables/useAI'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
@@ -48,17 +49,7 @@ async function generate() {
   const prompt = `Here's my productivity snapshot:\n${lines.join('\n')}\n\nWrite a brief, encouraging daily digest in 3–4 sentences. Highlight what's going well, suggest one thing to prioritise today, and end with a short motivational note. Be direct and concise.`
 
   try {
-    const res = await fetch('https://text.pollinations.ai/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: prompt }],
-        model: 'openai',
-        private: true,
-      }),
-    })
-    if (!res.ok) { error.value = `Request failed (${res.status})`; return }
-    digest.value = (await res.text()).trim()
+    digest.value = await aiComplete(prompt)
   } catch {
     error.value = 'Network error — check your connection'
   } finally {
