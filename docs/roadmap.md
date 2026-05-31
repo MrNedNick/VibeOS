@@ -157,6 +157,17 @@ Order:
 
 ## Recently shipped (history)
 
+### 2026-05-31 — Skip day + templates + board filter + vibe-paks + achievements (v0.7.7 → v0.7.8)
+
+- **Habit skip day** — `skippedDates?: string[]` on Habit; `toggleSkip()` store method; `computeStreak()` updated to treat skipped days as transparent (don't break, don't count); striped CSS pattern for skipped cells in past-days calendar; right-click any past cell to toggle skip
+- **Habit quick-start templates** — 5 one-click presets in empty state (Exercise 💪, Read 15 min 📖, Drink 2L water 💧, Meditate 🧘, No social media 📵); each has pre-set emoji, purpose, and category
+- **Board search + priority filter** — search input filters card title + description live across all columns; 5 priority filter chips (All/High/Medium/Low/None); filtered count shown when active; filter bar hidden when board is empty
+- **Soft Glass vibe-pak** — frosted glass aesthetic: translucent surfaces, backdrop-filter blur on sidebar/header, soft blue accent #4f7ef7, warm grey background #eef1f7
+- **CRT Retro vibe-pak** — phosphor green terminal: #00e040 accent, near-black #030b03 background, monospace font stack, CSS scan-line overlay via `body::after`; added to Settings + Command Palette
+- **Achievements system** — `achievements.store.ts` with 10 predefined milestones (Goal Setter, First Win, Note Taker, Scholar, Athlete, Goal Crusher, Player, Centurion, Consistent, Life OS); condition checked against event history; `AchievementToast.vue` slides in from bottom-right on unlock; auto-dismisses 4s; chained unlocks processed one at a time; mounted in AppLayout
+
+---
+
 ### 2026-05-31 — Habit depth pass + Finance Dashboard widget (v0.7.6 → v0.7.7)
 
 - **Habit categories** — `HabitCategory` type (health/productivity/learning/social/other) with color+icon meta; category picker in creation form (chip row); filter chips in HabitsView when 2+ categories in use; category icon badge on HabitCard meta row
