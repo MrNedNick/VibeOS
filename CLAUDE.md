@@ -4,16 +4,28 @@
 
 Before starting any non-trivial work, read:
 - `docs/strategy.md` — positioning, architecture decisions, per-module direction
-- `docs/roadmap.md` — current sprint plan (S1 → S5)
+- `docs/roadmap.md` — current sprint plan (S1–S9; S8 is the active sprint)
 
-Active sprint and priority are encoded in each task subject as `[S1·P0]`, `[S2·P1]`, etc. Pick tasks in sprint order (S1 → S2 → S3 → S4 → S5) and within a sprint follow the `metadata.order` field. Don't pull from a later sprint while earlier-sprint tasks are still open unless explicitly redirected.
+**Current state (v0.9.3, 2026-05-31):** S1–S8 complete. S9 active — Phase 1 ✅ Phase 2 ✅ Phase 3 ✅ (all 7 modules done).
 
-**Sprint shorthand:**
-- **S1 — Identity:** positioning, logo, vibe-paks, Lucide icons, copy pass, landing, README
-- **S2 — Wow:** Command Palette ⌘K, Settings module, event bus, Dashboard redesign, About
-- **S3 — Backend:** schema migrations, Supabase auth/sync, error boundaries + 404
-- **S4 — Module depth:** Tasks (Today/Focus/Streaks), Notes (backlinks/journal), Board, Studio, Snippets, Habits
-- **S5 — Polish:** Vitest + CI gate
+**Active sprint — S8: Design System**
+Priority order within S8:
+1. `UiSkeleton.vue` + skeleton loaders for all Dashboard widgets (fixes WeatherWidget layout shift)
+2. Configurable Dashboard widgets (reorder, show/hide, uniform card height)
+3. Unified component architecture audit + extract patterns to `@/ui`
+4. `/ui-kit` component library page (multi-session; use Claude in Chrome + `docs/design-system-reference.md`)
+5. Design token extension in `main.css`
+
+**Sprint shorthand (completed):**
+- **S1 — Identity:** positioning, logo, vibe-paks, Lucide icons, copy pass, landing ✅
+- **S2 — Command Center:** Command Palette ⌘K, Settings module, Dashboard panels, About ✅
+- **S3 — Backend:** Supabase auth code complete; paused awaiting credentials ⏸
+- **S4 — Core Life Modules:** Goals, Tasks life categories, Habits depth, Notes backlinks ✅
+- **S5 — Life Depth:** Learning, Training, Analytics, Calendar, Weather widget ✅
+- **S6 — AI Integration:** 9 AI features shipped, Pollinations.ai free tier ✅
+- **S7 — Polish:** Error boundaries done; Vitest + CI pending 🔜
+- **S8 — Design System:** skeleton loaders, widget customization, `/ui-kit`, unified @/ui 🔜 ACTIVE
+- **S9 — Full Redesign:** Revolut-style visual overhaul (after S8) 🔜
 
 ---
 
