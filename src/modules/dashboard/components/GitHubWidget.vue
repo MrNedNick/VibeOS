@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSkeleton } from '@/ui'
 
 interface GitHubCommit { message: string; sha: string }
 interface GitHubEvent {
@@ -156,8 +156,22 @@ onMounted(() => {
       </form>
     </div>
 
+    <!-- Loading skeleton -->
+    <template v-if="loading && !commits.length">
+      <div class="gh-widget__skeleton-graph">
+        <UiSkeleton v-for="n in 14" :key="n" width="100%" height="20px" rounded="sm" />
+      </div>
+      <div class="gh-widget__skeleton-rows">
+        <div v-for="n in 5" :key="n" class="gh-widget__skeleton-row">
+          <UiSkeleton width="44px" height="11px" rounded="full" />
+          <UiSkeleton width="100%" height="11px" rounded="full" />
+          <UiSkeleton width="38px" height="11px" rounded="full" />
+        </div>
+      </div>
+    </template>
+
     <!-- Error state -->
-    <p v-if="error" class="gh-widget__error">
+    <p v-else-if="error" class="gh-widget__error">
       <UiIcon name="AlertCircle" :size="12" />
       {{ error }}
     </p>
@@ -167,7 +181,7 @@ onMounted(() => {
       Enter your GitHub username to see recent activity
     </p>
 
-    <template v-else>
+    <template v-else-if="!loading || commits.length">
       <!-- Activity mini-graph -->
       <div class="gh-widget__graph">
         <div
@@ -362,4 +376,22 @@ onMounted(() => {
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Skeleton */
+.gh-widget__skeleton-graph {
+  display: flex;
+  gap: 3px;
+}
+
+.gh-widget__skeleton-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.gh-widget__skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 </style>

@@ -176,9 +176,9 @@ function cancelEdit() {
   border-radius: 50%;
   flex-shrink: 0;
 }
-.task-item__priority--low    { background: #4ade80; }
+.task-item__priority--low    { background: var(--color-success); }
 .task-item__priority--medium { background: var(--color-warning); }
-.task-item__priority--high   { background: #f97316; }
+.task-item__priority--high   { background: var(--color-warning-dark, #f97316); }
 .task-item__priority--urgent { background: var(--color-danger); }
 
 /* Text */
@@ -239,8 +239,8 @@ function cancelEdit() {
   flex-shrink: 0;
   white-space: nowrap;
 }
-.task-item__due--overdue  { background: color-mix(in srgb, #ef4444 12%, transparent); color: #ef4444; }
-.task-item__due--today    { background: color-mix(in srgb, #f59e0b 12%, transparent); color: #f59e0b; }
+.task-item__due--overdue  { background: color-mix(in srgb, var(--color-danger) 12%, transparent); color: var(--color-danger); }
+.task-item__due--today    { background: color-mix(in srgb, var(--color-warning) 12%, transparent); color: var(--color-warning); }
 .task-item__due--upcoming { color: var(--color-text-muted); }
 
 /* Linked goal chip */

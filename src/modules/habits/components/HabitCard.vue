@@ -999,21 +999,21 @@ function saveLinks() {
 }
 
 .habit-chip--goal {
-  background: color-mix(in srgb, #f59e0b 12%, transparent);
-  color: #f59e0b;
-  border: 1px solid color-mix(in srgb, #f59e0b 25%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 25%, transparent);
 }
 
 .habit-chip--learning {
-  background: color-mix(in srgb, #6366f1 12%, transparent);
-  color: #6366f1;
-  border: 1px solid color-mix(in srgb, #6366f1 25%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 .habit-chip--training {
-  background: color-mix(in srgb, #f97316 12%, transparent);
-  color: #f97316;
-  border: 1px solid color-mix(in srgb, #f97316 25%, transparent);
+  background: color-mix(in srgb, var(--color-warning-dark, #f97316) 12%, transparent);
+  color: var(--color-warning-dark, #f97316);
+  border: 1px solid color-mix(in srgb, var(--color-warning-dark, #f97316) 25%, transparent);
 }
 
 .habit-card__connect-toggle {

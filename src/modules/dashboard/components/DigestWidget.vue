@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSkeleton } from '@/ui'
 import { aiComplete } from '@/core/composables/useAI'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
@@ -94,10 +94,12 @@ function dismiss() {
     <!-- Body -->
     <Transition name="digest-body">
       <div v-if="open" class="digest__body">
-        <!-- Loading -->
-        <div v-if="loading" class="digest__loading">
-          <UiIcon name="Loader" :size="18" :stroke-width="1.5" class="digest__spinner" />
-          <span>Generating your digest…</span>
+        <!-- Loading skeleton -->
+        <div v-if="loading" class="digest__skeleton">
+          <UiSkeleton width="100%" height="14px" rounded="full" />
+          <UiSkeleton width="92%" height="14px" rounded="full" />
+          <UiSkeleton width="78%" height="14px" rounded="full" />
+          <UiSkeleton width="85%" height="14px" rounded="full" />
         </div>
         <!-- Error -->
         <div v-else-if="error" class="digest__error">
@@ -196,21 +198,16 @@ function dismiss() {
 .digest__icon-btn:hover:not(:disabled) { background: var(--color-surface-elevated); color: var(--color-text); }
 .digest__icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.digest__spinner { animation: spin 1s linear infinite; }
-
 .digest__body {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.digest__loading {
+.digest__skeleton {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  font-size: 13px;
-  color: var(--color-text-muted);
   padding: 4px 0;
 }
 

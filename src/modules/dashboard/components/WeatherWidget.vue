@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSkeleton } from '@/ui'
 
 interface WeatherData {
   city:        string
@@ -189,10 +189,21 @@ onUnmounted(() => clearInterval(intervalId))
       </button>
     </div>
 
-    <!-- Loading -->
-    <div v-else-if="loading" class="weather__loading">
-      <UiIcon name="Loader" :size="20" :stroke-width="1.5" class="weather__spinner" />
-      <span>Loading…</span>
+    <!-- Loading skeleton -->
+    <div v-else-if="loading" class="weather__skeleton">
+      <div class="weather__skeleton-main">
+        <UiSkeleton width="44px" height="44px" rounded="md" />
+        <div class="weather__skeleton-temp">
+          <UiSkeleton width="80px" height="28px" rounded="md" />
+          <UiSkeleton width="100px" height="14px" rounded="full" />
+        </div>
+        <UiSkeleton width="70px" height="14px" rounded="full" />
+      </div>
+      <div class="weather__skeleton-details">
+        <UiSkeleton width="68px" height="12px" rounded="full" />
+        <UiSkeleton width="52px" height="12px" rounded="full" />
+        <UiSkeleton width="60px" height="12px" rounded="full" />
+      </div>
     </div>
 
     <!-- Error -->
@@ -256,7 +267,8 @@ onUnmounted(() => clearInterval(intervalId))
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 80px;
+  /* Fixed height — prevents layout shift when data loads */
+  min-height: 148px;
 }
 
 /* Header */
@@ -352,11 +364,34 @@ onUnmounted(() => clearInterval(intervalId))
 }
 .weather__empty-text { font-size: 13px; color: var(--color-text-muted); }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+/* Skeleton */
+.weather__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  justify-content: center;
 }
-.weather__spinner { animation: spin 1s linear infinite; }
+
+.weather__skeleton-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.weather__skeleton-temp {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.weather__skeleton-details {
+  display: flex;
+  gap: 12px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+}
 
 /* Error */
 .weather__error {

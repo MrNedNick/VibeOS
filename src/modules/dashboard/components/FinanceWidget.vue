@@ -62,7 +62,7 @@ const isEmpty = computed(() => store.thisMonthExpenses.length === 0)
       <div class="fin-widget__total-row">
         <span
           class="fin-widget__total"
-          :style="budget && total > budget ? { color: '#ef4444' } : {}"
+          :style="budget && total > budget ? { color: 'var(--color-danger)' } : {}"
         >{{ formatAmount(total, store.currency) }}</span>
         <span v-if="budget" class="fin-widget__budget-label">
           / {{ formatAmount(budget, store.currency) }}
@@ -79,7 +79,7 @@ const isEmpty = computed(() => store.thisMonthExpenses.length === 0)
           class="fin-widget__budget-fill"
           :style="{
             width: budgetPct + '%',
-            background: budgetPct >= 100 ? '#ef4444' : budgetPct >= 80 ? '#f59e0b' : '#22c55e',
+            background: budgetPct >= 100 ? 'var(--color-danger)' : budgetPct >= 80 ? 'var(--color-warning)' : 'var(--color-success)',
           }"
         />
       </div>
@@ -203,7 +203,7 @@ const isEmpty = computed(() => store.thisMonthExpenses.length === 0)
   gap: 4px;
   font-size: 11px;
   font-weight: 600;
-  color: #ef4444;
+  color: var(--color-danger);
   margin-left: auto;
 }
 

@@ -16,15 +16,11 @@ const formCategory = ref<GoalCategory>('skill')
 const formTargetDate = ref('')
 const titleRef = ref<HTMLInputElement>()
 
-const CATEGORIES: { val: GoalCategory; label: string }[] = [
-  { val: 'career', label: '💼 Career' },
-  { val: 'health', label: '🏃 Health' },
-  { val: 'skill', label: '🎯 Skill' },
-  { val: 'personal', label: '🌱 Personal' },
-  { val: 'financial', label: '💰 Financial' },
-  { val: 'project', label: '🚀 Project' },
-  { val: 'other', label: '⭐ Other' },
-]
+// Derived from CATEGORY_EMOJI + CATEGORY_LABEL — single source of truth in types/index.ts
+const CATEGORIES = (Object.keys(CATEGORY_EMOJI) as GoalCategory[]).map(val => ({
+  val,
+  label: `${CATEGORY_EMOJI[val]} ${CATEGORY_LABEL[val]}`,
+}))
 
 function openForm() {
   showForm.value = true

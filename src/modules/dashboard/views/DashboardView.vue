@@ -150,14 +150,14 @@ const APP_VERSION = __APP_VERSION__
         />
       </div>
       <div class="life-stat" @click="router.push('/goals')">
-        <span class="life-stat__icon">🎯</span>
+        <span class="life-stat__icon"><UiIcon name="Target" :size="20" :stroke-width="1.6" /></span>
         <div class="life-stat__info">
           <span class="life-stat__value">{{ goalsStore.activeGoals.length }}</span>
           <span class="life-stat__label">{{ i18n.t('dashboard.activeGoals') }}</span>
         </div>
       </div>
       <div class="life-stat" @click="router.push('/learning')">
-        <span class="life-stat__icon">📚</span>
+        <span class="life-stat__icon"><UiIcon name="BookOpen" :size="20" :stroke-width="1.6" /></span>
         <div class="life-stat__info">
           <span class="life-stat__value">{{ learningStore.todayItems.length }}</span>
           <span class="life-stat__label">{{ i18n.t('dashboard.learningToday') }}</span>
@@ -165,7 +165,7 @@ const APP_VERSION = __APP_VERSION__
         <span v-if="learningStore.todayItems.some(i => i.logged)" class="life-stat__done">{{ learningStore.todayItems.filter(i => i.logged).length }} {{ i18n.t('dashboard.doneSuffix') }}</span>
       </div>
       <div class="life-stat" @click="router.push('/training')">
-        <span class="life-stat__icon">💪</span>
+        <span class="life-stat__icon"><UiIcon name="Dumbbell" :size="20" :stroke-width="1.6" /></span>
         <div class="life-stat__info">
           <span class="life-stat__value">{{ trainingStore.todayItems.length }}</span>
           <span class="life-stat__label">{{ i18n.t('dashboard.trainingToday') }}</span>
@@ -390,7 +390,13 @@ const APP_VERSION = __APP_VERSION__
 }
 .life-stat:hover { border-color: var(--color-accent); }
 
-.life-stat__icon { font-size: 20px; flex-shrink: 0; }
+.life-stat__icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+}
 
 .life-stat__info {
   flex: 1;
@@ -444,7 +450,12 @@ const APP_VERSION = __APP_VERSION__
   display: grid;
   grid-template-columns: 1fr 240px 220px;
   gap: 16px;
-  align-items: start;
+  align-items: stretch; /* normalize card heights across the row */
+}
+
+/* Enforce a shared min-height on all three widget cards */
+.dashboard__widgets > * {
+  min-height: 148px;
 }
 
 @media (max-width: 1100px) {
