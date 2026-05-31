@@ -157,6 +157,16 @@ Order:
 
 ## Recently shipped (history)
 
+### 2026-05-31 — Habit reorder + game skins + multi-currency + about (v0.7.9 → v0.8.0)
+
+- **Habit drag-to-reorder** — HTML5 drag events on each habit row; ⠿ drag handle visible on hover; `reorderHabits(fromId, toId)` in store splices array to persist order; drag-over indicator at drop target
+- **Memory card themes** — 4 emoji pools: Animals (free), Food (3 wins), Symbols (7 wins), Nature (15 wins); `totalWins` counter; unlock toast; theme picker below board; pool used when reshuffling
+- **Sudoku color themes** — Classic (free), Dark @3 solved (dark cell backgrounds #1a1a2e), Pastel @7 solved (pink accents #e879a0); CSS vars via `:style`; `puzzlesSolved` counter; theme picker + unlock banner
+- **Finance multi-currency** — `baseCurrency` + `displayCurrency` + `exchangeRates` in store; `fetchRates()` calls open.er-api.com free API (once per day); `convertAmount()` helper; base/display pickers in Budgets tab; converted total in header
+- **About page live stats** — `MODULES` computed from `PLATFORM_MODULES` registry (Finance now included, descriptions updated for all shipped features); `STATS` computed from live stores: module count, habits tracked, tasks done, active goals
+
+---
+
 ### 2026-05-31 — Habit UX + achievements panel + notes-goals + finance recurring (v0.7.8 → v0.7.9)
 
 - **Habit at-risk filter** — `⚠️ At risk (N)` filter chip in HabitsView shown when any habit has streak > 2 but not yet checked today; filters list to at-risk habits only; amber styling distinct from category chips
