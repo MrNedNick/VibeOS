@@ -330,7 +330,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   padding: 14px 18px;
   background: linear-gradient(135deg,
     color-mix(in srgb, var(--color-accent) 15%, var(--color-surface)),
-    color-mix(in srgb, #f59e0b 10%, var(--color-surface))
+    color-mix(in srgb, var(--color-warning) 10%, var(--color-surface))
   );
   border: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
   border-radius: var(--radius-lg);
@@ -543,11 +543,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .habits__weekly {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 14px;
+  padding: 14px 18px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
 }
 
 .habits__weekly-stat {
@@ -640,11 +641,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   color: var(--cat, var(--color-accent));
 }
 
-.habits__cat--risk { border-color: color-mix(in srgb, #f59e0b 35%, var(--color-border)); }
+.habits__cat--risk { border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border)); }
 .habits__cat--risk.habits__cat--active {
-  background: color-mix(in srgb, #f59e0b 12%, transparent);
-  border-color: #f59e0b;
-  color: #f59e0b;
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
 }
 
 /* Grid + drag-to-reorder */

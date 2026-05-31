@@ -492,12 +492,14 @@ function saveLinks() {
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  transition: border-color var(--t-fast);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
   overflow: hidden;
+  box-shadow: var(--shadow-1);
 }
 
 .habit-card--done {
   border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border));
+  box-shadow: var(--shadow-2);
 }
 
 /* ── Body row ───────────────────────────────────────────────── */
@@ -512,7 +514,7 @@ function saveLinks() {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 20px 14px;
+  padding: 20px 22px 16px;
 }
 
 .habit-card__identity {
@@ -524,7 +526,7 @@ function saveLinks() {
 }
 
 .habit-card__emoji {
-  font-size: 28px;
+  font-size: 30px;
   line-height: 1;
   flex-shrink: 0;
   user-select: none;
@@ -927,7 +929,7 @@ function saveLinks() {
     flex: 0 0 300px;
     flex-direction: column;
     align-items: flex-start;
-    padding: 20px 22px 18px;
+    padding: 22px 24px 20px;
     border-right: 1px solid var(--color-border);
     justify-content: space-between;
     gap: 14px;

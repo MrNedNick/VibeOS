@@ -133,14 +133,14 @@ function cancelEdit() {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  border-radius: var(--radius);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  transition: border-color var(--t-fast), background var(--t-fast);
+  transition: border-color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
 }
 
-.task-item:hover { border-color: var(--color-border-subtle); background: var(--color-surface-elevated); }
+.task-item:hover { border-color: var(--color-border); background: color-mix(in srgb, var(--color-accent) 3%, var(--color-surface-elevated)); }
 .task-item:hover .task-item__delete { opacity: 1; }
 .task-item--editing { border-color: var(--color-accent); background: var(--color-surface-elevated); }
 .task-item--focused:not(.task-item--editing) { border-color: var(--color-accent); outline: 2px solid var(--color-accent-muted); }
@@ -224,10 +224,10 @@ function cancelEdit() {
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
 }
-.task-item__cat--work     { color: #3b82f6; background: rgba(59,130,246,.1); border-color: rgba(59,130,246,.25); }
-.task-item__cat--learning { color: #8b5cf6; background: rgba(139,92,246,.1); border-color: rgba(139,92,246,.25); }
-.task-item__cat--training { color: #f97316; background: rgba(249,115,22,.1); border-color: rgba(249,115,22,.25); }
-.task-item__cat--personal { color: #10b981; background: rgba(16,185,129,.1); border-color: rgba(16,185,129,.25); }
+.task-item__cat--work     { color: #3b82f6; background: color-mix(in srgb, #3b82f6 10%, transparent); border-color: color-mix(in srgb, #3b82f6 25%, transparent); }
+.task-item__cat--learning { color: #8b5cf6; background: color-mix(in srgb, #8b5cf6 10%, transparent); border-color: color-mix(in srgb, #8b5cf6 25%, transparent); }
+.task-item__cat--training { color: #f97316; background: color-mix(in srgb, #f97316 10%, transparent); border-color: color-mix(in srgb, #f97316 25%, transparent); }
+.task-item__cat--personal { color: #10b981; background: color-mix(in srgb, #10b981 10%, transparent); border-color: color-mix(in srgb, #10b981 25%, transparent); }
 .task-item__cat--goal     { color: var(--color-accent); background: var(--color-accent-muted); border-color: var(--color-accent-muted); }
 
 /* Due date badge */

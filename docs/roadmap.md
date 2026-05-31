@@ -223,8 +223,11 @@ Order:
 - Dashboard: gap 24→20px, life-stat карточки — shadow-1 по умолчанию + shadow-2 on hover
 - platform-notes.ts: полная актуализация всех модулей, TECH_DEBT, PLATFORM_STATUS
 
-**Phase 3 — Module-by-module pass** (after Phase 2)
-- Per-module visual review and polish
+**Phase 3 — Module-by-module pass** ✅ in progress (v0.9.2+)
+- ✅ Dashboard — life-stat padding+shadow-2 hover, mod-row color-mix hover, workspace gap 20px, detail panel shadow-1 + rounded-lg
+- ✅ Goals — GoalCard surface raised + shadow-1, GoalsView gap 32px, GoalDetailView sections gap 28px, embedded panels shadow-1
+- ✅ Habits — HabitsView #f59e0b → --color-warning everywhere, weekly summary shadow-1, HabitCard shadow-1+done-shadow-2, emoji 30px, padding bumped
+- ✅ Tasks — title font-weight 700, heatmap panel + AI card surface-elevated + shadow-1 + more padding, TaskItem padding 11px 14px + color-mix hover + rgba→color-mix category badges
 
 **Phase 4 — Vibe-paks v2** (after Phase 3)
 - Refine all 6 themes with new elevation/surface tokens

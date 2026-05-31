@@ -206,7 +206,7 @@ const todayLabel = computed(() =>
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 32px;
 }
 
 .goals__header {
@@ -314,7 +314,7 @@ const todayLabel = computed(() =>
 .goals__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 /* Completed */

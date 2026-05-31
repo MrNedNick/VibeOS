@@ -283,15 +283,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 .tm-view__title {
   font-size: 27px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text);
   margin: 0;
+  line-height: var(--leading-3xl);
 }
 
 .tm-view__subtitle {
-  font-size: 15px;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
-  margin: 2px 0 0;
+  margin: 3px 0 0;
+  line-height: var(--leading-sm);
 }
 
 .tm-view__actions {
@@ -323,13 +325,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 /* Activity heatmap panel */
 .tm-view__heatmap-panel {
-  background: var(--color-surface);
+  background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 14px 18px 16px;
+  padding: 16px 20px 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-shadow: var(--shadow-1);
 }
 
 .tm-view__heatmap-header {
@@ -368,10 +371,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
   border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  box-shadow: var(--shadow-1);
 }
 
 .tm-view__ai-header { display: flex; align-items: center; justify-content: space-between; }

@@ -453,26 +453,27 @@ const APP_VERSION = __APP_VERSION__
 .dashboard__life-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .life-stat {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 13px 16px;
+  padding: 15px 18px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 13px;
   cursor: pointer;
-  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-1);
 }
 .life-stat:hover {
-  border-color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 50%, var(--color-border));
   box-shadow: var(--shadow-2);
+  background: color-mix(in srgb, var(--color-accent) 3%, var(--color-surface));
 }
 
 .life-stat__icon {
@@ -492,16 +493,17 @@ const APP_VERSION = __APP_VERSION__
 }
 
 .life-stat__value {
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--color-text);
-  line-height: 1;
+  line-height: var(--leading-xl);
   font-variant-numeric: tabular-nums;
 }
 
 .life-stat__label {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
+  line-height: var(--leading-xs);
 }
 
 .life-stat__done {
@@ -577,7 +579,7 @@ const APP_VERSION = __APP_VERSION__
 .dashboard__workspace {
   display: grid;
   grid-template-columns: 220px 1fr;
-  gap: 16px;
+  gap: 20px;
   flex: 1;
   min-height: 0;
   align-items: start;
@@ -607,7 +609,7 @@ const APP_VERSION = __APP_VERSION__
 }
 
 .mod-row:hover:not(.mod-row--active) {
-  background: var(--color-surface-elevated);
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface-elevated));
   color: var(--color-text);
 }
 
@@ -733,9 +735,10 @@ const APP_VERSION = __APP_VERSION__
 .dashboard__detail {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 22px 24px;
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
   overflow-y: auto;
+  box-shadow: var(--shadow-1);
 }
 
 /* Overview: side-by-side tasks + activity */

@@ -31,6 +31,7 @@ const dueLabel = computed(() => {
 <template>
   <UiCard
     clickable
+    surface="raised"
     :class="{ 'goal-card--completed': goal.status === 'completed' }"
     @click="router.push(`/goals/${goal.id}`)"
   >
@@ -70,20 +71,21 @@ const dueLabel = computed(() => {
   gap: 12px;
 }
 
-.goal-card__emoji { font-size: 26px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+.goal-card__emoji { font-size: 28px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
 
 .goal-card__info {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .goal-card__title {
   font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-text);
+  line-height: var(--leading-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -122,5 +124,8 @@ const dueLabel = computed(() => {
 .goal-card__milestones {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  padding: 3px 0 0;
+  line-height: var(--leading-2xs);
 }
 </style>

@@ -335,7 +335,7 @@ function onTaskKeydown(e: KeyboardEvent) {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
 }
 
 .gdetail__back {
@@ -360,11 +360,17 @@ function onTaskKeydown(e: KeyboardEvent) {
   gap: 16px;
 }
 
-.gdetail__emoji { font-size: 40px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.gdetail__emoji { font-size: 44px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
 
 .gdetail__heading { flex: 1; min-width: 0; }
 
-.gdetail__title { font-size: var(--text-3xl); font-weight: 700; margin: 0; color: var(--color-text); }
+.gdetail__title {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+  line-height: var(--leading-2xl);
+}
 
 .gdetail__badges {
   display: flex;
@@ -402,7 +408,7 @@ function onTaskKeydown(e: KeyboardEvent) {
   flex-shrink: 0;
 }
 
-.gdetail__section { display: flex; flex-direction: column; gap: 10px; }
+.gdetail__section { display: flex; flex-direction: column; gap: 14px; }
 
 .gdetail__section-header {
   display: flex;
@@ -503,11 +509,12 @@ function onTaskKeydown(e: KeyboardEvent) {
 .gdetail__tasks {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px 20px;
-  background: var(--color-surface);
+  gap: 12px;
+  padding: 18px 22px;
+  background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
 }
 
 .gdetail__tasks-count {
@@ -653,9 +660,10 @@ function onTaskKeydown(e: KeyboardEvent) {
 
 /* ── Linked notes ────────────────────────────────────────────────── */
 .gdetail__notes-section {
-  display: flex; flex-direction: column; gap: 10px;
-  padding: 16px 20px; background: var(--color-surface);
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 18px 22px; background: var(--color-surface-elevated);
   border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
 }
 .gdetail__notes-open {
   font-size: 12px; font-weight: 500; color: var(--color-accent);
