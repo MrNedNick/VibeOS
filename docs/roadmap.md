@@ -157,6 +157,16 @@ Order:
 
 ## Recently shipped (history)
 
+### 2026-05-31 — Habit depth pass + Finance Dashboard widget (v0.7.6 → v0.7.7)
+
+- **Habit categories** — `HabitCategory` type (health/productivity/learning/social/other) with color+icon meta; category picker in creation form (chip row); filter chips in HabitsView when 2+ categories in use; category icon badge on HabitCard meta row
+- **Streak milestones** — `STREAK_MILESTONES = [7,14,30,60,100,180,365]`; `lastMilestone` stored per habit; `toggleToday` detects crossing a milestone and sets `milestoneHabit` reactive ref; HabitsView shows animated celebration banner, auto-dismisses after 5s
+- **Longest streak + habit age** — `computeBestStreak()` in types using sorted date diff; "Best N" shown when all-time record > current streak; `habitAge()` helper; "Day N" shown after 7+ days on HabitCard
+- **Check-in notes** — optional short note per day; `checkNotes: Record<string,string>` on Habit; `setCheckNote()` in store; note input appears for 6s after marking done, saves on Enter/blur; 💬 note displayed as subtitle, click to re-edit
+- **Finance Dashboard widget** — `FinanceWidget.vue` in Dashboard widgets row: monthly total + budget progress bar (green/amber/red) + "X over budget" badge + top-4 spending categories with proportional bars; 3rd column above 1100px, stacked on mobile; click navigates to Finance
+
+---
+
 ### 2026-05-31 — Habit check-ins + Training resources + Goal tasks (v0.7.5 → v0.7.6)
 
 - **Habit retroactive check-ins** — `toggleDate(id, date)` store method (guards: future dates blocked, max 30 days back); 📅 calendar button on each HabitCard reveals a 14-day grid with toggleable cells; clicking today routes through `toggleToday`; at-risk pulsing ⚠️ badge shown when streak > 2 but not yet checked today
