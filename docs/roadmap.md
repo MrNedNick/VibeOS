@@ -447,18 +447,31 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 **Tone:** direct, confident, no fluff. Not "helps you manage tasks" — "you close every day knowing nothing slipped." Not "tracks habits" — "builds the proof that you show up."
 
-**Before implementing:** read current `WelcomeView.vue` and `docs/strategy.md` in full. Draft copy for hero + 3 feature pillars. Confirm direction with user before writing code.
+**Before implementing:** read current `WelcomeView.vue` and `docs/strategy.md` in full.
 
-> ⚠️ **Requires user decisions before implementation** — see T1 pre-session checklist below.
+**✅ Copy decisions locked (2026-05-31):**
 
-**T1 pre-session checklist (user reviews before session):**
-1. Hero headline — pick one or write your own:
-   - "The system that makes you compound" 
-   - "Your personal life accelerator"
-   - "One place. Every goal. No excuses."
-2. Subheadline (15–20 words) — what is the main promise?
-3. 3 feature pillars — which 3 modules best represent the value? (Goals + Habits + AI? Learning + Training + Dashboard?)
-4. CTA button label — "Launch App" / "Try it now" / "Enter VibeOS"
+**Headline:** `"Everything connected. Nothing slips."`
+> Two-beat promise. Speaks to the real pain (fragmented tools, things falling through) and the real solution. Not a category ("life OS"), but a result.
+
+**Subheadline:** `"Goals, habits, learning, and training in one feedback loop — with AI that knows your actual data."`
+> "feedback loop" = compound growth framing. "AI that knows your actual data" = differentiator from generic AI tools.
+
+**3 feature pillars:**
+1. icon: Link2 — **"Connected by design"** — *"Goals link to habits, habits to training plans, tasks to goals. One action updates everything."*
+2. icon: TrendingUp — **"Progress that compounds"** — *"Your streaks, learning hours, and milestones stack up visibly. Consistency becomes confidence."*
+3. icon: Sparkles — **"AI that knows your context"** — *"Ask anything with your real data already loaded — goals, habits, tasks, learning. Free, no key required."*
+
+**CTA buttons:** `"Open VibeOS"` (primary, accent) + `"View on GitHub"` (ghost, links to GitHub)
+> "Open" not "Try" — sounds like your own tool, not a vendor's demo.
+
+**Additional design decisions (from code analysis):**
+- Remove terminal preview tab — not a conversion argument; move CRT pak into vibe-paks section
+- Stats strip: `"16 modules"` · `"AI in every workflow"` · `"100% local-first"` · `"No subscription. Ever."`
+- Add Vibe-paks section: 4 swatches (Dark / Light / Brutalist / CRT) side-by-side with accent color preview
+- Hero visual: animated life-stats card (fake data) showing `"🔥 14-day streak · 3 goals active · 2h learning"` — not a generic mockup
+- Replace current "OS-first thinking" pillar with the 3 new pillars above
+- Remove "Your data, only yours" as its own pillar — absorb into subheadline and stats
 
 ---
 
@@ -475,36 +488,46 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 ┌─────────────────────────────────────────────────────────────────┐
 │  NAV — logo + "Sign in" link (minimal, no clutter)              │
 ├─────────────────────────────────────────────────────────────────┤
-│  HERO — full viewport                                           │
-│  Headline: big, punchy, 2–3 words per line                      │
-│  Sub: one sentence value promise                                 │
-│  CTA: "Launch App" (primary, accent) + "See how it works" (ghost)│
-│  Visual: animated dashboard mockup or module grid               │
+│  HERO — full viewport height, 2-column on desktop              │
+│  LEFT: eyebrow chip → headline (big, 2 lines) → sub → 2 CTAs   │
+│  Headline: "Everything connected. Nothing slips."               │
+│  Sub: "Goals, habits, learning, and training in one feedback    │
+│       loop — with AI that knows your actual data."              │
+│  CTA 1: "Open VibeOS" (primary, accent, ArrowRight icon)        │
+│  CTA 2: "View on GitHub" (ghost, Github icon)                   │
+│  RIGHT: animated life-stats card (fake data, looks real):       │
+│    🔥 14-day streak · 3 goals active · 2h learning this week    │
+│    progress rings + habit check row + task count                │
 ├─────────────────────────────────────────────────────────────────┤
-│  PROOF STRIP — 3–4 stat chips                                   │
-│  "16 modules" · "AI in every workflow" · "4 design themes"      │
-│  "100% free · no account needed to try"                         │
+│  PROOF STRIP — 4 bordered stat chips, single row                │
+│  "16 modules" · "AI in every workflow"                          │
+│  "100% local-first" · "No subscription. Ever."                  │
 ├─────────────────────────────────────────────────────────────────┤
-│  3 FEATURE PILLARS — icon + headline + 2-line description        │
-│  e.g. Goals+Habits / Learning+Training / AI+Dashboard           │
+│  3 FEATURE PILLARS — icon + headline + 2-line copy              │
+│  Link2: "Connected by design"                                   │
+│  TrendingUp: "Progress that compounds"                          │
+│  Sparkles: "AI that knows your context"                         │
 ├─────────────────────────────────────────────────────────────────┤
-│  AI SECTION — "Built-in AI, zero setup"                         │
-│  Explain Pollinations.ai free tier — no key, no account         │
-│  Show 2–3 example prompts as chips                              │
+│  MODULE GRID — 12 cards, 4-column, icon + name + 1-line desc    │
+│  (keep from current — good content, needs visual polish only)   │
 ├─────────────────────────────────────────────────────────────────┤
-│  VIBE-PAKS PREVIEW — "4 visual identities"                      │
-│  4 swatches side by side, theme name + accent color             │
+│  VIBE-PAKS — "4 visual identities"                              │
+│  4 pak cards side-by-side: name + accent swatch + bg preview    │
+│  Dark / Light / Brutalist / CRT                                 │
 ├─────────────────────────────────────────────────────────────────┤
-│  FINAL CTA — "Ready? Your data stays local."                    │
-│  "Launch App" button + privacy reassurance line                 │
+│  FINAL CTA — "Your data stays in your browser. Always."         │
+│  "Open VibeOS" button centred + one-line privacy note           │
 ├─────────────────────────────────────────────────────────────────┤
-│  FOOTER — GitHub link + version badge                           │
+│  FOOTER — stack pills + GitHub link + version                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Visual direction:** premium dark-first (matches Dark pak). Same S9 tokens — no new CSS primitives. Generous whitespace, large type hierarchy, subtle gradient accents via `color-mix`. No stock imagery — use the app's own UI as the visual.
+**Visual direction:** premium dark-first (matches Dark pak). Same S9 tokens — no new CSS primitives. Generous whitespace, `clamp()` type sizes, gradient accent glow on hero headline via `color-mix`. No stock imagery — use fake-but-realistic app data as the visual.
 
-> ⚠️ **Depends on T1 copy decisions** — implement after T1 copy is confirmed.
+**What to remove from current page:**
+- Terminal preview tab section — not a conversion argument
+- "OS-first thinking" and "Vibe-paks" pillars — replaced by new 3 pillars
+- "Your data, only yours" as standalone pillar — folded into proof strip + final CTA
 
 ---
 
@@ -619,55 +642,28 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ## ── NEXT CHAT INSTRUCTIONS ────────────────────────────────────────────
 
-**Session: S7 Part 2 — Lighthouse + a11y + Bundle badge**
-
-```
-Сессия — S7 Part 2: Lighthouse, a11y, bundle badge
-
-Прочитай перед началом:
-- /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
-- /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S7 описан там
-
-Контекст: v1.0.4. S7 item 1 (Vitest, 59 тестов) ✅. S7 item 2 (CI gate) ✅.
-Vitest env: happy-dom (не jsdom — jsdom v27 ломается на Node 20).
-
-Задача: закрыть оставшиеся S7 пункты:
-
-1. Lighthouse audit — запустить через CLI (npm i -g lighthouse), получить scores,
-   задокументировать результат в roadmap.md. Если Performance < 80 — найти и исправить.
-
-2. a11y audit — проверить keyboard nav (Tab, Enter, Escape), focus rings, ARIA labels
-   на ключевых интерактивных элементах (sidebar, модалки, формы).
-   Исправить критические находки.
-
-3. Bundle size badge — добавить в README.md badge с текущим размером бандла.
-   Команда: npm run build, смотреть dist/ размер. Формат: shields.io static badge.
-
-После каждого пункта — коммит. Версии: 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7.
-После закрытия S7 — переходим к S8 /ui-kit (следующий приоритет).
-```
+> Актуально на v1.0.7 (2026-05-31). Промпты в порядке приоритета.
 
 ---
 
-**Session: S8 item 4 — /ui-kit component library page**
+**[СЛЕДУЮЩИЙ] Session: S8 item 4 — /ui-kit Component Library Page**
 
 ```
 Сессия — S8 item 4: /ui-kit Component Library Page
 
-Прочитай перед началом:
-- /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
-- /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S8 item 4 описан там
-- /Users/test/Documents/Work/AIProjects/VibeOS/docs/ui-kit-plan.md  ← полный план, ОБЯЗАТЕЛЕН
+Прочитай перед началом (в этом порядке):
+1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
+2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md
+3. /Users/test/Documents/Work/AIProjects/VibeOS/docs/ui-kit-plan.md  ← ОБЯЗАТЕЛЬНО полностью
 
 Контекст:
 - Версия: v1.0.7
-- S7 ✅ complete (Vitest 59, CI, Lighthouse 82, a11y 100, bundle badge 528 kB gzip)
-- S8 items 1–3 ✅ (UiSkeleton, widget customization, component architecture audit)
-- S10 ✅ — 4 пака: Dark, Light, Brutalist, CRT
+- S7 ✅ complete. S8 items 1–3 ✅. S10 ✅ (4 пака: Dark, Light, Brutalist, CRT)
+- Vitest: 59 тестов, happy-dom (не jsdom)
 
-Задача: реализовать /ui-kit component library page.
+Задача: реализовать /ui-kit component library page по плану из ui-kit-plan.md.
 
-Структура (из ui-kit-plan.md §8 File Structure):
+Структура (ui-kit-plan.md §8):
   src/modules/ui-kit/
     views/
       UiKitView.vue              ← root: sidebar + main area
@@ -675,95 +671,144 @@ Vitest env: happy-dom (не jsdom — jsdom v27 ломается на Node 20).
       sections/components/       ← один файл на каждый @/ui компонент
       sections/patterns/         ← UiEmptyState, UiConfirmDialog
     components/
-      ShowcaseCard.vue           ← article wrapper (header + playground + props)
-      PropTable.vue              ← принимает PropDef[]
-      PgStage.vue                ← playground wrapper
-      TokenSwatch.vue            ← color swatch с CSS var
-      TokenRow.vue               ← typography/spacing row
+      ShowcaseCard.vue, PropTable.vue, PgStage.vue, TokenSwatch.vue, TokenRow.vue
 
-Ключевые требования:
-- Route: /ui-kit — скрыт в production (import.meta.env.PROD)
-- Левый сайдбар: группы Tokens / Components / Patterns
-- Каждая секция: Header → Playground (живой @/ui компонент) → Prop table
-- Theme switcher в footer сайдбара: все 4 пака вживую
-- Prop table колонки: Prop / Type / Purpose
-- Canon ссылка на исходник src/ui/components/
+Решения (уже приняты):
+- Route /ui-kit скрыт в production (import.meta.env.PROD)
+- Сайдбар: Tokens / Components / Patterns
+- Каждый компонент: Header → Playground (живой @/ui) → Prop table (Prop / Type / Purpose)
+- Theme switcher в footer сайдбара — 4 пака вживую
+- 15 @/ui компонентов + 5 token секций — полный список в ui-kit-plan.md §9
 
-@/ui компоненты для документирования (15):
-UiBadge · UiButton · UiCard · UiConfirmDialog · UiEmptyState
-UiField · UiFilterChips · UiIcon · UiInput · UiProgressBar
-UiProgressRing · UiSectionLabel · UiSkeleton · UiStat · UiPlannedView
-
-Token секции: Colors · Typography · Spacing · Shadows/Elevation · Motion
-
-Порядок реализации (ui-kit-plan.md §10):
-1. UiKitView.vue + сайдбар + routing + ShowcaseCard/PropTable/PgStage
+Порядок (коммить по блокам, +patch каждый):
+1. UiKitView + сайдбар + routing + ShowcaseCard/PropTable/PgStage
 2. Token pages: Colors, Typography, Spacing, Shadows, Motion
-3. Компоненты: UiButton, UiInput, UiField
-4. Компоненты: UiCard, UiSkeleton, UiBadge, UiIcon
-5. Компоненты: UiProgressBar, UiProgressRing, UiStat, UiSectionLabel, UiFilterChips
-6. Patterns: UiEmptyState, UiConfirmDialog
+3. UiButton, UiInput, UiField, UiCard
+4. UiSkeleton, UiBadge, UiIcon, UiProgressBar, UiProgressRing
+5. UiStat, UiSectionLabel, UiFilterChips, UiEmptyState, UiConfirmDialog
 
-Большая задача — реализуй сколько успеешь, коммить по логическим блокам.
-
-Правила:
-- npm run type-check → 0 ошибок, npm test → 59 pass
-- Коммит + push после каждого блока, версия 1.0.7 → 1.0.8+ (patch per block)
-- S9 visual rules: color-mix hover, --shadow-*, no hardcoded hex
+Правила: type-check → 0, test → 59 pass, S9 visual rules (color-mix, --shadow-*, no hex)
 ```
 
 ---
 
-**Session: S9 Phase 4 — Vibe-paks v2**
-
-Start the next chat with this prompt:
+**Session: S11 — Welcome Page & Positioning**
 
 ```
-Сессия — S9 Phase 4: Vibe-paks v2
+Сессия — S11: Welcome Page redesign + Positioning update
 
 Прочитай перед началом:
-- /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
-- /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← Phase 4 описана там
+1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
+2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S11 описан там (T1+T2)
+3. /Users/test/Documents/Work/AIProjects/VibeOS/docs/strategy.md  ← текущее позиционирование
+4. src/modules/welcome/WelcomeView.vue  ← текущая страница (читай полностью)
 
-Контекст:
-- Версия: v0.9.3
-- S9 Phase 1–3 ✅ (visual foundation, component restyle, module pass)
-- S8 ✅ (design system, @/ui, tokens)
+Контекст: S8 ✅ complete. Версия: актуальная (смотри CLAUDE.md).
 
-Задача: S9 Phase 4 — Vibe-paks v2
-Аудит и обновление всех 6 тем так, чтобы --shadow-1..4, --color-surface-0..3
-и hover color-mix проценты соответствовали характеру каждой темы.
+ВСЕ COPY-РЕШЕНИЯ УЖЕ ПРИНЯТЫ — не нужно согласовывать, сразу реализуй:
 
-Порядок: Synthwave → Soft Glass → CRT Retro → Brutalist → Light → Dark
-Файл: src/assets/styles/main.css (блоки [data-theme="..."])
+Headline: "Everything connected. Nothing slips."
+Subheadline: "Goals, habits, learning, and training in one feedback loop
+              — with AI that knows your actual data."
+CTA buttons: "Open VibeOS" (primary) + "View on GitHub" (ghost → github.com/mrnednick/VibeOS)
+3 Pillars:
+  1. Link2 icon — "Connected by design"
+     "Goals link to habits, habits to training plans, tasks to goals. One action updates everything."
+  2. TrendingUp icon — "Progress that compounds"
+     "Your streaks, learning hours, and milestones stack up visibly. Consistency becomes confidence."
+  3. Sparkles icon — "AI that knows your context"
+     "Ask anything with your real data already loaded — goals, habits, tasks, learning. Free, no key required."
+Proof strip: "16 modules" · "AI in every workflow" · "100% local-first" · "No subscription. Ever."
 
-Правила:
-- npm run type-check → 0 ошибок
-- После каждого pak — коммит
-- Версия: 0.9.3 → 0.9.4 после первого пака, дальше patch
-- Обновить docs/roadmap.md по мере
+Структура новой страницы (сверху вниз):
+1. NAV — logo + GitHub link + "Sign in" + "Open VibeOS" CTA
+2. HERO — 2 колонки: [LEFT] eyebrow → headline → sub → CTAs | [RIGHT] animated life-stats card
+   Animated card (fake data): 🔥 14-day streak · 3 goals active · 2h learning this week
+   + progress rings (3 шт) + habit check row + task count chip
+3. PROOF STRIP — 4 bordered stat chips
+4. PILLARS — 3 карточки (Connected / Compounds / AI)
+5. MODULE GRID — 12 cards, 4-col (переиспользуй логику из текущей страницы)
+6. VIBE-PAKS — 4 pak карточки: name + accent swatch + bg color preview
+7. FINAL CTA — "Your data stays in your browser. Always." + "Open VibeOS" button
+8. FOOTER — stack pills + GitHub + version
+
+Что удалить из текущей страницы:
+- Terminal preview tab (welcome__preview-section целиком)
+- "OS-first thinking" и "Vibe-paks" pillars
+- "Your data, only yours" standalone pillar
+
+Что обновить помимо welcome:
+- docs/strategy.md §3 — новое позиционирование
+- README.md — tagline + "What it is" секция
+- index.html — <title> и <meta name="description">
+
+Визуальные правила: S9 tokens, color-mix, --shadow-*, no hardcoded hex.
+Правила: type-check → 0, test → 59 pass, коммит + push после каждого блока.
+Версии: +patch за каждый блок.
 ```
 
-**Alternative next session (if vibe-paks feel low-priority):**
+---
 
-Option B — S7 Vitest (adds tests to stores):
+**Session: S12 — AI Depth (Habits, Notes, Finance, Analytics)**
+
 ```
-Сессия — S7: Vitest unit tests
+Сессия — S12: AI depth — 4 модуля
 
-Читай CLAUDE.md + roadmap.md.
-Задача: добавить Vitest + Vue Test Utils.
-Первая волна тестов: goals.store, learning progress calculation, tasks category filter.
-Настроить CI gate (type-check + tests must pass).
+Прочитай перед началом:
+1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
+2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S12 описан там (T1–T4)
+3. src/core/composables/useAI.ts  ← существующий AI composable
+
+Контекст: S11 ✅. Версия: актуальная.
+Текущее AI-покрытие: Goals ✅ Tasks ✅ Learning ✅ Training ✅ Dashboard ✅
+Осталось: Habits ❌ Notes ❌ Finance ❌ Analytics ❌
+
+ПЕРЕД КАЖДЫМ МОДУЛЕМ: прочитай store + view файлы этого модуля.
+Prompt должен опираться на реальные data-структуры, не на предположения.
+
+Паттерн (как в существующих интеграциях):
+- User-initiated кнопка "✦ [action]"
+- loading state через useAI().loading
+- dismissable result card (не сохраняется)
+
+Задачи в порядке приоритета:
+1. Analytics — "✦ Generate monthly report" кнопка → нарратив по всем модулям за период
+   (самая высокая ценность — cross-module synthesis)
+2. Habits — "✦ Pattern insights" в HabitsView → 2-3 наблюдения по check-in паттернам
+3. Notes — "✦ Summarise" + "✦ Action items" кнопки в toolbar когда note > 200 chars
+4. Finance — "✦ Analyse spending" в Overview tab → observations + 1-2 suggestions
+
+Детальные спецификации каждого — в roadmap.md S12 T1–T4.
+Правила: type-check → 0, test → 59 pass, коммит + push после каждого модуля.
 ```
 
-Option C — Finance UX pass (the module that needs most design work):
-```
-Сессия — Finance visual redesign
+---
 
-Читай CLAUDE.md + roadmap.md.
-Задача: Finance module полный design pass.
-Текущие проблемы: layout dense, charts basic, data entry UX clunky.
-Принципы S9: shadow-1 on cards, color-mix hovers, more whitespace.
+**Session: S13 — Design Pass (начинать только после live review)**
+
+```
+Сессия — S13: Design Pass
+
+⚠️ ЭТОТ ПРОМПТ ИСПОЛЬЗОВАТЬ ТОЛЬКО ПОСЛЕ того как ты (пользователь) прошёлся
+по живому приложению и написал конкретные замечания по каждому модулю.
+Без конкретики от тебя — сессия не имеет смысла.
+
+Прочитай перед началом:
+1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
+2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S13 описан там
+3. /Users/test/Documents/Work/AIProjects/VibeOS/docs/conventions.md  ← S9 visual rules
+
+Контекст: S12 ✅. Версия: актуальная.
+
+[ЗАПОЛНИ ПЕРЕД ИСПОЛЬЗОВАНИЕМ]
+Твои замечания по модулям (из live review на MacBook + iPhone):
+- Finance: ???
+- Board: ???
+- Studio: ???
+- Analytics: ???
+- Другое: ???
+
+Правила: S9 visual rules, коммит + push после каждого модуля, type-check → 0.
 ```
 
 ---
