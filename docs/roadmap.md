@@ -247,7 +247,7 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 2. ✅ **Soft Glass** — two-layer accent-blue glass shadow, --hover-tint-pct 6%, aligned with backdrop-filter (v0.9.5)
 3. ✅ **CRT Retro** — stronger phosphor glow (inner halo + outer bloom), --hover-tint-pct 8%, clearer surface hierarchy (v0.9.6)
 4. ✅ **Brutalist** — strict 2px-step offset progression (0/2/4/6/8px), --hover-tint-pct 0% (snap-invert handled via !important), surface-3 darker for depth (v0.9.7)
-5. **Light** (most used by recruiters — must look polished)
+5. ✅ **Light** — crisp blue-grey shadows (accent-tinted, no black opacity), --hover-tint-pct 4% for subtle polished feel (v0.9.8)
 6. **Dark** (default — already good, minor tweaks only)
 
 **What to change per pak:**
