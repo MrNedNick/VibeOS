@@ -3,8 +3,8 @@ import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTrainingStore } from '../stores/training.store'
 import WorkoutLogForm from '../components/WorkoutLogForm.vue'
-import type { WorkoutLog } from '../types'
-import { FEELING_EMOJI, todayStr } from '../types'
+import type { WorkoutLog, ResourceType } from '../types'
+import { FEELING_EMOJI, todayStr, RESOURCE_META, RESOURCE_TYPES } from '../types'
 import { UiIcon } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useConfirm } from '@/core/composables/useConfirm'
@@ -78,6 +78,30 @@ watch(() => plan.value?.linkedHabitId, (v) => { linkedHabitId.value = v ?? '' })
 
 function saveHabitLink() {
   store.updatePlanLink(planId.value, linkedHabitId.value || undefined)
+}
+
+// ── Resources ────────────────────────────────────────────────────────
+const resources = computed(() => store.getPlanResources(planId.value))
+
+const showAddResource = ref(false)
+const newResUrl   = ref('')
+const newResTitle = ref('')
+const newResType  = ref<ResourceType>('article')
+
+function submitResource() {
+  if (!newResUrl.value.trim()) return
+  store.addResource(planId.value, {
+    url:   newResUrl.value.trim(),
+    title: newResTitle.value.trim() || newResUrl.value.trim(),
+    type:  newResType.value,
+  })
+  newResUrl.value = ''; newResTitle.value = ''; newResType.value = 'article'
+  showAddResource.value = false
+}
+
+function safeDomain(url: string): string {
+  try { return new URL(url).hostname.replace('www.', '') }
+  catch { return url }
 }
 </script>
 
@@ -170,6 +194,51 @@ function saveHabitLink() {
       </div>
 
       <p v-else class="tdetail__empty">No workouts logged yet.</p>
+    </div>
+
+    <!-- Resources -->
+    <div class="tdetail__resources">
+      <div class="tdetail__resources-header">
+        <p class="tdetail__section-label">Resources</p>
+        <button class="tdetail__resources-add-btn" @click="showAddResource = !showAddResource">
+          <UiIcon :name="showAddResource ? 'X' : 'Plus'" :size="13" />
+          {{ showAddResource ? 'Cancel' : 'Add resource' }}
+        </button>
+      </div>
+      <div v-if="showAddResource" class="tdetail__res-form">
+        <input v-model="newResUrl" class="tdetail__res-input" placeholder="https://..." @keydown.enter="submitResource" />
+        <input v-model="newResTitle" class="tdetail__res-input" placeholder="Title (optional)" @keydown.enter="submitResource" />
+        <div class="tdetail__res-form-row">
+          <div class="tdetail__res-types">
+            <button
+              v-for="t in RESOURCE_TYPES" :key="t"
+              class="tdetail__res-type"
+              :class="{ 'tdetail__res-type--active': newResType === t }"
+              :title="RESOURCE_META[t].label"
+              @click="newResType = t"
+            >{{ RESOURCE_META[t].icon }}</button>
+          </div>
+          <button class="tdetail__res-submit" :disabled="!newResUrl.trim()" @click="submitResource">Add</button>
+        </div>
+      </div>
+      <div v-if="resources.length > 0" class="tdetail__res-list">
+        <div
+          v-for="res in resources" :key="res.id"
+          class="tdetail__res-item"
+          :class="{ 'tdetail__res-item--done': res.done }"
+        >
+          <span class="tdetail__res-icon">{{ RESOURCE_META[res.type].icon }}</span>
+          <div class="tdetail__res-body">
+            <a :href="res.url" class="tdetail__res-link" target="_blank" rel="noopener noreferrer">{{ res.title }}</a>
+            <span class="tdetail__res-domain">{{ safeDomain(res.url) }}</span>
+          </div>
+          <button class="tdetail__res-done" :class="{ 'tdetail__res-done--active': res.done }" @click="store.toggleResourceDone(planId, res.id)">
+            <UiIcon :name="res.done ? 'CheckCircle2' : 'Circle'" :size="15" :stroke-width="1.75" />
+          </button>
+          <button class="tdetail__res-del" title="Remove" @click="store.deleteResource(planId, res.id)">×</button>
+        </div>
+      </div>
+      <p v-else-if="!showAddResource" class="tdetail__resources-empty">No resources yet — add videos, guides, or references for this plan.</p>
     </div>
 
     <!-- Linked habit -->
@@ -336,6 +405,39 @@ function saveHabitLink() {
 .tdetail__log-num { font-size: var(--text-xs); font-weight: 600; color: var(--color-text-secondary); }
 
 .tdetail__empty { font-size: var(--text-sm); color: var(--color-text-muted); margin: 0; }
+
+/* ── Resources ──────────────────────────────────────────────────── */
+.tdetail__resources { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.tdetail__resources-header { display: flex; align-items: center; justify-content: space-between; }
+.tdetail__resources-add-btn { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--color-accent); padding: 3px 10px; border: 1px solid var(--color-accent-muted); border-radius: var(--radius-sm); background: var(--color-accent-muted); cursor: pointer; transition: opacity var(--t-fast); }
+.tdetail__resources-add-btn:hover { opacity: 0.8; }
+.tdetail__res-form { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.tdetail__res-input { width: 100%; padding: 7px 10px; font-size: 13px; font-family: inherit; color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); outline: none; transition: border-color var(--t-fast); }
+.tdetail__res-input:focus { border-color: var(--color-accent); }
+.tdetail__res-input::placeholder { color: var(--color-text-muted); }
+.tdetail__res-form-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tdetail__res-types { display: flex; gap: 4px; }
+.tdetail__res-type { font-size: 16px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-xs); border: 1px solid var(--color-border); background: var(--color-surface); cursor: pointer; opacity: 0.55; transition: opacity var(--t-fast), border-color var(--t-fast); }
+.tdetail__res-type:hover { opacity: 0.85; }
+.tdetail__res-type--active { opacity: 1; border-color: var(--color-accent); background: var(--color-accent-muted); }
+.tdetail__res-submit { padding: 5px 14px; font-size: 12px; font-weight: 600; background: var(--color-accent); color: #fff; border-radius: var(--radius-sm); cursor: pointer; transition: opacity var(--t-fast); }
+.tdetail__res-submit:hover { opacity: 0.88; }
+.tdetail__res-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+.tdetail__res-list { display: flex; flex-direction: column; gap: 2px; }
+.tdetail__res-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm); transition: background var(--t-fast); }
+.tdetail__res-item:hover { background: var(--color-surface-elevated); }
+.tdetail__res-item--done { opacity: 0.55; }
+.tdetail__res-icon { font-size: 15px; flex-shrink: 0; width: 20px; text-align: center; }
+.tdetail__res-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tdetail__res-link { font-size: 13px; font-weight: 500; color: var(--color-accent); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity var(--t-fast); }
+.tdetail__res-link:hover { opacity: 0.75; text-decoration: underline; }
+.tdetail__res-domain { font-size: 11px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tdetail__res-done { flex-shrink: 0; color: var(--color-text-muted); display: flex; align-items: center; transition: color var(--t-fast); }
+.tdetail__res-done:hover, .tdetail__res-done--active { color: var(--color-accent); }
+.tdetail__res-del { font-size: 16px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); border-radius: var(--radius-xs); opacity: 0; transition: opacity var(--t-fast), color var(--t-fast); cursor: pointer; flex-shrink: 0; }
+.tdetail__res-item:hover .tdetail__res-del { opacity: 1; }
+.tdetail__res-del:hover { color: var(--color-danger); }
+.tdetail__resources-empty { font-size: 13px; color: var(--color-text-muted); margin: 0; font-style: italic; }
 
 /* ── Linked habit ────────────────────────────────────────────────── */
 .tdetail__link-habit {

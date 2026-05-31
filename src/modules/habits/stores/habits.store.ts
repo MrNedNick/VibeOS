@@ -75,5 +75,24 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     return habit ? habit.completedDates.includes(todayStr()) : false
   }
 
-  return { habits, createHabit, updateHabit, updateHabitLink, toggleToday, deleteHabit, isCompletedToday }
+  /**
+   * Toggle completion for any past date (up to 30 days back).
+   * Does NOT fire events or goal-linking (retroactive edit only).
+   */
+  function toggleDate(id: string, date: string): void {
+    const habit = habits.value.find(h => h.id === id)
+    if (!habit) return
+    const today = todayStr()
+    if (date > today) return                          // no future dates
+    const limit = new Date(); limit.setDate(limit.getDate() - 30)
+    if (date < limit.toISOString().split('T')[0]) return  // max 30 days back
+    const idx = habit.completedDates.indexOf(date)
+    if (idx === -1) {
+      habit.completedDates.push(date)
+    } else {
+      habit.completedDates.splice(idx, 1)
+    }
+  }
+
+  return { habits, createHabit, updateHabit, updateHabitLink, toggleToday, toggleDate, deleteHabit, isCompletedToday }
 })

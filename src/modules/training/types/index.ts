@@ -1,3 +1,25 @@
+export type ResourceType = 'article' | 'video' | 'book' | 'course' | 'podcast' | 'other'
+
+export const RESOURCE_META: Record<ResourceType, { label: string; icon: string }> = {
+  article: { label: 'Article', icon: '📄' },
+  video:   { label: 'Video',   icon: '▶️' },
+  book:    { label: 'Book',    icon: '📖' },
+  course:  { label: 'Course',  icon: '🎓' },
+  podcast: { label: 'Podcast', icon: '🎙️' },
+  other:   { label: 'Other',   icon: '🔗' },
+}
+
+export const RESOURCE_TYPES = Object.keys(RESOURCE_META) as ResourceType[]
+
+export interface TrainingResource {
+  id: string
+  url: string
+  title: string
+  type: ResourceType
+  addedAt: string
+  done?: boolean
+}
+
 export type SportType =
   | 'running'
   | 'strength'
@@ -19,6 +41,7 @@ export interface TrainingPlan {
   coverEmoji: string
   createdAt: string
   linkedHabitId?: string  // auto-check this habit when a workout is logged
+  resources?: TrainingResource[]
 }
 
 export interface WorkoutLog {

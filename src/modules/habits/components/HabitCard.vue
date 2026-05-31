@@ -43,6 +43,38 @@ const todayFormatted = computed(() =>
   new Date().toLocaleDateString(i18n.localeCode, { weekday: 'short', day: 'numeric', month: 'short' })
 )
 
+// ── At-risk: streak > 2 but not yet done today ────────────────────────
+const isAtRisk = computed(() =>
+  !props.doneToday && computeStreak(props.habit.completedDates) > 2,
+)
+
+// ── Retroactive past-days calendar ───────────────────────────────────
+const showPastDays = ref(false)
+
+/** Build a grid of the last 14 days (oldest → newest, today last) */
+const pastDays = computed(() => {
+  const today = new Date()
+  const days: { date: string; dayLetter: string; dayNum: number; isToday: boolean }[] = []
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(today.getDate() - i)
+    const iso   = d.toISOString().split('T')[0]
+    const day   = d.getDay()              // 0=Sun
+    const letters = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+    days.push({
+      date:      iso,
+      dayLetter: letters[day],
+      dayNum:    d.getDate(),
+      isToday:   i === 0,
+    })
+  }
+  return days
+})
+
+function isDone(date: string): boolean {
+  return props.habit.completedDates.includes(date)
+}
+
 // ── Inline edit (name) ────────────────────────────────────────────────
 const editing = ref(false)
 const editName = ref('')
@@ -223,6 +255,23 @@ function saveLinks() {
         </div>
 
         <div class="habit-card__actions">
+          <!-- At-risk badge -->
+          <span
+            v-if="isAtRisk"
+            class="habit-card__at-risk"
+            title="Streak at risk — check in today!"
+          >⚠️</span>
+
+          <!-- Past days toggle -->
+          <button
+            class="habit-card__past-btn"
+            :class="{ 'habit-card__past-btn--active': showPastDays }"
+            title="Edit past days"
+            @click="showPastDays = !showPastDays"
+          >
+            <UiIcon name="CalendarDays" :size="14" :stroke-width="1.75" />
+          </button>
+
           <button
             class="habit-card__toggle"
             :class="{ 'habit-card__toggle--done': doneToday }"
@@ -250,6 +299,32 @@ function saveLinks() {
       </div>
 
     </div>
+
+    <!-- ── Past days calendar (retroactive check-ins) ──────────────── -->
+    <Transition name="past-days">
+      <div v-if="showPastDays" class="habit-card__past-days">
+        <div class="habit-card__past-days-label">
+          <UiIcon name="CalendarDays" :size="12" />
+          Edit past days
+        </div>
+        <div class="habit-card__past-grid">
+          <button
+            v-for="day in pastDays"
+            :key="day.date"
+            class="past-day"
+            :class="{
+              'past-day--done':  isDone(day.date),
+              'past-day--today': day.isToday,
+            }"
+            :title="day.date"
+            @click="day.isToday ? emit('toggle', habit.id) : habitsStore.toggleDate(habit.id, day.date)"
+          >
+            <span class="past-day__letter">{{ day.dayLetter }}</span>
+            <span class="past-day__num">{{ day.dayNum }}</span>
+          </button>
+        </div>
+      </div>
+    </Transition>
 
     <!-- ── Connected to (full-width footer) ────────────────────────── -->
     <div class="habit-card__connect">
@@ -547,10 +622,133 @@ function saveLinks() {
 }
 .habit-card__heatmap::-webkit-scrollbar { display: none; }
 
+/* ── At-risk badge ──────────────────────────────────────────────── */
+.habit-card__at-risk {
+  font-size: 15px;
+  line-height: 1;
+  animation: risk-pulse 2s ease-in-out infinite;
+  cursor: default;
+}
+
+@keyframes risk-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* ── Past-days toggle button ────────────────────────────────────── */
+.habit-card__past-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--t-fast), color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.habit-card:hover .habit-card__past-btn { opacity: 1; }
+.habit-card__past-btn:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.habit-card__past-btn--active {
+  opacity: 1 !important;
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+/* ── Past-days calendar panel ───────────────────────────────────── */
+.habit-card__past-days {
+  padding: 12px 20px 14px;
+  border-top: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-accent) 3%, var(--color-surface));
+}
+
+.habit-card__past-days-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+
+.habit-card__past-grid {
+  display: flex;
+  gap: 5px;
+}
+
+.past-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 2px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface-elevated);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  min-width: 0;
+}
+.past-day:hover:not(.past-day--done) {
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+.past-day--done {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.past-day--done .past-day__letter,
+.past-day--done .past-day__num { color: #fff; }
+
+.past-day--today {
+  border-color: var(--color-accent);
+}
+.past-day--today:not(.past-day--done) {
+  background: var(--color-accent-muted);
+}
+
+.past-day__letter {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.past-day__num {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1;
+  font-family: var(--font-mono);
+}
+
+/* Past days transition */
+.past-days-enter-active { transition: opacity 0.18s ease, transform 0.18s ease; }
+.past-days-leave-active { transition: opacity 0.12s ease; }
+.past-days-enter-from   { opacity: 0; transform: translateY(-6px); }
+.past-days-leave-to     { opacity: 0; }
+
 /* Mobile: always show delete on touch */
 @media (max-width: 767px) {
-  .habit-card__delete { opacity: 0.5; }
-  .habit-card__heatmap { padding: 0 16px 14px; }
+  .habit-card__delete   { opacity: 0.5; }
+  .habit-card__past-btn { opacity: 0.6; }
+  .habit-card__heatmap  { padding: 0 16px 14px; }
+  .habit-card__past-days { padding: 10px 16px 12px; }
+  .past-day { padding: 5px 2px; }
+  .past-day__num { font-size: 11px; }
 }
 
 @media (min-width: 900px) {

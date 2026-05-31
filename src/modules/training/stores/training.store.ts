@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { storageKey } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
-import type { TrainingPlan, WorkoutLog } from '../types'
+import type { TrainingPlan, WorkoutLog, TrainingResource, ResourceType } from '../types'
 import { todayStr, isTrainingDay, calcStreak, calcTotalMinutes, calcTotalKm } from '../types'
 
 export const useTrainingStore = defineStore('training:plans', () => {
@@ -90,11 +90,43 @@ export const useTrainingStore = defineStore('training:plans', () => {
     return logs.value.some(l => l.planId === planId && l.date === todayStr())
   }
 
+  // ── Resources ───────────────────────────────────────────────────────
+  function addResource(planId: string, data: { url: string; title: string; type: ResourceType }): void {
+    const plan = plans.value.find(p => p.id === planId)
+    if (!plan) return
+    if (!plan.resources) plan.resources = []
+    plan.resources.push({
+      id:      crypto.randomUUID(),
+      url:     data.url.trim(),
+      title:   data.title.trim() || data.url.trim(),
+      type:    data.type,
+      addedAt: new Date().toISOString(),
+      done:    false,
+    })
+  }
+
+  function deleteResource(planId: string, resourceId: string): void {
+    const plan = plans.value.find(p => p.id === planId)
+    if (!plan?.resources) return
+    plan.resources = plan.resources.filter(r => r.id !== resourceId)
+  }
+
+  function toggleResourceDone(planId: string, resourceId: string): void {
+    const plan = plans.value.find(p => p.id === planId)
+    const res  = plan?.resources?.find(r => r.id === resourceId)
+    if (res) res.done = !res.done
+  }
+
+  function getPlanResources(planId: string): TrainingResource[] {
+    return plans.value.find(p => p.id === planId)?.resources ?? []
+  }
+
   return {
     plans, logs,
     activePlans, todayItems, recentLogs,
     createPlan, logWorkout, updatePlanLink, deletePlan,
     getPlanById, getPlanLogs,
     getStreak, getTotalMinutes, getTotalKm, isLoggedToday,
+    addResource, deleteResource, toggleResourceDone, getPlanResources,
   }
 })

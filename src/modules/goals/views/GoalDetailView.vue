@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGoalsStore } from '../stores/goals.store'
+import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
 import MilestoneList from '../components/MilestoneList.vue'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '../types'
 import { UiIcon } from '@/ui'
@@ -101,6 +102,37 @@ async function askDelete() {
     router.replace('/goals')
   }
 }
+
+// ── Linked tasks ────────────────────────────────────────────────────
+const tasksStore = useTasksStore()
+
+const linkedTasks = computed(() =>
+  tasksStore.tasks.filter(t => t.linkedGoalId === goalId.value)
+)
+const linkedActive = computed(() => linkedTasks.value.filter(t => !t.done))
+const linkedDone   = computed(() => linkedTasks.value.filter(t => t.done))
+
+const newTaskText    = ref('')
+const taskInputRef   = ref<HTMLInputElement>()
+const showAddTask    = ref(false)
+
+async function openAddTask() {
+  showAddTask.value = true
+  await nextTick()
+  taskInputRef.value?.focus()
+}
+
+function submitTask() {
+  const text = newTaskText.value.trim()
+  if (!text) return
+  tasksStore.addTask(text, 'none', undefined, 'goal', goalId.value)
+  newTaskText.value = ''
+}
+
+function onTaskKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') { e.preventDefault(); submitTask() }
+  if (e.key === 'Escape') { showAddTask.value = false }
+}
 </script>
 
 <template>
@@ -183,6 +215,73 @@ async function askDelete() {
         rows="4"
         placeholder="Planning notes, context, ideas…"
       />
+    </div>
+
+    <!-- Linked tasks -->
+    <div class="gdetail__tasks">
+      <div class="gdetail__section-header">
+        <p class="gdetail__section-label">
+          Tasks
+          <span v-if="linkedTasks.length > 0" class="gdetail__tasks-count">
+            {{ linkedActive.length }} active · {{ linkedDone.length }} done
+          </span>
+        </p>
+        <button class="gdetail__tasks-add-btn" @click="openAddTask">
+          <UiIcon name="Plus" :size="13" />
+          Add task
+        </button>
+      </div>
+
+      <!-- Quick-add input -->
+      <Transition name="task-add">
+        <div v-if="showAddTask" class="gdetail__task-input-row">
+          <input
+            ref="taskInputRef"
+            v-model="newTaskText"
+            class="gdetail__task-input"
+            placeholder="Task description…"
+            maxlength="200"
+            @keydown="onTaskKeydown"
+          />
+          <button class="gdetail__task-submit" :disabled="!newTaskText.trim()" @click="submitTask">
+            Add
+          </button>
+          <button class="gdetail__task-cancel" @click="showAddTask = false">×</button>
+        </div>
+      </Transition>
+
+      <!-- Active tasks -->
+      <div v-if="linkedActive.length > 0" class="gdetail__task-list">
+        <div
+          v-for="task in linkedActive"
+          :key="task.id"
+          class="gdetail__task-row"
+        >
+          <button
+            class="gdetail__task-check"
+            title="Mark done"
+            @click="tasksStore.toggleTask(task.id)"
+          >
+            <UiIcon name="Circle" :size="15" :stroke-width="1.75" />
+          </button>
+          <span class="gdetail__task-text">{{ task.text }}</span>
+          <span
+            v-if="task.dueDate"
+            class="gdetail__task-due"
+          >{{ task.dueDate }}</span>
+        </div>
+      </div>
+
+      <!-- Done tasks (collapsed count) -->
+      <div v-if="linkedDone.length > 0" class="gdetail__task-done-row">
+        <UiIcon name="CheckCircle2" :size="13" />
+        {{ linkedDone.length }} completed task{{ linkedDone.length !== 1 ? 's' : '' }}
+      </div>
+
+      <!-- Empty -->
+      <p v-if="linkedTasks.length === 0 && !showAddTask" class="gdetail__tasks-empty">
+        No tasks linked to this goal yet.
+      </p>
     </div>
 
     <!-- Actions -->
@@ -394,6 +493,158 @@ async function askDelete() {
 }
 
 .gdetail__notes:focus { outline: none; border-color: var(--color-accent); }
+
+/* ── Linked tasks section ────────────────────────────────────────── */
+.gdetail__tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.gdetail__tasks-count {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 6px;
+}
+
+.gdetail__tasks-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  padding: 3px 10px;
+  border: 1px solid var(--color-accent-muted);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-muted);
+  cursor: pointer;
+  transition: opacity var(--t-fast);
+}
+.gdetail__tasks-add-btn:hover { opacity: 0.8; }
+
+.gdetail__task-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gdetail__task-input {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+.gdetail__task-input::placeholder { color: var(--color-text-muted); }
+
+.gdetail__task-submit {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-accent);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity var(--t-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.gdetail__task-submit:hover { opacity: 0.88; }
+.gdetail__task-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.gdetail__task-cancel {
+  font-size: 18px;
+  line-height: 1;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color var(--t-fast);
+}
+.gdetail__task-cancel:hover { color: var(--color-text); }
+
+.gdetail__task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gdetail__task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  transition: background var(--t-fast);
+}
+.gdetail__task-row:hover { background: var(--color-surface-elevated); }
+
+.gdetail__task-check {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  transition: color var(--t-fast);
+}
+.gdetail__task-check:hover { color: var(--color-accent); }
+
+.gdetail__task-text {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gdetail__task-due {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.gdetail__task-done-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 4px 8px;
+}
+
+.gdetail__tasks-empty {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+  font-style: italic;
+}
+
+/* Task add transition */
+.task-add-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.task-add-leave-active { transition: opacity 0.1s ease; }
+.task-add-enter-from   { opacity: 0; transform: translateY(-4px); }
+.task-add-leave-to     { opacity: 0; }
 
 .gdetail__actions { display: flex; align-items: center; gap: 10px; }
 
