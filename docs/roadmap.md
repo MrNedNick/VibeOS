@@ -157,6 +157,14 @@ Order:
 
 ## Recently shipped (history)
 
+### 2026-05-31 — Habit check-ins + Training resources + Goal tasks (v0.7.5 → v0.7.6)
+
+- **Habit retroactive check-ins** — `toggleDate(id, date)` store method (guards: future dates blocked, max 30 days back); 📅 calendar button on each HabitCard reveals a 14-day grid with toggleable cells; clicking today routes through `toggleToday`; at-risk pulsing ⚠️ badge shown when streak > 2 but not yet checked today
+- **Training plan resources** — full resource library identical to Learning: article/video/book/course/podcast/other type picker; add with URL + optional title; mark-as-done toggle; delete; domain shown; persisted in plan object
+- **Goal-linked tasks in GoalDetailView** — new "Tasks" section showing all tasks with `linkedGoalId = goal.id`; active/done counts; quick-add input creates task pre-linked to goal with category 'goal'; check-off works from goal view without navigating to Tasks
+
+---
+
 ### 2026-05-31 — AI service layer + Dashboard panels + Learning resources (v0.7.4 → v0.7.5)
 
 - **AI service layer (S6/1)** — `src/core/composables/useAI.ts` with `aiComplete(prompt)` standalone helper and `useAI()` composable; all 8 inline fetch-to-Pollinations blocks refactored (TaskManagerView, DigestWidget, GoalDetailView, LearningView, Learning PlanDetailView, TrainingView, Training PlanDetailView, CommandPalette); no behavior changes
