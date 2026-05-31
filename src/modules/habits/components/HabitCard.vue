@@ -25,7 +25,7 @@ const emit = defineEmits<{
 const i18n = useLocale()
 
 // ── Computed ──────────────────────────────────────────────────────────
-const streak     = computed(() => computeStreak(props.habit.completedDates))
+const streak     = computed(() => computeStreak(props.habit.completedDates, props.habit.skippedDates))
 const bestStreak = computed(() => computeBestStreak(props.habit.completedDates))
 const age        = computed(() => habitAge(props.habit.createdAt))
 const totalDays  = computed(() => props.habit.completedDates.filter(d => d <= todayStr()).length)
@@ -108,6 +108,10 @@ const pastDays = computed(() => {
 
 function isDone(date: string): boolean {
   return props.habit.completedDates.includes(date)
+}
+
+function isSkipped(date: string): boolean {
+  return props.habit.skippedDates?.includes(date) ?? false
 }
 
 // ── Inline edit (name) ────────────────────────────────────────────────
@@ -380,6 +384,7 @@ function saveLinks() {
         <div class="habit-card__past-days-label">
           <UiIcon name="CalendarDays" :size="12" />
           Edit past days
+          <span class="habit-card__past-hint">· right-click to mark skip</span>
         </div>
         <div class="habit-card__past-grid">
           <button
@@ -387,11 +392,13 @@ function saveLinks() {
             :key="day.date"
             class="past-day"
             :class="{
-              'past-day--done':  isDone(day.date),
-              'past-day--today': day.isToday,
+              'past-day--done':    isDone(day.date),
+              'past-day--skipped': isSkipped(day.date),
+              'past-day--today':   day.isToday,
             }"
-            :title="day.date"
+            :title="isSkipped(day.date) ? day.date + ' (skipped — right-click to undo)' : day.date + ' (right-click to mark as skip day)'"
             @click="day.isToday ? emit('toggle', habit.id) : habitsStore.toggleDate(habit.id, day.date)"
+            @contextmenu.prevent="habitsStore.toggleSkip(habit.id, day.date)"
           >
             <span class="past-day__letter">{{ day.dayLetter }}</span>
             <span class="past-day__num">{{ day.dayNum }}</span>
@@ -844,6 +851,30 @@ function saveLinks() {
 }
 .past-day--done .past-day__letter,
 .past-day--done .past-day__num { color: #fff; }
+
+.past-day--skipped {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-border) 0px,
+    var(--color-border) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  border-color: var(--color-border);
+  opacity: 0.7;
+}
+.past-day--skipped .past-day__letter,
+.past-day--skipped .past-day__num { color: var(--color-text-muted); }
+
+.habit-card__past-hint {
+  font-size: 9px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
 
 .past-day--today {
   border-color: var(--color-accent);

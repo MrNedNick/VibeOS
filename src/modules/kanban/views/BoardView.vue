@@ -143,10 +143,31 @@ function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString(i18n.localeCode, { month: 'short', day: 'numeric' })
 }
 
+// ── Search + filter ─────────────────────────────────────────────────
+const searchQuery      = ref('')
+const priorityFilter   = ref<CardPriority | 'all'>('all')
+
+const PRIORITY_OPTS: { val: CardPriority | 'all'; label: string }[] = [
+  { val: 'all',    label: 'All' },
+  { val: 'high',   label: '🔴 High' },
+  { val: 'medium', label: '🟡 Medium' },
+  { val: 'low',    label: '🟢 Low' },
+  { val: 'none',   label: 'None' },
+]
+
+function filteredCardsForColumn(colId: BoardColumnId) {
+  let cards = store.cardsForColumn(colId)
+  const q = searchQuery.value.trim().toLowerCase()
+  if (q) cards = cards.filter(c => c.title.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q))
+  if (priorityFilter.value !== 'all') cards = cards.filter(c => c.priority === priorityFilter.value)
+  return cards
+}
+
 const colCounts  = computed(() =>
-  Object.fromEntries(BOARD_COLUMNS.map(c => [c.id, store.cardsForColumn(c.id).length]))
+  Object.fromEntries(BOARD_COLUMNS.map(c => [c.id, filteredCardsForColumn(c.id).length]))
 )
 const totalCards = computed(() => store.cards.length)
+const filteredTotal = computed(() => BOARD_COLUMNS.reduce((s, c) => s + filteredCardsForColumn(c.id).length, 0))
 
 // ── Mobile single-column view ────────────────────────────────────────
 const activeColMobile = ref<BoardColumnId>('backlog')
@@ -184,6 +205,35 @@ const activeColMobile = ref<BoardColumnId>('backlog')
           @click="showTaskPanel = !showTaskPanel"
         >{{ i18n.t('kanban.fromTasks') }}</button>
       </div>
+    </div>
+
+    <!-- Search + priority filter bar -->
+    <div v-if="store.cards.length > 0" class="board__filter-bar">
+      <div class="board__search-wrap">
+        <svg class="board__search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.4"/>
+          <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <input
+          v-model="searchQuery"
+          class="board__search-input"
+          placeholder="Search cards…"
+          autocomplete="off"
+        />
+        <button v-if="searchQuery" class="board__search-clear" @click="searchQuery = ''">×</button>
+      </div>
+      <div class="board__priority-chips">
+        <button
+          v-for="opt in PRIORITY_OPTS"
+          :key="opt.val"
+          class="board__pri-chip"
+          :class="{ 'board__pri-chip--active': priorityFilter === opt.val }"
+          @click="priorityFilter = opt.val"
+        >{{ opt.label }}</button>
+      </div>
+      <span v-if="searchQuery || priorityFilter !== 'all'" class="board__filter-count">
+        {{ filteredTotal }} card{{ filteredTotal !== 1 ? 's' : '' }}
+      </span>
     </div>
 
     <!-- Workspace ───────────────────────────────────────────── -->
@@ -227,7 +277,7 @@ const activeColMobile = ref<BoardColumnId>('backlog')
 
           <div class="board-col__cards">
             <div
-              v-for="card in store.cardsForColumn(col.id)"
+              v-for="card in filteredCardsForColumn(col.id)"
               :key="card.id"
               class="board-card"
               :class="{
@@ -555,6 +605,86 @@ const activeColMobile = ref<BoardColumnId>('backlog')
   background: var(--color-accent-muted);
   color: var(--color-accent);
   border-color: var(--color-accent-muted);
+}
+
+/* Filter bar */
+.board__filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 6px 0 2px;
+  flex-shrink: 0;
+}
+
+.board__search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  flex: 0 1 220px;
+  transition: border-color var(--t-fast);
+}
+.board__search-wrap:focus-within { border-color: var(--color-accent); }
+
+.board__search-icon { color: var(--color-text-muted); flex-shrink: 0; }
+
+.board__search-input {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  outline: none;
+  min-width: 0;
+}
+.board__search-input::placeholder { color: var(--color-text-muted); }
+
+.board__search-clear {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  padding: 0 2px;
+  cursor: pointer;
+  transition: color var(--t-fast);
+}
+.board__search-clear:hover { color: var(--color-text); }
+
+.board__priority-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.board__pri-chip {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.board__pri-chip:hover:not(.board__pri-chip--active) {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+}
+.board__pri-chip--active {
+  background: var(--color-accent-muted);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.board__filter-count {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 /* Workspace */

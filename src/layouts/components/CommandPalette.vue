@@ -130,6 +130,8 @@ const THEME_OPTIONS: { id: Theme; labelKey: string; icon: string }[] = [
   { id: 'light',     labelKey: 'palette.themeLight',     icon: 'Sun'      },
   { id: 'synthwave', labelKey: 'palette.themeSynthwave',  icon: 'Sparkles' },
   { id: 'brutalist', labelKey: 'palette.themeBrutalist', icon: 'Bold'     },
+  { id: 'softglass', labelKey: 'palette.themeSoftglass', icon: 'Glasses'  },
+  { id: 'crt',       labelKey: 'palette.themeCrt',       icon: 'Monitor'  },
 ]
 
 const commands = computed<Command[]>(() => [

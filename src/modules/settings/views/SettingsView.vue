@@ -43,6 +43,18 @@ const VIBE_PAKS: VibePak[] = [
     swatches: ['#f0ede8', '#000000', '#000000'],
     label:   'Stark',
   },
+  {
+    id:      'softglass',
+    nameKey: 'settings.themeSoftglass',
+    swatches: ['#eef1f7', '#4f7ef7', '#1a1d2e'],
+    label:   'Frosted',
+  },
+  {
+    id:      'crt',
+    nameKey: 'settings.themeCrt',
+    swatches: ['#030b03', '#00e040', '#b8ffc0'],
+    label:   'Terminal',
+  },
 ]
 
 // ── Module visibility ─────────────────────────────────────────────

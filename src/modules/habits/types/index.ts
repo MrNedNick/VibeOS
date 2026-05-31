@@ -23,6 +23,7 @@ export interface Habit {
   category?: HabitCategory       // health / productivity / learning / social / other
   createdAt: string
   completedDates: string[]
+  skippedDates?: string[]         // vacation / intentional skip — doesn't break streak
   checkNotes?: Record<string, string>  // date → optional check-in note
   lastMilestone?: number               // highest milestone streak celebrated so far
   linkedGoalId?: string          // auto-complete next milestone on check
@@ -34,17 +35,21 @@ export function todayStr(): string {
   return new Date().toISOString().split('T')[0]
 }
 
-export function computeStreak(completedDates: string[]): number {
-  const dateSet = new Set(completedDates)
+export function computeStreak(completedDates: string[], skippedDates?: string[]): number {
+  const doneSet    = new Set(completedDates)
+  const skippedSet = new Set(skippedDates ?? [])
   const today = todayStr()
-  const date = new Date()
+  const date  = new Date()
   let streak = 0
   let checkedToday = false
 
   while (true) {
     const ds = date.toISOString().split('T')[0]
-    if (dateSet.has(ds)) {
+    if (doneSet.has(ds)) {
       streak++
+      date.setDate(date.getDate() - 1)
+    } else if (skippedSet.has(ds)) {
+      // Skip day — transparent, doesn't break streak, doesn't count
       date.setDate(date.getDate() - 1)
     } else if (!checkedToday && ds === today) {
       checkedToday = true

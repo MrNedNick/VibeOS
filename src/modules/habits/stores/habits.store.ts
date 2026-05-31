@@ -37,7 +37,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
       events.emit({ type: 'habit:checked', habitId: id, habitName: habit.name, timestamp: new Date().toISOString() })
 
       // Check for milestone
-      const streak = computeStreak(habit.completedDates)
+      const streak = computeStreak(habit.completedDates, habit.skippedDates)
       const lastM  = habit.lastMilestone ?? 0
       const hit    = STREAK_MILESTONES.find(m => m <= streak && m > lastM)
       if (hit) {
@@ -99,6 +99,24 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     }
   }
 
+  /** Toggle skip (vacation) for any past/future date (max 30 days back, up to 7 days forward) */
+  function toggleSkip(id: string, date: string): void {
+    const habit = habits.value.find(h => h.id === id)
+    if (!habit) return
+    const limit = new Date(); limit.setDate(limit.getDate() - 30)
+    if (date < limit.toISOString().split('T')[0]) return
+    if (!habit.skippedDates) habit.skippedDates = []
+    const idx = habit.skippedDates.indexOf(date)
+    if (idx === -1) {
+      habit.skippedDates.push(date)
+      // Remove from completed if accidentally marked done
+      const dIdx = habit.completedDates.indexOf(date)
+      if (dIdx !== -1) habit.completedDates.splice(dIdx, 1)
+    } else {
+      habit.skippedDates.splice(idx, 1)
+    }
+  }
+
   function deleteHabit(id: string): void {
     const idx = habits.value.findIndex(h => h.id === id)
     if (idx !== -1) habits.value.splice(idx, 1)
@@ -139,6 +157,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     toggleToday,
     toggleDate,
     setCheckNote,
+    toggleSkip,
     deleteHabit,
     isCompletedToday,
   }

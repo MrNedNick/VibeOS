@@ -7,6 +7,14 @@ import HabitCard from '../components/HabitCard.vue'
 import { HABIT_CATEGORIES, HABIT_CATEGORY_META } from '../types'
 import type { HabitCategory } from '../types'
 
+const HABIT_TEMPLATES: { name: string; emoji: string; purpose: string; category: HabitCategory }[] = [
+  { name: 'Exercise', emoji: '💪', purpose: 'Stay active and energized', category: 'health' },
+  { name: 'Read 15 min', emoji: '📖', purpose: 'Learn something new every day', category: 'learning' },
+  { name: 'Drink 2L water', emoji: '💧', purpose: 'Stay hydrated', category: 'health' },
+  { name: 'Meditate', emoji: '🧘', purpose: 'Clear my mind and reduce stress', category: 'health' },
+  { name: 'No social media', emoji: '📵', purpose: 'Protect focus and mental health', category: 'productivity' },
+]
+
 const store = useHabitsStore()
 const goalsStore = useGoalsStore()
 const i18n = useLocale()
@@ -195,6 +203,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <p class="habits__empty-title">{{ i18n.t('habits.emptyTitle') }}</p>
       <p class="habits__empty-sub">{{ i18n.t('habits.emptySub') }}</p>
       <button class="habits__empty-btn" @click="openForm">{{ i18n.t('habits.emptyBtn') }}</button>
+
+      <!-- Quick-start templates -->
+      <div class="habits__templates">
+        <p class="habits__templates-label">Or start with a template:</p>
+        <div class="habits__templates-grid">
+          <button
+            v-for="t in HABIT_TEMPLATES"
+            :key="t.name"
+            class="habits__template-btn"
+            @click="store.createHabit(t.name, t.emoji, t.purpose, t.category)"
+          >
+            <span class="habits__template-emoji">{{ t.emoji }}</span>
+            <span class="habits__template-name">{{ t.name }}</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -486,6 +510,33 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   transition: opacity var(--t-fast);
 }
 .habits__empty-btn:hover { opacity: 0.88; }
+
+.habits__templates { margin-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.habits__templates-label { font-size: 13px; color: var(--color-text-muted); margin: 0; }
+.habits__templates-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 480px;
+}
+.habits__template-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.habits__template-btn:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+.habits__template-emoji { font-size: 16px; line-height: 1; }
+.habits__template-name { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); }
 
 @media (max-width: 767px) {
   .habits__header { flex-direction: column; gap: 12px; }

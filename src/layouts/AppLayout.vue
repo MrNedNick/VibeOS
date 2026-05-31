@@ -7,6 +7,7 @@ import AppNotifications from './components/AppNotifications.vue'
 import AppErrorBoundary from './components/AppErrorBoundary.vue'
 import CommandPalette from './components/CommandPalette.vue'
 import AppBottomTabs from './components/AppBottomTabs.vue'
+import AchievementToast from '@/core/components/AchievementToast.vue'
 import { useUiStore } from '@/core/stores/ui.store'
 import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
 
@@ -79,6 +80,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     </div>
 
     <AppNotifications />
+    <AchievementToast />
     <CommandPalette />
     <!-- Mobile bottom tab bar (self-hides on ≥ 768px via its own CSS) -->
     <AppBottomTabs />
