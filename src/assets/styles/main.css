@@ -74,6 +74,9 @@
   --shadow-3: 0 8px 28px rgba(0, 0, 0, 0.70);   /* panels, drawers */
   --shadow-4: 0 16px 48px rgba(0, 0, 0, 0.80);  /* modals, command palette */
 
+  /* Hover tint — accent % mixed into card background on hover (theme-overridable) */
+  --hover-tint-pct: 7%;
+
   /* Easing */
   --ease:        cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -131,20 +134,23 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
 
-  --shadow-sm: 0 0 8px  rgba(224, 64, 251, 0.18);
-  --shadow:    0 0 20px rgba(224, 64, 251, 0.14);
-  --shadow-lg: 0 0 40px rgba(224, 64, 251, 0.12);
+  --shadow-sm: 0 0 10px rgba(224, 64, 251, 0.22), 0 2px 4px rgba(11, 9, 23, 0.60);
+  --shadow:    0 0 22px rgba(224, 64, 251, 0.32), 0 0 44px rgba(224, 64, 251, 0.14), 0 4px 12px rgba(11, 9, 23, 0.70);
+  --shadow-lg: 0 0 38px rgba(224, 64, 251, 0.28), 0 0 76px rgba(224, 64, 251, 0.12), 0 8px 24px rgba(11, 9, 23, 0.80);
 
+  /* Layered glow: accent bloom + depth drop — defines Synthwave's neon-noir look */
   --shadow-0: none;
-  --shadow-1: 0 0 8px  rgba(224, 64, 251, 0.18);
-  --shadow-2: 0 0 20px rgba(224, 64, 251, 0.14);
-  --shadow-3: 0 0 40px rgba(224, 64, 251, 0.12);
-  --shadow-4: 0 0 60px rgba(224, 64, 251, 0.22);
+  --shadow-1: 0 0 10px rgba(224, 64, 251, 0.22), 0 2px 4px  rgba(11, 9, 23, 0.60);
+  --shadow-2: 0 0 22px rgba(224, 64, 251, 0.38), 0 0 44px rgba(224, 64, 251, 0.16), 0 4px 12px rgba(11, 9, 23, 0.70);
+  --shadow-3: 0 0 38px rgba(224, 64, 251, 0.32), 0 0 76px rgba(224, 64, 251, 0.14), 0 8px 24px rgba(11, 9, 23, 0.80);
+  --shadow-4: 0 0 55px rgba(224, 64, 251, 0.45), 0 0 110px rgba(224, 64, 251, 0.20), 0 16px 40px rgba(11, 9, 23, 0.90);
+
+  --hover-tint-pct: 10%;
 
   --color-surface-0: #0b0917;
-  --color-surface-1: #120f28;
-  --color-surface-2: #1c1840;
-  --color-surface-3: #241f54;
+  --color-surface-1: #14103a;
+  --color-surface-2: #1e1a50;
+  --color-surface-3: #28245e;
 }
 
 /* Synthwave: neon glow on active/focus elements */

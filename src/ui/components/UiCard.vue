@@ -57,7 +57,13 @@ withDefaults(defineProps<{
 .ui-card--pad-lg   { padding: 22px 24px; gap: 16px; }
 
 /* Hoverable */
-.ui-card--hoverable:hover {
+.ui-card--surface-base.ui-card--hoverable:hover {
+  background: color-mix(in srgb, var(--color-accent) var(--hover-tint-pct, 7%), var(--color-surface));
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-2);
+}
+.ui-card--surface-raised.ui-card--hoverable:hover {
+  background: color-mix(in srgb, var(--color-accent) var(--hover-tint-pct, 7%), var(--color-surface-elevated));
   border-color: var(--color-accent);
   box-shadow: var(--shadow-2);
 }

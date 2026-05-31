@@ -231,7 +231,7 @@ Order:
 - ✅ Notes — goal-icon #f59e0b → --color-warning, NoteListItem padding 11px/16px + color-mix hover
 - ✅ About — full portfolio page rewrite: hero card, "What I'm good at" skill cards, VibeOS section with decisions table, stats, modules list, language chips with levels
 
-**Phase 4 — Vibe-paks v2** 🔜 next (after Phase 3 ✅)
+**Phase 4 — Vibe-paks v2** 🔄 in progress (v0.9.4+)
 
 Each vibe-pak needs to be audited and updated to fully use the S8/S9 token system.
 
@@ -243,7 +243,7 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 - **Light** — shadows should be crisp blue-grey, not the default dark opacity
 
 **Per-pak audit order:**
-1. **Synthwave** (most iconic — glow shadows define the theme)
+1. ✅ **Synthwave** — layered glow (bloom + depth drop), --hover-tint-pct 10%, surface-1..3 bumped brighter (v0.9.4)
 2. **Soft Glass** (glass morphism needs shadow + backdrop-filter alignment)
 3. **CRT Retro** (scan-line + glow shadows — unique character)
 4. **Brutalist** (shadow-less by design — verify no shadows bleed through)

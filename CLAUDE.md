@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v0.9.3 — 2026-05-31**
+**Version: v0.9.4 — 2026-05-31**
 
 | Sprint | Status |
 |--------|--------|
@@ -20,7 +20,7 @@
 | S8 — Design System | ✅ complete — unified @/ui, tokens, skeletons, widget customization |
 | S9 — Full Redesign | 🔄 active — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 🔜 next |
 
-**Active next work: S9 Phase 4 — Vibe-paks v2** (see roadmap.md for full spec)
+**Active next work: S9 Phase 4 — Vibe-paks v2 (🔄 Synthwave ✅, Soft Glass 🔜)** (see roadmap.md for full spec)
 
 ---
 
