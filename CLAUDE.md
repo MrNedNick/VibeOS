@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v1.0.3 — 2026-05-31**
+**Version: v1.0.4 — 2026-05-31**
 
 | Sprint | Status |
 |--------|--------|
@@ -16,12 +16,12 @@
 | S4 — Core Life Modules | ✅ complete |
 | S5 — Life Depth | ✅ complete |
 | S6 — AI Integration | ✅ complete |
-| S7 — Polish | 🔶 partial — error boundaries ✅, Vitest + CI ❌ still pending |
+| S7 — Polish | 🔄 active — error boundaries ✅, Vitest ✅ (59 tests), CI gate ✅, Lighthouse/a11y/preview-deploys ❌ |
 | S8 — Design System | ✅ complete — unified @/ui, tokens, skeletons, widget customization |
 | S9 — Full Redesign | ✅ complete — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ |
 | S10 — Vibe-pak Consolidation | ✅ complete — T1 ✅ T2 ✅ T3 ✅ T4 ✅ T5 ✅ |
 
-**Active next: S11 (TBD) or S7 Vitest**
+**Active next: S7 remaining (Lighthouse / a11y / preview deploys) → then S8 /ui-kit page**
 
 ---
 

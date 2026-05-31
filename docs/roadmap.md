@@ -145,13 +145,21 @@ Order:
 
 ---
 
-## S7 — Polish & Testing
+## S7 — Polish & Testing 🔄 active (v1.0.4+)
 
-- **Vitest + Vue Test Utils** — first wave of unit/component tests (goals store, learning progress calculation, task category filter)
-- **CI gate** — type-check + tests must pass on PRs
+- ✅ **Vitest + Vue Test Utils** — 59 tests across 5 files (v1.0.4)
+  - `goals.types.test.ts` — calcProgress (7 cases), daysUntil (3 cases)
+  - `learning.types.test.ts` — calcProgress (6), calcStreak (5), calcHoursLogged (4)
+  - `tasks.types.test.ts` — classifyTaskDueDate (4 cases)
+  - `goals.store.test.ts` — CRUD, computed lists, milestones, getProgress (16 cases)
+  - `tasks.store.test.ts` — management, status filter, category filter, counts (19 cases)
+  - Environment: `happy-dom` (avoids jsdom ESM compat issue with Node 20)
+  - Config: `vitest.config.ts` — globals: true, @ alias
+  - Scripts: `npm test` (run once) · `npm run test:watch` (dev)
+- ✅ **CI gate** — `test` job runs type-check + tests before build; deploy blocked on failure (v1.0.4)
 - **Lighthouse audit** — Performance, Accessibility, Best Practices scores
 - **a11y audit** — keyboard navigation, focus management, screen reader basics
-- **Error boundaries** — all module routes wrapped; graceful fallback UI
+- ✅ **Error boundaries** — all module routes wrapped; graceful fallback UI
 - **Preview deploys per PR** — Vercel free tier
 - **Bundle size badge** in README
 
@@ -409,58 +417,57 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ## ── NEXT CHAT INSTRUCTIONS ────────────────────────────────────────────
 
-**Session: S10 Phase 1 — Remove Synthwave + Merge Light/SoftGlass**
-
-Start the next chat with this prompt:
+**Session: S7 Part 2 — Lighthouse + a11y + Bundle badge**
 
 ```
-Сессия — S10: Vibe-pak Consolidation (T1 + T2)
+Сессия — S7 Part 2: Lighthouse, a11y, bundle badge
 
 Прочитай перед началом:
 - /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
-- /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S10 описан там
+- /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S7 описан там
 
-Контекст: v0.9.9, S9 полностью завершён.
+Контекст: v1.0.4. S7 item 1 (Vitest, 59 тестов) ✅. S7 item 2 (CI gate) ✅.
+Vitest env: happy-dom (не jsdom — jsdom v27 ломается на Node 20).
 
-Задача 1 (T1): Удалить Synthwave пак полностью
-- main.css: удалить [data-theme='synthwave'] блок и все его CSS правила ниже
-- ui.store.ts: убрать 'synthwave' из Theme типа и isDark
-- SettingsView.vue: убрать из VIBE_PAKS
-- CommandPalette.vue: убрать из themes
-- Миграция: если localStorage theme === 'synthwave' → 'dark'
-- i18n: удалить themeSynthwave + themeSynthwave ключи
+Задача: закрыть оставшиеся S7 пункты:
 
-Задача 2 (T2): Объединить Soft Glass в Light
-- Новый Light берёт фон #eef1f7 от Soft Glass
-- Карточки: rgba(255,255,255,0.82) + backdrop-filter blur(16px) на sidebar/header
-- Хедер: чётко отличается от bg (не одного цвета!) — белый/полупрозрачный с бордером
-- Direction: Revolut-стиль — чистый, premium
-- Удалить [data-theme='softglass'] блок и все softglass ссылки
-- Миграция: если localStorage theme === 'softglass' → 'light'
+1. Lighthouse audit — запустить через CLI (npm i -g lighthouse), получить scores,
+   задокументировать результат в roadmap.md. Если Performance < 80 — найти и исправить.
 
-Правила: type-check → 0 ошибок. После T1 — коммит. После T2 — коммит.
-Версии: 0.9.9 → 1.0.0 после T2 (мержинг паков — значимая смена).
+2. a11y audit — проверить keyboard nav (Tab, Enter, Escape), focus rings, ARIA labels
+   на ключевых интерактивных элементах (sidebar, модалки, формы).
+   Исправить критические находки.
+
+3. Bundle size badge — добавить в README.md badge с текущим размером бандла.
+   Команда: npm run build, смотреть dist/ размер. Формат: shields.io static badge.
+
+После каждого пункта — коммит. Версии: 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7.
+После закрытия S7 — переходим к S8 /ui-kit (следующий приоритет).
 ```
 
-**Session: S10 Phase 2 — Dark Revolut + CRT Analysis**
+---
 
-After T1+T2 complete, start a new chat:
+**Session: S8 item 4 — /ui-kit component library page**
 
 ```
-Сессия — S10 Phase 2: Dark Revolut redesign + CRT Retro analysis
+Сессия — S8 /ui-kit: Component Library Page
 
-Прочитай: CLAUDE.md + roadmap.md (S10 T3 + T4 описаны там)
+Прочитай перед началом:
+- /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
+- /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S8 item 4 описан там
+- /Users/test/Documents/Work/AIProjects/VibeOS/docs/ui-kit-plan.md  ← готовый план
 
-T3: Редизайн Dark под Revolut:
-- bg #0b0f1a (deep navy), surface-1 #131b28, surface-2 #1a2436, surface-3 #212e42
-- border #1e2d42, border-subtle #162030
-- Проверь контрастность всего текста на новых поверхностях
+Контекст: S7 ✅ complete. S8 items 1–3 ✅. Осталось item 4 — /ui-kit страница.
+Текущая версия: 1.0.x.
 
-T4: CRT Retro — выбери палитру:
-Покажи пользователю 4 варианта (A-D из roadmap.md S10 T4)
-и жди выбор перед тем как что-то менять.
+Задача: реализовать /ui-kit component library page.
+- Route: /ui-kit (accessible from Settings → Developer, hidden in production)
+- Left sidebar with categories
+- Main area: live component cards (example + prop table)
+- Theme switcher at top (preview all 4 paks)
+- Полный план в docs/ui-kit-plan.md — читай его ПЕРЕД началом реализации.
 
-После выбора реализуй CRT, затем T5 cleanup.
+Правила: type-check → 0 ошибок. npm test → все проходят. Коммит + push после реализации.
 ```
 
 ---
