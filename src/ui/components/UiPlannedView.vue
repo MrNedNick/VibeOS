@@ -80,9 +80,9 @@ const router = useRouter()
 }
 
 .planned-view__description {
-  font-size: 15px;
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
-  line-height: 1.55;
+  line-height: var(--leading-base);
   margin: 0;
 }
 
@@ -101,7 +101,7 @@ const router = useRouter()
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
 
@@ -118,7 +118,7 @@ const router = useRouter()
 }
 
 .planned-view__badge {
-  font-size: 12px;
+  font-size: var(--text-2xs);
   font-weight: 700;
   font-family: var(--font-mono);
   background: var(--color-accent-muted);
@@ -129,7 +129,7 @@ const router = useRouter()
 }
 
 .planned-view__eta {
-  font-size: 12px;
+  font-size: var(--text-2xs);
   color: var(--color-text-muted);
   font-weight: 500;
 }
@@ -138,7 +138,7 @@ const router = useRouter()
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   padding: 6px 12px;
   border-radius: var(--radius-sm);

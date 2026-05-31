@@ -58,11 +58,11 @@ withDefaults(defineProps<{
 }
 
 .ui-empty__sub {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   margin: 0;
   max-width: 380px;
-  line-height: 1.6;
+  line-height: var(--leading-lg);
 }
 
 .ui-empty__btn {
@@ -71,7 +71,7 @@ withDefaults(defineProps<{
   background: var(--color-accent);
   color: #fff;
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
   transition: opacity var(--t-fast);

@@ -30,7 +30,7 @@ const emit = defineEmits<{ enter: [] }>()
   width: 100%;
   height: 38px;
   padding: 0 12px;
-  font-size: 15px;
+  font-size: var(--text-base);
   color: var(--color-text);
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);

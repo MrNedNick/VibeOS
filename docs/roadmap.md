@@ -198,11 +198,12 @@ Order:
    - **✅ Reference analysis complete** — see `docs/ui-kit-plan.md` for full sidebar structure, component card pattern, prop table format, implementation sequence, and technical notes
    - **Prerequisite:** items 1–3 should be done first so there are components to document
 
-5. **Design token extension** (in `main.css`)
-   - Full elevation system: `--shadow-0` through `--shadow-4`
-   - Typography scale: `--text-xs` through `--text-3xl` with `line-height`
-   - Motion tokens: `--ease-spring`, `--ease-smooth`, `--duration-fast`, `--duration-base`, `--duration-slow`
-   - Extended surface palette: `--color-surface-0/1/2/3` for elevation hierarchy
+5. **Design token extension** (in `main.css`) ✅ complete (v0.8.5)
+   - Full elevation system: `--shadow-0` through `--shadow-4` (+ per-theme overrides for all 5 vibe-paks)
+   - Typography line-height scale: `--leading-2xs` through `--leading-3xl` (9 tokens)
+   - Motion tokens: `--ease-smooth`, `--duration-fast`, `--duration-base`, `--duration-slow`
+   - Extended surface palette: `--color-surface-0/1/2/3` (+ per-theme overrides)
+   - `@/ui` components updated: UiBadge, UiButton, UiConfirmDialog, UiEmptyState, UiInput, UiPlannedView
 
 ---
 

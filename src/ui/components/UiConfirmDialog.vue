@@ -78,7 +78,7 @@ function onDialogKeydown(e: KeyboardEvent) {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255,255,255,0.04);
+  box-shadow: var(--shadow-4), 0 0 0 1px rgba(255,255,255,0.04);
   width: 100%;
   max-width: 380px;
   padding: 24px 24px 20px;
@@ -106,18 +106,18 @@ function onDialogKeydown(e: KeyboardEvent) {
 .confirm-modal__text { display: flex; flex-direction: column; gap: 6px; }
 
 .confirm-modal__title {
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--color-text);
   margin: 0;
-  line-height: 1.3;
+  line-height: var(--leading-2xl);
 }
 
 .confirm-modal__body {
-  font-size: 13px;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   margin: 0;
-  line-height: 1.5;
+  line-height: var(--leading-sm);
 }
 
 .confirm-modal__actions {
@@ -130,7 +130,7 @@ function onDialogKeydown(e: KeyboardEvent) {
 .confirm-btn {
   padding: 8px 18px;
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: var(--text-xs);
   font-weight: 600;
   cursor: pointer;
   transition: opacity var(--t-fast), background var(--t-fast);
