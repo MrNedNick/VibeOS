@@ -28,9 +28,31 @@ const today = todayStr()
 
 const showLog = ref(false)
 
+// ── AI post-log analysis ─────────────────────────────────────────────
+const aiAnalysis  = ref<string | null>(null)
+const aiAnalyzing = ref(false)
+
+async function analyzeWorkout(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {
+  if (!plan.value) return
+  aiAnalyzing.value = true
+  const durationNote = data.actualDuration ? `${data.actualDuration} min` : 'unknown duration'
+  const distNote = data.actualDistance ? `, ${data.actualDistance}km` : ''
+  const feelNote = ['', 'terrible', 'bad', 'ok', 'good', 'great'][data.feeling] ?? 'ok'
+  const prompt = `I just logged a ${plan.value.sportType} workout for "${plan.value.title}". Duration: ${durationNote}${distNote}. Feeling: ${feelNote}. ${data.notes ? 'Notes: ' + data.notes + '.' : ''} Streak: ${streak.value} days. What 2-3 specific things should I focus on to improve in my NEXT session? Be concise (3 sentences max).`
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], model: 'openai', private: true }),
+    })
+    if (res.ok) aiAnalysis.value = (await res.text()).trim()
+  } catch { /* silent */ } finally { aiAnalyzing.value = false }
+}
+
 function submitLog(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {
   store.logWorkout(data)
   showLog.value = false
+  analyzeWorkout(data)
 }
 
 const { confirm } = useConfirm()
@@ -114,6 +136,19 @@ function saveHabitLink() {
         class="tdetail__log-btn"
         @click="showLog = true"
       >Log Workout</button>
+    </div>
+
+    <!-- AI analysis card -->
+    <div v-if="aiAnalyzing || aiAnalysis" class="tdetail__ai-card">
+      <div class="tdetail__ai-header">
+        <span class="tdetail__ai-label">✦ AI Insight</span>
+        <button v-if="aiAnalysis" class="tdetail__ai-dismiss" @click="aiAnalysis = null">×</button>
+      </div>
+      <div v-if="aiAnalyzing" class="tdetail__ai-loading">
+        <UiIcon name="Loader" :size="14" :stroke-width="2" class="tdetail__ai-spinner" />
+        Analyzing your workout…
+      </div>
+      <p v-else class="tdetail__ai-text">{{ aiAnalysis }}</p>
     </div>
 
     <div class="tdetail__history">
@@ -376,6 +411,17 @@ function saveHabitLink() {
 
 .tdetail__danger-btn { background: none; border: none; font-size: var(--text-sm); color: var(--color-text-muted); cursor: pointer; padding: 0; transition: color var(--t-fast); font-family: inherit; }
 .tdetail__danger-btn:hover { color: var(--color-danger); }
+
+/* ── AI analysis card ────────────────────────────────────────────── */
+.tdetail__ai-card { background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface)); border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border)); border-radius: var(--radius-lg); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.tdetail__ai-header { display: flex; align-items: center; justify-content: space-between; }
+.tdetail__ai-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
+.tdetail__ai-dismiss { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+.tdetail__ai-dismiss:hover { color: var(--color-text); }
+@keyframes spin-tai { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.tdetail__ai-spinner { animation: spin-tai 1s linear infinite; }
+.tdetail__ai-loading { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-muted); }
+.tdetail__ai-text { font-size: var(--text-sm); line-height: 1.65; color: var(--color-text-secondary); margin: 0; }
 
 @media (max-width: 767px) {
   .tdetail__title { font-size: var(--text-2xl, 22px); }

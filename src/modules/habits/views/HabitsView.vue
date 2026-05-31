@@ -9,10 +9,11 @@ const store = useHabitsStore()
 const goalsStore = useGoalsStore()
 const i18n = useLocale()
 
-const showForm  = ref(false)
-const newName   = ref('')
-const newEmoji  = ref('')
-const newGoalId = ref('')
+const showForm   = ref(false)
+const newName    = ref('')
+const newEmoji   = ref('')
+const newPurpose = ref('')
+const newGoalId  = ref('')
 const nameInputRef = ref<HTMLInputElement>()
 
 const todayLabel = computed(() =>
@@ -25,13 +26,14 @@ function openForm() {
   showForm.value = true
   newName.value = ''
   newEmoji.value = ''
+  newPurpose.value = ''
   newGoalId.value = ''
   setTimeout(() => nameInputRef.value?.focus(), 50)
 }
 
 function submitForm() {
   if (!newName.value.trim()) return
-  store.createHabit(newName.value, newEmoji.value)
+  store.createHabit(newName.value, newEmoji.value, newPurpose.value || undefined)
   // Link to goal if selected
   if (newGoalId.value) {
     const created = store.habits[store.habits.length - 1]
@@ -85,6 +87,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         class="habits__form-name"
         :placeholder="i18n.t('habits.namePlaceholder')"
         maxlength="60"
+      />
+      <input
+        v-model="newPurpose"
+        class="habits__form-purpose"
+        placeholder="Why? (optional)"
+        maxlength="120"
       />
       <!-- Optional goal link -->
       <select
@@ -173,14 +181,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 /* New habit form */
 .habits__form {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  grid-template-rows: auto auto;
   align-items: center;
-  gap: 10px;
+  gap: 8px 10px;
   padding: 14px 18px;
   background: var(--color-surface);
   border: 1px solid var(--color-accent);
   border-radius: var(--radius-lg);
 }
+
+.habits__form-emoji   { grid-row: 1; grid-column: 1; }
+.habits__form-name    { grid-row: 1; grid-column: 2; }
+.habits__form-purpose { grid-row: 2; grid-column: 2 / 4; }
+.habits__form-goal    { grid-row: 1; grid-column: 3; }
+.habits__form-actions { grid-row: 1; grid-column: 4; }
 
 .habits__form-emoji {
   width: 44px;
@@ -204,6 +220,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   outline: none;
 }
 .habits__form-name::placeholder { color: var(--color-text-muted); }
+
+.habits__form-purpose {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+.habits__form-purpose::placeholder { color: var(--color-text-muted); font-style: italic; }
 
 .habits__form-actions {
   display: flex;
@@ -300,7 +327,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 @media (max-width: 767px) {
   .habits__header { flex-direction: column; gap: 12px; }
   .habits__add-btn { align-self: flex-start; }
-  .habits__form { flex-wrap: wrap; }
-  .habits__form-name { min-width: 0; width: 100%; order: -1; }
+  .habits__form {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  .habits__form-emoji   { grid-row: 1; grid-column: 1; }
+  .habits__form-name    { grid-row: 1; grid-column: 2; }
+  .habits__form-purpose { grid-row: 2; grid-column: 1 / 3; }
+  .habits__form-goal    { grid-row: 3; grid-column: 1 / 3; }
+  .habits__form-actions { grid-row: 3; grid-column: 2; justify-self: end; }
 }
 </style>

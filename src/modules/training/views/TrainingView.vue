@@ -90,6 +90,46 @@ const activePlansWithStatus = computed(() => {
   }))
 })
 
+// ── AI plan generator ────────────────────────────────────────────────
+const aiPrompt     = ref('')
+const aiGenerating = ref(false)
+const aiError      = ref<string | null>(null)
+const showAiInput  = ref(false)
+
+const VALID_SPORTS: SportType[] = ['running','strength','cycling','swimming','yoga','hiit','walking','other']
+
+async function generateWithAI() {
+  if (!aiPrompt.value.trim()) return
+  aiGenerating.value = true
+  aiError.value = null
+
+  const prompt = `Create a training plan for: "${aiPrompt.value}". Reply with ONLY a JSON object, no extra text: {"title":"short plan name","emoji":"single emoji","sportType":"running or strength or cycling or swimming or yoga or hiit or walking or other","sessionsPerWeek":2 or 3 or 5 or 7}`
+
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], model: 'openai', private: true }),
+    })
+    if (!res.ok) { aiError.value = 'AI request failed'; return }
+    const text = await res.text()
+    const match = text.match(/\{[\s\S]*?\}/)
+    if (!match) { aiError.value = 'Could not parse AI response — try again'; return }
+    const data = JSON.parse(match[0])
+    if (data.title) formTitle.value = String(data.title)
+    if (data.emoji) formEmoji.value = String(data.emoji).slice(0, 2)
+    if (data.sportType && VALID_SPORTS.includes(data.sportType)) formSport.value = data.sportType as SportType
+    if ([2, 3, 5, 7].includes(Number(data.sessionsPerWeek))) formSessions.value = Number(data.sessionsPerWeek)
+    showAiInput.value = false
+    aiPrompt.value = ''
+    nextTick(() => titleRef.value?.focus())
+  } catch {
+    aiError.value = 'Failed to parse AI response'
+  } finally {
+    aiGenerating.value = false
+  }
+}
+
 // ── Keyboard shortcut ────────────────────────────────────────────────
 function onKeydown(e: KeyboardEvent) {
   if (showForm.value || loggingPlanId.value) return
@@ -159,9 +199,33 @@ const todayLabel = computed(() =>
         </div>
       </div>
 
+      <!-- AI assist -->
+      <div v-if="showAiInput" class="training__ai-row">
+        <input
+          v-model="aiPrompt"
+          class="training__input training__input--grow"
+          placeholder="e.g. 'Run a 5K in 12 weeks, 3 days/week'"
+          @keydown.enter.prevent="generateWithAI"
+          @keydown.escape="showAiInput = false"
+        />
+        <button
+          class="training__btn training__btn--ai"
+          :disabled="aiGenerating || !aiPrompt.trim()"
+          @click="generateWithAI"
+        >{{ aiGenerating ? '…' : 'Generate' }}</button>
+        <button class="training__btn training__btn--ghost" @click="showAiInput = false">✕</button>
+      </div>
+      <p v-if="aiError" class="training__ai-error">{{ aiError }}</p>
+
       <div class="training__form-actions">
         <button class="training__btn training__btn--primary" @click="submitForm">Add Plan</button>
         <button class="training__btn training__btn--ghost" @click="cancelForm">Cancel</button>
+        <button
+          v-if="!showAiInput"
+          class="training__btn training__btn--ai-toggle"
+          type="button"
+          @click="showAiInput = true; aiError = null"
+        >✦ Fill with AI</button>
       </div>
     </div>
 
@@ -328,7 +392,10 @@ const todayLabel = computed(() =>
   font-weight: 500;
 }
 
-.training__form-actions { display: flex; gap: 10px; }
+.training__form-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.training__ai-row { display: flex; gap: 8px; align-items: center; }
+.training__ai-error { font-size: var(--text-xs); color: var(--color-danger); margin: 0; }
 
 .training__input {
   background: var(--color-bg);
@@ -384,6 +451,13 @@ const todayLabel = computed(() =>
 .training__btn--primary:hover { background: var(--color-accent-hover); }
 .training__btn--ghost { background: transparent; color: var(--color-text-secondary); border-color: var(--color-border); }
 .training__btn--ghost:hover { color: var(--color-text); }
+
+.training__btn--ai { background: var(--color-accent); color: #fff; border-color: var(--color-accent); padding: 8px 14px; }
+.training__btn--ai:hover:not(:disabled) { background: var(--color-accent-hover); }
+.training__btn--ai:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.training__btn--ai-toggle { background: transparent; border-color: var(--color-accent); color: var(--color-accent); margin-left: auto; font-size: 12px; padding: 6px 12px; }
+.training__btn--ai-toggle:hover { background: var(--color-accent-muted); }
 
 /* Section label */
 .training__section-label {

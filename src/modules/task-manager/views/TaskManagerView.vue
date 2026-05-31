@@ -34,6 +34,34 @@ const focusedId    = ref<string | null>(null)
 const taskInputRef = ref<InstanceType<typeof TaskInput>>()
 const showPomodoro = ref(false)
 
+// ── AI priority assistant ──────────────────────────────────────────
+const aiPriority        = ref<string | null>(null)
+const aiPriorityLoading = ref(false)
+
+async function askAIPriority() {
+  aiPriorityLoading.value = true
+  aiPriority.value = null
+  const pending = store.tasks.filter(t => !t.done).slice(0, 15)
+  const list = pending.length
+    ? pending.map(t => {
+        const parts = [`• ${t.text}`]
+        if (t.priority !== 'none') parts.push(`[${t.priority}]`)
+        if (t.dueDate) parts.push(`due ${t.dueDate}`)
+        if (t.category) parts.push(`(${t.category})`)
+        return parts.join(' ')
+      }).join('\n')
+    : 'No pending tasks.'
+  const prompt = `My pending tasks:\n${list}\n\nWhat should I focus on right now? Pick the 2-3 most important and explain why. Be direct and practical (3-4 sentences max).`
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], model: 'openai', private: true }),
+    })
+    if (res.ok) aiPriority.value = (await res.text()).trim()
+  } catch { /* silent */ } finally { aiPriorityLoading.value = false }
+}
+
 function onKeydown(e: KeyboardEvent) {
   const target = e.target as HTMLElement
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
@@ -109,8 +137,26 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           title="Remove all completed tasks from the list"
           @click="clearCompleted"
         >{{ i18n.t('tasks.clearDone') }}</UiButton>
+        <UiButton
+          variant="ghost"
+          size="sm"
+          :title="aiPriorityLoading ? 'Thinking…' : 'AI: What to focus on right now?'"
+          :disabled="aiPriorityLoading"
+          @click="askAIPriority"
+        >{{ aiPriorityLoading ? '✦ …' : '✦ Focus' }}</UiButton>
       </div>
     </div>
+
+    <!-- AI priority card -->
+    <Transition name="ai-fade">
+      <div v-if="aiPriority" class="tm-view__ai-card">
+        <div class="tm-view__ai-header">
+          <span class="tm-view__ai-label">✦ AI Focus Suggestion</span>
+          <button class="tm-view__ai-dismiss" @click="aiPriority = null">×</button>
+        </div>
+        <p class="tm-view__ai-text">{{ aiPriority }}</p>
+      </div>
+    </Transition>
 
     <!-- Pomodoro panel (collapsible) -->
     <Transition name="pomo-slide">
@@ -253,6 +299,28 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .pomo-slide-leave-active { transition: opacity 0.15s ease; }
 .pomo-slide-enter-from   { opacity: 0; transform: translateY(-8px); }
 .pomo-slide-leave-to     { opacity: 0; }
+
+/* AI priority card */
+.tm-view__ai-card {
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tm-view__ai-header { display: flex; align-items: center; justify-content: space-between; }
+.tm-view__ai-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
+.tm-view__ai-dismiss { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+.tm-view__ai-dismiss:hover { color: var(--color-text); }
+.tm-view__ai-text { font-size: var(--text-sm); line-height: 1.65; color: var(--color-text-secondary); margin: 0; }
+
+.ai-fade-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.ai-fade-leave-active { transition: opacity 0.15s ease; }
+.ai-fade-enter-from   { opacity: 0; transform: translateY(-6px); }
+.ai-fade-leave-to     { opacity: 0; }
 
 /* Category chips */
 .tm-view__cats,

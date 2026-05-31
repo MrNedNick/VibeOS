@@ -33,9 +33,28 @@ const targetDate = computed(() => plan.value ? estimateTargetDate(plan.value) : 
 // ── Session log modal ────────────────────────────────────────────────
 const showLog = ref(false)
 
+// ── AI post-log analysis ─────────────────────────────────────────────
+const aiAnalysis   = ref<string | null>(null)
+const aiAnalyzing  = ref(false)
+
+async function analyzeSession(data: Omit<LearningSession, 'id'>) {
+  if (!plan.value) return
+  aiAnalyzing.value = true
+  const prompt = `I just completed a ${data.actualMinutes}-min learning session for "${plan.value.title}". ${data.topic ? 'Topic: ' + data.topic + '.' : ''} ${data.notes ? 'Notes: ' + data.notes + '.' : ''} Current progress: ${progress.value}% of ${plan.value.targetHours}h goal. What 2-3 things should I focus on in my NEXT session? Be specific and brief (3 sentences max).`
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], model: 'openai', private: true }),
+    })
+    if (res.ok) aiAnalysis.value = (await res.text()).trim()
+  } catch { /* silent */ } finally { aiAnalyzing.value = false }
+}
+
 function submitLog(data: Omit<LearningSession, 'id'>) {
   store.logSession(data)
   showLog.value = false
+  analyzeSession(data)
 }
 
 // ── Confirm delete ───────────────────────────────────────────────────
@@ -152,6 +171,19 @@ function saveHabitLink() {
       >
         Log Session
       </button>
+    </div>
+
+    <!-- AI analysis card -->
+    <div v-if="aiAnalyzing || aiAnalysis" class="detail__ai-card">
+      <div class="detail__ai-header">
+        <span class="detail__ai-label">✦ AI Insight</span>
+        <button v-if="aiAnalysis" class="detail__ai-dismiss" @click="aiAnalysis = null">×</button>
+      </div>
+      <div v-if="aiAnalyzing" class="detail__ai-loading">
+        <UiIcon name="Loader" :size="14" :stroke-width="2" class="detail__ai-spinner" />
+        Analyzing your session…
+      </div>
+      <p v-else class="detail__ai-text">{{ aiAnalysis }}</p>
     </div>
 
     <!-- Session history -->
@@ -528,6 +560,28 @@ function saveHabitLink() {
 }
 
 .detail__danger-btn:hover { color: var(--color-danger); }
+
+/* ── AI analysis card ────────────────────────────────────────────── */
+.detail__ai-card {
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail__ai-header { display: flex; align-items: center; justify-content: space-between; }
+.detail__ai-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
+.detail__ai-dismiss { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+.detail__ai-dismiss:hover { color: var(--color-text); }
+
+@keyframes spin-ai { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.detail__ai-spinner { animation: spin-ai 1s linear infinite; }
+
+.detail__ai-loading { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-muted); }
+.detail__ai-text { font-size: var(--text-sm); line-height: 1.65; color: var(--color-text-secondary); margin: 0; }
 
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 767px) {

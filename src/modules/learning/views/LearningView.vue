@@ -105,6 +105,45 @@ const FREQ_OPTIONS: { val: 3 | 5 | 7; label: string }[] = [
   { val: 5, label: 'Weekdays' },
   { val: 7, label: 'Daily' },
 ]
+
+// ── AI plan generator ────────────────────────────────────────────────
+const aiPrompt      = ref('')
+const aiGenerating  = ref(false)
+const aiError       = ref<string | null>(null)
+const showAiInput   = ref(false)
+
+async function generateWithAI() {
+  if (!aiPrompt.value.trim()) return
+  aiGenerating.value = true
+  aiError.value = null
+
+  const prompt = `Create a structured learning plan for: "${aiPrompt.value}". Reply with ONLY a JSON object, no extra text: {"title":"short plan name","emoji":"single emoji","minutesPerSession":number 15-60,"targetHours":number 5-300,"daysPerWeek":3 or 5 or 7}`
+
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], model: 'openai', private: true }),
+    })
+    if (!res.ok) { aiError.value = 'AI request failed'; return }
+    const text = await res.text()
+    const match = text.match(/\{[\s\S]*?\}/)
+    if (!match) { aiError.value = 'Could not parse AI response — try again'; return }
+    const data = JSON.parse(match[0])
+    if (data.title) formTitle.value = String(data.title)
+    if (data.emoji) formEmoji.value = String(data.emoji).slice(0, 2)
+    if (data.minutesPerSession) formMinutes.value = Math.max(5, Math.min(180, Number(data.minutesPerSession)))
+    if (data.targetHours) formHours.value = Math.max(1, Math.min(500, Number(data.targetHours)))
+    if ([3, 5, 7].includes(Number(data.daysPerWeek))) formDays.value = Number(data.daysPerWeek) as 3 | 5 | 7
+    showAiInput.value = false
+    aiPrompt.value = ''
+    nextTick(() => titleRef.value?.focus())
+  } catch {
+    aiError.value = 'Failed to parse AI response'
+  } finally {
+    aiGenerating.value = false
+  }
+}
 </script>
 
 <template>
@@ -173,9 +212,33 @@ const FREQ_OPTIONS: { val: 3 | 5 | 7; label: string }[] = [
         </div>
       </div>
 
+      <!-- AI assist -->
+      <div v-if="showAiInput" class="learning__ai-row">
+        <input
+          v-model="aiPrompt"
+          class="learning__input learning__input--grow"
+          placeholder="e.g. 'Learn Python in 8 weeks, 30 min/day'"
+          @keydown.enter.prevent="generateWithAI"
+          @keydown.escape="showAiInput = false"
+        />
+        <button
+          class="learning__btn learning__btn--ai"
+          :disabled="aiGenerating || !aiPrompt.trim()"
+          @click="generateWithAI"
+        >{{ aiGenerating ? '…' : 'Generate' }}</button>
+        <button class="learning__btn learning__btn--ghost" @click="showAiInput = false">✕</button>
+      </div>
+      <p v-if="aiError" class="learning__ai-error">{{ aiError }}</p>
+
       <div class="learning__form-actions">
         <button class="learning__btn learning__btn--primary" @click="submitForm">Add Plan</button>
         <button class="learning__btn learning__btn--ghost" @click="cancelForm">Cancel</button>
+        <button
+          v-if="!showAiInput"
+          class="learning__btn learning__btn--ai-toggle"
+          type="button"
+          @click="showAiInput = true; aiError = null"
+        >✦ Fill with AI</button>
       </div>
     </div>
 
@@ -341,6 +404,20 @@ const FREQ_OPTIONS: { val: 3 | 5 | 7; label: string }[] = [
 .learning__form-actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.learning__ai-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.learning__ai-error {
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  margin: 0;
 }
 
 .learning__input {
@@ -423,6 +500,27 @@ const FREQ_OPTIONS: { val: 3 | 5 | 7; label: string }[] = [
 }
 
 .learning__btn--ghost:hover { color: var(--color-text); }
+
+.learning__btn--ai {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+  padding: 8px 14px;
+}
+
+.learning__btn--ai:hover:not(:disabled) { background: var(--color-accent-hover); }
+.learning__btn--ai:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.learning__btn--ai-toggle {
+  background: transparent;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  margin-left: auto;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.learning__btn--ai-toggle:hover { background: var(--color-accent-muted); }
 
 /* ── Section label ───────────────────────────────────────────────── */
 .learning__section-label {

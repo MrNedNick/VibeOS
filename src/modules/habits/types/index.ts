@@ -2,6 +2,7 @@ export interface Habit {
   id: string
   name: string
   emoji: string
+  purpose?: string               // optional "why" description shown below habit name
   createdAt: string
   completedDates: string[]
   linkedGoalId?: string          // auto-complete next milestone on check

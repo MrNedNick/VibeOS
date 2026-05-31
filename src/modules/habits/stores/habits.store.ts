@@ -9,11 +9,12 @@ export const useHabitsStore = defineStore('habits:habits', () => {
   const habits = useStorage<Habit[]>(storageKey('habits', 'habits'), [])
   const events = useEventBus()
 
-  function createHabit(name: string, emoji: string): void {
+  function createHabit(name: string, emoji: string, purpose?: string): void {
     habits.value.push({
       id: crypto.randomUUID(),
       name: name.trim(),
       emoji: emoji.trim() || '⭐',
+      purpose: purpose?.trim() || undefined,
       createdAt: new Date().toISOString(),
       completedDates: [],
     })
@@ -56,11 +57,12 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     if ('linkedTrainingPlanId' in links) habit.linkedTrainingPlanId = links.linkedTrainingPlanId
   }
 
-  function updateHabit(id: string, name: string, emoji?: string): void {
+  function updateHabit(id: string, name: string, emoji?: string, purpose?: string): void {
     const habit = habits.value.find(h => h.id === id)
     if (!habit) return
     if (name.trim()) habit.name = name.trim()
     if (emoji !== undefined) habit.emoji = emoji.trim() || '⭐'
+    if (purpose !== undefined) habit.purpose = purpose.trim() || undefined
   }
 
   function deleteHabit(id: string): void {

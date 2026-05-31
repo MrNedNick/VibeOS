@@ -43,7 +43,7 @@ const todayFormatted = computed(() =>
   new Date().toLocaleDateString(i18n.localeCode, { weekday: 'short', day: 'numeric', month: 'short' })
 )
 
-// ── Inline edit ───────────────────────────────────────────────────────
+// ── Inline edit (name) ────────────────────────────────────────────────
 const editing = ref(false)
 const editName = ref('')
 const editInput = ref<HTMLInputElement>()
@@ -69,6 +69,32 @@ function cancelEdit() {
 function onEditKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') { e.preventDefault(); saveEdit() }
   if (e.key === 'Escape') { e.preventDefault(); cancelEdit() }
+}
+
+// ── Inline edit (purpose) ─────────────────────────────────────────────
+const editingPurpose = ref(false)
+const editPurpose    = ref('')
+const editPurposeInput = ref<HTMLInputElement>()
+
+async function startPurposeEdit() {
+  editPurpose.value = props.habit.purpose ?? ''
+  editingPurpose.value = true
+  await nextTick()
+  editPurposeInput.value?.select()
+}
+
+function savePurposeEdit() {
+  habitsStore.updateHabit(props.habit.id, props.habit.name, props.habit.emoji, editPurpose.value)
+  editingPurpose.value = false
+}
+
+function cancelPurposeEdit() {
+  editingPurpose.value = false
+}
+
+function onPurposeKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') { e.preventDefault(); savePurposeEdit() }
+  if (e.key === 'Escape') { e.preventDefault(); cancelPurposeEdit() }
 }
 
 // ── Confirm delete ────────────────────────────────────────────────────
@@ -162,6 +188,30 @@ function saveLinks() {
               :title="i18n.t('habits.editPlaceholder')"
               @click="startEdit"
             >{{ habit.name }}</span>
+
+            <!-- Purpose (why) — inline editable -->
+            <input
+              v-if="editingPurpose"
+              ref="editPurposeInput"
+              v-model="editPurpose"
+              class="habit-card__purpose-input"
+              placeholder="Why are you building this habit?"
+              maxlength="120"
+              @keydown="onPurposeKeydown"
+              @blur="savePurposeEdit"
+            />
+            <span
+              v-else-if="habit.purpose"
+              class="habit-card__purpose"
+              title="Click to edit your why"
+              @click="startPurposeEdit"
+            >{{ habit.purpose }}</span>
+            <span
+              v-else
+              class="habit-card__purpose habit-card__purpose--empty"
+              title="Add your why"
+              @click="startPurposeEdit"
+            >+ Add why…</span>
 
             <div class="habit-card__meta">
               <span :class="['habit-card__streak', streak === 0 ? 'habit-card__streak--zero' : '']">
@@ -360,6 +410,48 @@ function saveLinks() {
   outline: none;
   width: 100%;
   font-family: inherit;
+}
+
+.habit-card__purpose {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  cursor: text;
+  border-radius: var(--radius-xs);
+  padding: 1px 3px;
+  margin: -1px -3px;
+  transition: background var(--t-fast), color var(--t-fast);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.habit-card__purpose:hover {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+}
+
+.habit-card__purpose--empty {
+  color: var(--color-text-muted);
+  opacity: 0;
+  font-style: italic;
+  font-size: 11px;
+  transition: opacity var(--t-fast), background var(--t-fast);
+}
+.habit-card:hover .habit-card__purpose--empty { opacity: 0.6; }
+.habit-card__purpose--empty:hover { opacity: 1 !important; }
+
+.habit-card__purpose-input {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-xs);
+  padding: 2px 6px;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+  font-style: italic;
 }
 
 .habit-card__meta {
