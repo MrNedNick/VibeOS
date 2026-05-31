@@ -1,121 +1,141 @@
 # VibeOS — Platform Overview
 
-**VibeOS** is a personal operating system for the vibe-coding era — a single codebase containing multiple independent apps under one OS-style shell. Built in Vue 3 with AI-assisted development. Designed to be lived in, not just demoed.
+> Updated 2026-05-31. Reflects shipped state at v0.9.3.
+> ⚠️ **Keep this file current.** After every sprint or significant feature, update the version, state table, and module list in the same commit that ships the work. Stale docs break future AI sessions.
 
-See `docs/strategy.md` for positioning, sprint plan and architectural direction.
 
----
+**VibeOS** is a personal life operating system — a real daily-use app that tracks everything that matters: goals, habits, tasks, learning, training, finances, and more. Built in Vue 3, TypeScript, and Vite. Used every day by its creator.
 
-## Vision
-
-A public personal setup that ties together the tools the author actually uses — tasks, notes, board, snippets, games, AI — under one keyboard and one switchable aesthetic.
-
-Each app must be:
-- Independently useful
-- Architecturally consistent
-- Visually polished — and reskinnable via vibe-paks
-- Production-ready in its own right
-
-The platform demonstrates mastery of:
-- Scalable Vue 3 architecture
-- TypeScript and type safety
-- State management patterns (Pinia)
-- Composable-driven development
-- Reusable UI + theme systems (vibe-paks)
-- Cross-module messaging (event bus)
-- Offline-first storage with optional cloud sync (Supabase)
-- AI-assisted development workflows (Claude)
-
----
-
-## Goals
-
-| Goal | Description |
-|------|-------------|
-| Learning | Modern frontend engineering: Vue 3, Vite, TypeScript, Pinia |
-| Architecture | Scalable, modular, maintainable patterns |
-| AI Workflows | Using Claude as a senior engineering assistant |
-| Portfolio | Demonstrating real product thinking and engineering quality |
-| Long-term | A codebase that grows and improves over time |
+It also functions as a portfolio anchor: the "personal life OS" concept is more compelling to technical recruiters than a generic task manager, because it demonstrates real product thinking at scale.
 
 ---
 
 ## Current State
 
-**Product name:** VibeOS  
-**Version:** 0.1.0  
-**Active apps:** Dashboard, Docs, Tasks, Notes, Games (2048)  
-**Architecture:** ✅ Clean and layered  
-**TypeScript:** ✅ Strict mode, 0 errors  
-**Tests:** ❌ Not yet implemented (S5)  
-**Backend:** ❌ localStorage only (S3 — Supabase planned)  
-**Deployment:** ✅ Live at mrnednick.github.io/VibeOS  
-**Active sprint:** S1 — Identity (positioning, logo, vibe-paks, landing, README)
+| Field | Value |
+|-------|-------|
+| **Version** | 0.9.3 |
+| **Live URL** | https://mrnednick.github.io/VibeOS |
+| **GitHub** | https://github.com/MrNedNick/VibeOS |
+| **TypeScript** | ✅ Strict mode, 0 errors (enforced on every commit) |
+| **Tests** | ❌ Not yet (S7 — Vitest planned) |
+| **Backend** | ⏸ Supabase code complete, awaiting user setup (see S3 status) |
+| **Storage** | ✅ localStorage-first, full offline operation |
+| **AI** | ✅ Free tier (Pollinations.ai, no key) + Claude API (user key) |
+| **Deployment** | ✅ GitHub Actions → GitHub Pages on every push to `main` |
+| **Design system** | ✅ S8 complete — unified @/ui components, tokens, skeletons, widget customization |
+| **Visual redesign** | ✅ S9 Phase 1–3 complete — Revolut/Linear aesthetic, shadow tokens, color-mix hovers |
 
 ---
 
 ## Tech Stack
 
-- **Vue 3** — Composition API, `<script setup>`
-- **Vite 6** — Build tool, dev server, glob imports
-- **TypeScript 5** — Strict mode
-- **Pinia 2** — State management
-- **Vue Router 4** — Client-side routing with lazy loading
-- **Geist** — Primary typeface (Vercel's open-source font)
-- **marked 18** — Markdown rendering
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | Vue 3 (Composition API, `<script setup>`) |
+| **Build** | Vite 6 |
+| **Language** | TypeScript 5 (strict) |
+| **State** | Pinia 2 |
+| **Routing** | Vue Router 4 (lazy-loaded module views) |
+| **Storage** | `useStorage()` composable → localStorage (offline-first) |
+| **AI (free)** | Pollinations.ai — no API key needed |
+| **AI (premium)** | Anthropic Claude API — user provides key in Settings |
+| **Markdown** | `marked` |
+| **Icons** | `lucide-vue-next` |
+| **Backend (planned)** | Supabase (Postgres + Auth + RLS) — code complete, awaiting credentials |
 
 ---
 
-## App Roadmap
+## Shipped Modules (v0.9.3)
 
-| App | Status | Sprint | Description |
-|-----|--------|--------|-------------|
-| Dashboard | ✅ Active | S2 redesign | Live home screen — clock, weather, Today tasks, activity feed |
-| Docs | ✅ Active | — | In-app markdown documentation viewer |
-| Tasks (→ *Stride*) | ✅ Active | S4 product features | Today view + Focus mode (Pomodoro) + Streaks |
-| Notes (→ *Inkwell/Slate*) | ✅ Active | S4 product features | Markdown + `[[backlinks]]` + daily journal |
-| Games | ✅ Active | S4 expand | 2048 done; Memory + Snake next |
-| Settings | 🔜 S2 | — | Appearance / Account / Keys / Data / Shortcuts / About |
-| About | 🔜 S2 | — | Personal portfolio anchor at `/about` |
-| Board | 🔜 S4 | — | Time-based swimlanes (rows = days, cols = statuses), unified with Tasks |
-| Studio | 🔜 S4 | — | Prompt Lab — parallel model comparison (Opus / Sonnet / Haiku) |
-| Snippets | 🔜 S4 | — | Code vault with syntax highlighting + tags + search |
-| Habits | 🔜 S4 | — | Daily check-offs + streak heatmap |
-| Currency | 🔁 Demoted | — | Now a Dashboard widget, not a standalone module |
+| Module | Path | Status | Key features |
+|--------|------|--------|-------------|
+| **Dashboard** | `/` | ✅ | Today panel, Goals/Habits/Finance/Achievements widgets, AI Digest, live stats |
+| **Tasks** | `/tasks` | ✅ | Priority, categories, goal linking, Pomodoro, AI focus, activity heatmap |
+| **Board** | `/board` | ✅ | Kanban + Timeline, drag-and-drop, search & priority filter |
+| **Notes** | `/notes` | ✅ | Markdown, wiki backlinks, note types, goal linking |
+| **Goals** | `/goals` | ✅ | Milestones, progress, AI suggestions, linked tasks & notes |
+| **Habits** | `/habits` | ✅ | Streaks, categories, skip days, retroactive check-ins, milestones, drag reorder |
+| **Learning** | `/learning` | ✅ | Plans, sessions, AI analysis, resources, streaks |
+| **Training** | `/training` | ✅ | Plans, workout logs, AI coaching, resources |
+| **Finance** | `/finance` | ✅ | Expenses, budgets, charts, multi-currency, recurring |
+| **Analytics** | `/analytics` | ✅ | Habit heatmap, task/learning/training charts |
+| **Calendar** | `/calendar` | ✅ | Monthly grid, 5 dot types, day detail |
+| **Studio** | `/studio` | ✅ | AI chat (Free AI + Claude API) |
+| **Games** | `/games` | ✅ | Snake, Minesweeper, Memory, Sudoku, Tetris — each with skins |
+| **Settings** | `/settings` | ✅ | 6 vibe-paks, language (EN/RU), module visibility, API keys, data export |
+| **About** | `/about` | ✅ | Portfolio page with live stats |
+| **Docs** | `/docs` | ✅ | In-app docs with full-text search |
+
+---
+
+## Design System (S8 complete — v0.8.x)
+
+### Component library — `src/ui/`
+All shared UI lives in `@/ui`. Changing a component style = editing one file. Components:
+`UiButton`, `UiCard`, `UiBadge`, `UiInput`, `UiField`, `UiSectionLabel`, `UiStat`,
+`UiProgressBar`, `UiProgressRing`, `UiFilterChips`, `UiEmptyState`, `UiSkeleton`,
+`UiModal`, `UiConfirmDialog`, `UiPlannedView`, `UiIcon`.
+
+### Design tokens — `src/assets/styles/main.css`
+- **Shadows** `--shadow-0` → `--shadow-4` (per-theme overrides for all vibe-paks)
+- **Typography** `--text-2xs` → `--text-3xl`, `--leading-2xs` → `--leading-3xl`
+- **Motion** `--ease-smooth`, `--duration-fast/base/slow`
+- **Surfaces** `--color-surface-0/1/2/3`
+- **Radius** `--radius-xs` → `--radius-xl`
+
+### Vibe-paks — 6 themes
+
+| Theme | Mood |
+|-------|------|
+| **Dark** (default) | Deep dark surfaces, blue accent — shadow tokens use opacity |
+| **Light** | Clean white, high contrast |
+| **Synthwave** | Dark purple, magenta accent — shadows glow accent |
+| **Brutalist** | Off-white, bold black borders |
+| **Soft Glass** | Frosted translucent, soft blue, backdrop-filter blur |
+| **CRT Retro** | Phosphor green terminal, CSS scan-line overlay |
+
+> **S9 Phase 4 (next):** Refine all 6 vibe-paks to use the new elevation/surface tokens fully.
+
+---
+
+## AI Features (Pollinations.ai — no key required)
+
+| Feature | Module | Trigger |
+|---------|--------|---------|
+| AI Focus assistant | Tasks | "✦ Focus" button |
+| Goal milestone suggestions | Goals | "✦ Suggest" button |
+| Learning plan generator | Learning | "✦ Fill with AI" |
+| Session analysis | Learning | After logging session |
+| Training plan generator | Training | "✦ Fill with AI" |
+| Workout analysis | Training | After logging workout |
+| Daily Digest | Dashboard | "Generate" button |
+| Ask AI | ⌘K palette | "✦ Ask AI…" command |
+
+---
+
+## Achievements System
+
+10 predefined achievements tracked via the event bus. Toast notification on unlock, persisted in localStorage. Viewable in Dashboard → Achievements panel.
+
+---
+
+## Architecture Principles
+
+- **Offline-first** — all data in localStorage; Supabase sync is optional layer
+- **Module isolation** — each module only imports from `@/core/*` and `@/ui/*`
+- **Event bus** — typed PlatformEvent union for cross-module communication
+- **useStorage** — reactive localStorage ref with auto-persistence
+- **useAI** — centralized Pollinations.ai wrapper used by all 8 AI features
+
+See `docs/architecture.md` for full structural details.
 
 ---
 
 ## Development Philosophy
 
-- **Architecture first** — design decisions are documented before code is written
-- **Patterns over improvisation** — new code follows established patterns in `/docs/patterns.md`
-- **Spec before implementation** — every new module starts with a written spec in `docs/modules/`
-- **Product quality** — every screen should feel like it belongs in a real product
-- **Vibe-coded** — AI-assisted development, fast iteration, high standards
-
----
-
-## Branding
-
-> **S1 work in progress.** The values below are placeholders being replaced this sprint. See task #2 (positioning) and task #3 (logo + accent) in the task list.
-
-| Token | Value (current) | Direction (S1) |
-|-------|-----------------|----------------|
-| Product name | VibeOS | unchanged |
-| Logo mark | `//` (placeholder) | Blinking block cursor `▮` (recommended) |
-| Accent color | `#4f8ef7` | Pick a unique accent (not Vercel default) |
-| Font | Geist + JetBrains Mono | Consider a more distinct heading mono |
-| Icon system | Unicode glyphs | Lucide via lucide-vue-next |
-| Brand tone | Precise · Composed · Alive | unchanged |
-| Tagline | *Your engineering workspace* | *Personal OS for the vibe-coding era* (working) |
-
-### Vibe-paks (multi-theme system)
-
-VibeOS ships with switchable visual moods, each a complete CSS variable override:
-
-| Pack | Status | Mood |
-|------|--------|------|
-| Terminal Dark | ✅ current default | Dark, blue accent, dev-native |
-| Brutalist | 🔜 S1 | White bg, 2px black borders, mono everywhere |
-| Soft Glass | 🔜 later | Backdrop blur, pastels, soft shadows |
-| CRT Retro | 🔜 later | Green phosphor, scanlines, flicker |
+- **No decisions deferred** — if something is clearly the right call, ship it
+- **Type safety always** — `npm run type-check` must pass before every commit
+- **Version bumped on every ship** — current version always visible in About + Dashboard
+- **Roadmap-driven** — new features are planned in `docs/roadmap.md` before implementation
+- **Docs stay current** — after every sprint, docs updated same session

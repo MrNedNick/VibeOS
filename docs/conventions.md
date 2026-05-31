@@ -1,6 +1,8 @@
 # Conventions
 
-> Updated 2026-05-31. Reflects v0.8.3.
+> Updated 2026-05-31. Reflects v0.9.3.
+> ⚠️ **Keep this file current.** If you add a new convention or @/ui component, update this doc in the same commit.
+
 
 ## Naming
 
@@ -106,6 +108,18 @@ import {
 | `UiButton` | All buttons | `variant`, `size`, `loading`, `disabled` |
 | `UiBadge` | Status tags | `color`, `size` |
 | `UiProgressRing` | Circular progress | `value`, `size`, `label` |
+
+## S9 Visual Conventions (enforced from v0.9.0)
+
+These rules apply to all new and touched components:
+
+- **No hardcoded colors.** Use CSS vars: `--color-warning` not `#f59e0b`, `--color-accent` not `#4f8ef7`.
+- **Shadows via tokens.** Use `--shadow-1` (base elevation), `--shadow-2` (hover/focused), `--shadow-3` (panels), `--shadow-4` (modals). Never `box-shadow: 0 4px 14px rgba(0,0,0,0.6)` inline.
+- **Hover states via `color-mix`.** `background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface-elevated))` not a flat `--color-surface-elevated`.
+- **`rgba()` → `color-mix()`.** `rgba(79,142,247,.12)` → `color-mix(in srgb, var(--color-accent) 12%, transparent)`.
+- **Typography line-heights.** Use `--leading-2xs` → `--leading-3xl` tokens, not bare `line-height: 1.5`.
+- **Surface levels.** Cards default to `surface-base` (no shadow), raised/interactive cards use `surface="raised"` or add `box-shadow: var(--shadow-1)` explicitly.
+- **`UiCard` usage:** `surface="raised"` for goal/plan/habit cards (shadow-1 base). `clickable` implies `hoverable` → shadow-2 on hover.
 
 ## Comments
 

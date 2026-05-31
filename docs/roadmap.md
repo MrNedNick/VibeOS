@@ -1,25 +1,24 @@
 # Roadmap
 
-> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3, updated 2026-05-30 (v4) after visual audit sprint, updated 2026-05-30 (v5) after AI integration + UX sprint, updated 2026-05-31 (v6) after AI assistants + habit purpose sprint, updated 2026-05-31 (v7) after heatmap + finance charts + palette AI sprint, updated 2026-05-31 (v8) S8 sprint formalised — widget customization, skeleton loaders, /ui-kit, unified component architecture.
-> Repositioned: VibeOS evolves from developer showcase to personal life operating system.
-> See `docs/strategy.md` for the full product context.
-> See `docs/privacy-security.md` for the auth/demo/security plan.
+> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · **v9 2026-05-31 S9 Phase 3 complete, Phase 4 specced, next-chat instructions added.**
+> ⚠️ **Keep this file current.** Mark sprint items done the moment they ship. Add Phase 4+ specs before the session that implements them. A roadmap that lags the code is useless.
+> See `docs/strategy.md` for product context · `docs/privacy-security.md` for auth plan.
 
 ---
 
-## Active sprint plan
+## Sprint status overview
 
-| Sprint | Goal | Key outcome |
-|--------|------|-------------|
-| **S1 — Identity** | Life OS first impression | New tagline, logo, vibe-paks, Lucide icons, copy pass, landing |
-| **S2 — Command Center** | Dashboard becomes daily-useful | Command palette ⌘K, Settings, Dashboard life panels, event bus extended |
-| **S3 — Backend + Auth** | Real product, private data | Supabase auth, protected routes, demo mode (seeded account), RLS |
-| **S4 — Core Life Modules** | Goals + task unification | Goals module, Tasks life categories, Habits → goal integration |
-| **S5 — Life Depth** | Learning + Training + Analytics | Learning module, Training module, Personal Analytics, full Dashboard |
-| **S6 — AI Integration** | AI as planning layer | Daily digest, goal planning, learning plans, workout analysis (user key only) |
-| **S7 — Polish** | Credibility + reliability | Vitest + CI gate, Lighthouse, a11y, error boundaries, preview deploys |
-| **S8 — Design System** ✅ | Unified component library | `/ui-kit` page, skeleton loaders, widget customization, component architecture |
-| **S9 — Full Redesign** 🔜 | Premium visual identity | Revolut-style overhaul using S8 component system |
+| Sprint | Goal | Status |
+|--------|------|--------|
+| S1 — Identity | Life OS first impression | ✅ complete |
+| S2 — Command Center | Dashboard as daily command center | ✅ complete |
+| S3 — Backend + Auth | Real product, private data | ⏸ paused — code done, awaiting Supabase credentials |
+| S4 — Core Life Modules | Goals + task unification | ✅ complete |
+| S5 — Life Depth | Learning + Training + Analytics | ✅ complete |
+| S6 — AI Integration | AI as planning layer | ✅ complete — 9 features |
+| S7 — Polish | Credibility + reliability | 🔶 partial — error boundaries ✅, Vitest + CI ❌ |
+| S8 — Design System | Unified component library | ✅ complete — v0.8.x |
+| **S9 — Full Redesign** | Premium visual identity | 🔄 **active** — v0.9.x |
 
 ---
 
@@ -232,8 +231,91 @@ Order:
 - ✅ Notes — goal-icon #f59e0b → --color-warning, NoteListItem padding 11px/16px + color-mix hover
 - ✅ About — full portfolio page rewrite: hero card, "What I'm good at" skill cards, VibeOS section with decisions table, stats, modules list, language chips with levels
 
-**Phase 4 — Vibe-paks v2** (after Phase 3)
-- Refine all 6 themes with new elevation/surface tokens
+**Phase 4 — Vibe-paks v2** 🔜 next (after Phase 3 ✅)
+
+Each vibe-pak needs to be audited and updated to fully use the S8/S9 token system.
+
+**Problem:** most vibe-paks define `--shadow-1..4` but the values don't match their mood:
+- **Synthwave** — shadows should glow in accent color (currently just black opacity)
+- **Soft Glass** — shadows should use `backdrop-filter blur` and very subtle opacity
+- **CRT Retro** — shadows should use phosphor green glow, not black
+- **Brutalist** — shadows should be sharp 2px offset without blur (flat design)
+- **Light** — shadows should be crisp blue-grey, not the default dark opacity
+
+**Per-pak audit order:**
+1. **Synthwave** (most iconic — glow shadows define the theme)
+2. **Soft Glass** (glass morphism needs shadow + backdrop-filter alignment)
+3. **CRT Retro** (scan-line + glow shadows — unique character)
+4. **Brutalist** (shadow-less by design — verify no shadows bleed through)
+5. **Light** (most used by recruiters — must look polished)
+6. **Dark** (default — already good, minor tweaks only)
+
+**What to change per pak:**
+- `--shadow-1..4` values that match the pak's mood (glow, flat, crisp, none)
+- `--color-surface-0..3` stacking — ensure cards visually pop from bg
+- Hover state tints — `color-mix` accent percentages match pak energy (more aggressive for Synthwave, subtle for Light)
+- Card `border-color` on hover — match pak accent
+
+**Files to edit:** `src/assets/styles/main.css` — each `[data-theme="..."]` block.
+**Test:** Switch each pak in Settings and verify Dashboard, GoalCard, HabitCard, TaskItem visually.
+
+---
+
+## ── NEXT CHAT INSTRUCTIONS ────────────────────────────────────────────
+
+**Session: S9 Phase 4 — Vibe-paks v2**
+
+Start the next chat with this prompt:
+
+```
+Сессия — S9 Phase 4: Vibe-paks v2
+
+Прочитай перед началом:
+- /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
+- /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← Phase 4 описана там
+
+Контекст:
+- Версия: v0.9.3
+- S9 Phase 1–3 ✅ (visual foundation, component restyle, module pass)
+- S8 ✅ (design system, @/ui, tokens)
+
+Задача: S9 Phase 4 — Vibe-paks v2
+Аудит и обновление всех 6 тем так, чтобы --shadow-1..4, --color-surface-0..3
+и hover color-mix проценты соответствовали характеру каждой темы.
+
+Порядок: Synthwave → Soft Glass → CRT Retro → Brutalist → Light → Dark
+Файл: src/assets/styles/main.css (блоки [data-theme="..."])
+
+Правила:
+- npm run type-check → 0 ошибок
+- После каждого pak — коммит
+- Версия: 0.9.3 → 0.9.4 после первого пака, дальше patch
+- Обновить docs/roadmap.md по мере
+```
+
+**Alternative next session (if vibe-paks feel low-priority):**
+
+Option B — S7 Vitest (adds tests to stores):
+```
+Сессия — S7: Vitest unit tests
+
+Читай CLAUDE.md + roadmap.md.
+Задача: добавить Vitest + Vue Test Utils.
+Первая волна тестов: goals.store, learning progress calculation, tasks category filter.
+Настроить CI gate (type-check + tests must pass).
+```
+
+Option C — Finance UX pass (the module that needs most design work):
+```
+Сессия — Finance visual redesign
+
+Читай CLAUDE.md + roadmap.md.
+Задача: Finance module полный design pass.
+Текущие проблемы: layout dense, charts basic, data entry UX clunky.
+Принципы S9: shadow-1 on cards, color-mix hovers, more whitespace.
+```
+
+---
 
 ---
 

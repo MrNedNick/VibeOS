@@ -1,6 +1,8 @@
 # VibeOS — Strategy & Vision
 
-> Updated 2026-05-28 (v3). Reflects shipped state at v0.5.3 — Goals, Learning, Training, Analytics, Calendar all live.
+> Updated 2026-05-31 (v5). Reflects shipped state at v0.9.3 — S8 Design System complete, S9 Phase 1–3 complete.
+> ⚠️ **Keep this file current.** Any change to product positioning, module direction, or architecture decisions must be reflected here in the same session.
+
 > See `docs/privacy-security.md` for the public/private/auth plan.
 > See `docs/roadmap.md` for the sprint execution plan.
 
@@ -94,26 +96,25 @@ The same task entity can be shown as:
 
 This avoids the trap of building many disconnected apps.
 
-### Core modules (planned and existing)
+### Core modules (all shipped as of v0.9.3)
 
 | Module | Status | Purpose |
 |--------|--------|---------|
-| **Dashboard** | ✅ shipped | Daily command center — aggregates everything |
-| **Tasks** | ✅ shipped | Task list with priority, categories, goals, life areas |
-| **Board** | ✅ shipped | Kanban view of the same task data (unified) |
-| **Notes** | ✅ shipped | Plans, ideas, project notes, journal, wiki backlinks |
-| **Habits** | ✅ shipped | Daily check-offs, streaks, heatmap |
-| **Goals** | ✅ shipped (S4) | Life goals, categories, milestones, linked tasks |
-| **Learning** | ✅ shipped (S5) | Structured learning plans, topics, daily sessions |
-| **Training** | ✅ shipped (S5) | Workout plans, session tracking, progress analysis |
-| **Analytics** | ✅ shipped (S5) | Personal stats, habit trends, goal progress, heatmap |
-| **Calendar** | ✅ shipped (S5) | Monthly view — tasks, habits, goals, training, learning dots |
-| **Finance** | 🔜 planned (S6+) | Expense tracking, spending categories, budget limits, monthly overview |
-| **Games** | ✅ shipped | Snake (skins), Minesweeper, Memory, Sudoku |
-| **Studio** | ✅ shipped | AI prompt lab (Claude API, user key) |
-| **Snippets** | ✅ shipped | Code vault with syntax highlighting |
-| **Settings** | ✅ shipped | Appearance, data export/import, API keys |
-| **About** | ✅ shipped | Portfolio anchor |
+| **Dashboard** | ✅ | Daily command center — configurable widgets, live life stats |
+| **Tasks** | ✅ | Priority tasks, categories, goal linking, Pomodoro, AI focus, heatmap |
+| **Board** | ✅ | Kanban + Timeline, drag-and-drop, search & filter |
+| **Notes** | ✅ | Markdown, wiki backlinks, note types (7), goal linking |
+| **Habits** | ✅ | Streaks, categories, skip days, retroactive check-ins, milestones, drag sort |
+| **Goals** | ✅ | Milestones, progress rings, AI suggestions, linked tasks, linked notes |
+| **Learning** | ✅ | Study plans, session logs, AI analysis, resource library, streaks |
+| **Training** | ✅ | Workout plans, logs, AI coaching, resource library, streaks |
+| **Finance** | ✅ | Expenses, budgets, charts, multi-currency (ExchangeRate API), recurring |
+| **Analytics** | ✅ | Habit heatmap, task completion, learning/training charts |
+| **Calendar** | ✅ | Monthly grid, 5 activity dot types, day detail panel |
+| **Games** | ✅ | Snake, Minesweeper, Memory, Sudoku, Tetris — each with unlock-gated skins |
+| **Studio** | ✅ | AI chat: Free (Pollinations.ai, no key) + Claude API (user key) |
+| **Settings** | ✅ | 6 vibe-paks, language EN/RU, module visibility, API keys, data export/import |
+| **About** | ✅ | Portfolio page with live stats from stores |
 
 ### Module categories for sidebar
 
@@ -208,8 +209,8 @@ Key constraint: always user-provided API key. Never auto-call. Show cost estimat
 ### Tagline update
 S1 Identity pass must update all copy from "developer workspace" to "personal life OS" framing.
 
-### Vibe-paks (unchanged)
-Four packs: Terminal Dark (default), Brutalist, Soft Glass, CRT Retro. These are a visual signature and portfolio hook — keep them.
+### Vibe-paks (6 shipped)
+Six packs: Dark (default), Light, Synthwave, Brutalist, Soft Glass, CRT Retro. Visual signature and portfolio hook — keep them. S8 will add a full design system overhaul with `/ui-kit` component library.
 
 ### Icons
 Lucide icons (planned S1) — include icons for new life modules: `Target` (goals), `Dumbbell` (training), `BookOpen` (learning), `BarChart2` (analytics).
@@ -263,10 +264,18 @@ Becomes the life command center. Replaces dev metrics with life metrics. Panels:
 - Note types: `plan | idea | journal | project | learning | training`
 - Link notes to goals or learning plans
 
-### Habits (S4 polish + S5 integration)
-- Connect habits to goals: marking habit done contributes to goal progress
-- Connect habits to learning plans: "Study every weekday" auto-creates daily task
-- Connect habits to training plans: "Train Mon/Wed/Fri" auto-marks training days
+### Habits (✅ shipped — S4/S5/S6+)
+- Categories (health/productivity/learning/social/other) with color indicators
+- Retroactive check-ins for past 14 days (calendar grid per card)
+- Skip day / vacation mode (doesn't break streak)
+- Milestone celebrations at 7/14/30/60/100/180/365 days
+- Check-in notes per day
+- Best streak tracking + habit age display
+- Weekly summary card + at-risk filter
+- Quick-start templates for new users
+- Drag-to-reorder
+- Connected to goals, learning plans, training plans
+- **Remaining:** Habit reordering by drag ✅ done; native reminder notifications (S8)
 
 ### Goals (new — S4)
 - Goal entity: name, category (career / health / skill / personal / financial), target date, milestones, linked tasks, progress
@@ -298,14 +307,15 @@ Becomes the life command center. Replaces dev metrics with life metrics. Panels:
 - Goal progress overview
 - Weekly digest summary
 
-### Finance (new — S6+)
-- Expense entity: amount, category (food / transport / housing / health / entertainment / other), date, note
-- Monthly budget limits per category: set a cap, see how much is left
-- Spending overview: current month bar charts by category; total spent vs total budget
-- Recent transactions list with inline add
-- Dashboard widget: monthly spending snapshot, "over budget" warning
-- Future: export CSV, connect to bank CSV import
-- **Long-term vision**: this module can eventually be extracted as a standalone personal finance app
+### Finance (✅ shipped — S6+)
+- Expense entry with 8 categories, date, note
+- Monthly budget limits per category with progress bars
+- Overview tab: stacked category bar + day-by-day spending chart
+- Transactions tab: sortable list, CSV export, recurring expense markers
+- Budgets tab: inline editing, currency symbol config
+- Multi-currency: base + display currency, exchange rates from open.er-api.com (free)
+- Dashboard widget: monthly total + budget progress + top categories
+- **Remaining:** Bank CSV import, multi-month comparison view, standalone iOS extraction (long-term)
 
 ### Studio (existing — maintain)
 - Keep as AI prompt lab
@@ -314,17 +324,19 @@ Becomes the life command center. Replaces dev metrics with life metrics. Panels:
 
 ---
 
-## 9. Sprint Plan (Updated)
+## 9. Sprint Plan (Current)
 
-| Sprint | Goal | Key deliverables |
-|--------|------|-----------------|
-| **S1 — Identity** | Life OS first impression | New tagline, logo, vibe-paks v1 (Terminal + Brutalist), Lucide icons, copy pass, landing page, README with GIF |
-| **S2 — Command Center** | Dashboard becomes useful | Command palette ⌘K, Settings, Dashboard life panels (Today/Goals/Habits), event bus extended |
-| **S3 — Backend + Auth** | Real product, real data | Supabase auth (email/password), protected routes, demo mode (seeded account), RLS, schema migration, offline-first sync |
-| **S4 — Core Life Modules** | Goals + Task unification | Goals module, Tasks life categories + goal linking, Habits → goal integration, Notes backlinks + types |
-| **S5 — Life Depth** | Learning + Training + Analytics | Learning module, Training module, Personal Analytics, Dashboard life panels (Learning/Training/Stats) |
-| **S6 — AI Integration** | AI as planning layer | Daily digest, goal planning suggestions, learning plan generator, workout analysis (all user-key, no auto-billing) |
-| **S7 — Polish** | Credibility + reliability | Vitest + CI gate, Lighthouse, a11y audit, error boundaries, preview deploys per PR |
+| Sprint | Goal | Status |
+|--------|------|--------|
+| **S1 — Identity** | Life OS first impression | ✅ Closed |
+| **S2 — Command Center** | Dashboard becomes daily-useful | ✅ Mostly done (⌘K, Settings, Dashboard panels) |
+| **S3 — Backend + Auth** | Real product, private data | ⏸ Paused — code complete, awaiting Supabase credentials |
+| **S4 — Core Life Modules** | Goals + Task unification | ✅ Done |
+| **S5 — Life Depth** | Learning + Training + Analytics | ✅ Done |
+| **S6 — AI Integration** | AI as planning layer | ✅ Done (all 9 items shipped) |
+| **S7 — Polish** | Credibility + reliability | 🔜 Partially (error boundaries done; Vitest pending) |
+| **S8 — Design System** | Component library + unified UI | 🔜 Next sprint — skeleton loaders, widget customization, `/ui-kit`, unified `@/ui` architecture |
+| **S9 — Full Redesign** | Revolut-style visual overhaul | 🔜 After S8 — requires unified component system first |
 
 ---
 
