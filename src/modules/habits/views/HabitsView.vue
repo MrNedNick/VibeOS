@@ -118,6 +118,24 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key === 'n' || e.key === 'N') openForm()
 }
 
+// ── Drag-to-reorder ───────────────────────────────────────────────────
+const draggingId  = ref<string | null>(null)
+const dragOverId  = ref<string | null>(null)
+
+function onDragStart(e: DragEvent, id: string) {
+  draggingId.value = id
+  if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', id) }
+}
+function onDragEnd() { draggingId.value = null; dragOverId.value = null }
+function onDragOver(e: DragEvent, id: string) {
+  e.preventDefault()
+  if (draggingId.value && draggingId.value !== id) dragOverId.value = id
+}
+function onDrop(id: string) {
+  if (draggingId.value && draggingId.value !== id) store.reorderHabits(draggingId.value, id)
+  draggingId.value = null; dragOverId.value = null
+}
+
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
@@ -243,15 +261,30 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
     <!-- Habit cards -->
     <div v-if="filteredHabits.length > 0" class="habits__grid">
-      <HabitCard
+      <div
         v-for="habit in filteredHabits"
         :key="habit.id"
-        :habit="habit"
-        :done-today="store.isCompletedToday(habit.id)"
-        @toggle="store.toggleToday"
-        @delete="store.deleteHabit"
-        @update="store.updateHabit"
-      />
+        class="habits__drag-row"
+        :class="{
+          'habits__drag-row--dragging': draggingId === habit.id,
+          'habits__drag-row--over':    dragOverId === habit.id,
+        }"
+        draggable="true"
+        @dragstart="onDragStart($event, habit.id)"
+        @dragend="onDragEnd"
+        @dragover="onDragOver($event, habit.id)"
+        @drop.prevent="onDrop(habit.id)"
+      >
+        <span class="habits__drag-handle" title="Drag to reorder">⠿</span>
+        <HabitCard
+          :habit="habit"
+          :done-today="store.isCompletedToday(habit.id)"
+          class="habits__card-inner"
+          @toggle="store.toggleToday"
+          @delete="store.deleteHabit"
+          @update="store.updateHabit"
+        />
+      </div>
     </div>
 
     <!-- Empty state -->
@@ -614,8 +647,39 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   color: #f59e0b;
 }
 
-/* Grid */
+/* Grid + drag-to-reorder */
 .habits__grid { display: flex; flex-direction: column; gap: 12px; }
+
+.habits__drag-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  border-radius: var(--radius-lg);
+  transition: opacity var(--t-fast), box-shadow var(--t-fast);
+}
+
+.habits__drag-row--dragging { opacity: 0.45; }
+
+.habits__drag-row--over {
+  box-shadow: 0 -3px 0 var(--color-accent);
+  border-radius: 0;
+}
+
+.habits__drag-handle {
+  cursor: grab;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1;
+  padding: 22px 2px 0;
+  opacity: 0;
+  transition: opacity var(--t-fast);
+  user-select: none;
+  flex-shrink: 0;
+}
+.habits__drag-row:hover .habits__drag-handle { opacity: 0.5; }
+.habits__drag-handle:active { cursor: grabbing; opacity: 1; }
+
+.habits__card-inner { flex: 1; min-width: 0; }
 
 /* Empty state */
 .habits__empty {

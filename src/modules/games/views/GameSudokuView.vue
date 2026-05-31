@@ -2,9 +2,54 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLocale } from '@/core/i18n'
+import { useStorage } from '@/core/composables/useStorage'
 
 const router = useRouter()
 const i18n = useLocale()
+
+// ── Themes ────────────────────────────────────────────────────────────
+interface SudokuTheme {
+  id: string; name: string; emoji: string; unlock: number
+  vars: Record<string, string>
+}
+
+const THEMES: SudokuTheme[] = [
+  { id: 'classic', name: 'Classic', emoji: '🟦', unlock: 0, vars: {} },
+  {
+    id: 'dark', name: 'Dark', emoji: '⬛', unlock: 3,
+    vars: {
+      '--sdk-cell-bg':      '#1a1a2e',
+      '--sdk-cell-given':   '#0f3460',
+      '--sdk-cell-border':  '#2a2a4e',
+      '--sdk-cell-sel':     '#4f8ef7',
+      '--sdk-grid-bg':      '#0d0d1a',
+      '--sdk-conflict':     '#5c0000',
+    },
+  },
+  {
+    id: 'pastel', name: 'Pastel', emoji: '🌸', unlock: 7,
+    vars: {
+      '--sdk-cell-bg':      '#fdf6f9',
+      '--sdk-cell-given':   '#f8e8f0',
+      '--sdk-cell-border':  '#e8c4d8',
+      '--sdk-cell-sel':     '#e879a0',
+      '--sdk-grid-bg':      '#f5edf5',
+      '--sdk-conflict':     '#ffd0d0',
+      '--sdk-accent':       '#e879a0',
+    },
+  },
+]
+
+const puzzlesSolved   = useStorage<number>('platform:games:sudoku:solved', 0)
+const unlockedThemes  = useStorage<string[]>('platform:games:sudoku:unlocked', ['classic'])
+const activeThemeId   = useStorage<string>('platform:games:sudoku:theme', 'classic')
+const newThemeUnlock  = ref<string | null>(null)
+
+const activeTheme = computed(() => THEMES.find(t => t.id === activeThemeId.value) ?? THEMES[0])
+const themeCssVars = computed(() => activeTheme.value.vars)
+const themesWithStatus = computed(() =>
+  THEMES.map(t => ({ ...t, unlocked: unlockedThemes.value.includes(t.id), active: activeThemeId.value === t.id }))
+)
 
 // ── Puzzle definitions ────────────────────────────────────────────────
 // Each puzzle is [clues, solution] where 0 = empty cell
@@ -181,6 +226,15 @@ function checkWin() {
   }
   status.value = 'won'
   stopTimer()
+  puzzlesSolved.value++
+  for (const theme of THEMES) {
+    if (theme.unlock > 0 && puzzlesSolved.value >= theme.unlock && !unlockedThemes.value.includes(theme.id)) {
+      unlockedThemes.value = [...unlockedThemes.value, theme.id]
+      newThemeUnlock.value = theme.name
+      setTimeout(() => { newThemeUnlock.value = null }, 4000)
+      break
+    }
+  }
 }
 
 // ── Keyboard navigation ───────────────────────────────────────────────
@@ -243,7 +297,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="sudoku-view">
+  <div class="sudoku-view" :style="themeCssVars">
 
     <!-- Header -->
     <div class="sudoku-header">
@@ -310,6 +364,31 @@ onUnmounted(() => {
           {{ i18n.t('games.sudokuErase') }}
         </button>
       </div>
+    </div>
+
+    <!-- Theme unlock banner -->
+    <Transition name="win-fade">
+      <div v-if="newThemeUnlock" class="sudoku-theme-unlock">
+        🎨 New theme unlocked: <strong>{{ newThemeUnlock }}</strong>!
+      </div>
+    </Transition>
+
+    <!-- Theme picker -->
+    <div class="sudoku-themes">
+      <span class="sudoku-themes__label">Themes:</span>
+      <button
+        v-for="theme in themesWithStatus"
+        :key="theme.id"
+        class="sudoku-theme-btn"
+        :class="{ 'sudoku-theme-btn--active': theme.active, 'sudoku-theme-btn--locked': !theme.unlocked }"
+        :title="theme.unlocked ? theme.name : `Solve ${theme.unlock} puzzles to unlock`"
+        :disabled="!theme.unlocked"
+        @click="activeThemeId = theme.id"
+      >
+        {{ theme.emoji }} {{ theme.name }}
+        <span v-if="!theme.unlocked" style="font-size:10px;margin-left:3px;">🔒{{ theme.unlock }}</span>
+      </button>
+      <span class="sudoku-themes__count">{{ puzzlesSolved }} solved</span>
     </div>
 
   </div>
@@ -453,14 +532,35 @@ onUnmounted(() => {
   font-size: 17px;
   font-weight: 600;
   cursor: pointer;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--sdk-cell-bg, var(--color-surface));
+  border: 1px solid var(--sdk-cell-border, var(--color-border));
   border-radius: 0;
   transition: background var(--t-fast), color var(--t-fast);
   font-family: inherit;
-  color: var(--color-accent);
+  color: var(--sdk-accent, var(--color-accent));
   padding: 0;
   line-height: 1;
+}
+
+.sudoku-themes {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+}
+.sudoku-themes__label { font-size: 12px; color: var(--color-text-muted); }
+.sudoku-themes__count { font-size: 11px; font-family: var(--font-mono); color: var(--color-text-muted); margin-left: auto; }
+.sudoku-theme-btn {
+  display: flex; align-items: center; gap: 4px; padding: 4px 10px;
+  font-size: 12px; font-family: inherit;
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: transparent; color: var(--color-text-muted); cursor: pointer; transition: all var(--t-fast);
+}
+.sudoku-theme-btn:hover:not(:disabled):not(.sudoku-theme-btn--active) { background: var(--color-surface-elevated); color: var(--color-text); }
+.sudoku-theme-btn--active { background: var(--color-accent-muted); border-color: var(--color-accent); color: var(--color-accent); }
+.sudoku-theme-btn--locked { opacity: 0.45; cursor: not-allowed; }
+.sudoku-theme-unlock {
+  padding: 8px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; text-align: center;
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border)); color: var(--color-text);
+  margin-top: 4px;
 }
 
 /* Box separators */

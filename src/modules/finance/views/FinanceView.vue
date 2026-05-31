@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useFinanceStore } from '../stores/finance.store'
 import { CATEGORY_META, EXPENSE_CATEGORIES, formatAmount, currentMonthKey } from '../types'
 import type { ExpenseCategory } from '../types'
@@ -177,6 +177,8 @@ function exportTransactionsCSV() {
   URL.revokeObjectURL(url)
 }
 
+onMounted(() => store.fetchRates())
+
 const { confirm } = useConfirm()
 
 async function deleteExpense(id: string) {
@@ -215,6 +217,10 @@ async function deleteExpense(id: string) {
       <div class="finance__header-stats">
         <div class="finance__header-stat">
           <span class="finance__header-stat-value">{{ formatAmount(viewTotal, store.currency) }}</span>
+          <span
+            v-if="store.displayCurrency !== store.baseCurrency && store.exchangeRate !== 1"
+            class="finance__header-stat-converted"
+          >≈ {{ store.displaySymbol }}{{ store.convertAmount(viewTotal).toLocaleString() }}</span>
           <span class="finance__header-stat-label">spent</span>
         </div>
         <div v-if="store.totalBudget > 0 && isViewingCurrentMonth" class="finance__header-stat">
@@ -456,16 +462,25 @@ async function deleteExpense(id: string) {
         </div>
       </div>
 
-      <!-- Currency setting -->
+      <!-- Currency settings -->
       <div class="finance__currency-row">
-        <span class="finance__currency-label">Currency symbol</span>
-        <input
-          v-model="store.currency"
-          type="text"
-          class="finance__currency-input"
-          maxlength="3"
-          placeholder="€"
-        />
+        <span class="finance__currency-label">Base currency</span>
+        <select v-model="store.baseCurrency" class="finance__currency-select" @change="store.fetchRates()">
+          <option v-for="c in store.POPULAR_CURRENCIES" :key="c" :value="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="finance__currency-row">
+        <span class="finance__currency-label">Display currency</span>
+        <select v-model="store.displayCurrency" class="finance__currency-select" @change="store.fetchRates()">
+          <option v-for="c in store.POPULAR_CURRENCIES" :key="c" :value="c">{{ c }}</option>
+        </select>
+        <span v-if="store.exchangeRate !== 1" class="finance__rate-badge">
+          1 {{ store.baseCurrency }} = {{ store.exchangeRate.toFixed(4) }} {{ store.displayCurrency }}
+        </span>
+      </div>
+      <div class="finance__currency-row">
+        <span class="finance__currency-label">Symbol</span>
+        <input v-model="store.currency" type="text" class="finance__currency-input" maxlength="3" placeholder="€" />
       </div>
     </div>
 
@@ -1026,6 +1041,37 @@ async function deleteExpense(id: string) {
   font-size: 13px;
   color: var(--color-text-secondary);
   flex: 1;
+}
+
+.finance__header-stat-converted {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.finance__currency-select {
+  padding: 5px 10px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--t-fast);
+}
+.finance__currency-select:focus { border-color: var(--color-accent); }
+
+.finance__rate-badge {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  padding: 2px 8px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 99px;
+  white-space: nowrap;
 }
 
 .finance__currency-input {

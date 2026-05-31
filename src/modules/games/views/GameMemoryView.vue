@@ -5,11 +5,46 @@ import { useStorage } from '@/core/composables/useStorage'
 
 const router = useRouter()
 
-// ── Emoji pool ─────────────────────────────────────────────────────────
-const EMOJI_POOL = [
-  '🦊', '🐼', '🦁', '🦋', '🐸', '🦄', '🐙', '🦅',
-  '🦚', '🦜', '🐬', '🦈', '🦩', '🦝', '🐺', '🦓',
+// ── Card themes ────────────────────────────────────────────────────────
+interface MemoryTheme {
+  id: string
+  name: string
+  emoji: string
+  pool: string[]
+  unlock: number  // total wins required
+}
+
+const THEMES: MemoryTheme[] = [
+  {
+    id: 'animals', name: 'Animals', emoji: '🦊', unlock: 0,
+    pool: ['🦊', '🐼', '🦁', '🦋', '🐸', '🦄', '🐙', '🦅', '🦚', '🦜', '🐬', '🦈', '🦩', '🦝', '🐺', '🦓'],
+  },
+  {
+    id: 'food', name: 'Food', emoji: '🍕', unlock: 3,
+    pool: ['🍕', '🍔', '🍣', '🍦', '🍓', '🍇', '🌮', '🍩', '🍜', '🥑', '🍎', '🍋', '🥐', '🍰', '🌯', '🍿'],
+  },
+  {
+    id: 'symbols', name: 'Symbols', emoji: '⭐', unlock: 7,
+    pool: ['⭐', '🌙', '☀️', '🌊', '🔥', '⚡', '🎵', '💎', '🎯', '🧩', '🎲', '🎸', '🌸', '❄️', '🌈', '💫'],
+  },
+  {
+    id: 'nature', name: 'Nature', emoji: '🌿', unlock: 15,
+    pool: ['🌿', '🌺', '🍄', '🌴', '🦋', '🌻', '🍀', '🌵', '🐚', '🌾', '🍁', '🌷', '🌰', '🐝', '🦔', '🌍'],
+  },
 ]
+
+const totalWins       = useStorage<number>('platform:games:memory:wins', 0)
+const unlockedThemes  = useStorage<string[]>('platform:games:memory:unlocked', ['animals'])
+const activeThemeId   = useStorage<string>('platform:games:memory:theme', 'animals')
+const newThemeUnlock  = ref<string | null>(null)
+
+const activeTheme = computed(() => THEMES.find(t => t.id === activeThemeId.value) ?? THEMES[0])
+const themesWithStatus = computed(() =>
+  THEMES.map(t => ({ ...t, unlocked: unlockedThemes.value.includes(t.id), active: activeThemeId.value === t.id }))
+)
+
+// ── Emoji pool — uses active theme ─────────────────────────────────────
+const EMOJI_POOL = computed(() => activeTheme.value.pool)
 
 type Difficulty = 'easy' | 'hard'
 
@@ -72,7 +107,7 @@ function restart(diff?: Difficulty) {
   stopTimer()
 
   const { pairs } = GRID[difficulty.value]
-  const emojis = shuffle(EMOJI_POOL).slice(0, pairs)
+  const emojis = shuffle(EMOJI_POOL.value).slice(0, pairs)
   const deck   = shuffle([...emojis, ...emojis])
 
   cards.value    = deck.map((emoji, idx) => ({ id: idx, emoji, flipped: false, matched: false }))
@@ -132,6 +167,16 @@ function saveBest() {
   } else {
     if (!bestHardTime.value || elapsed.value < bestHardTime.value)   bestHardTime.value  = elapsed.value
     if (!bestHardMoves.value || moves.value   < bestHardMoves.value) bestHardMoves.value = moves.value
+  }
+  totalWins.value++
+  // Check theme unlocks
+  for (const theme of THEMES) {
+    if (theme.unlock > 0 && totalWins.value >= theme.unlock && !unlockedThemes.value.includes(theme.id)) {
+      unlockedThemes.value = [...unlockedThemes.value, theme.id]
+      newThemeUnlock.value = theme.name
+      setTimeout(() => { newThemeUnlock.value = null }, 4000)
+      break
+    }
   }
 }
 
@@ -247,7 +292,32 @@ onUnmounted(stopTimer)
       </div>
     </Transition>
 
-    <p class="game__hint-footer">Click cards to flip · Match all pairs to win</p>
+    <!-- Theme unlock banner -->
+    <Transition name="unlock-fade">
+      <div v-if="newThemeUnlock" class="game__unlock-banner">
+        🎨 New theme unlocked: <strong>{{ newThemeUnlock }}</strong>!
+      </div>
+    </Transition>
+
+    <!-- Theme picker -->
+    <div class="game__themes">
+      <span class="game__themes-label">Card themes:</span>
+      <button
+        v-for="theme in themesWithStatus"
+        :key="theme.id"
+        class="game__theme-btn"
+        :class="{ 'game__theme-btn--active': theme.active, 'game__theme-btn--locked': !theme.unlocked }"
+        :title="theme.unlocked ? theme.name : `${theme.name} — win ${theme.unlock} games to unlock`"
+        :disabled="!theme.unlocked"
+        @click="activeThemeId = theme.id; restart()"
+      >
+        {{ theme.emoji }}
+        <span class="game__theme-btn-name">{{ theme.name }}</span>
+        <span v-if="!theme.unlocked" class="game__theme-btn-lock">🔒 {{ theme.unlock }}W</span>
+      </button>
+    </div>
+
+    <p class="game__hint-footer">Click cards to flip · Match all pairs to win · {{ totalWins }} win{{ totalWins !== 1 ? 's' : '' }}</p>
   </div>
 </template>
 
@@ -545,6 +615,39 @@ onUnmounted(stopTimer)
 .btn-ghost:hover { background: var(--color-border); }
 
 /* ── Footer hint ─────────────────────────────────────────────────────── */
+/* Theme picker */
+.game__themes {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 8px 0 2px;
+}
+.game__themes-label { font-size: 12px; color: var(--color-text-muted); margin-right: 4px; }
+.game__theme-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px; font-size: 12px; font-family: inherit;
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: transparent; color: var(--color-text-muted); cursor: pointer;
+  transition: all var(--t-fast);
+}
+.game__theme-btn:hover:not(:disabled):not(.game__theme-btn--active) {
+  background: var(--color-surface-elevated); color: var(--color-text);
+}
+.game__theme-btn--active {
+  background: var(--color-accent-muted); border-color: var(--color-accent); color: var(--color-accent);
+}
+.game__theme-btn--locked { opacity: 0.45; cursor: not-allowed; }
+.game__theme-btn-name { font-weight: 500; }
+.game__theme-btn-lock { font-size: 10px; color: var(--color-text-muted); }
+
+.game__unlock-banner {
+  padding: 8px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+  color: var(--color-text); text-align: center;
+}
+.unlock-fade-enter-active { transition: opacity 0.3s ease; }
+.unlock-fade-leave-active { transition: opacity 0.2s ease; }
+.unlock-fade-enter-from, .unlock-fade-leave-to { opacity: 0; }
+
 .game__hint-footer {
   font-size: 13px;
   color: var(--color-text-muted);

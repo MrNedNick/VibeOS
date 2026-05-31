@@ -1,8 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
+import { PLATFORM_MODULES } from '@/core/registry/modules'
+import { useHabitsStore } from '@/modules/habits/stores/habits.store'
+import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
+import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 
-const i18n = useLocale()
+const i18n       = useLocale()
+const habitsStore = useHabitsStore()
+const tasksStore  = useTasksStore()
+const goalsStore  = useGoalsStore()
 
 // ── Author ────────────────────────────────────────────────────────────
 const AUTHOR = {
@@ -31,34 +39,49 @@ const STACK = [
   { name: 'marked',      desc: 'Markdown rendering',              icon: '📝' },
 ]
 
-// ── Modules ───────────────────────────────────────────────────────────
-const MODULES = [
-  { id: 'task-manager',  label: 'Tasks',     desc: 'Priority tasks, keyboard nav, Pomodoro focus timer',   icon: 'CheckSquare' },
-  { id: 'notes',         label: 'Notes',     desc: 'Markdown + live preview, wiki backlinks, daily journal', icon: 'NotebookPen' },
-  { id: 'kanban',        label: 'Board',     desc: 'Swimlane timeline, drag-and-drop, task import',         icon: 'LayoutGrid' },
-  { id: 'goals',         label: 'Goals',     desc: 'Goal tracking with milestones, progress, target dates', icon: 'Target' },
-  { id: 'habits',        label: 'Habits',    desc: 'Daily check-offs, streak tracking, GitHub heatmap',     icon: 'Flame' },
-  { id: 'learning',      label: 'Learning',  desc: 'Study plans, session logs, streaks and progress rings', icon: 'BookOpen' },
-  { id: 'training',      label: 'Training',  desc: 'Workout plans, session logs, streaks and distance',     icon: 'Dumbbell' },
-  { id: 'ai-playground', label: 'Studio',    desc: 'AI chat — Free AI (no key) + Claude API, markdown',     icon: 'Sparkles' },
-  { id: 'analytics',     label: 'Analytics', desc: 'Habit heatmap, task completion, learning + training charts', icon: 'BarChart2' },
-  { id: 'calendar',      label: 'Calendar',  desc: 'Monthly view with 5 activity dot types, day detail',   icon: 'CalendarDays' },
-  { id: 'docs',          label: 'Docs',      desc: 'Full-text search, collapsible sections, anchor links',  icon: 'FileText' },
-  { id: 'games',         label: 'Games',     desc: 'Minesweeper · Memory · Snake · Sudoku (skins system)',  icon: 'Gamepad2' },
-  { id: 'settings',      label: 'Settings',  desc: 'Themes, language, API keys, data export/import',        icon: 'Settings' },
-]
-
-// ── Stats ─────────────────────────────────────────────────────────────
-const STATS = [
-  { label: 'Modules',       value: '13+' },
-  { label: 'TypeScript',    value: '0 errors' },
-  { label: 'Dependencies',  value: 'minimal' },
-  { label: 'Bundle',        value: '~380 KB' },
-]
-
 const APP_VERSION   = __APP_VERSION__
 const GITHUB_URL    = 'https://github.com/MrNedNick/VibeOS'
 const LIVE_SITE_URL = 'https://mrnednick.github.io/VibeOS'
+
+// ── Modules (pull from registry + enrich with descriptions) ──────────
+const MODULE_DESCS: Record<string, string> = {
+  'task-manager':  'Priority tasks, AI focus assistant, Pomodoro, activity heatmap',
+  'notes':         'Markdown editor, wiki backlinks, goal linking, note types',
+  'kanban':        'Swimlane Kanban + Timeline, drag-and-drop, search & filter',
+  'goals':         'Milestones, progress rings, AI suggestions, linked tasks & notes',
+  'habits':        'Streaks, retroactive check-ins, categories, skip days, milestones',
+  'learning':      'Study plans, session logs, AI analysis, resource library',
+  'training':      'Workout plans, logs, AI coaching, resource library',
+  'finance':       'Expense tracking, budgets, charts, multi-currency, recurring',
+  'ai-playground': 'AI chat — Free AI (no key needed) + Claude API, markdown',
+  'analytics':     'Habit heatmap, task completion, learning + training trends',
+  'calendar':      'Monthly view with 5 activity dot types per day, day detail',
+  'docs':          'Full-text search, collapsible sections, anchor links',
+  'games':         'Minesweeper · Memory · Snake · Sudoku — each with unlock-gated skins',
+  'settings':      '6 vibe-paks, language, module visibility, data export/import',
+}
+
+const MODULES = computed(() =>
+  PLATFORM_MODULES
+    .filter(m => m.status === 'available')
+    .map(m => ({
+      id:   m.id,
+      label: m.label,
+      desc: MODULE_DESCS[m.id] ?? m.label,
+      icon: m.icon,
+    }))
+)
+
+// ── Live stats ────────────────────────────────────────────────────────
+const STATS = computed(() => [
+  { label: 'Modules',      value: `${MODULES.value.length}` },
+  { label: 'TypeScript',   value: '0 errors' },
+  { label: 'Habits tracked', value: `${habitsStore.habits.length}` },
+  { label: 'Tasks done',   value: `${tasksStore.tasks.filter(t => t.done).length}` },
+  { label: 'Active goals', value: `${goalsStore.activeGoals.length}` },
+  { label: 'Version',      value: `v${APP_VERSION}` },
+])
+
 </script>
 
 <template>

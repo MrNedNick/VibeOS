@@ -122,6 +122,17 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     if (idx !== -1) habits.value.splice(idx, 1)
   }
 
+  function reorderHabits(fromId: string, toId: string): void {
+    if (fromId === toId) return
+    const arr   = [...habits.value]
+    const fromI = arr.findIndex(h => h.id === fromId)
+    const toI   = arr.findIndex(h => h.id === toId)
+    if (fromI === -1 || toI === -1) return
+    const [item] = arr.splice(fromI, 1)
+    arr.splice(toI, 0, item)
+    habits.value = arr
+  }
+
   function isCompletedToday(id: string): boolean {
     const habit = habits.value.find(h => h.id === id)
     return habit ? habit.completedDates.includes(todayStr()) : false
@@ -158,6 +169,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     toggleDate,
     setCheckNote,
     toggleSkip,
+    reorderHabits,
     deleteHabit,
     isCompletedToday,
   }

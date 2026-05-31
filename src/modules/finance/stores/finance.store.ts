@@ -6,9 +6,15 @@ import type { Expense, CategoryBudget, ExpenseCategory } from '../types'
 import { isCurrentMonth, EXPENSE_CATEGORIES } from '../types'
 
 export const useFinanceStore = defineStore('finance:main', () => {
-  const expenses = useStorage<Expense[]>(storageKey('finance', 'expenses'), [])
-  const budgets  = useStorage<CategoryBudget[]>(storageKey('finance', 'budgets'), [])
-  const currency = useStorage<string>(storageKey('finance', 'currency'), '€')
+  const expenses    = useStorage<Expense[]>(storageKey('finance', 'expenses'), [])
+  const budgets     = useStorage<CategoryBudget[]>(storageKey('finance', 'budgets'), [])
+  const currency    = useStorage<string>(storageKey('finance', 'currency'), '€')
+  /** Base currency code (e.g. 'EUR') — all amounts stored in this currency */
+  const baseCurrency    = useStorage<string>(storageKey('finance', 'baseCurrency'), 'EUR')
+  /** Display currency code (e.g. 'USD') — amounts shown converted */
+  const displayCurrency = useStorage<string>(storageKey('finance', 'displayCurrency'), 'EUR')
+  const exchangeRates   = useStorage<Record<string, number>>(storageKey('finance', 'exchangeRates'), {})
+  const ratesFetchedAt  = useStorage<string>(storageKey('finance', 'ratesFetchedAt'), '')
 
   // ── Derived ──────────────────────────────────────────────────────────
   const thisMonthExpenses = computed(() =>
@@ -111,10 +117,53 @@ export const useFinanceStore = defineStore('finance:main', () => {
       .sort((a, b) => b.date.localeCompare(a.date))
   }
 
+  // ── Currency conversion ─────────────────────────────────────────────
+  const displaySymbol = computed(() => {
+    const SYMBOLS: Record<string, string> = {
+      EUR: '€', USD: '$', GBP: '£', JPY: '¥', RUB: '₽',
+      UAH: '₴', CHF: 'Fr', CAD: 'C$', AUD: 'A$', CNY: '¥',
+    }
+    return SYMBOLS[displayCurrency.value] ?? displayCurrency.value
+  })
+
+  const exchangeRate = computed(() => {
+    if (displayCurrency.value === baseCurrency.value) return 1
+    return exchangeRates.value[displayCurrency.value] ?? 1
+  })
+
+  function convertAmount(amount: number): number {
+    return Math.round(amount * exchangeRate.value * 100) / 100
+  }
+
+  async function fetchRates(): Promise<void> {
+    // Refresh at most once per day
+    const now = new Date().toISOString().split('T')[0]
+    if (ratesFetchedAt.value === now && Object.keys(exchangeRates.value).length > 0) return
+    try {
+      const res = await fetch(`https://open.er-api.com/v6/latest/${baseCurrency.value}`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.rates) {
+        exchangeRates.value  = data.rates as Record<string, number>
+        ratesFetchedAt.value = now
+      }
+    } catch { /* silent — use stored rates */ }
+  }
+
+  const POPULAR_CURRENCIES = ['EUR', 'USD', 'GBP', 'JPY', 'RUB', 'UAH', 'CHF', 'CAD', 'AUD', 'CNY']
+
   return {
     expenses,
     budgets,
     currency,
+    baseCurrency,
+    displayCurrency,
+    displaySymbol,
+    exchangeRate,
+    exchangeRates,
+    convertAmount,
+    fetchRates,
+    POPULAR_CURRENCIES,
     thisMonthExpenses,
     totalThisMonth,
     spentByCategory,
