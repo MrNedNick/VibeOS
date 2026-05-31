@@ -1,21 +1,46 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useHabitsStore } from '../stores/habits.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useLocale } from '@/core/i18n'
 import HabitCard from '../components/HabitCard.vue'
+import { HABIT_CATEGORIES, HABIT_CATEGORY_META } from '../types'
+import type { HabitCategory } from '../types'
 
 const store = useHabitsStore()
 const goalsStore = useGoalsStore()
 const i18n = useLocale()
 
-const showForm   = ref(false)
-const newName    = ref('')
-const newEmoji   = ref('')
-const newPurpose = ref('')
-const newGoalId  = ref('')
+// ── Creation form ─────────────────────────────────────────────────────
+const showForm    = ref(false)
+const newName     = ref('')
+const newEmoji    = ref('')
+const newPurpose  = ref('')
+const newCategory = ref<HabitCategory | undefined>(undefined)
+const newGoalId   = ref('')
 const nameInputRef = ref<HTMLInputElement>()
 
+// ── Category filter ───────────────────────────────────────────────────
+const activeCategory = ref<HabitCategory | 'all'>('all')
+
+const categoriesInUse = computed<HabitCategory[]>(() => {
+  const cats = new Set(store.habits.map(h => h.category).filter(Boolean) as HabitCategory[])
+  return Array.from(cats)
+})
+
+const filteredHabits = computed(() => {
+  if (activeCategory.value === 'all') return store.habits
+  return store.habits.filter(h => h.category === activeCategory.value)
+})
+
+// ── Milestone banner ──────────────────────────────────────────────────
+const milestone = computed(() => store.milestoneHabit)
+
+watch(milestone, (val) => {
+  if (val) setTimeout(() => store.dismissMilestone(), 5000)
+})
+
+// ── Today label ───────────────────────────────────────────────────────
 const todayLabel = computed(() =>
   new Date().toLocaleDateString(i18n.localeCode, {
     weekday: 'long', day: 'numeric', month: 'long',
@@ -27,14 +52,14 @@ function openForm() {
   newName.value = ''
   newEmoji.value = ''
   newPurpose.value = ''
+  newCategory.value = undefined
   newGoalId.value = ''
   setTimeout(() => nameInputRef.value?.focus(), 50)
 }
 
 function submitForm() {
   if (!newName.value.trim()) return
-  store.createHabit(newName.value, newEmoji.value, newPurpose.value || undefined)
-  // Link to goal if selected
+  store.createHabit(newName.value, newEmoji.value, newPurpose.value || undefined, newCategory.value)
   if (newGoalId.value) {
     const created = store.habits[store.habits.length - 1]
     if (created) store.updateHabitLink(created.id, { linkedGoalId: newGoalId.value })
@@ -42,9 +67,7 @@ function submitForm() {
   showForm.value = false
 }
 
-function cancelForm() {
-  showForm.value = false
-}
+function cancelForm() { showForm.value = false }
 
 function onFormKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') submitForm()
@@ -63,6 +86,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 <template>
   <div class="habits">
+
+    <!-- Milestone celebration banner -->
+    <Transition name="milestone">
+      <div v-if="milestone" class="habits__milestone" @click="store.dismissMilestone()">
+        <span class="habits__milestone-emoji">{{ milestone.emoji }}</span>
+        <div class="habits__milestone-text">
+          <strong>{{ milestone.streak }}-day streak!</strong>
+          <span>{{ milestone.name }} — keep it up 🎉</span>
+        </div>
+        <button class="habits__milestone-close">×</button>
+      </div>
+    </Transition>
+
     <div class="habits__header">
       <div>
         <h1 class="habits__title">{{ i18n.t('habits.title') }}</h1>
@@ -75,12 +111,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
     <!-- New habit form -->
     <div v-if="showForm" class="habits__form" @keydown="onFormKeydown">
-      <input
-        v-model="newEmoji"
-        class="habits__form-emoji"
-        placeholder="⭐"
-        maxlength="2"
-      />
+      <input v-model="newEmoji" class="habits__form-emoji" placeholder="⭐" maxlength="2" />
       <input
         v-model="newName"
         ref="nameInputRef"
@@ -94,6 +125,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         placeholder="Why? (optional)"
         maxlength="120"
       />
+      <!-- Category chips row -->
+      <div class="habits__form-cats">
+        <span class="habits__form-cat-label">Category:</span>
+        <button
+          v-for="cat in HABIT_CATEGORIES"
+          :key="cat"
+          class="habits__form-cat"
+          :class="{ 'habits__form-cat--active': newCategory === cat }"
+          :style="newCategory === cat ? { '--cat': HABIT_CATEGORY_META[cat].color } : {}"
+          @click="newCategory = newCategory === cat ? undefined : cat"
+        >
+          {{ HABIT_CATEGORY_META[cat].icon }} {{ HABIT_CATEGORY_META[cat].label }}
+        </button>
+      </div>
       <!-- Optional goal link -->
       <select
         v-if="goalsStore.activeGoals.length"
@@ -102,11 +147,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         title="Link this habit to a goal (optional)"
       >
         <option value="">🎯 No goal</option>
-        <option
-          v-for="g in goalsStore.activeGoals"
-          :key="g.id"
-          :value="g.id"
-        >{{ g.coverEmoji }} {{ g.title }}</option>
+        <option v-for="g in goalsStore.activeGoals" :key="g.id" :value="g.id">
+          {{ g.coverEmoji }} {{ g.title }}
+        </option>
       </select>
       <div class="habits__form-actions">
         <button class="habits__form-save" @click="submitForm">{{ i18n.t('habits.formSave') }}</button>
@@ -114,10 +157,29 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       </div>
     </div>
 
+    <!-- Category filter chips (shown when 2+ categories in use) -->
+    <div v-if="categoriesInUse.length > 1" class="habits__cats">
+      <button
+        class="habits__cat"
+        :class="{ 'habits__cat--active': activeCategory === 'all' }"
+        @click="activeCategory = 'all'"
+      >All</button>
+      <button
+        v-for="cat in categoriesInUse"
+        :key="cat"
+        class="habits__cat"
+        :class="{ 'habits__cat--active': activeCategory === cat }"
+        :style="activeCategory === cat ? { '--cat': HABIT_CATEGORY_META[cat].color } : {}"
+        @click="activeCategory = activeCategory === cat ? 'all' : cat"
+      >
+        {{ HABIT_CATEGORY_META[cat].icon }} {{ HABIT_CATEGORY_META[cat].label }}
+      </button>
+    </div>
+
     <!-- Habit cards -->
-    <div v-if="store.habits.length > 0" class="habits__grid">
+    <div v-if="filteredHabits.length > 0" class="habits__grid">
       <HabitCard
-        v-for="habit in store.habits"
+        v-for="habit in filteredHabits"
         :key="habit.id"
         :habit="habit"
         :done-today="store.isCompletedToday(habit.id)"
@@ -143,8 +205,58 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
+
+/* Milestone banner */
+.habits__milestone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 15%, var(--color-surface)),
+    color-mix(in srgb, #f59e0b 10%, var(--color-surface))
+  );
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+
+.habits__milestone-emoji { font-size: 32px; flex-shrink: 0; line-height: 1; }
+
+.habits__milestone-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.habits__milestone-text strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.habits__milestone-text span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.habits__milestone-close {
+  font-size: 18px;
+  color: var(--color-text-muted);
+  line-height: 1;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  transition: color var(--t-fast);
+}
+.habits__milestone-close:hover { color: var(--color-text); }
+
+.milestone-enter-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+.milestone-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.milestone-enter-from   { opacity: 0; transform: translateY(-12px) scale(0.97); }
+.milestone-leave-to     { opacity: 0; transform: translateY(-8px); }
 
 .habits__header {
   display: flex;
@@ -183,7 +295,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .habits__form {
   display: grid;
   grid-template-columns: auto 1fr auto auto;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   align-items: center;
   gap: 8px 10px;
   padding: 14px 18px;
@@ -194,7 +306,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 .habits__form-emoji   { grid-row: 1; grid-column: 1; }
 .habits__form-name    { grid-row: 1; grid-column: 2; }
-.habits__form-purpose { grid-row: 2; grid-column: 2 / 4; }
+.habits__form-purpose { grid-row: 2; grid-column: 2 / 5; }
+.habits__form-cats    { grid-row: 3; grid-column: 1 / 4; }
 .habits__form-goal    { grid-row: 1; grid-column: 3; }
 .habits__form-actions { grid-row: 1; grid-column: 4; }
 
@@ -211,7 +324,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .habits__form-name {
-  flex: 1;
   font-size: 16px;
   font-weight: 500;
   color: var(--color-text);
@@ -222,7 +334,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .habits__form-name::placeholder { color: var(--color-text-muted); }
 
 .habits__form-purpose {
-  flex: 1;
   font-size: 13px;
   color: var(--color-text-secondary);
   background: transparent;
@@ -231,6 +342,44 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   font-family: inherit;
 }
 .habits__form-purpose::placeholder { color: var(--color-text-muted); font-style: italic; }
+
+.habits__form-cats {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.habits__form-cat-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-right: 2px;
+}
+
+.habits__form-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.habits__form-cat:hover:not(.habits__form-cat--active) {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+}
+.habits__form-cat--active {
+  background: color-mix(in srgb, var(--cat, var(--color-accent)) 12%, transparent);
+  border-color: color-mix(in srgb, var(--cat, var(--color-accent)) 40%, transparent);
+  color: var(--cat, var(--color-accent));
+}
 
 .habits__form-actions {
   display: flex;
@@ -276,12 +425,40 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 .habits__form-goal:focus { border-color: var(--color-accent); }
 
-/* Grid */
-.habits__grid {
+/* Category filter chips */
+.habits__cats {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
 }
+
+.habits__cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.habits__cat:hover:not(.habits__cat--active) {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+}
+.habits__cat--active {
+  background: color-mix(in srgb, var(--cat, var(--color-accent)) 12%, transparent);
+  border-color: color-mix(in srgb, var(--cat, var(--color-accent)) 40%, transparent);
+  color: var(--cat, var(--color-accent));
+}
+
+/* Grid */
+.habits__grid { display: flex; flex-direction: column; gap: 12px; }
 
 /* Empty state */
 .habits__empty {
@@ -295,22 +472,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .habits__empty-icon { font-size: 40px; line-height: 1; }
-
-.habits__empty-title {
-  font-size: 19px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.habits__empty-sub {
-  font-size: 15px;
-  color: var(--color-text-muted);
-  margin: 0;
-  max-width: 380px;
-  line-height: 1.6;
-}
-
+.habits__empty-title { font-size: 19px; font-weight: 600; color: var(--color-text-secondary); margin: 0; }
+.habits__empty-sub { font-size: 15px; color: var(--color-text-muted); margin: 0; max-width: 380px; line-height: 1.6; }
 .habits__empty-btn {
   margin-top: 6px;
   padding: 9px 22px;
@@ -329,12 +492,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   .habits__add-btn { align-self: flex-start; }
   .habits__form {
     grid-template-columns: auto 1fr;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto auto auto;
   }
   .habits__form-emoji   { grid-row: 1; grid-column: 1; }
   .habits__form-name    { grid-row: 1; grid-column: 2; }
   .habits__form-purpose { grid-row: 2; grid-column: 1 / 3; }
-  .habits__form-goal    { grid-row: 3; grid-column: 1 / 3; }
-  .habits__form-actions { grid-row: 3; grid-column: 2; justify-self: end; }
+  .habits__form-cats    { grid-row: 3; grid-column: 1 / 3; }
+  .habits__form-goal    { grid-row: 4; grid-column: 1 / 3; }
+  .habits__form-actions { grid-row: 1; grid-column: 3; display: none; }
 }
 </style>

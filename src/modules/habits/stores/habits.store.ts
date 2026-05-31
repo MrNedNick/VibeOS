@@ -1,20 +1,27 @@
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { storageKey } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
-import { todayStr } from '../types'
-import type { Habit } from '../types'
+import { todayStr, computeStreak, STREAK_MILESTONES } from '../types'
+import type { Habit, HabitCategory } from '../types'
 
 export const useHabitsStore = defineStore('habits:habits', () => {
   const habits = useStorage<Habit[]>(storageKey('habits', 'habits'), [])
   const events = useEventBus()
 
-  function createHabit(name: string, emoji: string, purpose?: string): void {
+  // Milestone celebration state — watched by HabitsView to show banner
+  const milestoneHabit = ref<{ name: string; emoji: string; streak: number } | null>(null)
+
+  function dismissMilestone() { milestoneHabit.value = null }
+
+  function createHabit(name: string, emoji: string, purpose?: string, category?: HabitCategory): void {
     habits.value.push({
       id: crypto.randomUUID(),
       name: name.trim(),
       emoji: emoji.trim() || '⭐',
       purpose: purpose?.trim() || undefined,
+      category,
       createdAt: new Date().toISOString(),
       completedDates: [],
     })
@@ -28,6 +35,16 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     if (idx === -1) {
       habit.completedDates.push(today)
       events.emit({ type: 'habit:checked', habitId: id, habitName: habit.name, timestamp: new Date().toISOString() })
+
+      // Check for milestone
+      const streak = computeStreak(habit.completedDates)
+      const lastM  = habit.lastMilestone ?? 0
+      const hit    = STREAK_MILESTONES.find(m => m <= streak && m > lastM)
+      if (hit) {
+        habit.lastMilestone = hit
+        milestoneHabit.value = { name: habit.name, emoji: habit.emoji, streak: hit }
+      }
+
       // Auto-complete next milestone of linked goal
       if (habit.linkedGoalId) {
         import('@/modules/goals/stores/goals.store').then(({ useGoalsStore }) => {
@@ -65,6 +82,23 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     if (purpose !== undefined) habit.purpose = purpose.trim() || undefined
   }
 
+  function updateCategory(id: string, category: HabitCategory | undefined): void {
+    const habit = habits.value.find(h => h.id === id)
+    if (habit) habit.category = category
+  }
+
+  /** Save an optional note for a specific date check-in */
+  function setCheckNote(id: string, date: string, note: string): void {
+    const habit = habits.value.find(h => h.id === id)
+    if (!habit) return
+    if (!habit.checkNotes) habit.checkNotes = {}
+    if (note.trim()) {
+      habit.checkNotes[date] = note.trim()
+    } else {
+      delete habit.checkNotes[date]
+    }
+  }
+
   function deleteHabit(id: string): void {
     const idx = habits.value.findIndex(h => h.id === id)
     if (idx !== -1) habits.value.splice(idx, 1)
@@ -83,9 +117,9 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     const habit = habits.value.find(h => h.id === id)
     if (!habit) return
     const today = todayStr()
-    if (date > today) return                          // no future dates
+    if (date > today) return
     const limit = new Date(); limit.setDate(limit.getDate() - 30)
-    if (date < limit.toISOString().split('T')[0]) return  // max 30 days back
+    if (date < limit.toISOString().split('T')[0]) return
     const idx = habit.completedDates.indexOf(date)
     if (idx === -1) {
       habit.completedDates.push(date)
@@ -94,5 +128,18 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     }
   }
 
-  return { habits, createHabit, updateHabit, updateHabitLink, toggleToday, toggleDate, deleteHabit, isCompletedToday }
+  return {
+    habits,
+    milestoneHabit,
+    dismissMilestone,
+    createHabit,
+    updateHabit,
+    updateCategory,
+    updateHabitLink,
+    toggleToday,
+    toggleDate,
+    setCheckNote,
+    deleteHabit,
+    isCompletedToday,
+  }
 })

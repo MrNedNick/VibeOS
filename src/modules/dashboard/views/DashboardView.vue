@@ -17,6 +17,7 @@ import GoalsPanel from '../components/GoalsPanel.vue'
 import HabitsPanel from '../components/HabitsPanel.vue'
 import GitHubWidget from '../components/GitHubWidget.vue'
 import WeatherWidget from '../components/WeatherWidget.vue'
+import FinanceWidget from '../components/FinanceWidget.vue'
 import DigestWidget from '../components/DigestWidget.vue'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
@@ -171,10 +172,11 @@ const APP_VERSION = __APP_VERSION__
       </div>
     </div>
 
-    <!-- Widgets row: GitHub + Weather ───────────────────────────────── -->
+    <!-- Widgets row: GitHub + Weather + Finance ──────────────────────── -->
     <div class="dashboard__widgets">
       <GitHubWidget class="dashboard__widget-github" />
       <WeatherWidget class="dashboard__widget-weather" />
+      <FinanceWidget class="dashboard__widget-finance" />
     </div>
 
     <!-- AI Digest ────────────────────────────────────────────────────── -->
@@ -425,15 +427,19 @@ const APP_VERSION = __APP_VERSION__
 /* Widgets row */
 .dashboard__widgets {
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: 1fr 240px 220px;
   gap: 16px;
   align-items: start;
 }
 
+@media (max-width: 1100px) {
+  .dashboard__widgets { grid-template-columns: 1fr 240px; }
+  .dashboard__widget-finance { display: none; }
+}
+
 @media (max-width: 900px) {
-  .dashboard__widgets {
-    grid-template-columns: 1fr;
-  }
+  .dashboard__widgets { grid-template-columns: 1fr; }
+  .dashboard__widget-finance { display: block; }
 }
 
 /* Workspace */

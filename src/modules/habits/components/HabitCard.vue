@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue'
 import type { Habit } from '../types'
-import { computeStreak, todayStr } from '../types'
+import { computeStreak, computeBestStreak, habitAge, HABIT_CATEGORY_META, todayStr } from '../types'
 import { useLocale, pluralRu } from '@/core/i18n'
 import HabitHeatmap from './HabitHeatmap.vue'
 import { UiIcon } from '@/ui'
@@ -25,8 +25,11 @@ const emit = defineEmits<{
 const i18n = useLocale()
 
 // ── Computed ──────────────────────────────────────────────────────────
-const streak = computed(() => computeStreak(props.habit.completedDates))
-const totalDays = computed(() => props.habit.completedDates.filter(d => d <= todayStr()).length)
+const streak     = computed(() => computeStreak(props.habit.completedDates))
+const bestStreak = computed(() => computeBestStreak(props.habit.completedDates))
+const age        = computed(() => habitAge(props.habit.createdAt))
+const totalDays  = computed(() => props.habit.completedDates.filter(d => d <= todayStr()).length)
+const categoryMeta = computed(() => props.habit.category ? HABIT_CATEGORY_META[props.habit.category] : null)
 
 const streakLabel = computed(() => {
   const n = streak.value
@@ -42,6 +45,38 @@ const totalLabel = computed(() =>
 const todayFormatted = computed(() =>
   new Date().toLocaleDateString(i18n.localeCode, { weekday: 'short', day: 'numeric', month: 'short' })
 )
+
+// ── Check-in note (today only) ────────────────────────────────────────
+const showNoteInput = ref(false)
+const noteText      = ref('')
+const noteInputRef  = ref<HTMLInputElement>()
+const today         = todayStr()
+
+const todayNote = computed(() => props.habit.checkNotes?.[today] ?? '')
+
+function onToggleClick() {
+  emit('toggle', props.habit.id)
+  // If marking done (currently not done), show note prompt
+  if (!props.doneToday) {
+    showNoteInput.value = true
+    noteText.value = todayNote.value
+    nextTick(() => noteInputRef.value?.focus())
+    // Auto-dismiss after 6s if no input
+    setTimeout(() => { if (!noteText.value.trim()) showNoteInput.value = false }, 6000)
+  } else {
+    showNoteInput.value = false
+  }
+}
+
+function saveNote() {
+  habitsStore.setCheckNote(props.habit.id, today, noteText.value)
+  showNoteInput.value = false
+}
+
+function onNoteKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') { e.preventDefault(); saveNote() }
+  if (e.key === 'Escape') { showNoteInput.value = false }
+}
 
 // ── At-risk: streak > 2 but not yet done today ────────────────────────
 const isAtRisk = computed(() =>
@@ -249,8 +284,47 @@ function saveLinks() {
               <span :class="['habit-card__streak', streak === 0 ? 'habit-card__streak--zero' : '']">
                 {{ streakLabel }}
               </span>
+              <!-- Best streak (shown only if better than current) -->
+              <span
+                v-if="bestStreak > streak && bestStreak > 0"
+                class="habit-card__best"
+                :title="`All-time best: ${bestStreak} days`"
+              >Best {{ bestStreak }}</span>
               <span class="habit-card__total">{{ totalLabel }}</span>
+              <!-- Age -->
+              <span v-if="age >= 7" class="habit-card__age" title="Days since you created this habit">
+                Day {{ age }}
+              </span>
+              <!-- Category badge -->
+              <span
+                v-if="categoryMeta"
+                class="habit-card__cat-badge"
+                :style="{ '--cat': categoryMeta.color }"
+                :title="categoryMeta.label"
+              >{{ categoryMeta.icon }}</span>
             </div>
+
+            <!-- Check-in note input (appears after marking done today) -->
+            <Transition name="note-in">
+              <div v-if="showNoteInput" class="habit-card__note-wrap">
+                <input
+                  ref="noteInputRef"
+                  v-model="noteText"
+                  class="habit-card__note-input"
+                  placeholder="Add a note… (optional, Enter to save)"
+                  maxlength="120"
+                  @keydown="onNoteKeydown"
+                  @blur="saveNote"
+                />
+              </div>
+            </Transition>
+            <!-- Show saved today's note (when not in edit mode) -->
+            <span
+              v-if="!showNoteInput && todayNote"
+              class="habit-card__today-note"
+              :title="todayNote"
+              @click="showNoteInput = true; noteText = todayNote; nextTick(() => noteInputRef?.focus())"
+            >💬 {{ todayNote }}</span>
           </div>
         </div>
 
@@ -276,7 +350,7 @@ function saveLinks() {
             class="habit-card__toggle"
             :class="{ 'habit-card__toggle--done': doneToday }"
             :title="`${doneToday ? i18n.t('habits.toggleDoneTitle') : i18n.t('habits.toggleTodoTitle')} (${todayFormatted})`"
-            @click="emit('toggle', habit.id)"
+            @click="onToggleClick"
           >
             <svg v-if="doneToday" width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M3.5 9.5l3.5 3.5 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -551,6 +625,65 @@ function saveLinks() {
   font-family: var(--font-mono);
   color: var(--color-text-muted);
 }
+
+.habit-card__best {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.habit-card__age {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.habit-card__cat-badge {
+  font-size: 13px;
+  line-height: 1;
+  cursor: default;
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--cat, transparent) 40%, transparent));
+}
+
+/* Check-in note */
+.habit-card__note-wrap {
+  margin-top: 2px;
+}
+
+.habit-card__note-input {
+  width: 100%;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-xs);
+  padding: 3px 8px;
+  outline: none;
+  font-style: italic;
+}
+.habit-card__note-input::placeholder { color: var(--color-text-muted); }
+
+.habit-card__today-note {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  cursor: text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  margin-top: 1px;
+  transition: color var(--t-fast);
+}
+.habit-card__today-note:hover { color: var(--color-text-secondary); }
+
+.note-in-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.note-in-leave-active { transition: opacity 0.1s ease; }
+.note-in-enter-from   { opacity: 0; transform: translateY(-3px); }
+.note-in-leave-to     { opacity: 0; }
 
 /* Actions */
 .habit-card__actions {
