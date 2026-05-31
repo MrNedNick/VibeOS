@@ -330,49 +330,48 @@
 }
 
 
-/* CRT Retro theme — green phosphor terminal */
+/* CRT Retro theme — muted phosphor green (palette C: easy on eyes, authentic terminal vibe) */
 [data-theme='crt'] {
-  --color-bg:               #030b03;
-  --color-surface:          #070f07;
-  --color-surface-elevated: #0d180d;
-  --color-border:           rgba(0, 200, 50, 0.18);
-  --color-border-subtle:    rgba(0, 200, 50, 0.08);
+  --color-bg:               #091209;
+  --color-surface:          #0e1c0e;
+  --color-surface-elevated: #142014;
+  --color-border:           rgba(82, 196, 106, 0.20);
+  --color-border-subtle:    rgba(82, 196, 106, 0.10);
 
-  --color-accent:           #00e040;
-  --color-accent-hover:     #00ff50;
-  --color-accent-muted:     rgba(0, 224, 64, 0.12);
+  --color-accent:           #52c46a;
+  --color-accent-hover:     #3daf55;
+  --color-accent-muted:     rgba(82, 196, 106, 0.12);
 
-  --color-success:          #00e040;
-  --color-danger:           #ff4040;
-  --color-warning:          #e0b000;
+  --color-success:          #52c46a;
+  --color-danger:           #f06060;
+  --color-warning:          #d4a030;
 
-  --color-text:             #b8ffc0;
-  --color-text-secondary:   #78d888;
-  --color-text-muted:       #3a8840;
+  --color-text:             #a8d8a8;
+  --color-text-secondary:   #7ab87a;
+  --color-text-muted:       #4a7a4a;
 
-  --font-sans: 'Courier New', 'Courier', monospace;
-  --font-mono: 'Courier New', 'Courier', monospace;
+  /* No forced monospace — normal sans is more readable for long-form content */
 
-  --shadow-sm: 0 0 8px  rgba(0, 224, 64, 0.28), 0 0 2px rgba(0, 224, 64, 0.15);
-  --shadow:    0 0 20px rgba(0, 224, 64, 0.38), 0 0 40px rgba(0, 224, 64, 0.16);
-  --shadow-lg: 0 0 38px rgba(0, 224, 64, 0.32), 0 0 70px rgba(0, 224, 64, 0.14);
+  --shadow-sm: 0 0 8px  rgba(82, 196, 106, 0.25), 0 0 2px rgba(82, 196, 106, 0.12);
+  --shadow:    0 0 20px rgba(82, 196, 106, 0.35), 0 0 40px rgba(82, 196, 106, 0.14);
+  --shadow-lg: 0 0 38px rgba(82, 196, 106, 0.30), 0 0 70px rgba(82, 196, 106, 0.12);
 
-  /* Phosphor glow — inner halo + outer bloom, pure green on near-black */
+  /* Phosphor glow — inner halo + outer bloom, muted green on dark green bg */
   --shadow-0: none;
-  --shadow-1: 0 0 8px  rgba(0, 224, 64, 0.28), 0 0 2px  rgba(0, 224, 64, 0.15);
-  --shadow-2: 0 0 20px rgba(0, 224, 64, 0.42), 0 0 40px rgba(0, 224, 64, 0.18);
-  --shadow-3: 0 0 38px rgba(0, 224, 64, 0.36), 0 0 72px rgba(0, 224, 64, 0.16);
-  --shadow-4: 0 0 60px rgba(0, 224, 64, 0.52), 0 0 110px rgba(0, 224, 64, 0.22);
+  --shadow-1: 0 0 8px  rgba(82, 196, 106, 0.25), 0 0 2px  rgba(82, 196, 106, 0.12);
+  --shadow-2: 0 0 20px rgba(82, 196, 106, 0.38), 0 0 40px rgba(82, 196, 106, 0.16);
+  --shadow-3: 0 0 38px rgba(82, 196, 106, 0.32), 0 0 72px rgba(82, 196, 106, 0.14);
+  --shadow-4: 0 0 60px rgba(82, 196, 106, 0.48), 0 0 110px rgba(82, 196, 106, 0.20);
 
   --hover-tint-pct: 8%;
 
-  --color-surface-0: #030b03;
-  --color-surface-1: #091509;
-  --color-surface-2: #0f200f;
-  --color-surface-3: #172a17;
+  --color-surface-0: #091209;
+  --color-surface-1: #0e1c0e;
+  --color-surface-2: #142014;
+  --color-surface-3: #1a2a1a;
 }
 
-/* CRT scan-line overlay */
+/* CRT scan-line overlay — reduced opacity for readability at high DPI */
 [data-theme='crt'] body::after {
   content: '';
   position: fixed;
@@ -381,15 +380,15 @@
   pointer-events: none;
   background: repeating-linear-gradient(
     0deg,
-    rgba(0, 0, 0, 0.08) 0px,
-    rgba(0, 0, 0, 0.08) 1px,
+    rgba(0, 0, 0, 0.05) 0px,
+    rgba(0, 0, 0, 0.05) 1px,
     transparent 1px,
     transparent 3px
   );
 }
 
-[data-theme='crt'] .heatmap__cell--done { background: #00e040; }
-[data-theme='crt'] .goal-card__bar-fill { background: #00e040; }
+[data-theme='crt'] .heatmap__cell--done { background: #52c46a; }
+[data-theme='crt'] .goal-card__bar-fill { background: #52c46a; }
 
 /* ─── Reset ──────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

@@ -40,7 +40,7 @@ const VIBE_PAKS: VibePak[] = [
   {
     id:      'crt',
     nameKey: 'settings.themeCrt',
-    swatches: ['#030b03', '#00e040', '#b8ffc0'],
+    swatches: ['#091209', '#52c46a', '#a8d8a8'],
     label:   'Terminal',
   },
 ]

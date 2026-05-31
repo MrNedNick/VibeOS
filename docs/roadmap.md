@@ -349,7 +349,7 @@ Each vibe-pak needs to be audited and updated to fully use the S8/S9 token syste
 
 ---
 
-### T4 — CRT Retro: color analysis + redesign 🔜 (palette chosen: C — Muted Phosphor Green)
+### T4 — CRT Retro: color analysis + redesign ✅ (v1.0.2, palette C — Muted Phosphor Green)
 
 **Scope:** `[data-theme='crt']` CSS redesign  
 **Complexity:** medium — needs palette decision first
