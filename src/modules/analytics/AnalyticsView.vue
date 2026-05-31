@@ -6,6 +6,8 @@ import { useLearningStore } from '@/modules/learning/stores/learning.store'
 import { useTrainingStore } from '@/modules/training/stores/training.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useLocale } from '@/core/i18n'
+import { UiSectionLabel, UiFilterChips, UiProgressBar } from '@/ui'
+import type { FilterChipOption } from '@/ui'
 
 const i18n = useLocale()
 const tasksStore = useTasksStore()
@@ -19,6 +21,17 @@ const goalsStore = useGoalsStore()
 // ─────────────────────────────────────────────────────────────
 type Period = 7 | 30 | 90
 const period = ref<Period>(30)
+
+const PERIOD_OPTIONS = computed<FilterChipOption[]>(() => [
+  { value: '7',  label: i18n.t('analytics.period7'  as 'analytics.period7') },
+  { value: '30', label: i18n.t('analytics.period30' as 'analytics.period7') },
+  { value: '90', label: i18n.t('analytics.period90' as 'analytics.period7') },
+])
+
+const periodStr = computed({
+  get: () => String(period.value),
+  set: (v: string) => { period.value = parseInt(v) as Period },
+})
 
 // ─────────────────────────────────────────────────────────────
 // Date helpers
@@ -220,17 +233,7 @@ const goalsProgress = computed(() =>
     <!-- Header -->
     <div class="analytics__header">
       <h1 class="analytics__title">{{ i18n.t('modules.analytics') }}</h1>
-      <div class="analytics__period">
-        <button
-          v-for="p in ([7, 30, 90] as const)"
-          :key="p"
-          class="period-btn"
-          :class="{ 'period-btn--active': period === p }"
-          @click="period = p"
-        >
-          {{ i18n.t(`analytics.period${p}` as 'analytics.period7') }}
-        </button>
-      </div>
+      <UiFilterChips v-model="periodStr" :options="PERIOD_OPTIONS" />
     </div>
 
     <!-- Overview stat cards -->
@@ -276,7 +279,7 @@ const goalsProgress = computed(() =>
 
     <!-- Habits Consistency -->
     <section class="analytics__section">
-      <h2 class="section-title">{{ i18n.t('analytics.habitsTitle') }}</h2>
+      <UiSectionLabel as="h2" class="analytics__section-label">{{ i18n.t('analytics.habitsTitle') }}</UiSectionLabel>
 
       <div v-if="habitRows.length === 0" class="empty-state">
         {{ i18n.t('analytics.habitsEmpty') }}
@@ -311,7 +314,7 @@ const goalsProgress = computed(() =>
 
     <!-- Task Activity -->
     <section class="analytics__section">
-      <h2 class="section-title">{{ i18n.t('analytics.tasksTitle') }}</h2>
+      <UiSectionLabel as="h2" class="analytics__section-label">{{ i18n.t('analytics.tasksTitle') }}</UiSectionLabel>
 
       <div v-if="taskBars.every(b => b.value === 0)" class="empty-state">
         {{ i18n.t('analytics.noData') }}
@@ -349,7 +352,7 @@ const goalsProgress = computed(() =>
 
     <!-- Learning Hours -->
     <section class="analytics__section">
-      <h2 class="section-title">{{ i18n.t('analytics.learningTitle') }}</h2>
+      <UiSectionLabel as="h2" class="analytics__section-label">{{ i18n.t('analytics.learningTitle') }}</UiSectionLabel>
 
       <div v-if="learningBars.every(b => b.value === 0)" class="empty-state">
         {{ i18n.t('analytics.noData') }}
@@ -381,7 +384,7 @@ const goalsProgress = computed(() =>
 
     <!-- Training Sessions -->
     <section class="analytics__section">
-      <h2 class="section-title">{{ i18n.t('analytics.trainingTitle') }}</h2>
+      <UiSectionLabel as="h2" class="analytics__section-label">{{ i18n.t('analytics.trainingTitle') }}</UiSectionLabel>
 
       <div v-if="trainingBars.every(b => b.value === 0)" class="empty-state">
         {{ i18n.t('analytics.noData') }}
@@ -413,7 +416,7 @@ const goalsProgress = computed(() =>
 
     <!-- Goals -->
     <section class="analytics__section analytics__section--last">
-      <h2 class="section-title">{{ i18n.t('analytics.goalsTitle') }}</h2>
+      <UiSectionLabel as="h2" class="analytics__section-label">{{ i18n.t('analytics.goalsTitle') }}</UiSectionLabel>
 
       <div v-if="goalsStore.goals.length === 0" class="empty-state">
         {{ i18n.t('analytics.goalsEmpty') }}
@@ -429,12 +432,7 @@ const goalsProgress = computed(() =>
             <span class="goal-item__title">{{ g.title }}</span>
             <span class="goal-item__pct">{{ g.progress }}%</span>
           </div>
-          <div class="goal-item__bar">
-            <div
-              class="goal-item__bar-fill"
-              :style="{ width: `${g.progress}%` }"
-            />
-          </div>
+          <UiProgressBar :value="g.progress" />
           <div v-if="g.targetDate" class="goal-item__date">
             {{ g.targetDate }}
           </div>
@@ -477,45 +475,6 @@ const goalsProgress = computed(() =>
   font-weight: 700;
   color: var(--color-text);
   margin: 0;
-}
-
-.analytics__period {
-  display: flex;
-  gap: 4px;
-  background: var(--color-surface-elevated);
-  border-radius: var(--radius-sm);
-  padding: 3px;
-  border: 1px solid var(--color-border);
-}
-
-.period-btn {
-  padding: 6px 14px;
-  border: none;
-  border-radius: var(--radius-xs);
-  font-size: 13px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  background: transparent;
-  color: var(--color-text-muted);
-  transition: all var(--t-fast);
-  min-width: 44px;
-  min-height: 32px;
-}
-
-.period-btn:hover {
-  color: var(--color-text);
-  background: var(--color-surface);
-}
-
-.period-btn--active {
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.period-btn--active:hover {
-  background: var(--color-accent-hover);
-  color: #fff;
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -596,14 +555,7 @@ const goalsProgress = computed(() =>
   margin-bottom: 0;
 }
 
-.section-title {
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--color-text-muted);
-  margin: 0 0 18px;
-}
+.analytics__section-label { margin-bottom: 18px; }
 
 .empty-state {
   color: var(--color-text-muted);
@@ -848,21 +800,6 @@ const goalsProgress = computed(() =>
   color: var(--color-accent);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
-}
-
-.goal-item__bar {
-  height: 5px;
-  background: var(--color-border);
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.goal-item__bar-fill {
-  height: 100%;
-  background: var(--color-accent);
-  border-radius: 99px;
-  transition: width 0.5s var(--ease);
-  min-width: 4px;
 }
 
 .goal-item__date {
