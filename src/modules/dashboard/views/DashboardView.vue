@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, markRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
@@ -20,8 +20,21 @@ import GitHubWidget from '../components/GitHubWidget.vue'
 import WeatherWidget from '../components/WeatherWidget.vue'
 import FinanceWidget from '../components/FinanceWidget.vue'
 import DigestWidget from '../components/DigestWidget.vue'
+import DashboardWidgetCustomizer from '../components/DashboardWidgetCustomizer.vue'
+import { useWidgetsStore, type WidgetId } from '../stores/widgets.store'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
+
+// ── Widget component map (markRaw prevents Vue from making them reactive) ──
+const WIDGET_COMPONENTS: Record<WidgetId, object> = {
+  github:  markRaw(GitHubWidget),
+  weather: markRaw(WeatherWidget),
+  finance: markRaw(FinanceWidget),
+  digest:  markRaw(DigestWidget),  // not used in row but kept for completeness
+}
+
+const widgetsStore = useWidgetsStore()
+const showCustomizer = ref(false)
 
 const TODAY_ID        = '__today__'
 const OVERVIEW_ID     = '__overview__'
@@ -132,7 +145,19 @@ const APP_VERSION = __APP_VERSION__
         <h1 class="dashboard__title">{{ i18n.t('dashboard.title') }}</h1>
         <p class="dashboard__date">{{ today }}</p>
       </div>
-      <span class="dashboard__version">v{{ APP_VERSION }} · VibeOS</span>
+      <div class="dashboard__header-right">
+        <!-- Customize widgets button -->
+        <button
+          class="dashboard__customize-btn"
+          :class="{ 'dashboard__customize-btn--active': showCustomizer }"
+          title="Customize widgets"
+          @click="showCustomizer = !showCustomizer"
+        >
+          <UiIcon name="LayoutDashboard" :size="14" :stroke-width="1.75" />
+          <span class="dashboard__customize-label">Widgets</span>
+        </button>
+        <span class="dashboard__version">v{{ APP_VERSION }} · VibeOS</span>
+      </div>
     </div>
 
     <!-- Life module stats ───────────────────────────────────────── -->
@@ -174,15 +199,35 @@ const APP_VERSION = __APP_VERSION__
       </div>
     </div>
 
-    <!-- Widgets row: GitHub + Weather + Finance ──────────────────────── -->
-    <div class="dashboard__widgets">
-      <GitHubWidget class="dashboard__widget-github" />
-      <WeatherWidget class="dashboard__widget-weather" />
-      <FinanceWidget class="dashboard__widget-finance" />
-    </div>
+    <!-- Widgets section ──────────────────────────────────────────────── -->
+    <div class="dashboard__widgets-section">
 
-    <!-- AI Digest ────────────────────────────────────────────────────── -->
-    <DigestWidget />
+      <!-- Customizer panel (collapsible) -->
+      <Transition name="customizer">
+        <DashboardWidgetCustomizer
+          v-if="showCustomizer"
+          class="dashboard__customizer"
+          @close="showCustomizer = false"
+        />
+      </Transition>
+
+      <!-- Dynamic widgets row (row widgets: github/weather/finance) -->
+      <div
+        v-if="widgetsStore.visibleRowWidgets.length > 0"
+        class="dashboard__widgets"
+        :class="`dashboard__widgets--count-${widgetsStore.visibleRowWidgets.length}`"
+      >
+        <component
+          :is="WIDGET_COMPONENTS[w.id]"
+          v-for="w in widgetsStore.visibleRowWidgets"
+          :key="w.id"
+          class="dashboard__widget"
+        />
+      </div>
+
+      <!-- AI Digest (full-width, separate row) -->
+      <DigestWidget v-if="widgetsStore.digestVisible" />
+    </div>
 
     <!-- Workspace: module list + detail panel ───────────────────── -->
     <div class="dashboard__workspace">
@@ -344,7 +389,7 @@ const APP_VERSION = __APP_VERSION__
 /* Header */
 .dashboard__header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
@@ -362,10 +407,46 @@ const APP_VERSION = __APP_VERSION__
   margin: 3px 0 0;
 }
 
+.dashboard__header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .dashboard__version {
-  font-size: 14px;
+  font-size: 13px;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
+}
+
+/* Customize button */
+.dashboard__customize-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.dashboard__customize-btn:hover {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+.dashboard__customize-btn--active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+}
+
+.dashboard__customize-label {
+  /* Hide label on small screens */
 }
 
 /* Life stats strip */
@@ -445,27 +526,47 @@ const APP_VERSION = __APP_VERSION__
   transition: width 0.4s ease;
 }
 
-/* Widgets row */
-.dashboard__widgets {
-  display: grid;
-  grid-template-columns: 1fr 240px 220px;
+/* Widgets section wrapper */
+.dashboard__widgets-section {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
-  align-items: stretch; /* normalize card heights across the row */
 }
 
-/* Enforce a shared min-height on all three widget cards */
-.dashboard__widgets > * {
+/* Customizer panel transition */
+.customizer-enter-active { transition: opacity 160ms var(--ease), transform 160ms var(--ease); }
+.customizer-leave-active { transition: opacity 120ms var(--ease), transform 120ms var(--ease); }
+.customizer-enter-from   { opacity: 0; transform: translateY(-6px); }
+.customizer-leave-to     { opacity: 0; transform: translateY(-4px); }
+
+/* Dynamic widgets row — equal columns, adapts to visible widget count */
+.dashboard__widgets {
+  display: grid;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* Equal columns based on widget count */
+.dashboard__widgets--count-1 { grid-template-columns: 1fr; }
+.dashboard__widgets--count-2 { grid-template-columns: repeat(2, 1fr); }
+.dashboard__widgets--count-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* All widget cards share the same min-height — no layout shift */
+.dashboard__widget {
   min-height: 148px;
 }
 
-@media (max-width: 1100px) {
-  .dashboard__widgets { grid-template-columns: 1fr 240px; }
-  .dashboard__widget-finance { display: none; }
+/* On smaller screens, collapse to fewer columns */
+@media (max-width: 900px) {
+  .dashboard__widgets--count-2,
+  .dashboard__widgets--count-3 { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 900px) {
-  .dashboard__widgets { grid-template-columns: 1fr; }
-  .dashboard__widget-finance { display: block; }
+@media (max-width: 640px) {
+  .dashboard__widgets--count-1,
+  .dashboard__widgets--count-2,
+  .dashboard__widgets--count-3 { grid-template-columns: 1fr; }
+  .dashboard__customize-label  { display: none; }
 }
 
 /* Workspace */
@@ -667,10 +768,14 @@ const APP_VERSION = __APP_VERSION__
     height: auto; /* allow natural flow on mobile */
   }
 
-  .dashboard__header     { flex-direction: column; gap: 2px; }
-  .dashboard__title      { font-size: 22px; }
-  .dashboard__date       { font-size: 13px; }
-  .dashboard__version    { display: none; }
+  .dashboard__header        { flex-direction: row; align-items: center; gap: 8px; }
+  .dashboard__header > div  { flex: 1; min-width: 0; }
+  .dashboard__title         { font-size: 22px; }
+  .dashboard__date          { font-size: 13px; }
+  .dashboard__version       { display: none; }
+  .dashboard__header-right  { gap: 6px; }
+  .dashboard__customize-btn { padding: 5px 8px; }
+  .dashboard__customize-label { display: none; }
 
   /* 2×2 life stats */
   .dashboard__life-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
