@@ -80,6 +80,24 @@ export const useFinanceStore = defineStore('finance:main', () => {
     budgets.value = budgets.value.filter(b => b.category !== category)
   }
 
+  function toggleRecurring(id: string): void {
+    const e = expenses.value.find(x => x.id === id)
+    if (e) e.recurring = !e.recurring
+  }
+
+  /** Re-add a recurring expense for today's month */
+  function addFromRecurring(id: string): void {
+    const src = expenses.value.find(x => x.id === id)
+    if (!src) return
+    const today = new Date().toISOString().split('T')[0]
+    expenses.value.push({
+      ...src,
+      id: crypto.randomUUID(),
+      date: today,
+      createdAt: new Date().toISOString(),
+    })
+  }
+
   // ── History helpers ────────────────────────────────────────────────────
   const recentExpenses = computed(() =>
     [...expenses.value]
@@ -107,6 +125,8 @@ export const useFinanceStore = defineStore('finance:main', () => {
     addExpense,
     deleteExpense,
     updateExpense,
+    toggleRecurring,
+    addFromRecurring,
     setBudget,
     removeBudget,
     expensesByMonth,

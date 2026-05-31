@@ -25,7 +25,8 @@ export interface Note {
   createdAt: string
   updatedAt: string
   pinned?: boolean
-  type?: NoteType   // defaults to 'note' when absent
+  type?: NoteType        // defaults to 'note' when absent
+  linkedGoalId?: string  // optional link to a goal
 }
 
 export function deriveTitle(content: string): string {

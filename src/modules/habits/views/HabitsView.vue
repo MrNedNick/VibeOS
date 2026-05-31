@@ -4,7 +4,7 @@ import { useHabitsStore } from '../stores/habits.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useLocale } from '@/core/i18n'
 import HabitCard from '../components/HabitCard.vue'
-import { HABIT_CATEGORIES, HABIT_CATEGORY_META } from '../types'
+import { HABIT_CATEGORIES, HABIT_CATEGORY_META, computeStreak, todayStr } from '../types'
 import type { HabitCategory } from '../types'
 
 const HABIT_TEMPLATES: { name: string; emoji: string; purpose: string; category: HabitCategory }[] = [
@@ -28,8 +28,37 @@ const newCategory = ref<HabitCategory | undefined>(undefined)
 const newGoalId   = ref('')
 const nameInputRef = ref<HTMLInputElement>()
 
+// ── At-risk + weekly summary ──────────────────────────────────────────
+const today = todayStr()
+
+const atRiskHabits = computed(() =>
+  store.habits.filter(h => {
+    const s = computeStreak(h.completedDates, h.skippedDates)
+    return s > 2 && !h.completedDates.includes(today)
+  }),
+)
+
+// Last 7 days summary
+const weeklySummary = computed(() => {
+  const days: string[] = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i)
+    days.push(d.toISOString().split('T')[0])
+  }
+  if (!store.habits.length) return null
+  const totalSlots = store.habits.length * 7
+  const doneDays = days.reduce((acc, day) => {
+    const done = store.habits.filter(h => h.completedDates.includes(day)).length
+    return acc + done
+  }, 0)
+  const pct = Math.round((doneDays / totalSlots) * 100)
+  const bestStreak = Math.max(...store.habits.map(h => computeStreak(h.completedDates, h.skippedDates)), 0)
+  return { pct, doneDays, totalSlots, bestStreak }
+})
+
 // ── Category filter ───────────────────────────────────────────────────
-const activeCategory = ref<HabitCategory | 'all'>('all')
+type FilterMode = HabitCategory | 'all' | 'at-risk'
+const activeCategory = ref<FilterMode>('all')
 
 const categoriesInUse = computed<HabitCategory[]>(() => {
   const cats = new Set(store.habits.map(h => h.category).filter(Boolean) as HabitCategory[])
@@ -37,6 +66,7 @@ const categoriesInUse = computed<HabitCategory[]>(() => {
 })
 
 const filteredHabits = computed(() => {
+  if (activeCategory.value === 'at-risk') return atRiskHabits.value
   if (activeCategory.value === 'all') return store.habits
   return store.habits.filter(h => h.category === activeCategory.value)
 })
@@ -165,13 +195,40 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       </div>
     </div>
 
+    <!-- Weekly summary card -->
+    <div v-if="store.habits.length > 0 && weeklySummary" class="habits__weekly">
+      <div class="habits__weekly-stat">
+        <span class="habits__weekly-value">{{ weeklySummary.pct }}%</span>
+        <span class="habits__weekly-label">last 7 days</span>
+      </div>
+      <div class="habits__weekly-bar">
+        <div
+          class="habits__weekly-fill"
+          :style="{
+            width: weeklySummary.pct + '%',
+            background: weeklySummary.pct >= 80 ? 'var(--color-success)' : weeklySummary.pct >= 50 ? 'var(--color-accent)' : 'var(--color-warning)',
+          }"
+        />
+      </div>
+      <div class="habits__weekly-right">
+        <span class="habits__weekly-done">{{ weeklySummary.doneDays }}/{{ weeklySummary.totalSlots }} check-ins</span>
+        <span v-if="weeklySummary.bestStreak > 0" class="habits__weekly-streak">🔥 Best streak: {{ weeklySummary.bestStreak }}</span>
+      </div>
+    </div>
+
     <!-- Category filter chips (shown when 2+ categories in use) -->
-    <div v-if="categoriesInUse.length > 1" class="habits__cats">
+    <div v-if="categoriesInUse.length > 1 || atRiskHabits.length > 0" class="habits__cats">
       <button
         class="habits__cat"
         :class="{ 'habits__cat--active': activeCategory === 'all' }"
         @click="activeCategory = 'all'"
       >All</button>
+      <button
+        v-if="atRiskHabits.length > 0"
+        class="habits__cat habits__cat--risk"
+        :class="{ 'habits__cat--active': activeCategory === 'at-risk' }"
+        @click="activeCategory = activeCategory === 'at-risk' ? 'all' : 'at-risk'"
+      >⚠️ At risk ({{ atRiskHabits.length }})</button>
       <button
         v-for="cat in categoriesInUse"
         :key="cat"
@@ -449,6 +506,75 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 .habits__form-goal:focus { border-color: var(--color-accent); }
 
+/* Weekly summary */
+.habits__weekly {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.habits__weekly-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+}
+
+.habits__weekly-value {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.habits__weekly-label {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.habits__weekly-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--color-surface-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.habits__weekly-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+
+.habits__weekly-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.habits__weekly-done {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+}
+
+.habits__weekly-streak {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-warning);
+}
+
 /* Category filter chips */
 .habits__cats {
   display: flex;
@@ -479,6 +605,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   background: color-mix(in srgb, var(--cat, var(--color-accent)) 12%, transparent);
   border-color: color-mix(in srgb, var(--cat, var(--color-accent)) 40%, transparent);
   color: var(--cat, var(--color-accent));
+}
+
+.habits__cat--risk { border-color: color-mix(in srgb, #f59e0b 35%, var(--color-border)); }
+.habits__cat--risk.habits__cat--active {
+  background: color-mix(in srgb, #f59e0b 12%, transparent);
+  border-color: #f59e0b;
+  color: #f59e0b;
 }
 
 /* Grid */

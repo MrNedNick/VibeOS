@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useNotes } from '../composables/useNotes'
 import { useNotesStore } from '../stores/notes.store'
+import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { deriveTitle, NOTE_TYPE_META, NOTE_TYPES } from '../types'
 import type { NoteType } from '../types'
 import NoteList from '../components/NoteList.vue'
@@ -29,6 +30,7 @@ async function deleteNote(id: string) {
 }
 
 const notesStore = useNotesStore()
+const goalsStore = useGoalsStore()
 
 // ── Backlinks ─────────────────────────────────────────────────────────
 interface BacklinkNote { id: string; title: string }
@@ -167,6 +169,21 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             >
               <option v-for="t in NOTE_TYPES" :key="t" :value="t">
                 {{ NOTE_TYPE_META[t].label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Goal link selector -->
+          <div v-if="selectedNote && goalsStore.activeGoals.length" class="notes-goal-select">
+            <UiIcon name="Target" :size="12" :stroke-width="2" class="notes-goal-icon" />
+            <select
+              class="notes-type-select__sel"
+              :value="selectedNote.linkedGoalId ?? ''"
+              @change="notesStore.setNoteGoal(selectedNote!.id, ($event.target as HTMLSelectElement).value || undefined)"
+            >
+              <option value="">No goal</option>
+              <option v-for="g in goalsStore.activeGoals" :key="g.id" :value="g.id">
+                {{ g.coverEmoji }} {{ g.title }}
               </option>
             </select>
           </div>
@@ -313,6 +330,25 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   padding: 0 8px;
+}
+
+/* Goal link selector */
+.notes-goal-select {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  cursor: pointer;
+  transition: border-color var(--t-fast);
+}
+.notes-goal-select:focus-within { border-color: var(--color-accent); }
+
+.notes-goal-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
 }
 
 /* Note type selector */

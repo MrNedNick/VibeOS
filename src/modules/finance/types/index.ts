@@ -15,6 +15,7 @@ export interface Expense {
   note: string
   date: string            // 'YYYY-MM-DD'
   createdAt: string
+  recurring?: boolean     // marks this as a recurring monthly expense
 }
 
 export interface CategoryBudget {

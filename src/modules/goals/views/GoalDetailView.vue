@@ -3,6 +3,8 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGoalsStore } from '../stores/goals.store'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
+import { useNotesStore } from '@/modules/notes/stores/notes.store'
+import { deriveTitle } from '@/modules/notes/types'
 import MilestoneList from '../components/MilestoneList.vue'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '../types'
 import { UiIcon } from '@/ui'
@@ -102,6 +104,11 @@ async function askDelete() {
     router.replace('/goals')
   }
 }
+
+// ── Linked notes ────────────────────────────────────────────────────
+const notesStore = useNotesStore()
+
+const linkedNotes = computed(() => notesStore.getNotesForGoal(goalId.value))
 
 // ── Linked tasks ────────────────────────────────────────────────────
 const tasksStore = useTasksStore()
@@ -282,6 +289,31 @@ function onTaskKeydown(e: KeyboardEvent) {
       <p v-if="linkedTasks.length === 0 && !showAddTask" class="gdetail__tasks-empty">
         No tasks linked to this goal yet.
       </p>
+    </div>
+
+    <!-- Linked notes -->
+    <div v-if="linkedNotes.length > 0" class="gdetail__notes-section">
+      <div class="gdetail__section-header">
+        <p class="gdetail__section-label">
+          Linked notes
+          <span class="gdetail__tasks-count">{{ linkedNotes.length }}</span>
+        </p>
+        <button class="gdetail__notes-open" @click="router.push('/notes')">
+          Open Notes →
+        </button>
+      </div>
+      <div class="gdetail__notes-list">
+        <div
+          v-for="note in linkedNotes"
+          :key="note.id"
+          class="gdetail__note-row"
+          @click="router.push('/notes')"
+        >
+          <UiIcon name="FileText" :size="13" class="gdetail__note-icon" />
+          <span class="gdetail__note-title">{{ deriveTitle(note.content) }}</span>
+          <span class="gdetail__note-date">{{ new Date(note.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}</span>
+        </div>
+      </div>
     </div>
 
     <!-- Actions -->
@@ -645,6 +677,31 @@ function onTaskKeydown(e: KeyboardEvent) {
 .task-add-leave-active { transition: opacity 0.1s ease; }
 .task-add-enter-from   { opacity: 0; transform: translateY(-4px); }
 .task-add-leave-to     { opacity: 0; }
+
+/* ── Linked notes ────────────────────────────────────────────────── */
+.gdetail__notes-section {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 16px 20px; background: var(--color-surface);
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+}
+.gdetail__notes-open {
+  font-size: 12px; font-weight: 500; color: var(--color-accent);
+  padding: 2px 6px; border-radius: var(--radius-xs); transition: background var(--t-fast);
+}
+.gdetail__notes-open:hover { background: var(--color-accent-muted); }
+.gdetail__notes-list { display: flex; flex-direction: column; gap: 2px; }
+.gdetail__note-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: background var(--t-fast);
+}
+.gdetail__note-row:hover { background: var(--color-surface-elevated); }
+.gdetail__note-icon { color: var(--color-text-muted); flex-shrink: 0; }
+.gdetail__note-title {
+  flex: 1; font-size: 13px; font-weight: 500; color: var(--color-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+.gdetail__note-date { font-size: 11px; color: var(--color-text-muted); font-family: var(--font-mono); flex-shrink: 0; }
 
 .gdetail__actions { display: flex; align-items: center; gap: 10px; }
 

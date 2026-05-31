@@ -353,6 +353,24 @@ async function deleteExpense(id: string) {
             CSV
           </button>
         </div>
+
+        <!-- Recurring expenses quick-add section -->
+        <div v-if="store.recentExpenses.filter(e => e.recurring).length > 0" class="finance__recurring">
+          <p class="finance__recurring-label">🔄 Recurring — add for this month:</p>
+          <div class="finance__recurring-list">
+            <button
+              v-for="re in store.recentExpenses.filter(e => e.recurring).slice(0, 5)"
+              :key="re.id"
+              class="finance__recurring-btn"
+              :title="`Add ${re.note || CATEGORY_META[re.category].label} (${formatAmount(re.amount, store.currency)})`"
+              @click="store.addFromRecurring(re.id)"
+            >
+              {{ CATEGORY_META[re.category].icon }} {{ re.note || CATEGORY_META[re.category].label }}
+              <span class="finance__recurring-amt">{{ formatAmount(re.amount, store.currency) }}</span>
+            </button>
+          </div>
+        </div>
+
       <div class="finance__transactions">
         <div
           v-for="expense in viewExpenses"
@@ -370,6 +388,12 @@ async function deleteExpense(id: string) {
             </div>
           </div>
           <div class="txn__amount">{{ formatAmount(expense.amount, store.currency) }}</div>
+          <button
+            class="txn__recurring"
+            :class="{ 'txn__recurring--active': expense.recurring }"
+            title="Mark as recurring monthly expense"
+            @click.stop="store.toggleRecurring(expense.id)"
+          >🔄</button>
           <button class="txn__del" title="Delete" @click="deleteExpense(expense.id)">
             <UiIcon name="X" :size="13" />
           </button>
@@ -832,6 +856,47 @@ async function deleteExpense(id: string) {
   color: var(--color-text);
   flex-shrink: 0;
 }
+
+.txn__recurring {
+  font-size: 13px;
+  line-height: 1;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: opacity var(--t-fast);
+  cursor: pointer;
+  flex-shrink: 0;
+  filter: grayscale(1);
+}
+.txn:hover .txn__recurring { opacity: 0.6; }
+.txn__recurring--active { opacity: 1 !important; filter: none; }
+
+.finance__recurring {
+  max-width: 560px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--color-accent) 4%, var(--color-surface));
+  border: 1px dashed color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+  border-radius: var(--radius);
+}
+.finance__recurring-label { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); margin: 0; }
+.finance__recurring-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.finance__recurring-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px; font-size: 12px; font-family: inherit;
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: var(--color-surface); color: var(--color-text-secondary);
+  cursor: pointer; transition: border-color var(--t-fast), background var(--t-fast);
+}
+.finance__recurring-btn:hover { border-color: var(--color-accent); background: var(--color-accent-muted); }
+.finance__recurring-amt { font-family: var(--font-mono); font-weight: 600; color: var(--color-text); }
 
 .txn__del {
   width: 26px;

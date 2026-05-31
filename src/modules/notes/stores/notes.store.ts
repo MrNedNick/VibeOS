@@ -81,5 +81,17 @@ export const useNotesStore = defineStore('notes:notes', () => {
     }
   }
 
-  return { notes, sortedNotes, createNote, openOrCreateToday, updateContent, deleteNote, togglePin, setNoteType }
+  function setNoteGoal(id: string, goalId: string | undefined): void {
+    const note = notes.value.find(n => n.id === id)
+    if (note) {
+      note.linkedGoalId = goalId || undefined
+      note.updatedAt = new Date().toISOString()
+    }
+  }
+
+  function getNotesForGoal(goalId: string): typeof notes.value {
+    return notes.value.filter(n => n.linkedGoalId === goalId)
+  }
+
+  return { notes, sortedNotes, createNote, openOrCreateToday, updateContent, deleteNote, togglePin, setNoteType, setNoteGoal, getNotesForGoal }
 })

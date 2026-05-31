@@ -15,6 +15,7 @@ import RecentActivityPanel from '../components/RecentActivityPanel.vue'
 import DashboardTodayPanel from '../components/DashboardTodayPanel.vue'
 import GoalsPanel from '../components/GoalsPanel.vue'
 import HabitsPanel from '../components/HabitsPanel.vue'
+import AchievementsPanel from '../components/AchievementsPanel.vue'
 import GitHubWidget from '../components/GitHubWidget.vue'
 import WeatherWidget from '../components/WeatherWidget.vue'
 import FinanceWidget from '../components/FinanceWidget.vue'
@@ -22,10 +23,11 @@ import DigestWidget from '../components/DigestWidget.vue'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 
-const TODAY_ID    = '__today__'
-const OVERVIEW_ID = '__overview__'
-const GOALS_ID    = '__goals__'
-const HABITS_ID   = '__habits__'
+const TODAY_ID        = '__today__'
+const OVERVIEW_ID     = '__overview__'
+const GOALS_ID        = '__goals__'
+const HABITS_ID       = '__habits__'
+const ACHIEVEMENTS_ID = '__achievements__'
 
 const router = useRouter()
 const tasksStore = useTasksStore()
@@ -231,6 +233,16 @@ const APP_VERSION = __APP_VERSION__
           <span class="mod-row__count">{{ todayHabits.done }}/{{ todayHabits.total }}</span>
         </div>
 
+        <!-- Achievements panel -->
+        <div
+          class="mod-row mod-row--life"
+          :class="{ 'mod-row--active': selectedId === ACHIEVEMENTS_ID }"
+          @click="selectedId = ACHIEVEMENTS_ID"
+        >
+          <span class="mod-row__icon"><UiIcon name="Trophy" :size="15" :stroke-width="1.75" /></span>
+          <span class="mod-row__name">Achievements</span>
+        </div>
+
         <div class="mod-row__divider" />
 
         <!-- Individual modules -->
@@ -282,6 +294,9 @@ const APP_VERSION = __APP_VERSION__
 
           <!-- Today panel -->
           <DashboardTodayPanel v-if="selectedId === TODAY_ID" key="__today__" />
+
+          <!-- Achievements panel -->
+          <AchievementsPanel v-else-if="selectedId === ACHIEVEMENTS_ID" key="__achievements__" />
 
           <!-- Goals live panel -->
           <GoalsPanel v-else-if="selectedId === GOALS_ID" key="__goals__" />
