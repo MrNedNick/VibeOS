@@ -1,5 +1,7 @@
 # Reusable Patterns
 
+> Updated 2026-05-31. Reflects v0.8.0.
+
 ## Persistent Reactive State
 
 Use `useStorage()` to create a ref that auto-syncs to localStorage:
@@ -119,9 +121,137 @@ Page transitions are handled by `AppLayout.vue`. No module needs to implement it
 
 ---
 
+## AI Integration Pattern
+
+All AI calls use the centralized `useAI` composable:
+
+```typescript
+import { aiComplete } from '@/core/composables/useAI'
+
+// Fire-and-forget (post-action analysis)
+async function analyze(data: SomeData) {
+  loadingRef.value = true
+  const prompt = `...`
+  aiComplete(prompt)
+    .then(result => { resultRef.value = result })
+    .catch(() => {})           // silent — AI is supplementary
+    .finally(() => { loadingRef.value = false })
+}
+
+// Await with error handling (interactive AI)
+async function generatePlan() {
+  try {
+    const text = await aiComplete(prompt)
+    const match = text.match(/\{[\s\S]*?\}/)
+    if (!match) { errorRef.value = 'Could not parse response'; return }
+    const data = JSON.parse(match[0])
+    // ... apply data to form
+  } catch {
+    errorRef.value = 'AI request failed — try again'
+  } finally {
+    loadingRef.value = false
+  }
+}
+```
+
+**JSON extraction from AI response:**
+```typescript
+const match = text.match(/\{[\s\S]*?\}/)  // finds first JSON object
+if (!match) { /* handle error */ }
+const data = JSON.parse(match[0])
+```
+
+---
+
+## Game Skin Pattern
+
+All games with skins follow the Snake pattern:
+
+```typescript
+interface Skin {
+  id: string; name: string; emoji: string; unlock: number
+  // Game-specific: color vars, emoji pools, CSS vars, etc.
+}
+
+const unlockedSkins = useStorage<string[]>('platform:games:[game]:unlocked', ['default'])
+const activeSkinId  = useStorage<string>('platform:games:[game]:skin', 'default')
+
+// On win/score:
+for (const skin of SKINS) {
+  if (skin.unlock > 0 && score >= skin.unlock && !unlockedSkins.value.includes(skin.id)) {
+    unlockedSkins.value = [...unlockedSkins.value, skin.id]
+    newUnlockRef.value = skin.name  // show banner
+  }
+}
+```
+
+---
+
+## Drag-to-Reorder Pattern
+
+```typescript
+// State
+const draggingId = ref<string | null>(null)
+const dragOverId = ref<string | null>(null)
+
+// Handlers
+function onDragStart(e: DragEvent, id: string) {
+  draggingId.value = id
+  e.dataTransfer?.setData('text/plain', id)
+}
+function onDragEnd()  { draggingId.value = null; dragOverId.value = null }
+function onDragOver(e: DragEvent, id: string) {
+  e.preventDefault()
+  if (draggingId.value && draggingId.value !== id) dragOverId.value = id
+}
+function onDrop(id: string) {
+  if (draggingId.value) store.reorderItems(draggingId.value, id)
+  draggingId.value = null; dragOverId.value = null
+}
+
+// Store method
+function reorderItems(fromId: string, toId: string): void {
+  const arr = [...items.value]
+  const fromI = arr.findIndex(h => h.id === fromId)
+  const toI   = arr.findIndex(h => h.id === toId)
+  const [item] = arr.splice(fromI, 1)
+  arr.splice(toI, 0, item)
+  items.value = arr
+}
+```
+
+---
+
+## Confirm Dialog Pattern
+
+```typescript
+import { useConfirm } from '@/core/composables/useConfirm'
+const { confirm } = useConfirm()
+
+async function deleteItem(id: string) {
+  const ok = await confirm({
+    title:        'Delete this item?',
+    body:         'This cannot be undone.',
+    danger:       true,
+    confirmLabel: 'Delete',
+  })
+  if (ok) store.deleteItem(id)
+}
+```
+
+---
+
 ## ID Generation
 
-Always use `generateId()` from `@/core/utils/id`. Never use `Date.now()` directly as an ID:
+Always use `crypto.randomUUID()` for new entity IDs (available natively in all modern browsers):
+
+```typescript
+const newItem = { id: crypto.randomUUID(), ... }
+```
+
+`generateId()` from `@/core/utils/id` is legacy — prefer `crypto.randomUUID()` for new code.
+
+Never use `Date.now()` directly as an ID:
 
 ```ts
 import { generateId } from '@/core/utils/id'

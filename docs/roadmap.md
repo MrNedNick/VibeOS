@@ -16,7 +16,7 @@
 | S4 — Core Life Modules | Goals + task unification | ✅ complete |
 | S5 — Life Depth | Learning + Training + Analytics | ✅ complete |
 | S6 — AI Integration | AI as planning layer | ✅ complete — 9 features |
-| S7 — Polish | Credibility + reliability | 🔶 partial — error boundaries ✅, Vitest + CI ❌ |
+| S7 — Polish | Credibility + reliability | 🔄 active — error boundaries ✅, Vitest ✅, CI ✅, Lighthouse ✅, a11y ✅, badge ❌ |
 | S8 — Design System | Unified component library | ✅ complete — v0.8.x |
 | **S9 — Full Redesign** | Premium visual identity | ✅ **complete** — v0.9.x |
 | **S10 — Vibe-pak Consolidation** | 4 clean paks, Revolut + CRT redesign | ✅ **complete** — v1.0.x |
@@ -157,8 +157,12 @@ Order:
   - Config: `vitest.config.ts` — globals: true, @ alias
   - Scripts: `npm test` (run once) · `npm run test:watch` (dev)
 - ✅ **CI gate** — `test` job runs type-check + tests before build; deploy blocked on failure (v1.0.4)
-- **Lighthouse audit** — Performance, Accessibility, Best Practices scores
-- **a11y audit** — keyboard navigation, focus management, screen reader basics
+- ✅ **Lighthouse audit** — Performance 82, Accessibility 100, Best Practices 100, SEO 82 (v1.0.5)
+  - Audited via CLI against vite preview build; all scores above target thresholds
+  - Color-contrast fixes: `not-found__code` (#d7dbe8→#7a8099), `not-found__sub` (muted→secondary), bottom-nav labels (contrast + font-weight 500→600)
+- ✅ **a11y audit** — keyboard nav ✅, focus rings ✅ (global focus-visible), ARIA labels ✅ (v1.0.6)
+  - Added `aria-label` to sidebar `<aside>` and `<nav>`, `aria-current="page"` on active nav items
+  - Added `aria-label` to bottom nav `<nav>` and "All modules" sheet dialog
 - ✅ **Error boundaries** — all module routes wrapped; graceful fallback UI
 - **Preview deploys per PR** — Vercel free tier
 - **Bundle size badge** in README
