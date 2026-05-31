@@ -7,7 +7,7 @@ import { useNotesStore } from '@/modules/notes/stores/notes.store'
 import { deriveTitle } from '@/modules/notes/types'
 import MilestoneList from '../components/MilestoneList.vue'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '../types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel, UiProgressBar } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { aiComplete } from '@/core/composables/useAI'
 
@@ -173,14 +173,12 @@ function onTaskKeydown(e: KeyboardEvent) {
     </div>
 
     <!-- Progress bar -->
-    <div class="gdetail__progress-bar">
-      <div class="gdetail__progress-fill" :style="{ width: progress + '%' }" />
-    </div>
+    <UiProgressBar :value="progress" :height="6" />
 
     <!-- Milestones -->
     <div class="gdetail__section">
       <div class="gdetail__section-header">
-        <p class="gdetail__section-label">Milestones</p>
+        <UiSectionLabel>Milestones</UiSectionLabel>
         <button
           class="gdetail__ai-btn"
           :disabled="suggestLoading"
@@ -215,7 +213,7 @@ function onTaskKeydown(e: KeyboardEvent) {
 
     <!-- Notes -->
     <div class="gdetail__section">
-      <p class="gdetail__section-label">Notes</p>
+      <UiSectionLabel>Notes</UiSectionLabel>
       <textarea
         v-model="localNotes"
         class="gdetail__notes"
@@ -227,12 +225,12 @@ function onTaskKeydown(e: KeyboardEvent) {
     <!-- Linked tasks -->
     <div class="gdetail__tasks">
       <div class="gdetail__section-header">
-        <p class="gdetail__section-label">
+        <UiSectionLabel>
           Tasks
           <span v-if="linkedTasks.length > 0" class="gdetail__tasks-count">
             {{ linkedActive.length }} active · {{ linkedDone.length }} done
           </span>
-        </p>
+        </UiSectionLabel>
         <button class="gdetail__tasks-add-btn" @click="openAddTask">
           <UiIcon name="Plus" :size="13" />
           Add task
@@ -294,10 +292,10 @@ function onTaskKeydown(e: KeyboardEvent) {
     <!-- Linked notes -->
     <div v-if="linkedNotes.length > 0" class="gdetail__notes-section">
       <div class="gdetail__section-header">
-        <p class="gdetail__section-label">
+        <UiSectionLabel>
           Linked notes
           <span class="gdetail__tasks-count">{{ linkedNotes.length }}</span>
-        </p>
+        </UiSectionLabel>
         <button class="gdetail__notes-open" @click="router.push('/notes')">
           Open Notes →
         </button>
@@ -404,20 +402,6 @@ function onTaskKeydown(e: KeyboardEvent) {
   flex-shrink: 0;
 }
 
-.gdetail__progress-bar {
-  height: 6px;
-  background: var(--color-border);
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.gdetail__progress-fill {
-  height: 100%;
-  background: var(--color-accent);
-  border-radius: 99px;
-  transition: width 0.5s var(--ease);
-}
-
 .gdetail__section { display: flex; flex-direction: column; gap: 10px; }
 
 .gdetail__section-header {
@@ -426,8 +410,6 @@ function onTaskKeydown(e: KeyboardEvent) {
   justify-content: space-between;
   gap: 8px;
 }
-
-.gdetail__section-header .gdetail__section-label { margin: 0; }
 
 .gdetail__ai-btn {
   display: inline-flex;
@@ -498,15 +480,6 @@ function onTaskKeydown(e: KeyboardEvent) {
   font-size: 14px;
   line-height: 1.2;
   flex-shrink: 0;
-}
-
-.gdetail__section-label {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0;
 }
 
 .gdetail__notes {

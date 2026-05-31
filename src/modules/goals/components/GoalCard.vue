@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Goal } from '../types'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '../types'
+import { UiCard, UiProgressBar } from '@/ui'
 const props = defineProps<{ goal: Goal }>()
 
 const router = useRouter()
@@ -28,8 +29,8 @@ const dueLabel = computed(() => {
 </script>
 
 <template>
-  <div
-    class="goal-card"
+  <UiCard
+    clickable
     :class="{ 'goal-card--completed': goal.status === 'completed' }"
     @click="router.push(`/goals/${goal.id}`)"
   >
@@ -49,30 +50,18 @@ const dueLabel = computed(() => {
       <span class="goal-card__pct">{{ progress }}%</span>
     </div>
 
-    <div class="goal-card__bar">
-      <div class="goal-card__bar-fill" :style="{ width: progress + '%' }" />
-    </div>
+    <UiProgressBar
+      :value="progress"
+      :color="goal.status === 'completed' ? 'success' : 'accent'"
+    />
 
     <div v-if="milestoneTotal > 0" class="goal-card__milestones">
       {{ milestoneDone }} / {{ milestoneTotal }} milestones
     </div>
-  </div>
+  </UiCard>
 </template>
 
 <style scoped>
-.goal-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  cursor: pointer;
-  transition: border-color var(--t-fast), box-shadow var(--t-fast);
-}
-
-.goal-card:hover { box-shadow: var(--shadow-sm); }
 .goal-card--completed { opacity: 0.65; }
 
 .goal-card__top {
@@ -129,22 +118,6 @@ const dueLabel = computed(() => {
   color: var(--color-accent);
   flex-shrink: 0;
 }
-
-.goal-card__bar {
-  height: 5px;
-  background: var(--color-border);
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.goal-card__bar-fill {
-  height: 100%;
-  background: var(--color-accent);
-  border-radius: 99px;
-  transition: width 0.5s var(--ease);
-}
-
-.goal-card--completed .goal-card__bar-fill { background: var(--color-success); }
 
 .goal-card__milestones {
   font-size: var(--text-xs);

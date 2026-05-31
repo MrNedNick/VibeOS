@@ -4,7 +4,8 @@ import { useGoalsStore } from '../stores/goals.store'
 import GoalCard from '../components/GoalCard.vue'
 import type { GoalCategory } from '../types'
 import { CATEGORY_EMOJI, CATEGORY_LABEL } from '../types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiFilterChips } from '@/ui'
+import type { FilterChipOption } from '@/ui'
 
 const store = useGoalsStore()
 
@@ -59,6 +60,19 @@ const activeCategory = ref<GoalCategory | 'all'>('all')
 const activeCategoriesInUse = computed<GoalCategory[]>(() => {
   const cats = new Set(store.activeGoals.map(g => g.category))
   return Array.from(cats)
+})
+
+const categoryOptions = computed<FilterChipOption[]>(() => [
+  { value: 'all', label: 'All' },
+  ...activeCategoriesInUse.value.map(cat => ({
+    value: cat,
+    label: `${CATEGORY_EMOJI[cat]} ${CATEGORY_LABEL[cat]}`,
+  })),
+])
+
+const activeCategoryStr = computed({
+  get: () => activeCategory.value as string,
+  set: (v: string) => { activeCategory.value = v as GoalCategory | 'all' },
 })
 
 const filteredActiveGoals = computed(() => {
@@ -134,20 +148,12 @@ const todayLabel = computed(() =>
     </div>
 
     <!-- Category filter bar (shown when 2+ categories in use) -->
-    <div v-if="activeCategoriesInUse.length > 1" class="goals__cats">
-      <button
-        class="goals__cat"
-        :class="{ 'goals__cat--active': activeCategory === 'all' }"
-        @click="activeCategory = 'all'"
-      >All</button>
-      <button
-        v-for="cat in activeCategoriesInUse"
-        :key="cat"
-        class="goals__cat"
-        :class="{ 'goals__cat--active': activeCategory === cat }"
-        @click="activeCategory = cat"
-      >{{ CATEGORY_EMOJI[cat] }} {{ CATEGORY_LABEL[cat] }}</button>
-    </div>
+    <UiFilterChips
+      v-if="activeCategoriesInUse.length > 1"
+      v-model="activeCategoryStr"
+      :options="categoryOptions"
+      variant="pills"
+    />
 
     <!-- Active goals grid -->
     <div v-if="filteredActiveGoals.length > 0" class="goals__grid">
@@ -296,37 +302,6 @@ const todayLabel = computed(() =>
 .goals__btn--primary:hover { background: var(--color-accent-hover); }
 .goals__btn--ghost { background: transparent; color: var(--color-text-secondary); border-color: var(--color-border); }
 .goals__btn--ghost:hover { color: var(--color-text); }
-
-/* Category filter */
-.goals__cats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.goals__cat {
-  padding: 5px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--t-fast);
-}
-
-.goals__cat:hover:not(.goals__cat--active) {
-  background: var(--color-surface-elevated);
-  color: var(--color-text);
-}
-
-.goals__cat--active {
-  background: var(--color-accent-muted);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  font-weight: 500;
-}
 
 .goals__cat-empty {
   font-size: var(--text-sm);
