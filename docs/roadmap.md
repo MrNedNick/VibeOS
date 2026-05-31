@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3, updated 2026-05-30 (v4) after visual audit sprint, updated 2026-05-30 (v5) after AI integration + UX sprint.
+> Re-planned 2026-05-27 (v2), updated 2026-05-28 (v3) to reflect shipped state at v0.5.3, updated 2026-05-30 (v4) after visual audit sprint, updated 2026-05-30 (v5) after AI integration + UX sprint, updated 2026-05-31 (v6) after AI assistants + habit purpose sprint.
 > Repositioned: VibeOS evolves from developer showcase to personal life operating system.
 > See `docs/strategy.md` for the full product context.
 > See `docs/privacy-security.md` for the auth/demo/security plan.
@@ -133,11 +133,11 @@ Order:
 1. **AI service layer** — `core/services/ai.ts`; wraps free Pollinations.ai + optional Anthropic key; shows token estimate before each call; all modules consume same service
 2. ✅ **Daily digest** — `DigestWidget.vue` on Dashboard: on-demand digest using live data from all stores (tasks, goals, habits, learning, training); Pollinations.ai free
 3. ✅ **Goal planning** — "Suggest" button in Goal detail milestones section; AI returns bullet list of milestones; each chip adds directly to goal with one click
-4. **Learning plan generator** — "I want to learn [topic] in [N] weeks — generate a plan" button in Learning module; AI creates a full structured learning plan
-5. **Learning session analysis** — after logging a session: "What should I focus on next?" based on session notes and plan progress
-6. **Workout/Training analysis** — after logging a workout: "Analyze this session and suggest what to improve"; AI reads training plan + recent sessions
-7. **Training plan generator** — "Generate a [goal] training plan for [N] weeks" — AI builds a structured workout plan
-8. **Priority assistant** — "What should I focus on today?" — AI reads current tasks + goals + today's schedule
+4. ✅ **Learning plan generator** — "✦ Fill with AI" button in Learning module; enter a topic and AI fills title, emoji, minutesPerSession, targetHours, daysPerWeek
+5. ✅ **Learning session analysis** — after logging a session: AI card appears with 2-3 focus suggestions for next session; based on session notes + plan progress
+6. ✅ **Workout/Training analysis** — after logging a workout: AI card with specific improvement suggestions; reads sport type, duration, distance, feeling, streak
+7. ✅ **Training plan generator** — "✦ Fill with AI" in Training module; enters topic → AI fills title, emoji, sportType, sessionsPerWeek
+8. ✅ **Priority assistant** — "✦ Focus" button in Tasks: AI reads pending tasks (priority, due dates, categories) and suggests 2-3 most important with reasoning
 9. **Command Palette AI** — "Ask AI: [anything]" command → Studio-like response inline
 10. **Additional free providers** — Gemini Flash (Google AI Studio key), GroqCloud (fast Llama3/Mixtral), OpenRouter (multi-model); all optional with user key
 
@@ -156,6 +156,19 @@ Order:
 ---
 
 ## Recently shipped (history)
+
+### 2026-05-31 — AI assistants + habit purpose (v0.7.2 → v0.7.3)
+
+**5 S6 AI items shipped + habit `purpose` field:**
+
+- **Learning plan generator** (S6/4) — "✦ Fill with AI" toggle in Learning module creates form; enter any topic; AI fills title, emoji, minutesPerSession, targetHours, daysPerWeek from a free Pollinations.ai call; JSON parsed from response with clamped validation
+- **Training plan generator** (S6/7) — same pattern for Training; AI fills title, emoji, sportType (validated against `VALID_SPORTS` enum), sessionsPerWeek
+- **Learning session analysis** (S6/5) — after logging a session, `analyzeSession()` fires in background; AI card slides in with 2-3 focus suggestions for next session; includes topic, notes, progress %; dismiss button; spinner while analyzing
+- **Workout/Training analysis** (S6/6) — after logging a workout, `analyzeWorkout()` fires in background; AI card with improvement suggestions; context: sport type, duration, distance, feeling scale, streak count
+- **Task priority assistant** (S6/8) — "✦ Focus" button in TaskManagerView; reads up to 15 pending tasks with priority/due-date/category context; AI returns 2-3 most important with reasoning; dismissable card with fade transition
+- **Habit `purpose` field** — optional "why" motivation text on each habit; shown as editable subtitle below habit name in HabitCard (click to edit inline); "Add why…" ghost placeholder on hover; purpose input in creation form; persisted in store
+
+---
 
 ### 2026-05-30 — AI integration + UX sprint (v0.7.1 → v0.7.2)
 
