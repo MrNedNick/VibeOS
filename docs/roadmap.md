@@ -454,24 +454,64 @@ Vitest env: happy-dom (не jsdom — jsdom v27 ломается на Node 20).
 **Session: S8 item 4 — /ui-kit component library page**
 
 ```
-Сессия — S8 /ui-kit: Component Library Page
+Сессия — S8 item 4: /ui-kit Component Library Page
 
 Прочитай перед началом:
 - /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
 - /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S8 item 4 описан там
-- /Users/test/Documents/Work/AIProjects/VibeOS/docs/ui-kit-plan.md  ← готовый план
+- /Users/test/Documents/Work/AIProjects/VibeOS/docs/ui-kit-plan.md  ← полный план, ОБЯЗАТЕЛЕН
 
-Контекст: S7 ✅ complete. S8 items 1–3 ✅. Осталось item 4 — /ui-kit страница.
-Текущая версия: 1.0.x.
+Контекст:
+- Версия: v1.0.7
+- S7 ✅ complete (Vitest 59, CI, Lighthouse 82, a11y 100, bundle badge 528 kB gzip)
+- S8 items 1–3 ✅ (UiSkeleton, widget customization, component architecture audit)
+- S10 ✅ — 4 пака: Dark, Light, Brutalist, CRT
 
 Задача: реализовать /ui-kit component library page.
-- Route: /ui-kit (accessible from Settings → Developer, hidden in production)
-- Left sidebar with categories
-- Main area: live component cards (example + prop table)
-- Theme switcher at top (preview all 4 paks)
-- Полный план в docs/ui-kit-plan.md — читай его ПЕРЕД началом реализации.
 
-Правила: type-check → 0 ошибок. npm test → все проходят. Коммит + push после реализации.
+Структура (из ui-kit-plan.md §8 File Structure):
+  src/modules/ui-kit/
+    views/
+      UiKitView.vue              ← root: sidebar + main area
+      sections/tokens/           ← Colors, Typography, Spacing, Shadows, Motion
+      sections/components/       ← один файл на каждый @/ui компонент
+      sections/patterns/         ← UiEmptyState, UiConfirmDialog
+    components/
+      ShowcaseCard.vue           ← article wrapper (header + playground + props)
+      PropTable.vue              ← принимает PropDef[]
+      PgStage.vue                ← playground wrapper
+      TokenSwatch.vue            ← color swatch с CSS var
+      TokenRow.vue               ← typography/spacing row
+
+Ключевые требования:
+- Route: /ui-kit — скрыт в production (import.meta.env.PROD)
+- Левый сайдбар: группы Tokens / Components / Patterns
+- Каждая секция: Header → Playground (живой @/ui компонент) → Prop table
+- Theme switcher в footer сайдбара: все 4 пака вживую
+- Prop table колонки: Prop / Type / Purpose
+- Canon ссылка на исходник src/ui/components/
+
+@/ui компоненты для документирования (15):
+UiBadge · UiButton · UiCard · UiConfirmDialog · UiEmptyState
+UiField · UiFilterChips · UiIcon · UiInput · UiProgressBar
+UiProgressRing · UiSectionLabel · UiSkeleton · UiStat · UiPlannedView
+
+Token секции: Colors · Typography · Spacing · Shadows/Elevation · Motion
+
+Порядок реализации (ui-kit-plan.md §10):
+1. UiKitView.vue + сайдбар + routing + ShowcaseCard/PropTable/PgStage
+2. Token pages: Colors, Typography, Spacing, Shadows, Motion
+3. Компоненты: UiButton, UiInput, UiField
+4. Компоненты: UiCard, UiSkeleton, UiBadge, UiIcon
+5. Компоненты: UiProgressBar, UiProgressRing, UiStat, UiSectionLabel, UiFilterChips
+6. Patterns: UiEmptyState, UiConfirmDialog
+
+Большая задача — реализуй сколько успеешь, коммить по логическим блокам.
+
+Правила:
+- npm run type-check → 0 ошибок, npm test → 59 pass
+- Коммит + push после каждого блока, версия 1.0.7 → 1.0.8+ (patch per block)
+- S9 visual rules: color-mix hover, --shadow-*, no hardcoded hex
 ```
 
 ---
