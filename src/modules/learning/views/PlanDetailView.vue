@@ -9,7 +9,7 @@ import { estimateTargetDate, todayStr, RESOURCE_META, RESOURCE_TYPES } from '../
 import { UiIcon, UiSectionLabel, UiProgressBar, UiStat } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useConfirm } from '@/core/composables/useConfirm'
-import { aiComplete } from '@/core/composables/useAI'
+import { useAiInsight } from '@/core/composables/useAiInsight'
 
 const route = useRoute()
 const router = useRouter()
@@ -35,14 +35,11 @@ const targetDate = computed(() => plan.value ? estimateTargetDate(plan.value) : 
 const showLog = ref(false)
 
 // ── AI post-log analysis ─────────────────────────────────────────────
-const aiAnalysis   = ref<string | null>(null)
-const aiAnalyzing  = ref(false)
+const { result: aiAnalysis, loading: aiAnalyzing, run: runAiAnalysis, dismiss: dismissAiAnalysis } = useAiInsight()
 
-async function analyzeSession(data: Omit<LearningSession, 'id'>) {
+function analyzeSession(data: Omit<LearningSession, 'id'>) {
   if (!plan.value) return
-  aiAnalyzing.value = true
-  const prompt = `I just completed a ${data.actualMinutes}-min learning session for "${plan.value.title}". ${data.topic ? 'Topic: ' + data.topic + '.' : ''} ${data.notes ? 'Notes: ' + data.notes + '.' : ''} Current progress: ${progress.value}% of ${plan.value.targetHours}h goal. What 2-3 things should I focus on in my NEXT session? Be specific and brief (3 sentences max).`
-  aiComplete(prompt).then(r => { aiAnalysis.value = r }).catch(() => {}).finally(() => { aiAnalyzing.value = false })
+  runAiAnalysis(`I just completed a ${data.actualMinutes}-min learning session for "${plan.value.title}". ${data.topic ? 'Topic: ' + data.topic + '.' : ''} ${data.notes ? 'Notes: ' + data.notes + '.' : ''} Current progress: ${progress.value}% of ${plan.value.targetHours}h goal. What 2-3 things should I focus on in my NEXT session? Be specific and brief (3 sentences max).`)
 }
 
 function submitLog(data: Omit<LearningSession, 'id'>) {
@@ -191,7 +188,7 @@ function safeDomain(url: string): string {
     <div v-if="aiAnalyzing || aiAnalysis" class="detail__ai-card">
       <div class="detail__ai-header">
         <span class="detail__ai-label">✦ AI Insight</span>
-        <button v-if="aiAnalysis" class="detail__ai-dismiss" @click="aiAnalysis = null">×</button>
+        <button v-if="aiAnalysis" class="detail__ai-dismiss" @click="dismissAiAnalysis">×</button>
       </div>
       <div v-if="aiAnalyzing" class="detail__ai-loading">
         <UiIcon name="Loader" :size="14" :stroke-width="2" class="detail__ai-spinner" />

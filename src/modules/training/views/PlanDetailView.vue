@@ -8,7 +8,7 @@ import { FEELING_EMOJI, todayStr, RESOURCE_META, RESOURCE_TYPES } from '../types
 import { UiIcon, UiSectionLabel, UiStat } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useConfirm } from '@/core/composables/useConfirm'
-import { aiComplete } from '@/core/composables/useAI'
+import { useAiInsight } from '@/core/composables/useAiInsight'
 
 const route = useRoute()
 const router = useRouter()
@@ -30,17 +30,14 @@ const today = todayStr()
 const showLog = ref(false)
 
 // ── AI post-log analysis ─────────────────────────────────────────────
-const aiAnalysis  = ref<string | null>(null)
-const aiAnalyzing = ref(false)
+const { result: aiAnalysis, loading: aiAnalyzing, run: runAiAnalysis, dismiss: dismissAiAnalysis } = useAiInsight()
 
-async function analyzeWorkout(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {
+function analyzeWorkout(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {
   if (!plan.value) return
-  aiAnalyzing.value = true
   const durationNote = data.actualDuration ? `${data.actualDuration} min` : 'unknown duration'
   const distNote = data.actualDistance ? `, ${data.actualDistance}km` : ''
   const feelNote = ['', 'terrible', 'bad', 'ok', 'good', 'great'][data.feeling] ?? 'ok'
-  const prompt = `I just logged a ${plan.value.sportType} workout for "${plan.value.title}". Duration: ${durationNote}${distNote}. Feeling: ${feelNote}. ${data.notes ? 'Notes: ' + data.notes + '.' : ''} Streak: ${streak.value} days. What 2-3 specific things should I focus on to improve in my NEXT session? Be concise (3 sentences max).`
-  aiComplete(prompt).then(r => { aiAnalysis.value = r }).catch(() => {}).finally(() => { aiAnalyzing.value = false })
+  runAiAnalysis(`I just logged a ${plan.value.sportType} workout for "${plan.value.title}". Duration: ${durationNote}${distNote}. Feeling: ${feelNote}. ${data.notes ? 'Notes: ' + data.notes + '.' : ''} Streak: ${streak.value} days. What 2-3 specific things should I focus on to improve in my NEXT session? Be concise (3 sentences max).`)
 }
 
 function submitLog(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {
@@ -156,7 +153,7 @@ function safeDomain(url: string): string {
     <div v-if="aiAnalyzing || aiAnalysis" class="tdetail__ai-card">
       <div class="tdetail__ai-header">
         <span class="tdetail__ai-label">✦ AI Insight</span>
-        <button v-if="aiAnalysis" class="tdetail__ai-dismiss" @click="aiAnalysis = null">×</button>
+        <button v-if="aiAnalysis" class="tdetail__ai-dismiss" @click="dismissAiAnalysis">×</button>
       </div>
       <div v-if="aiAnalyzing" class="tdetail__ai-loading">
         <UiIcon name="Loader" :size="14" :stroke-width="2" class="tdetail__ai-spinner" />

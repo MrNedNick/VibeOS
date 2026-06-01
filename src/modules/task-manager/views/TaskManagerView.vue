@@ -11,7 +11,7 @@ import { useLocale } from '@/core/i18n'
 import { UiButton, UiSectionLabel, UiFilterChips } from '@/ui'
 import type { FilterChipOption } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
-import { aiComplete } from '@/core/composables/useAI'
+import { useAiInsight } from '@/core/composables/useAiInsight'
 
 const i18n = useLocale()
 const goalsStore = useGoalsStore()
@@ -50,12 +50,9 @@ const taskCompletedDates = computed(() =>
 )
 
 // ── AI priority assistant ──────────────────────────────────────────
-const aiPriority        = ref<string | null>(null)
-const aiPriorityLoading = ref(false)
+const { result: aiPriority, loading: aiPriorityLoading, run: runAiPriority, dismiss: dismissAiPriority } = useAiInsight()
 
-async function askAIPriority() {
-  aiPriorityLoading.value = true
-  aiPriority.value = null
+function askAIPriority() {
   const pending = store.tasks.filter(t => !t.done).slice(0, 15)
   const list = pending.length
     ? pending.map(t => {
@@ -66,10 +63,7 @@ async function askAIPriority() {
         return parts.join(' ')
       }).join('\n')
     : 'No pending tasks.'
-  const prompt = `My pending tasks:\n${list}\n\nWhat should I focus on right now? Pick the 2-3 most important and explain why. Be direct and practical (3-4 sentences max).`
-  try {
-    aiPriority.value = await aiComplete(prompt)
-  } catch { /* silent */ } finally { aiPriorityLoading.value = false }
+  runAiPriority(`My pending tasks:\n${list}\n\nWhat should I focus on right now? Pick the 2-3 most important and explain why. Be direct and practical (3-4 sentences max).`)
 }
 
 function onKeydown(e: KeyboardEvent) {
@@ -169,7 +163,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <div v-if="aiPriority" class="tm-view__ai-card">
         <div class="tm-view__ai-header">
           <span class="tm-view__ai-label">✦ AI Focus Suggestion</span>
-          <button class="tm-view__ai-dismiss" @click="aiPriority = null">×</button>
+          <button class="tm-view__ai-dismiss" @click="dismissAiPriority">×</button>
         </div>
         <p class="tm-view__ai-text">{{ aiPriority }}</p>
       </div>
