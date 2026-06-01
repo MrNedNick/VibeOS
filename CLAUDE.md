@@ -23,9 +23,13 @@
 | S11 — Welcome & Positioning | 🔜 next — "simpler Notion for life, everything connected" + live cascade demo (repositioned 2026-06-01) |
 | S12 — AI Depth | 🔄 active — Analytics monthly report ✅ (v1.0.11); Habits/Notes/Finance pending |
 | S13 — Design Pass | 🔜 planned — module quality pass (requires user review session) |
-| S14 — Quick Wins | 🔄 active — T1 lazy routes ✅ (v1.0.8), T5 AI provider seam ✅ (v1.0.9), T3 soft-delete ✅ (v1.0.10); README refresh, hex cleanup pending |
+| S14 — Quick Wins | 🔄 active — T1 lazy routes ✅ (v1.0.8), T5 AI provider seam ✅ (v1.0.9), T3 soft-delete ✅ (v1.0.10), T6 pin Pollinations anon model ✅ (v1.0.12); README refresh, hex cleanup pending |
+| S15 — Refactor & De-dup | 🔜 planned — analysis-first, T1–T9 (de-dup soft-delete/AI, finish @/ui CSS migration, split 5 god-components). See docs/roadmap.md |
+| S16 — Test Coverage | 🔜 planned — T1–T8, follows S15 (12 untested stores, 0 component tests today). See docs/roadmap.md |
 
-**Active next (re-ordered 2026-06-01): S11 (positioning + welcome) → S12 AI Depth (Habits/Notes/Finance remain — Analytics report ✅). Done as fill-in: S8 item 4 /ui-kit ✅, S14 T1/T3/T5 ✅. Remaining S14: T2 README refresh, T4 hex cleanup.**
+**Active next (re-ordered 2026-06-01): S11 (positioning + welcome) → S12 AI Depth (Habits/Notes/Finance remain — Analytics report ✅). Done as fill-in: S8 item 4 /ui-kit ✅, S14 T1/T3/T5/T6 ✅. Remaining S14: T2 README refresh, T4 hex cleanup. S15 (refactor) + S16 (tests) newly planned 2026-06-01.**
+
+> **AI provider note (v1.0.12):** Pollinations left only `openai-fast` (GPT-OSS 20B) on the anonymous tier; the real `openai`/`mistral`/`llama` now require a key and return a "migrate" notice anonymously (this leaked into the Analytics AI report). Default model is pinned to `openai-fast` in `src/core/composables/provider.ts` and Studio's free-model list trimmed to it.
 
 ---
 

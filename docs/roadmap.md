@@ -24,6 +24,8 @@
 | **S12 — AI Depth** | AI in every module; start with Analytics monthly report (shows connected data) | 🔜 planned — analysis-first sprint |
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔜 planned — small independent tasks |
+| **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | 🔜 planned — analysis-first, ordered T1–T9 (see below) |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔜 planned — ordered T1–T8, follows S15 |
 
 ---
 
@@ -725,6 +727,174 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 **Problem:** the Pollinations.ai endpoint + model are hardcoded in **two** places (`aiComplete()` and `useAI()` duplicate the same `fetch`). Swapping providers (Groq/Gemini, already in S6 item 10) means editing both + 9 call sites.
 
 **Fix:** one provider module with a single `fetch`, endpoint/model from env. No fallback chain needed yet — all AI features are already optional/dismissable, so if Pollinations dies the app still fully works.
+
+---
+
+### T6 — Pin Pollinations anonymous model ✅ (v1.0.12)
+
+**Done:** Pollinations deprecated anonymous access to every text model except `openai-fast` (GPT-OSS 20B, OVH) — the real gpt-4o `openai`, `mistral`, `llama` now return a "migrate to enter.pollinations.ai" notice instead of a completion for key-less requests (this is what surfaced inside the Analytics AI report). Pinned `AI_MODEL` default to `openai-fast` (`provider.ts` + `.env.example`); trimmed Studio's `FreeModel`/`FREE_MODELS` to the single working model and added a coercion in `studio.store.ts` for any stale persisted `mistral`/`llama` value. Verified live: `openai-fast` returns real completions anonymously. type-check clean, 68 tests pass. Multi-provider via user keys returns in S12 item 10 / a later sprint.
+
+---
+
+## S15 — Refactor & De-dup 🔜 planned (analysis-first)
+
+**Goal:** pay down the duplication and god-component debt that built up across S4–S12. The app works and looks done; this sprint makes it *maintainable* so S16 (tests) and future feature work are cheap. **No behavior or visual changes** — every task is a structure-only move, verified by `npm run type-check` + the existing 68 tests staying green.
+
+> **Analysis baseline (measured 2026-06-01, v1.0.12):** 20 modules · 15 Pinia stores · 8 AI call sites · 5 view files over 1,000 LOC · 68 tests in 6 files. The four findings below are the real, measured debt — not speculation.
+
+**Hard rules for this sprint (read before any task):**
+- Behavior-preserving only. If a screen did X before, it does X after. No new features, no layout/animation changes.
+- One task = one commit = one patch version bump. Land them in order; each must leave the tree green.
+- If extracting a shared abstraction makes a call site *longer* or *less clear*, stop — duplication is cheaper than the wrong abstraction.
+
+---
+
+### T1 — Extract `useSoftDeletable` collection composable 🧱
+
+**Problem:** the soft-delete tombstone pattern from S14 T3 is copy-pasted across **7 stores** (tasks, habits, goals, notes, learning, training, finance): each declares a raw `allX = useStorage<X[]>(key, [])`, a `const x = computed(() => allX.value.filter(e => !e.deletedAt))`, an add, a soft-delete that sets `deletedAt = Date.now()`, and (learning/training) a cascade to child collections. Any change to the tombstone contract means editing 7 files identically.
+
+**Fix:** add `src/core/composables/useSoftDeletable.ts` — `useSoftDeletable<T extends { id: string; deletedAt?: number }>(storageKey)` returning `{ all, items, add, update, softDelete, restore }`. Refactor the 7 stores to build on it. Keep each store's domain logic (filters, derived counts, cascades) in the store — the composable owns *only* the raw list + tombstone lifecycle.
+
+**Do NOT** fold module-specific computeds (task `filter`/`categoryFilter`, finance budgets) into the composable — they stay in their stores.
+
+**Verify:** `goals.store.test.ts` + `tasks.store.test.ts` (which already assert soft-delete) must pass unchanged. type-check clean.
+
+---
+
+### T2 — Extract `useAiInsight` composable for fire-and-forget AI 🤖
+
+**Problem:** **8 views** (GoalDetail, TaskManager, Learning, Learning/PlanDetail, Training, Training/PlanDetail, DigestWidget, Analytics) each hand-roll the same shape: a local `aiResult`/`aiLoading`/`dismissed` ref trio, a prompt-builder, a `useAI().complete(prompt).then(...).catch(() => {})` silent-fire, and a dismissable result card. The provider seam (S14 T5) unified the *transport*, but the *per-feature usage* is still duplicated 8×.
+
+**Fix:** add `src/core/composables/useAiInsight.ts` wrapping `useAI` with `{ result, loading, error, dismissed, run(promptFn), dismiss() }` and built-in result caching/dismiss state. Migrate the 8 call sites. The prompt strings themselves stay at each call site (they're domain copy, not duplication).
+
+**Verify:** manual — trigger one AI insight per module type (Goals, Learning, Analytics) in the live preview; confirm loading → result → dismiss still works. type-check clean.
+
+---
+
+### T3 — Finish the @/ui CSS migration (close S8 Phase 3) 🎨
+
+**Problem:** `refactor-guide.md` (S8 Phase 3) was never fully completed: **7 component files still carry one-off `__section-label` CSS** and 2 still hand-roll `progress-fill`/`progress-bar` rules that `UiSectionLabel` / `UiProgressBar` already own. This is the exact duplication S8 was meant to delete.
+
+**Fix:** follow `docs/refactor-guide.md` patterns — replace the remaining one-off section labels with `<UiSectionLabel>` and progress bars with `<UiProgressBar>`, delete the dead scoped CSS. Strictly cosmetic-equivalent; if a one-off style has no `@/ui` equivalent, leave it (per the guide's "what NOT to touch").
+
+**Verify:** visual diff in preview at `lg` + `sm` for each touched module — pixel-equivalent. type-check clean.
+
+---
+
+### T4 — Decompose the 5 god-components 🪓
+
+**Problem:** five view files exceed 1,000 LOC and mix data orchestration, template, and scoped styles: `BoardView.vue` (1,345), `FinanceView.vue` (1,341), `StudioView.vue` (1,285), `HabitCard.vue` (1,116), `AnalyticsView.vue` (1,091). They're hard to test (S16) and risky to change.
+
+**Fix (one component per commit, in this order — biggest pain first):**
+1. **FinanceView** → extract `FinanceSummary`, `TransactionList`, `BudgetList` child components + move transaction/budget logic into the existing `finance.store.ts`.
+2. **BoardView** → extract `BoardColumn`, `BoardCard`; keep drag logic in one composable.
+3. **AnalyticsView** → extract per-section panels; the AI report block becomes the T2 `useAiInsight` consumer.
+4. **StudioView** → split conversation pane / model picker / history sidebar.
+5. **HabitCard** → only split if T3 didn't already shrink it enough; the refactor-guide warns it's fragile — patterns only, no restructure of streak logic.
+
+**Do NOT** change props/emits or behavior. This is mechanical extraction, not redesign.
+
+**Verify:** type-check + 68 tests green after each; manual smoke of each screen in preview.
+
+---
+
+### T5 — Collapse Learning/Training shared structure 🔁
+
+**Problem:** Learning and Training are "nearly identical" (noted in `refactor-guide.md`): parallel stores, parallel `PlanDetailView.vue` (865 LOC) and list views, parallel AI plan-generation. Two copies of the same plan/session model drift independently.
+
+**Fix:** extract the shared "timed-plan-with-sessions" shape — a `usePlanModule` composable or a shared `PlanDetail` base component parameterized by domain labels/icons. Be conservative: only unify what is *provably* identical; divergent bits (workout volume vs study minutes) stay separate.
+
+**Verify:** `learning.types.test.ts` passes; manual smoke of both modules.
+
+---
+
+### T6 — Dead-code & dependency sweep 🧹
+
+**Problem:** accumulated cruft: `jsdom` is still in `devDependencies` despite the project standardising on `happy-dom` (jsdom v27 breaks on Node 20 — it's a dead, risky dep). The qa-report references removed modules (Snippets, Synthwave) and a stale `provider.ts` doc said default `openai` (fixed in T6/v1.0.12).
+
+**Fix:** remove `jsdom` from `package.json`; grep for unused exports/components (e.g. with `knip` or a manual pass); delete dead CSS classes left after T3/T4. No behavior change.
+
+**Verify:** `npm test` still runs on happy-dom; `npm run build` clean.
+
+---
+
+### T7 — Refresh stale planning docs 📄
+
+**Problem:** `docs/qa-report.md` (v0.5.5) and `docs/refactor-guide.md` (v0.8.3) are far behind the v1.0.x codebase — they list removed modules and "planned" features that shipped. They mislead future sessions.
+
+**Fix:** update both to v1.0.12 reality, or fold the still-relevant refactor patterns into `docs/conventions.md` and archive the rest. Mark each doc with its accurate "as-of" version.
+
+---
+
+### T8 — Type-safety & lint hardening 🛡️
+
+**Problem:** no enforced guard against the debt this sprint just paid down (god-components, hardcoded hex from S14 T4, `any`).
+
+**Fix:** add an ESLint config (if absent) with `@typescript-eslint` recommended rules + a `max-lines` warning on `.vue` files, wired into the CI gate. Keep it advisory at first (warn, not error) to avoid a giant first-pass failure.
+
+---
+
+### T9 — Sprint close: metrics + commit 📊
+
+Re-measure the baseline (LOC of the 5 god-components, store count, duplication) and record before/after in this section. Bump minor version (`1.1.0`) since the internal architecture materially changed. Update `CLAUDE.md` state table.
+
+---
+
+## S16 — Test Coverage 🔜 planned (follows S15)
+
+**Goal:** raise confidence from "68 tests on 3 stores" to broad store/composable coverage + smoke E2E + a real manual QA pass, so refactors and AI changes can't silently regress. **Order matters:** do S15 first — testing the de-duplicated composables (T1 `useSoftDeletable`, T2 `useAiInsight`) covers many stores at once instead of testing 7 copies.
+
+> **Coverage baseline (measured 2026-06-01, v1.0.12):** 68 tests in 6 files. Covered: tasks (store+types), goals (store+types), learning (types only), cloudSync merge. **Untested: 12 stores** — studio, learning(store), training, habits, widgets, notes, board, finance, achievements, notifications, commandPalette, ui, auth. `@vue/test-utils` is installed but used in **0** tests (no component tests). No E2E.
+
+**Infra note:** Vitest v4 + **happy-dom** (NOT jsdom — jsdom v27 breaks on Node 20). CI gate already requires the test job to pass before build — keep it that way.
+
+---
+
+### T1 — Test the S15 shared composables first 🧪
+
+`useSoftDeletable` (S15 T1) and `useAiInsight` (S15 T2) are now the backbone of 7 stores and 8 views. Unit-test them directly: tombstone set/restore/GC interaction, add/update/soft-delete; AI insight run/dismiss/cache/error path (mock `aiRequest`). High leverage — one test file covers behavior shared by many modules.
+
+---
+
+### T2 — Store unit tests: data-critical modules 🗄️
+
+Cover the stores that own irreplaceable user data, in priority order: **finance** (money math, budgets), **habits** (streak/heatmap logic), **notes** (backlinks, soft-delete), **training** + **learning** store (plan/session lifecycle, cascade delete). Mirror the existing `tasks.store.test.ts` style. Target: every data store has add/edit/delete/derived-count coverage.
+
+---
+
+### T3 — Store unit tests: core + UI stores ⚙️
+
+Cover `auth.store` (signIn/signOut/session, demo-mode gating — mock Supabase client), `commandPalette.store` (registration, search incl. the B1 "theme keyword" case), `achievements`, `notifications`, `ui`, `widgets`. These guard cross-cutting behavior.
+
+---
+
+### T4 — Component tests for @/ui primitives 🧩
+
+`@vue/test-utils` is installed but unused. Add render/prop/emit tests for the `@/ui` library (`UiButton`, `UiInput`, `UiField`, `UiFilterChips`, `UiModal`, `UiConfirmDialog`, `UiProgressBar`, `UiSkeleton`, …). These are reused everywhere — one regression breaks the whole app. Start with the interactive ones (emit events, slots, disabled/loading states).
+
+---
+
+### T5 — Component tests for refactored god-components 🎯
+
+After S15 T4 split them, the new child components (FinanceSummary, TransactionList, BoardColumn, BoardCard, Analytics panels) are now testable in isolation. Add focused tests: render with fixture data, key interactions, empty states.
+
+---
+
+### T6 — Smoke E2E for critical flows 🚦
+
+Add a lightweight E2E layer (Playwright — choose and document the decision) covering the handful of flows a broken deploy must never ship: app boots → dashboard renders; create a task → appears in list → mark done; switch vibe-pak; open Studio → free AI returns a reply (or degrades gracefully if Pollinations is down); demo-mode write is blocked. Keep it small and fast enough for CI.
+
+---
+
+### T7 — Manual QA pass + fresh QA report 📋
+
+Re-run the `qa-report.md` matrix against v1.x across the **4 current paks** (Dark/Light/Brutalist/CRT — Synthwave is gone), `lg` + `sm`, EN/RU. Verify which of the old B1–B8 bugs survive (several may already be fixed) and log any new ones. Write a fresh dated QA report; feed confirmed bugs into a fix pass.
+
+---
+
+### T8 — Coverage gate + sprint close 🏁
+
+Add `vitest --coverage` (c8/v8) reporting; set a *floor* (not 100%) on stores/composables in the CI gate so coverage can't regress. Record final test count + coverage % here. Bump minor version. Update `CLAUDE.md` testing section.
 
 ---
 
