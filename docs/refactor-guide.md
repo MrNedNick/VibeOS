@@ -1,19 +1,28 @@
 # Component Refactor Guide
 
-> For use in Phase 3 refactor sessions. Read this before starting any module refactor.
+> **Updated for v1.0.14 (2026-06-01).**
+> Original guide was written for v0.8.3 (S8 Phase 3). S8 Phase 3 is now complete.
+> This guide is retained as a reference for S15 (Refactor & De-dup sprint) patterns.
 
 ---
 
-## Context
+## Current status
 
-VibeOS is at v0.8.3. Phase 1 of S8 (Design System) is complete — 6 new `@/ui` components were built.
-The goal of Phase 3 is to replace one-off module styles with these shared components.
+**S8 Phase 3 (CSS → @/ui migration) is complete as of v1.0.14.**
 
-**Project location:** `/Users/test/Documents/Work/AIProjects/VibeOS`
+All original targets from Phase 3 are migrated:
+- Section labels → `UiSectionLabel` ✅
+- Progress bars → `UiProgressBar` ✅ (except AchievementsPanel — gradient, no @/ui equivalent)
+- Stats → `UiStat` ✅
+- Filter chips → `UiFilterChips` ✅
+- Form fields → `UiField` ✅
+- Card wrappers → `UiCard` ✅
+
+Remaining custom CSS (`__section-label`, `__progress-fill`) exists only where the style is unique to the module (e.g. the AchievementsPanel gradient bar) — these are intentionally kept.
 
 ---
 
-## The rule
+## The rule (unchanged)
 
 **Never change behavior — only move styles into `@/ui` components.**
 
@@ -36,6 +45,12 @@ If a component did X before, it must do X after. No new features, no layout chan
 | `UiButton` | Buttons | `variant="primary\|ghost\|danger\|outline"`, `size`, `loading` |
 | `UiBadge` | Status tags | `color`, `size` |
 | `UiProgressRing` | Circular progress | `value`, `size`, `label?` |
+| `UiModal` | Modal dialog | `open`, `title?`, size, @close |
+| `UiConfirmDialog` | Confirm prompts | `open`, `title`, `message`, @confirm, @cancel |
+| `UiPlannedView` | "Coming soon" placeholder | `icon`, `title`, `subtitle?` |
+| `UiIcon` | Icons from lucide-vue-next | `name`, `size?`, `stroke-width?` |
+
+All components are exported from `src/ui/index.ts` — import with `import { ... } from '@/ui'`.
 
 ### FilterChipOption type
 ```ts
@@ -45,47 +60,44 @@ import type { FilterChipOption } from '@/ui'
 
 ---
 
-## How to refactor a module (step by step)
+## Patterns reference
 
-### Before starting
-```bash
-cd /Users/test/Documents/Work/AIProjects/VibeOS
-npm run type-check   # must be clean before you touch anything
-```
-
-### Pattern: Section label
+### Section label
 ```vue
 <!-- BEFORE -->
 <p class="goals__section-label">Active Goals</p>
 <style scoped>
-.goals__section-label {
-  font-size: 12px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.08em; color: var(--color-text-muted);
-}
+.goals__section-label { font-size: 12px; font-weight: 700; text-transform: uppercase; ... }
 </style>
 
 <!-- AFTER -->
 <UiSectionLabel>Active Goals</UiSectionLabel>
-<!-- delete the .goals__section-label CSS rule -->
+<!-- delete .goals__section-label CSS -->
 ```
 
-### Pattern: Progress bar
+If the label needs a spacing override, keep only that rule:
+```vue
+<UiSectionLabel class="goals__section-label">Active Goals</UiSectionLabel>
+<style scoped>
+.goals__section-label { margin-bottom: 20px; }  /* spacing only, font/color owned by UiSectionLabel */
+</style>
+```
+
+### Progress bar
 ```vue
 <!-- BEFORE -->
 <div class="gdetail__progress-bar">
   <div class="gdetail__progress-fill" :style="{ width: pct + '%' }" />
 </div>
-<style scoped>
-.gdetail__progress-bar  { height: 4px; background: var(--color-surface-elevated); border-radius: 99px; overflow: hidden; }
-.gdetail__progress-fill { height: 100%; background: var(--color-accent); border-radius: 99px; transition: width 0.4s; }
-</style>
 
 <!-- AFTER -->
 <UiProgressBar :value="pct" />
 <!-- delete both CSS rules -->
 ```
 
-### Pattern: Stat display
+Do NOT migrate gradient progress bars (no @/ui equivalent — leave them as-is).
+
+### Stat display
 ```vue
 <!-- BEFORE -->
 <div class="detail__stat">
@@ -97,58 +109,27 @@ npm run type-check   # must be clean before you touch anything
 <UiStat :value="count" label="Tasks" />
 ```
 
-### Pattern: Filter chips
+### Filter chips
 ```vue
 <!-- BEFORE -->
 <div class="learning__chips">
-  <button
-    v-for="tab in TABS" :key="tab.value"
-    class="learning__chip"
-    :class="{ 'learning__chip--active': activeTab === tab.value }"
-    @click="activeTab = tab.value"
-  >{{ tab.label }}</button>
+  <button v-for="tab in TABS" :key="tab.value" @click="activeTab = tab.value">{{ tab.label }}</button>
 </div>
 
 <!-- AFTER -->
-<UiFilterChips
-  v-model="activeTab"
-  :options="TABS"
-/>
+<UiFilterChips v-model="activeTab" :options="TABS" />
 <!-- where TABS = [{ value: 'all', label: 'All' }, ...] -->
 ```
 
-### Pattern: Card container
-```vue
-<!-- BEFORE -->
-<div class="goal-card">...</div>
-<style scoped>
-.goal-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 16px 18px;
-}
-</style>
+---
 
-<!-- AFTER -->
-<UiCard>...</UiCard>
-<!-- or with props: <UiCard padding="lg" hoverable> -->
-```
+## What NOT to touch
 
-### Pattern: Form field
-```vue
-<!-- BEFORE -->
-<div class="goals__form-field">
-  <label class="goals__form-label">Title</label>
-  <input v-model="title" class="..." />
-  <span class="goals__form-hint">Required</span>
-</div>
-
-<!-- AFTER -->
-<UiField label="Title" hint="Required" field-id="goal-title">
-  <input id="goal-title" v-model="title" class="..." />
-</UiField>
-```
+- Never refactor module business logic
+- Never change component props or emits
+- Never migrate animations unless identical to @/ui pattern
+- Gradient progress bars (AchievementsPanel) — no @/ui equivalent
+- If a style is unique to that module — leave it alone
 
 ---
 
@@ -156,81 +137,21 @@ npm run type-check   # must be clean before you touch anything
 
 ```bash
 npm run type-check   # must pass with 0 errors
+npm test             # 68 tests must stay green
 ```
 
 If clean → commit + bump patch version + push.
 
-```bash
-git add -p   # stage only changed files
-# commit message: "refactor(goals): replace one-off styles with @/ui components"
-```
-
 ---
 
-## What NOT to touch
+## S15 — What's next (Refactor & De-dup)
 
-- Never refactor the module's business logic
-- Never change component props or emits
-- Never change animations (only migrate if identical to @/ui pattern)
-- If a style is unique to that module and doesn't match any @/ui pattern — leave it alone
-- Don't refactor components that are working fine if the change is cosmetic only
+CSS migration (S8 Phase 3) is done. S15 addresses deeper duplication:
 
----
+1. **T1 — `useSoftDeletable`** — soft-delete tombstone pattern duplicated in 7 stores
+2. **T2 — `useAiInsight`** — AI fire-and-forget pattern duplicated in 8 views
+3. **T3 — (done)** — @/ui CSS migration ✅
+4. **T4 — God-components** — split BoardView(1345), FinanceView(1341), StudioView(1285), HabitCard(1116), AnalyticsView(1091)
+5. **T5 — Learning/Training** — collapse nearly-identical plan module structure
 
-## Module-specific notes
-
-### Goals (`src/modules/goals/`)
-Targets: `GoalsView.vue`, `GoalCard.vue`, `GoalDetailView.vue`
-- `.goals__section-label` → `UiSectionLabel`
-- `.gdetail__progress-bar` + `.gdetail__progress-fill` → `UiProgressBar`
-- `.gdetail__stat-*` → `UiStat`
-- Category filter row → `UiFilterChips variant="pills"`
-- `GoalCard` card wrapper → `UiCard hoverable`
-
-### Learning (`src/modules/learning/`)
-Targets: `LearningView.vue`, `PlanDetailView.vue`
-- `.learning__section-label` → `UiSectionLabel`
-- `.detail__progress-bar` / `.detail__progress-fill` → `UiProgressBar`
-- `.detail__stat-*` → `UiStat`
-- `.learning__chips` → `UiFilterChips`
-- Form fields in plan creation → `UiField`
-
-### Training (`src/modules/training/`)
-Same targets as Learning — nearly identical structure.
-
-### Finance (`src/modules/finance/`)
-Targets: `FinanceView.vue`
-- Section labels → `UiSectionLabel`
-- Budget progress bars → `UiProgressBar` (with dynamic `color` prop based on percentage)
-- Summary stats → `UiStat`
-- Tab filters (Overview / Transactions / Budgets) → `UiFilterChips variant="tabs"`
-
-### Analytics (`src/modules/analytics/`)
-Targets: `AnalyticsView.vue`
-- Section labels → `UiSectionLabel`
-- Period picker chips → `UiFilterChips`
-- Stats row → `UiStat`
-
-### Tasks (`src/modules/task-manager/`)
-Targets: `TaskManagerView.vue`, `TaskFilters.vue`
-- `.task-filters` tab row → `UiFilterChips variant="tabs"`
-- Section labels → `UiSectionLabel`
-- Week stat pill → `UiStat size="sm"`
-
-### Habits (`src/modules/habits/`)
-Targets: `HabitsView.vue`, `HabitCard.vue` (large — be careful)
-- Filter chips → `UiFilterChips variant="pills"`
-- Section labels → `UiSectionLabel`
-- **HabitCard is ~1000 lines — only migrate the patterns, don't restructure**
-
-### Dashboard (`src/modules/dashboard/`)
-Targets: `DashboardView.vue`, `AllTasksPanel.vue`, `DashboardTodayPanel.vue`, `GoalsPanel.vue`, `HabitsPanel.vue`
-- Section labels in panels → `UiSectionLabel`
-- Stats → `UiStat`
-- **Don't touch widget layout or life-stats strip**
-
-### Notes + Board + Calendar
-Light refactor — mainly section labels and empty states.
-
-### Settings + About + Studio
-Light refactor — section labels, stat display on About page.
+See `docs/roadmap.md` § S15 for full task specs.
