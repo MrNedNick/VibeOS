@@ -1,32 +1,22 @@
 import { ref } from 'vue'
+import { aiRequest, AI_ENDPOINT, AI_MODEL } from './provider'
+import type { AIOptions } from './provider'
 
-export const AI_ENDPOINT = 'https://text.pollinations.ai/'
-export const AI_MODEL    = 'openai'
-
-export interface AIOptions {
-  model?: string
-}
+// Re-exported for backwards compatibility — the single fetch now lives in
+// provider.ts (endpoint/model from env). See S14 T5.
+export { AI_ENDPOINT, AI_MODEL }
+export type { AIOptions }
 
 /**
- * Low-level helper — just the fetch, no reactive state.
+ * Low-level helper — just the request, no reactive state.
  * Use in fire-and-forget patterns where each call site manages its own loading ref.
  */
 export async function aiComplete(prompt: string, opts?: AIOptions): Promise<string> {
-  const res = await fetch(AI_ENDPOINT, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      messages: [{ role: 'user', content: prompt }],
-      model:    opts?.model ?? AI_MODEL,
-      private:  true,
-    }),
-  })
-  if (!res.ok) throw new Error(`AI request failed (${res.status})`)
-  return (await res.text()).trim()
+  return aiRequest(prompt, opts)
 }
 
 /**
- * Lightweight composable wrapping the free Pollinations.ai API.
+ * Lightweight composable wrapping the AI provider.
  * Each call site gets its own `loading` / `error` state.
  *
  * Usage:
@@ -44,17 +34,7 @@ export function useAI(opts?: AIOptions) {
     loading.value = true
     error.value   = null
     try {
-      const res = await fetch(AI_ENDPOINT, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: prompt }],
-          model:    callOpts?.model ?? opts?.model ?? AI_MODEL,
-          private:  true,
-        }),
-      })
-      if (!res.ok) throw new Error(`AI request failed (${res.status})`)
-      return (await res.text()).trim()
+      return await aiRequest(prompt, { model: callOpts?.model ?? opts?.model })
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Unknown error'
       throw e

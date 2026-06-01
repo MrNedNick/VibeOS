@@ -709,7 +709,9 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T5 — Single AI provider seam 🔌 (optional, low urgency)
+### T5 — Single AI provider seam 🔌 ✅ (v1.0.9)
+
+**Done:** the single `fetch` now lives in `src/core/composables/provider.ts` (`aiRequest`), with endpoint/model read from `VITE_AI_ENDPOINT` / `VITE_AI_MODEL` (defaults Pollinations.ai `openai`). `aiComplete()` and `useAI().complete()` both delegate to it — no duplicated request body. `AI_ENDPOINT` / `AI_MODEL` / `AIOptions` are re-exported from `useAI` for backwards compat, so all 8 call sites (Goals, Tasks, Learning ×2, Training ×2, Digest, CommandPalette) are unchanged. Added the two env vars to `.env.example`. No fallback chain (intentional).
 
 **Problem:** the Pollinations.ai endpoint + model are hardcoded in **two** places (`aiComplete()` and `useAI()` duplicate the same `fetch`). Swapping providers (Groq/Gemini, already in S6 item 10) means editing both + 9 call sites.
 
