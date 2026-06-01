@@ -27,6 +27,7 @@ export interface Note {
   pinned?: boolean
   type?: NoteType        // defaults to 'note' when absent
   linkedGoalId?: string  // optional link to a goal
+  deletedAt?: number     // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 export function deriveTitle(content: string): string {

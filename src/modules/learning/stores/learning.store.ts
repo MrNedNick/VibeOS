@@ -7,8 +7,11 @@ import type { LearningPlan, LearningSession, LearningResource, ResourceType } fr
 import { todayStr, calcProgress, calcStreak, calcHoursLogged, isScheduledToday } from '../types'
 
 export const useLearningStore = defineStore('learning:plans', () => {
-  const plans = useStorage<LearningPlan[]>(storageKey('learning', 'plans'), [])
-  const sessions = useStorage<LearningSession[]>(storageKey('learning', 'sessions'), [])
+  // Raw persisted arrays — include soft-deleted tombstones (see S14 T3).
+  const allPlans = useStorage<LearningPlan[]>(storageKey('learning', 'plans'), [])
+  const allSessions = useStorage<LearningSession[]>(storageKey('learning', 'sessions'), [])
+  const plans = computed<LearningPlan[]>(() => allPlans.value.filter(p => !p.deletedAt))
+  const sessions = computed<LearningSession[]>(() => allSessions.value.filter(s => !s.deletedAt))
   const events = useEventBus()
 
   const activePlans = computed(() => plans.value.filter(p => p.active))
@@ -29,7 +32,7 @@ export const useLearningStore = defineStore('learning:plans', () => {
   function createPlan(data: Omit<LearningPlan, 'id' | 'createdAt' | 'active'>): LearningPlan {
     const id = crypto.randomUUID()
     const plan: LearningPlan = { ...data, id, active: true, createdAt: new Date().toISOString() }
-    plans.value.push(plan)
+    allPlans.value.push(plan)
     events.emit({
       type: 'learning:plan:created',
       planId: id,
@@ -41,7 +44,7 @@ export const useLearningStore = defineStore('learning:plans', () => {
 
   function logSession(data: Omit<LearningSession, 'id'>): void {
     const plan = plans.value.find(p => p.id === data.planId)
-    sessions.value.push({ ...data, id: crypto.randomUUID() })
+    allSessions.value.push({ ...data, id: crypto.randomUUID() })
     events.emit({
       type: 'learning:session:completed',
       planId: data.planId,
@@ -66,8 +69,14 @@ export const useLearningStore = defineStore('learning:plans', () => {
   }
 
   function deletePlan(id: string): void {
-    plans.value = plans.value.filter(p => p.id !== id)
-    sessions.value = sessions.value.filter(s => s.planId !== id)
+    // Soft-delete the plan and cascade tombstones to its sessions so the
+    // removal survives a cross-device merge.
+    const now = Date.now()
+    const plan = allPlans.value.find(p => p.id === id)
+    if (plan && !plan.deletedAt) plan.deletedAt = now
+    for (const s of allSessions.value) {
+      if (s.planId === id && !s.deletedAt) s.deletedAt = now
+    }
   }
 
   function archivePlan(id: string): void {

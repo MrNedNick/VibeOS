@@ -12,6 +12,7 @@ export interface Task {
   linkedGoalId?: string
   createdAt: number
   completedAt?: string   // ISO timestamp, set when done=true
+  deletedAt?: number     // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 // ── Due date helpers ─────────────────────────────────────────────

@@ -34,6 +34,80 @@ export type SyncRecord = Record<string, unknown> & {
   id: string
   user_id: string
   updated_at?: string
+  deletedAt?: number      // soft-delete tombstone (epoch ms)
+}
+
+// ── Tombstone-aware merge ───────────────────────────────────────────────
+// A record's "effective" last-modified time is the latest of its update and
+// its deletion. So a delete (tombstone) competes with an edit on the same
+// timeline: whichever happened later wins. This makes deletes survive a merge
+// instead of silently reappearing because the row is just "missing" on one side.
+export interface MergeableRecord {
+  id: string
+  updated_at?: string
+  deletedAt?: number
+}
+
+export function effectiveTs(r: MergeableRecord): number {
+  const updatedTs = r.updated_at ? new Date(r.updated_at).getTime() : 0
+  const deletedTs = r.deletedAt ?? 0
+  return Math.max(updatedTs, deletedTs)
+}
+
+/**
+ * Union local + remote by id. For each id, the record with the larger
+ * effective timestamp wins (tombstone-aware). Local-only rows are kept.
+ *
+ *   delete > edit  → tombstone with a newer deletedAt beats an older edit (stays deleted)
+ *   edit > delete  → an edit with a newer updated_at beats an older tombstone (resurrects)
+ */
+export function mergeRecords<T extends MergeableRecord>(localItems: T[], remoteItems: T[]): T[] {
+  const map = new Map(localItems.map(i => [i.id, i]))
+  for (const remote of remoteItems) {
+    const local = map.get(remote.id)
+    if (!local || effectiveTs(remote) > effectiveTs(local)) {
+      map.set(remote.id, remote)
+    }
+  }
+  return Array.from(map.values())
+}
+
+// ── Garbage collection ──────────────────────────────────────────────────
+// Storage keys holding arrays of tombstone-able records (the synced tables
+// plus finance expenses, which is local-only but still soft-deletes).
+export const TOMBSTONE_KEYS: string[] = [
+  'platform:task-manager:tasks',
+  'platform:habits:habits',
+  'platform:goals:goals',
+  'platform:notes:notes',
+  'platform:learning:plans',
+  'platform:learning:sessions',
+  'platform:training:plans',
+  'platform:training:logs',
+  'platform:finance:expenses',
+]
+
+/**
+ * Physically drop tombstoned records older than `maxAgeDays`. Runs on app
+ * start — keeps recent tombstones around long enough to win a merge, then
+ * reclaims the space once every device has converged.
+ */
+export function gcTombstones(maxAgeDays = 30): void {
+  const cutoff = Date.now() - maxAgeDays * 86_400_000
+  for (const key of TOMBSTONE_KEYS) {
+    const raw = localStorage.getItem(key)
+    if (!raw) continue
+    try {
+      const items = JSON.parse(raw) as MergeableRecord[]
+      if (!Array.isArray(items)) continue
+      const kept = items.filter(i => !i.deletedAt || i.deletedAt >= cutoff)
+      if (kept.length !== items.length) {
+        localStorage.setItem(key, JSON.stringify(kept))
+      }
+    } catch {
+      // malformed entry — leave it alone
+    }
+  }
 }
 
 // ── Shared state (module-level, one instance across composable calls) ─────
@@ -43,12 +117,12 @@ const syncError  = ref<string | null>(null)
 
 // ── Tables to pull on login ───────────────────────────────────────────────
 const PULL_TABLES: Array<{ table: string; storageKey: string }> = [
-  { table: 'tasks',             storageKey: 'platform:tasks' },
-  { table: 'habits',            storageKey: 'platform:habits' },
+  { table: 'tasks',             storageKey: 'platform:task-manager:tasks' },
+  { table: 'habits',            storageKey: 'platform:habits:habits' },
   { table: 'habit_logs',        storageKey: 'platform:habits:logs' },
-  { table: 'goals',             storageKey: 'platform:goals' },
+  { table: 'goals',             storageKey: 'platform:goals:goals' },
   { table: 'milestones',        storageKey: 'platform:goals:milestones' },
-  { table: 'notes',             storageKey: 'platform:notes' },
+  { table: 'notes',             storageKey: 'platform:notes:notes' },
   { table: 'learning_plans',    storageKey: 'platform:learning:plans' },
   { table: 'learning_sessions', storageKey: 'platform:learning:sessions' },
   { table: 'training_plans',    storageKey: 'platform:training:plans' },
@@ -59,31 +133,11 @@ const PULL_TABLES: Array<{ table: string; storageKey: string }> = [
 export function useCloudSync() {
 
   /**
-   * Merge strategy: for each table row fetched from Supabase,
-   * compare updated_at with the local counterpart.
-   * Latest wins. Local-only rows (not yet pushed) are kept as-is.
+   * Merge strategy: union local + remote by id, tombstone-aware latest-wins.
+   * See module-level `mergeRecords`.
    */
-  function _merge<T extends { id: string; updated_at?: string }>(
-    localItems: T[],
-    remoteItems: T[],
-  ): T[] {
-    const localMap = new Map(localItems.map(i => [i.id, i]))
-
-    for (const remote of remoteItems) {
-      const local = localMap.get(remote.id)
-      if (!local) {
-        // New from server — add locally
-        localMap.set(remote.id, remote)
-      } else {
-        // Compare timestamps — latest wins
-        const localTs  = local.updated_at  ? new Date(local.updated_at).getTime()  : 0
-        const remoteTs = remote.updated_at ? new Date(remote.updated_at).getTime() : 0
-        if (remoteTs > localTs) {
-          localMap.set(remote.id, remote)
-        }
-      }
-    }
-    return Array.from(localMap.values())
+  function _merge<T extends MergeableRecord>(localItems: T[], remoteItems: T[]): T[] {
+    return mergeRecords(localItems, remoteItems)
   }
 
   /**

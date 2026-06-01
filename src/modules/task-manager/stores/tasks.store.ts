@@ -9,7 +9,10 @@ import type { Task, TaskFilter, TaskPriority, TaskCategory } from '../types'
 const STORAGE_KEY = storageKey('task-manager', 'tasks')
 
 export const useTasksStore = defineStore('task-manager:tasks', () => {
-  const tasks = useStorage<Task[]>(STORAGE_KEY, [])
+  // Raw persisted array — includes soft-deleted tombstones so deletes survive
+  // a cross-device merge. Everything user-facing reads `tasks` (filtered).
+  const allTasks = useStorage<Task[]>(STORAGE_KEY, [])
+  const tasks = computed<Task[]>(() => allTasks.value.filter(t => !t.deletedAt))
   const filter = ref<TaskFilter>('all')
   const categoryFilter = ref<TaskCategory | 'all'>('all')
   const events = useEventBus()
@@ -49,17 +52,17 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
 
   function addTask(text: string, priority: TaskPriority = 'none', dueDate?: string, category?: TaskCategory, linkedGoalId?: string) {
     const id = generateId()
-    tasks.value.push({ id, text: text.trim(), done: false, priority, dueDate, category, linkedGoalId, createdAt: Date.now() })
+    allTasks.value.push({ id, text: text.trim(), done: false, priority, dueDate, category, linkedGoalId, createdAt: Date.now() })
     events.emit({ type: 'task:created', taskId: id, label: text.trim(), timestamp: new Date().toISOString() })
   }
 
   function setDueDate(id: string, date: string | undefined) {
-    const task = tasks.value.find(t => t.id === id)
+    const task = allTasks.value.find(t => t.id === id)
     if (task) task.dueDate = date
   }
 
   function toggleTask(id: string) {
-    const task = tasks.value.find(t => t.id === id)
+    const task = allTasks.value.find(t => t.id === id)
     if (!task) return
     task.done = !task.done
     if (task.done) {
@@ -71,21 +74,24 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
   }
 
   function deleteTask(id: string) {
-    const idx = tasks.value.findIndex(t => t.id === id)
-    if (idx > -1) {
-      const label = tasks.value[idx].text
-      tasks.value.splice(idx, 1)
-      events.emit({ type: 'task:deleted', taskId: id, label, timestamp: new Date().toISOString() })
+    const task = allTasks.value.find(t => t.id === id)
+    if (task && !task.deletedAt) {
+      task.deletedAt = Date.now()
+      events.emit({ type: 'task:deleted', taskId: id, label: task.text, timestamp: new Date().toISOString() })
     }
   }
 
   function updateTask(id: string, text: string) {
-    const task = tasks.value.find(t => t.id === id)
+    const task = allTasks.value.find(t => t.id === id)
     if (task) task.text = text.trim()
   }
 
   function clearDone() {
-    tasks.value = tasks.value.filter(t => !t.done)
+    // Soft-delete done tasks so the removal syncs as a tombstone, not a gap.
+    const now = Date.now()
+    for (const t of allTasks.value) {
+      if (t.done && !t.deletedAt) t.deletedAt = now
+    }
   }
 
   function setFilter(value: TaskFilter) {

@@ -42,6 +42,7 @@ export interface TrainingPlan {
   createdAt: string
   linkedHabitId?: string  // auto-check this habit when a workout is logged
   resources?: TrainingResource[]
+  deletedAt?: number      // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 export interface WorkoutLog {
@@ -55,6 +56,7 @@ export interface WorkoutLog {
   feeling: 1 | 2 | 3 | 4 | 5
   notes?: string
   createdAt: string
+  deletedAt?: number      // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 export function todayStr(): string {

@@ -7,8 +7,11 @@ import type { TrainingPlan, WorkoutLog, TrainingResource, ResourceType } from '.
 import { todayStr, isTrainingDay, calcStreak, calcTotalMinutes, calcTotalKm } from '../types'
 
 export const useTrainingStore = defineStore('training:plans', () => {
-  const plans = useStorage<TrainingPlan[]>(storageKey('training', 'plans'), [])
-  const logs = useStorage<WorkoutLog[]>(storageKey('training', 'logs'), [])
+  // Raw persisted arrays — include soft-deleted tombstones (see S14 T3).
+  const allPlans = useStorage<TrainingPlan[]>(storageKey('training', 'plans'), [])
+  const allLogs = useStorage<WorkoutLog[]>(storageKey('training', 'logs'), [])
+  const plans = computed<TrainingPlan[]>(() => allPlans.value.filter(p => !p.deletedAt))
+  const logs = computed<WorkoutLog[]>(() => allLogs.value.filter(l => !l.deletedAt))
   const events = useEventBus()
 
   const activePlans = computed(() => plans.value.filter(p => p.active))
@@ -30,14 +33,14 @@ export const useTrainingStore = defineStore('training:plans', () => {
   function createPlan(data: Omit<TrainingPlan, 'id' | 'createdAt' | 'active'>): TrainingPlan {
     const id = crypto.randomUUID()
     const plan: TrainingPlan = { ...data, id, active: true, createdAt: new Date().toISOString() }
-    plans.value.push(plan)
+    allPlans.value.push(plan)
     events.emit({ type: 'training:plan:created', planId: id, title: data.title, timestamp: new Date().toISOString() })
     return plan
   }
 
   function logWorkout(data: Omit<WorkoutLog, 'id' | 'createdAt'>): void {
     const plan = plans.value.find(p => p.id === data.planId)
-    logs.value.push({ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() })
+    allLogs.value.push({ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() })
     events.emit({
       type: 'training:workout:logged',
       planId: data.planId ?? null,
@@ -62,8 +65,14 @@ export const useTrainingStore = defineStore('training:plans', () => {
   }
 
   function deletePlan(id: string): void {
-    plans.value = plans.value.filter(p => p.id !== id)
-    logs.value = logs.value.filter(l => l.planId !== id)
+    // Soft-delete the plan and cascade tombstones to its logs so the removal
+    // survives a cross-device merge.
+    const now = Date.now()
+    const plan = allPlans.value.find(p => p.id === id)
+    if (plan && !plan.deletedAt) plan.deletedAt = now
+    for (const l of allLogs.value) {
+      if (l.planId === id && !l.deletedAt) l.deletedAt = now
+    }
   }
 
   function getPlanById(id: string): TrainingPlan | undefined {

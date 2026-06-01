@@ -29,6 +29,7 @@ export interface Habit {
   linkedGoalId?: string          // auto-complete next milestone on check
   linkedLearningPlanId?: string  // auto-mark done when learning session logged
   linkedTrainingPlanId?: string  // auto-mark done when workout logged
+  deletedAt?: number             // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 export function todayStr(): string {

@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v1.0.9 — 2026-06-01**
+**Version: v1.0.10 — 2026-06-01**
 
 | Sprint | Status |
 |--------|--------|
@@ -23,7 +23,7 @@
 | S11 — Welcome & Positioning | 🔜 next — "simpler Notion for life, everything connected" + live cascade demo (repositioned 2026-06-01) |
 | S12 — AI Depth | 🔜 planned — Habits/Notes/Finance/Analytics; start with Analytics monthly report |
 | S13 — Design Pass | 🔜 planned — module quality pass (requires user review session) |
-| S14 — Quick Wins | 🔄 active — T1 lazy routes ✅ (v1.0.8); README refresh, soft-delete before sync, hex cleanup pending |
+| S14 — Quick Wins | 🔄 active — T1 lazy routes ✅ (v1.0.8), T5 AI provider seam ✅ (v1.0.9), T3 soft-delete ✅ (v1.0.10); README refresh, hex cleanup pending |
 
 **Active next (re-ordered 2026-06-01): S11 (positioning + welcome) → S12 (Analytics monthly report first) → S8 item 4 /ui-kit (kept — owner wants it personally) + S14 quick wins as fill-in.**
 

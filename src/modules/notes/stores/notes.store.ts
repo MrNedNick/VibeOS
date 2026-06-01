@@ -7,7 +7,9 @@ import { deriveTitle } from '../types'
 import type { Note, NoteType } from '../types'
 
 export const useNotesStore = defineStore('notes:notes', () => {
-  const notes = useStorage<Note[]>(storageKey('notes', 'notes'), [])
+  // Raw persisted array — includes soft-deleted tombstones (see S14 T3).
+  const allNotes = useStorage<Note[]>(storageKey('notes', 'notes'), [])
+  const notes = computed<Note[]>(() => allNotes.value.filter(n => !n.deletedAt))
   const events = useEventBus()
 
   const sortedNotes = computed(() =>
@@ -25,7 +27,7 @@ export const useNotesStore = defineStore('notes:notes', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
-    notes.value.unshift(note)
+    allNotes.value.unshift(note)
     events.emit({ type: 'note:created', noteId: note.id, title: 'Untitled', timestamp: note.createdAt })
     return note.id
   }
@@ -46,13 +48,13 @@ export const useNotesStore = defineStore('notes:notes', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
-    notes.value.unshift(note)
+    allNotes.value.unshift(note)
     events.emit({ type: 'note:created', noteId: note.id, title: todayDate, timestamp: note.createdAt })
     return note.id
   }
 
   function updateContent(id: string, content: string): void {
-    const note = notes.value.find(n => n.id === id)
+    const note = allNotes.value.find(n => n.id === id)
     if (note) {
       note.content = content
       note.updatedAt = new Date().toISOString()
@@ -60,21 +62,21 @@ export const useNotesStore = defineStore('notes:notes', () => {
   }
 
   function deleteNote(id: string): void {
-    const idx = notes.value.findIndex(n => n.id === id)
-    if (idx !== -1) {
-      const title = deriveTitle(notes.value[idx].content)
-      notes.value.splice(idx, 1)
+    const note = allNotes.value.find(n => n.id === id)
+    if (note && !note.deletedAt) {
+      const title = deriveTitle(note.content)
+      note.deletedAt = Date.now()
       events.emit({ type: 'note:deleted', noteId: id, title, timestamp: new Date().toISOString() })
     }
   }
 
   function togglePin(id: string): void {
-    const note = notes.value.find(n => n.id === id)
+    const note = allNotes.value.find(n => n.id === id)
     if (note) note.pinned = !note.pinned
   }
 
   function setNoteType(id: string, type: NoteType): void {
-    const note = notes.value.find(n => n.id === id)
+    const note = allNotes.value.find(n => n.id === id)
     if (note) {
       note.type = type
       note.updatedAt = new Date().toISOString()
@@ -82,14 +84,14 @@ export const useNotesStore = defineStore('notes:notes', () => {
   }
 
   function setNoteGoal(id: string, goalId: string | undefined): void {
-    const note = notes.value.find(n => n.id === id)
+    const note = allNotes.value.find(n => n.id === id)
     if (note) {
       note.linkedGoalId = goalId || undefined
       note.updatedAt = new Date().toISOString()
     }
   }
 
-  function getNotesForGoal(goalId: string): typeof notes.value {
+  function getNotesForGoal(goalId: string): Note[] {
     return notes.value.filter(n => n.linkedGoalId === goalId)
   }
 

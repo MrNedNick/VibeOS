@@ -6,7 +6,9 @@ import type { Expense, CategoryBudget, ExpenseCategory } from '../types'
 import { isCurrentMonth, EXPENSE_CATEGORIES } from '../types'
 
 export const useFinanceStore = defineStore('finance:main', () => {
-  const expenses    = useStorage<Expense[]>(storageKey('finance', 'expenses'), [])
+  // Raw persisted array — includes soft-deleted tombstones (see S14 T3).
+  const allExpenses = useStorage<Expense[]>(storageKey('finance', 'expenses'), [])
+  const expenses    = computed<Expense[]>(() => allExpenses.value.filter(e => !e.deletedAt))
   const budgets     = useStorage<CategoryBudget[]>(storageKey('finance', 'budgets'), [])
   const currency    = useStorage<string>(storageKey('finance', 'currency'), '€')
   /** Base currency code (e.g. 'EUR') — all amounts stored in this currency */
@@ -58,16 +60,17 @@ export const useFinanceStore = defineStore('finance:main', () => {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     }
-    expenses.value.push(expense)
+    allExpenses.value.push(expense)
     return expense
   }
 
   function deleteExpense(id: string): void {
-    expenses.value = expenses.value.filter(e => e.id !== id)
+    const e = allExpenses.value.find(x => x.id === id)
+    if (e && !e.deletedAt) e.deletedAt = Date.now()
   }
 
   function updateExpense(id: string, patch: Partial<Omit<Expense, 'id' | 'createdAt'>>): void {
-    const e = expenses.value.find(x => x.id === id)
+    const e = allExpenses.value.find(x => x.id === id)
     if (!e) return
     Object.assign(e, patch)
   }
@@ -87,7 +90,7 @@ export const useFinanceStore = defineStore('finance:main', () => {
   }
 
   function toggleRecurring(id: string): void {
-    const e = expenses.value.find(x => x.id === id)
+    const e = allExpenses.value.find(x => x.id === id)
     if (e) e.recurring = !e.recurring
   }
 
@@ -96,7 +99,7 @@ export const useFinanceStore = defineStore('finance:main', () => {
     const src = expenses.value.find(x => x.id === id)
     if (!src) return
     const today = new Date().toISOString().split('T')[0]
-    expenses.value.push({
+    allExpenses.value.push({
       ...src,
       id: crypto.randomUUID(),
       date: today,

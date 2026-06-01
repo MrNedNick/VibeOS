@@ -686,7 +686,9 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T3 — Soft-delete (tombstones) before Supabase sync ⚠️
+### T3 — Soft-delete (tombstones) before Supabase sync ✅ (v1.0.10)
+
+**Done:** added `deletedAt?: number` to all 9 synced entities (Task, Habit, Goal, Note, LearningPlan, LearningSession, TrainingPlan, WorkoutLog, Expense). Each store keeps a raw `all<X>` persisted ref (incl. tombstones) and exposes the public list as a `computed` filtered on `!deletedAt`; deletes set `deletedAt = Date.now()` instead of splicing (learning/training cascade tombstones to child sessions/logs; tasks `clearDone` soft-deletes). `useCloudSync` now has a tombstone-aware `mergeRecords` (winner = larger of `updated_at`/`deletedAt`, via `effectiveTs`) and a `gcTombstones(maxAgeDays=30)` that physically drops old tombstones — called on app start in `main.ts`. Also corrected the stale tasks/habits/goals/notes `PULL_TABLES` storage keys so merge reads the real store keys. 9 new Vitest cases (delete>edit, edit>delete, GC) — 68 tests total.
 
 **Problem:** each module stores one JSON array under one key; `useCloudSync._merge()` unions records by id with last-write-wins on `updated_at`. There are **no tombstones**, so a record deleted on device A reappears after merge with device B (it's just "missing" from one array, not marked deleted). Deletes will silently come back once sync is on.
 

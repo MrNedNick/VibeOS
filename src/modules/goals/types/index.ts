@@ -29,6 +29,7 @@ export interface Goal {
   notes?: string
   createdAt: string
   completedAt?: string
+  deletedAt?: number     // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 export function calcProgress(goal: Goal): number {

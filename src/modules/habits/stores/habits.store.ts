@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { storageKey } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
@@ -7,7 +7,9 @@ import { todayStr, computeStreak, STREAK_MILESTONES } from '../types'
 import type { Habit, HabitCategory } from '../types'
 
 export const useHabitsStore = defineStore('habits:habits', () => {
-  const habits = useStorage<Habit[]>(storageKey('habits', 'habits'), [])
+  // Raw persisted array — includes soft-deleted tombstones (see S14 T3).
+  const allHabits = useStorage<Habit[]>(storageKey('habits', 'habits'), [])
+  const habits = computed<Habit[]>(() => allHabits.value.filter(h => !h.deletedAt))
   const events = useEventBus()
 
   // Milestone celebration state — watched by HabitsView to show banner
@@ -16,7 +18,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
   function dismissMilestone() { milestoneHabit.value = null }
 
   function createHabit(name: string, emoji: string, purpose?: string, category?: HabitCategory): void {
-    habits.value.push({
+    allHabits.value.push({
       id: crypto.randomUUID(),
       name: name.trim(),
       emoji: emoji.trim() || '⭐',
@@ -28,7 +30,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
   }
 
   function toggleToday(id: string): void {
-    const habit = habits.value.find(h => h.id === id)
+    const habit = allHabits.value.find(h => h.id === id)
     if (!habit) return
     const today = todayStr()
     const idx = habit.completedDates.indexOf(today)
@@ -67,7 +69,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     linkedLearningPlanId?: string
     linkedTrainingPlanId?: string
   }): void {
-    const habit = habits.value.find(h => h.id === id)
+    const habit = allHabits.value.find(h => h.id === id)
     if (!habit) return
     if ('linkedGoalId' in links) habit.linkedGoalId = links.linkedGoalId
     if ('linkedLearningPlanId' in links) habit.linkedLearningPlanId = links.linkedLearningPlanId
@@ -75,7 +77,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
   }
 
   function updateHabit(id: string, name: string, emoji?: string, purpose?: string): void {
-    const habit = habits.value.find(h => h.id === id)
+    const habit = allHabits.value.find(h => h.id === id)
     if (!habit) return
     if (name.trim()) habit.name = name.trim()
     if (emoji !== undefined) habit.emoji = emoji.trim() || '⭐'
@@ -83,13 +85,13 @@ export const useHabitsStore = defineStore('habits:habits', () => {
   }
 
   function updateCategory(id: string, category: HabitCategory | undefined): void {
-    const habit = habits.value.find(h => h.id === id)
+    const habit = allHabits.value.find(h => h.id === id)
     if (habit) habit.category = category
   }
 
   /** Save an optional note for a specific date check-in */
   function setCheckNote(id: string, date: string, note: string): void {
-    const habit = habits.value.find(h => h.id === id)
+    const habit = allHabits.value.find(h => h.id === id)
     if (!habit) return
     if (!habit.checkNotes) habit.checkNotes = {}
     if (note.trim()) {
@@ -101,7 +103,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
 
   /** Toggle skip (vacation) for any past/future date (max 30 days back, up to 7 days forward) */
   function toggleSkip(id: string, date: string): void {
-    const habit = habits.value.find(h => h.id === id)
+    const habit = allHabits.value.find(h => h.id === id)
     if (!habit) return
     const limit = new Date(); limit.setDate(limit.getDate() - 30)
     if (date < limit.toISOString().split('T')[0]) return
@@ -118,23 +120,23 @@ export const useHabitsStore = defineStore('habits:habits', () => {
   }
 
   function deleteHabit(id: string): void {
-    const idx = habits.value.findIndex(h => h.id === id)
-    if (idx !== -1) habits.value.splice(idx, 1)
+    const habit = allHabits.value.find(h => h.id === id)
+    if (habit && !habit.deletedAt) habit.deletedAt = Date.now()
   }
 
   function reorderHabits(fromId: string, toId: string): void {
     if (fromId === toId) return
-    const arr   = [...habits.value]
+    const arr   = [...allHabits.value]
     const fromI = arr.findIndex(h => h.id === fromId)
     const toI   = arr.findIndex(h => h.id === toId)
     if (fromI === -1 || toI === -1) return
     const [item] = arr.splice(fromI, 1)
     arr.splice(toI, 0, item)
-    habits.value = arr
+    allHabits.value = arr
   }
 
   function isCompletedToday(id: string): boolean {
-    const habit = habits.value.find(h => h.id === id)
+    const habit = allHabits.value.find(h => h.id === id)
     return habit ? habit.completedDates.includes(todayStr()) : false
   }
 
@@ -143,7 +145,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
    * Does NOT fire events or goal-linking (retroactive edit only).
    */
   function toggleDate(id: string, date: string): void {
-    const habit = habits.value.find(h => h.id === id)
+    const habit = allHabits.value.find(h => h.id === id)
     if (!habit) return
     const today = todayStr()
     if (date > today) return

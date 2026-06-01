@@ -47,6 +47,7 @@ export interface LearningPlan {
   createdAt: string
   linkedHabitId?: string  // auto-check this habit when a session is logged
   resources?: LearningResource[]
+  deletedAt?: number      // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 export interface LearningSession {
@@ -59,6 +60,7 @@ export interface LearningSession {
   topic?: string
   notes?: string
   rating: 1 | 2 | 3 | 4 | 5
+  deletedAt?: number      // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 export function todayStr(): string {

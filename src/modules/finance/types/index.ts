@@ -16,6 +16,7 @@ export interface Expense {
   date: string            // 'YYYY-MM-DD'
   createdAt: string
   recurring?: boolean     // marks this as a recurring monthly expense
+  deletedAt?: number      // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 export interface CategoryBudget {

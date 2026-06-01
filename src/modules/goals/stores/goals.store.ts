@@ -7,7 +7,9 @@ import type { Goal, GoalMilestone } from '../types'
 import { calcProgress } from '../types'
 
 export const useGoalsStore = defineStore('goals:goals', () => {
-  const goals = useStorage<Goal[]>(storageKey('goals', 'goals'), [])
+  // Raw persisted array — includes soft-deleted tombstones (see S14 T3).
+  const allGoals = useStorage<Goal[]>(storageKey('goals', 'goals'), [])
+  const goals = computed<Goal[]>(() => allGoals.value.filter(g => !g.deletedAt))
   const events = useEventBus()
 
   const activeGoals = computed(() =>
@@ -31,13 +33,14 @@ export const useGoalsStore = defineStore('goals:goals', () => {
       milestones: [],
       createdAt: new Date().toISOString(),
     }
-    goals.value.push(goal)
+    allGoals.value.push(goal)
     events.emit({ type: 'goal:created', goalId: id, title: data.title, timestamp: new Date().toISOString() })
     return goal
   }
 
   function deleteGoal(id: string): void {
-    goals.value = goals.value.filter(g => g.id !== id)
+    const goal = allGoals.value.find(g => g.id === id)
+    if (goal && !goal.deletedAt) goal.deletedAt = Date.now()
   }
 
   function completeGoal(id: string): void {
