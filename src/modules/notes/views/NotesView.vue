@@ -8,7 +8,7 @@ import type { NoteType } from '../types'
 import NoteList from '../components/NoteList.vue'
 import NoteEditor from '../components/NoteEditor.vue'
 import NotePreview from '../components/NotePreview.vue'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiButton, UiIconButton } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { useAiInsight } from '@/core/composables/useAiInsight'
 
@@ -59,7 +59,6 @@ const readingTime = computed(() => Math.max(1, Math.ceil(wordCount.value / 200))
 const { result: aiResult, loading: aiLoading, run: runAi, dismiss: dismissAi } = useAiInsight()
 const aiKind = ref<'summary' | 'actions' | null>(null)
 
-// Buttons only when a note is open with enough text to be worth analysing
 const canAnalyse = computed(() => (selectedNote.value?.content.trim().length ?? 0) > 200)
 
 function summariseNote() {
@@ -87,10 +86,8 @@ function dismissAiCard() {
   aiKind.value = null
 }
 
-// Clear stale AI card when switching notes
 watch(selectedId, () => dismissAiCard())
 
-// Export as .md file
 function downloadNote() {
   if (!selectedNote.value) return
   const title = deriveTitle(selectedNote.value.content).replace(/[^\w\s-]/g, '').trim() || 'note'
@@ -102,7 +99,6 @@ function downloadNote() {
 }
 
 const noteListRef = ref<InstanceType<typeof NoteList>>()
-// Mobile: show editor pane (true) or list pane (false)
 const mobileShowEditor = ref(false)
 
 function onContentUpdate(value: string) {
@@ -170,11 +166,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
       <!-- Toolbar -->
       <div class="notes-toolbar">
-        <!-- Mobile: back button to return to list -->
-        <button class="notes-toolbar__back" @click="backToList">
+        <!-- Mobile: back to list -->
+        <UiButton class="notes-toolbar__back" variant="ghost" size="sm" @click="backToList">
           ← Back
-        </button>
+        </UiButton>
 
+        <!-- Edit / Preview mode toggle — bespoke: active state not in UiButton variants -->
         <div class="notes-toolbar__modes">
           <button
             v-for="m in (['edit', 'preview'] as const)"
@@ -190,23 +187,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             {{ wordCount }} words · {{ readingTime }} min
           </span>
 
-          <!-- AI: summarise + action items (shown when note has >200 chars) -->
+          <!-- AI actions -->
           <template v-if="canAnalyse">
-            <button
-              class="notes-toolbar__ai"
-              :disabled="aiLoading"
-              title="AI: summarise this note into bullets"
-              @click="summariseNote"
-            >{{ aiLoading && aiKind === 'summary' ? '✦ …' : '✦ Summarise' }}</button>
-            <button
-              class="notes-toolbar__ai"
-              :disabled="aiLoading"
-              title="AI: extract action items from this note"
-              @click="extractActions"
-            >{{ aiLoading && aiKind === 'actions' ? '✦ …' : '✦ Action items' }}</button>
+            <UiButton variant="ghost" size="sm" :disabled="aiLoading" @click="summariseNote">
+              {{ aiLoading && aiKind === 'summary' ? '✦ …' : '✦ Summarise' }}
+            </UiButton>
+            <UiButton variant="ghost" size="sm" :disabled="aiLoading" @click="extractActions">
+              {{ aiLoading && aiKind === 'actions' ? '✦ …' : '✦ Action items' }}
+            </UiButton>
           </template>
 
-          <!-- Note type selector -->
+          <!-- Note type selector — bespoke: icon-prefixed compact toolbar control -->
           <div v-if="selectedNote" class="notes-type-select">
             <UiIcon
               :name="NOTE_TYPE_META[(selectedNote.type ?? 'note') as NoteType].icon"
@@ -225,7 +216,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             </select>
           </div>
 
-          <!-- Goal link selector -->
+          <!-- Goal link selector — bespoke: icon-prefixed compact toolbar control -->
           <div v-if="selectedNote && goalsStore.activeGoals.length" class="notes-goal-select">
             <UiIcon name="Target" :size="12" :stroke-width="2" class="notes-goal-icon" />
             <select
@@ -240,23 +231,15 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             </select>
           </div>
 
-          <button
-            class="notes-toolbar__today"
-            title="Open or create today's journal entry"
-            @click="todayNote"
-          >Today</button>
-          <button
-            v-if="selectedNote"
-            class="notes-toolbar__action"
-            title="Download note as .md file"
-            @click="downloadNote"
-          >↓ export</button>
-          <button
-            v-if="selectedNote"
-            class="notes-toolbar__delete"
-            title="Delete this note permanently"
-            @click="deleteNote(selectedNote!.id)"
-          >Delete</button>
+          <UiButton size="sm" @click="todayNote" title="Open or create today's journal entry">
+            Today
+          </UiButton>
+          <UiButton v-if="selectedNote" variant="ghost" size="sm" @click="downloadNote">
+            ↓ export
+          </UiButton>
+          <UiButton v-if="selectedNote" variant="danger" size="sm" @click="deleteNote(selectedNote!.id)">
+            Delete
+          </UiButton>
         </div>
       </div>
 
@@ -278,21 +261,21 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <div v-else class="notes-empty">
         <p class="notes-empty__title">Nothing open.</p>
         <p class="notes-empty__sub">Pick a note from the list, or start fresh.</p>
-        <button class="notes-empty__btn" @click="newNote">New note</button>
+        <UiButton class="notes-empty__cta" @click="newNote">New note</UiButton>
       </div>
 
-      <!-- AI result card (floating, doesn't replace note content) -->
+      <!-- AI result card -->
       <Transition name="ai-fade">
         <div v-if="aiResult" class="notes-ai-card">
           <div class="notes-ai-card__head">
             <span class="notes-ai-card__label">✦ {{ aiKind === 'actions' ? 'Action items' : 'Summary' }}</span>
-            <button class="notes-ai-card__dismiss" @click="dismissAiCard">×</button>
+            <UiIconButton name="X" aria-label="Dismiss AI result" size="sm" @click="dismissAiCard" />
           </div>
           <p class="notes-ai-card__text">{{ aiResult }}</p>
         </div>
       </Transition>
 
-      <!-- Backlinks bar (shown when note is open) -->
+      <!-- Backlinks bar — bespoke navigation widget -->
       <div v-if="selectedNote" class="notes-backlinks">
         <button
           class="notes-backlinks__toggle"
@@ -362,6 +345,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   gap: 2px;
 }
 
+/* Mode toggle — bespoke: active state not in UiButton variants */
 .notes-toolbar__mode {
   padding: 4px 12px;
   border-radius: var(--radius-sm);
@@ -371,12 +355,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   text-transform: capitalize;
   transition: background var(--t-fast), color var(--t-fast);
 }
-
 .notes-toolbar__mode:hover:not(.notes-toolbar__mode--active) {
   background: var(--color-surface-elevated);
   color: var(--color-text);
 }
-
 .notes-toolbar__mode--active {
   background: var(--color-accent-muted);
   color: var(--color-accent);
@@ -442,43 +424,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   -webkit-appearance: none;
 }
 
-.notes-toolbar__today {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-accent);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-accent-muted);
-  background: var(--color-accent-muted);
-  transition: opacity var(--t-fast);
-}
-.notes-toolbar__today:hover { opacity: 0.75; }
-
-.notes-toolbar__action {
-  font-size: 13px;
-  color: var(--color-text-muted);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  transition: background var(--t-fast), color var(--t-fast);
-}
-.notes-toolbar__action:hover {
-  background: var(--color-surface-elevated);
-  color: var(--color-accent);
-}
-
-.notes-toolbar__delete {
-  font-size: 15px;
-  color: var(--color-text-muted);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  transition: background var(--t-fast), color var(--t-fast);
-}
-
-.notes-toolbar__delete:hover {
-  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
-  color: var(--color-danger);
-}
-
 /* Panes */
 .notes-panes {
   flex: 1;
@@ -510,31 +455,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   margin: 0;
 }
 
-.notes-empty__btn {
-  margin-top: 8px;
-  padding: 7px 18px;
-  background: var(--color-accent);
-  color: #fff;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  transition: opacity var(--t-fast);
-}
+.notes-empty__cta { margin-top: 8px; }
 
-.notes-empty__btn:hover { opacity: 0.88; }
-
-/* AI toolbar buttons */
-.notes-toolbar__ai {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-accent);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  transition: background var(--t-fast), opacity var(--t-fast);
-}
-.notes-toolbar__ai:hover:not(:disabled) { background: var(--color-accent-muted); }
-.notes-toolbar__ai:disabled { opacity: 0.6; cursor: default; }
+/* AI toolbar buttons — Now use UiButton, these styles are removed */
 
 /* AI result card */
 .notes-ai-card {
@@ -551,8 +474,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 .notes-ai-card__head { display: flex; align-items: center; justify-content: space-between; }
 .notes-ai-card__label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
-.notes-ai-card__dismiss { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
-.notes-ai-card__dismiss:hover { color: var(--color-text); }
 .notes-ai-card__text { font-size: var(--text-sm); line-height: var(--leading-lg); color: var(--color-text-secondary); margin: 0; white-space: pre-line; }
 
 .ai-fade-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
@@ -579,7 +500,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   text-align: left;
   transition: color var(--t-fast), background var(--t-fast);
 }
-
 .notes-backlinks__toggle:hover,
 .notes-backlinks__toggle--active {
   color: var(--color-text-secondary);
@@ -603,9 +523,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   padding: 8px;
   font-size: 12px;
   color: var(--color-text-muted);
-  line-height: 1.5;
+  line-height: var(--leading-sm);
 }
-
 .notes-backlinks__empty code {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -627,13 +546,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   text-align: left;
   width: 100%;
 }
-
 .notes-backlinks__item:hover {
   background: var(--color-accent-muted);
   color: var(--color-accent);
 }
 
-/* Backlinks expand transition */
 .bl-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
 .bl-leave-active { transition: opacity 0.1s ease; }
 .bl-enter-from   { opacity: 0; transform: translateY(-4px); }
@@ -641,34 +558,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 /* ── Mobile: back button ─────────────────────────────────────── */
 .notes-toolbar__back {
-  display: none;
-  align-items: center;
-  gap: 4px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-accent);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  transition: background var(--t-fast);
+  display: none !important;
   margin-right: 4px;
-  min-height: 0;
-  min-width: 0;
-  white-space: nowrap;
-}
-.notes-toolbar__back:hover {
-  background: var(--color-accent-muted);
 }
 
-/* ── Mobile layout: single pane at a time ────────────────────── */
+/* ── Mobile layout ────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .notes-workspace {
-    /* Start showing list */
     flex-direction: column;
     overflow: visible;
     height: auto;
   }
-
-  /* Default mobile: show list, hide editor */
   .notes-workspace :deep(.note-list) {
     display: flex;
     flex: none;
@@ -678,25 +578,16 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     border-right: none;
     border-bottom: 1px solid var(--color-border);
   }
-
-  .notes-workspace .notes-editor-area {
-    display: none;
-  }
-
-  /* When editor is active: show editor, hide list */
-  .notes-workspace--editor :deep(.note-list) {
-    display: none;
-  }
-
+  .notes-workspace .notes-editor-area { display: none; }
+  .notes-workspace--editor :deep(.note-list) { display: none; }
   .notes-workspace--editor .notes-editor-area {
     display: flex;
     height: calc(100svh - var(--header-height-mobile) - env(safe-area-inset-top, 0px) - var(--tab-bar-height) - env(safe-area-inset-bottom, 0px));
   }
 
   /* Show back button only on mobile */
-  .notes-toolbar__back { display: flex; }
+  .notes-toolbar__back { display: inline-flex !important; }
 
-  /* Compact toolbar */
   .notes-toolbar {
     height: 48px;
     padding: 0 12px;

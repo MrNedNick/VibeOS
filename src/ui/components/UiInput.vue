@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 interface Props {
   placeholder?: string
   maxlength?: number
@@ -10,10 +12,14 @@ const model = defineModel<string>({ required: true })
 defineProps<Props>()
 
 const emit = defineEmits<{ enter: [] }>()
+
+const inputRef = ref<HTMLInputElement>()
+defineExpose({ focus: () => inputRef.value?.focus() })
 </script>
 
 <template>
   <input
+    ref="inputRef"
     v-model="model"
     class="ui-input"
     v-bind="$attrs"

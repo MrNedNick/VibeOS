@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from 'vue'
 import { useTasksStore } from '../stores/tasks.store'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiButton, UiIconButton, UiFilterChips, UiSelect } from '@/ui'
+import type { FilterChipOption, SelectOption } from '@/ui'
 
 type TimerMode = 'work' | 'break'
 type TimerState = 'idle' | 'running' | 'paused'
@@ -13,6 +14,12 @@ const PRESETS = [
   { work: 15, brk: 3,  label: '15/3' },
 ]
 
+const PRESET_OPTIONS: FilterChipOption[] = PRESETS.map((p, i) => ({ value: i.toString(), label: p.label }))
+const MODE_OPTIONS: FilterChipOption[] = [
+  { value: 'work',  label: 'Work' },
+  { value: 'break', label: 'Break' },
+]
+
 const tasksStore = useTasksStore()
 
 // ── State ──────────────────────────────────────────────────────────────
@@ -21,7 +28,7 @@ const mode        = ref<TimerMode>('work')
 const state       = ref<TimerState>('idle')
 const secondsLeft = ref(PRESETS[0].work * 60)
 const focusTaskId = ref<string | null>(null)
-const sessions    = ref(0)  // completed work sessions this run
+const sessions    = ref(0)
 
 let intervalId = 0
 
@@ -45,6 +52,30 @@ const focusTask = computed(() =>
 
 const activeTasks = computed(() => tasksStore.tasks.filter(t => !t.done))
 
+const taskOptions = computed<SelectOption[]>(() => [
+  { value: '', label: '— none —' },
+  ...activeTasks.value.map(t => ({
+    value: t.id,
+    label: t.text.length > 40 ? t.text.slice(0, 40) + '…' : t.text,
+  })),
+])
+
+// UiFilterChips / UiSelect use string; bridge null ↔ ''
+const presetIdxStr = computed({
+  get: () => presetIdx.value.toString(),
+  set: (v: string) => switchPreset(parseInt(v)),
+})
+
+const modeStr = computed({
+  get: () => mode.value as string,
+  set: (v: string) => switchMode(v as TimerMode),
+})
+
+const focusTaskIdStr = computed({
+  get: () => focusTaskId.value ?? '',
+  set: (v: string | number) => { focusTaskId.value = v ? String(v) : null },
+})
+
 // SVG circle
 const RADIUS = 44
 const CIRC   = 2 * Math.PI * RADIUS
@@ -52,9 +83,7 @@ const dashOffset = computed(() => CIRC * (1 - progress.value))
 
 // ── Actions ────────────────────────────────────────────────────────────
 function start(): void {
-  if (state.value === 'idle') {
-    secondsLeft.value = totalSeconds.value
-  }
+  if (state.value === 'idle') secondsLeft.value = totalSeconds.value
   state.value = 'running'
   intervalId = setInterval(tick, 1000) as unknown as number
 }
@@ -81,30 +110,20 @@ function tick(): void {
 }
 
 function onTimerEnd(): void {
-  // Browser notification
   if (Notification.permission === 'granted') {
     new Notification(
       mode.value === 'work' ? '⏰ Focus session done! Take a break.' : '⏰ Break over! Time to focus.',
       { body: focusTask.value ? `Task: ${focusTask.value.text}` : 'Well done!' }
     )
   }
-
-  if (mode.value === 'work') {
-    sessions.value++
-    // Mark focus task as done after a work session (optional confirm)
-    // We don't auto-complete — user decides
-  }
-
-  // Switch mode
+  if (mode.value === 'work') sessions.value++
   mode.value = mode.value === 'work' ? 'break' : 'work'
   state.value = 'idle'
   secondsLeft.value = totalSeconds.value
 }
 
 function requestNotificationPermission(): void {
-  if (Notification.permission === 'default') {
-    Notification.requestPermission()
-  }
+  if (Notification.permission === 'default') Notification.requestPermission()
 }
 
 function switchPreset(idx: number): void {
@@ -120,9 +139,7 @@ function switchMode(m: TimerMode): void {
 }
 
 watch(mode, () => {
-  if (state.value === 'idle') {
-    secondsLeft.value = totalSeconds.value
-  }
+  if (state.value === 'idle') secondsLeft.value = totalSeconds.value
 })
 
 onUnmounted(() => clearInterval(intervalId))
@@ -132,36 +149,19 @@ onUnmounted(() => clearInterval(intervalId))
   <div class="pomo">
     <div class="pomo__header">
       <span class="pomo__label">Focus Timer</span>
-      <!-- Preset chips -->
-      <div class="pomo__presets">
-        <button
-          v-for="(p, i) in PRESETS"
-          :key="p.label"
-          class="pomo__preset"
-          :class="{ 'pomo__preset--active': presetIdx === i }"
-          @click="switchPreset(i)"
-        >{{ p.label }}</button>
-      </div>
+      <UiFilterChips v-model="presetIdxStr" :options="PRESET_OPTIONS" variant="pills" />
     </div>
 
     <div class="pomo__body">
       <!-- SVG ring timer -->
       <div class="pomo__ring-wrap">
         <svg class="pomo__ring" viewBox="0 0 100 100">
-          <!-- Track -->
+          <circle cx="50" cy="50" :r="RADIUS" fill="none" stroke="var(--color-surface-elevated)" stroke-width="7" />
           <circle
             cx="50" cy="50"
             :r="RADIUS"
             fill="none"
-            stroke="var(--color-surface-elevated)"
-            stroke-width="7"
-          />
-          <!-- Progress arc -->
-          <circle
-            cx="50" cy="50"
-            :r="RADIUS"
-            fill="none"
-            :stroke="mode === 'work' ? 'var(--color-accent)' : '#10b981'"
+            :stroke="mode === 'work' ? 'var(--color-accent)' : 'var(--color-success)'"
             stroke-width="7"
             stroke-linecap="round"
             :stroke-dasharray="CIRC"
@@ -170,7 +170,6 @@ onUnmounted(() => clearInterval(intervalId))
             style="transition: stroke-dashoffset 0.8s ease;"
           />
         </svg>
-        <!-- Time display -->
         <div class="pomo__time">
           <span class="pomo__time-digits">{{ mm }}:{{ ss }}</span>
           <span class="pomo__time-mode">{{ mode === 'work' ? 'Focus' : 'Break' }}</span>
@@ -180,64 +179,34 @@ onUnmounted(() => clearInterval(intervalId))
 
       <!-- Controls -->
       <div class="pomo__controls">
-        <!-- Mode toggle -->
-        <div class="pomo__modes">
-          <button
-            class="pomo__mode-btn"
-            :class="{ 'pomo__mode-btn--active': mode === 'work' }"
-            @click="switchMode('work')"
-          >Work</button>
-          <button
-            class="pomo__mode-btn"
-            :class="{ 'pomo__mode-btn--active': mode === 'break' }"
-            @click="switchMode('break')"
-          >Break</button>
-        </div>
+        <UiFilterChips v-model="modeStr" :options="MODE_OPTIONS" variant="pills" />
 
-        <!-- Start / Pause / Reset -->
         <div class="pomo__btns">
-          <button
-            v-if="state !== 'running'"
-            class="pomo__btn pomo__btn--start"
-            @click="start(); requestNotificationPermission()"
-          >
+          <UiButton v-if="state !== 'running'" @click="start(); requestNotificationPermission()">
             <UiIcon name="Play" :size="14" />
             {{ state === 'paused' ? 'Resume' : 'Start' }}
-          </button>
-          <button
-            v-else
-            class="pomo__btn pomo__btn--pause"
-            @click="pause"
-          >
+          </UiButton>
+          <!-- Pause keeps bespoke warning-color styling not in UiButton variants -->
+          <button v-else class="pomo__btn pomo__btn--pause" @click="pause">
             <UiIcon name="Pause" :size="14" />
             Pause
           </button>
-          <button
+          <UiIconButton
             v-if="state !== 'idle'"
-            class="pomo__btn pomo__btn--reset"
+            name="RotateCcw"
+            aria-label="Reset timer"
+            variant="subtle"
             @click="reset"
-          >
-            <UiIcon name="RotateCcw" :size="13" />
-          </button>
+          />
         </div>
 
-        <!-- Task selector -->
         <div class="pomo__task-row">
           <span class="pomo__task-label">Focus on:</span>
-          <select
-            v-model="focusTaskId"
-            class="pomo__task-select"
-          >
-            <option :value="null">— none —</option>
-            <option
-              v-for="t in activeTasks"
-              :key="t.id"
-              :value="t.id"
-            >{{ t.text.length > 40 ? t.text.slice(0, 40) + '…' : t.text }}</option>
-          </select>
+          <div class="pomo__task-select-wrap">
+            <UiSelect v-model="focusTaskIdStr" size="sm" :options="taskOptions" />
+          </div>
         </div>
 
-        <!-- Active task display -->
         <div v-if="focusTask" class="pomo__focus-task">
           <UiIcon name="Target" :size="12" />
           <span>{{ focusTask.text }}</span>
@@ -258,7 +227,6 @@ onUnmounted(() => clearInterval(intervalId))
   gap: 12px;
 }
 
-/* Header */
 .pomo__header {
   display: flex;
   align-items: center;
@@ -271,29 +239,6 @@ onUnmounted(() => clearInterval(intervalId))
   font-size: 13px;
   font-weight: 700;
   color: var(--color-text);
-}
-
-.pomo__presets {
-  display: flex;
-  gap: 4px;
-}
-
-.pomo__preset {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: all var(--t-fast);
-}
-.pomo__preset:hover { background: var(--color-surface-elevated); color: var(--color-text-secondary); }
-.pomo__preset--active {
-  background: var(--color-accent-muted);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
 }
 
 /* Body */
@@ -359,36 +304,13 @@ onUnmounted(() => clearInterval(intervalId))
   gap: 10px;
 }
 
-.pomo__modes {
-  display: flex;
-  gap: 4px;
-}
-
-.pomo__mode-btn {
-  font-size: 12px;
-  font-weight: 500;
-  padding: 3px 10px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all var(--t-fast);
-}
-.pomo__mode-btn:hover { background: var(--color-surface-elevated); }
-.pomo__mode-btn--active {
-  background: var(--color-accent-muted);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  font-weight: 600;
-}
-
 .pomo__btns {
   display: flex;
   gap: 6px;
   align-items: center;
 }
 
+/* Pause — bespoke: warning color not in UiButton variants */
 .pomo__btn {
   display: flex;
   align-items: center;
@@ -398,28 +320,14 @@ onUnmounted(() => clearInterval(intervalId))
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity var(--t-fast), background var(--t-fast);
+  transition: opacity var(--t-fast);
 }
-
-.pomo__btn--start {
-  background: var(--color-accent);
-  color: #fff;
-}
-.pomo__btn--start:hover { opacity: 0.88; }
 
 .pomo__btn--pause {
   background: var(--color-warning);
   color: #fff;
 }
 .pomo__btn--pause:hover { opacity: 0.88; }
-
-.pomo__btn--reset {
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  padding: 6px 9px;
-}
-.pomo__btn--reset:hover { color: var(--color-text); }
 
 /* Task selector */
 .pomo__task-row {
@@ -434,21 +342,10 @@ onUnmounted(() => clearInterval(intervalId))
   flex-shrink: 0;
 }
 
-.pomo__task-select {
+.pomo__task-select-wrap {
   flex: 1;
-  font-size: 12px;
-  font-family: var(--font-sans);
-  color: var(--color-text);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xs);
-  padding: 3px 6px;
-  outline: none;
-  cursor: pointer;
   min-width: 0;
-  transition: border-color var(--t-fast);
 }
-.pomo__task-select:focus { border-color: var(--color-accent); }
 
 /* Active task chip */
 .pomo__focus-task {

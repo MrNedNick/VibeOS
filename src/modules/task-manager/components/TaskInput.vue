@@ -128,8 +128,8 @@ const isOverLimit = () => charCount() > props.maxLength
 }
 .priority-btn:hover { border-color: var(--color-text-muted); color: var(--color-text); }
 
-.priority-btn--low    { border-color: #4ade80; color: #4ade80; background: rgba(74,222,128,.08); }
-.priority-btn--medium { border-color: var(--color-warning); color: var(--color-warning); background: rgba(240,160,48,.08); }
-.priority-btn--high   { border-color: #f97316; color: #f97316; background: rgba(249,115,22,.08); }
-.priority-btn--urgent { border-color: var(--color-danger); color: var(--color-danger); background: rgba(240,96,96,.12); }
+.priority-btn--low    { border-color: var(--color-success);              color: var(--color-success);              background: color-mix(in srgb, var(--color-success)              8%, transparent); }
+.priority-btn--medium { border-color: var(--color-warning);              color: var(--color-warning);              background: color-mix(in srgb, var(--color-warning)              8%, transparent); }
+.priority-btn--high   { border-color: var(--color-warning-dark, #f97316); color: var(--color-warning-dark, #f97316); background: color-mix(in srgb, var(--color-warning-dark, #f97316) 8%, transparent); }
+.priority-btn--urgent { border-color: var(--color-danger);               color: var(--color-danger);               background: color-mix(in srgb, var(--color-danger)               12%, transparent); }
 </style>

@@ -8,8 +8,8 @@ import TaskProgress from '../components/TaskProgress.vue'
 import PomodoroPanel from '../components/PomodoroPanel.vue'
 import HabitHeatmap from '@/modules/habits/components/HabitHeatmap.vue'
 import { useLocale } from '@/core/i18n'
-import { UiButton, UiSectionLabel, UiFilterChips } from '@/ui'
-import type { FilterChipOption } from '@/ui'
+import { UiButton, UiSectionLabel, UiFilterChips, UiIconButton, UiSelect } from '@/ui'
+import type { FilterChipOption, SelectOption } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useAiInsight } from '@/core/composables/useAiInsight'
 
@@ -36,6 +36,11 @@ const CATEGORIES: { val: TaskCategory | 'all'; labelKey: string }[] = [
 const categoryOptions = computed<FilterChipOption[]>(() =>
   CATEGORIES.map(cat => ({ value: cat.val, label: i18n.t(cat.labelKey) }))
 )
+
+const goalOptions = computed<SelectOption[]>(() => [
+  { value: '', label: '— none —' },
+  ...goalsStore.activeGoals.map(g => ({ value: g.id, label: `${g.coverEmoji} ${g.title}` })),
+])
 
 const focusedId    = ref<string | null>(null)
 const taskInputRef = ref<InstanceType<typeof TaskInput>>()
@@ -163,7 +168,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <div v-if="aiPriority" class="tm-view__ai-card">
         <div class="tm-view__ai-header">
           <span class="tm-view__ai-label">✦ AI Focus Suggestion</span>
-          <button class="tm-view__ai-dismiss" @click="dismissAiPriority">×</button>
+          <UiIconButton name="X" aria-label="Dismiss AI suggestion" size="sm" @click="dismissAiPriority" />
         </div>
         <p class="tm-view__ai-text">{{ aiPriority }}</p>
       </div>
@@ -235,14 +240,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
       <template v-if="goalsStore.activeGoals.length">
         <span class="tm-view__input-cat-label tm-view__input-cat-label--sep">Goal:</span>
-        <select
-          v-model="inputGoalId"
-          class="tm-view__goal-select"
-          title="Link to a goal"
-        >
-          <option value="">— none —</option>
-          <option v-for="g in goalsStore.activeGoals" :key="g.id" :value="g.id">{{ g.title }}</option>
-        </select>
+        <div class="tm-view__goal-wrap">
+          <UiSelect v-model="inputGoalId" size="sm" :options="goalOptions" title="Link to a goal" />
+        </div>
       </template>
     </div>
 
@@ -374,9 +374,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 .tm-view__ai-header { display: flex; align-items: center; justify-content: space-between; }
 .tm-view__ai-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
-.tm-view__ai-dismiss { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
-.tm-view__ai-dismiss:hover { color: var(--color-text); }
-.tm-view__ai-text { font-size: var(--text-sm); line-height: 1.65; color: var(--color-text-secondary); margin: 0; }
+.tm-view__ai-text { font-size: var(--text-sm); line-height: var(--leading-base); color: var(--color-text-secondary); margin: 0; }
 
 .ai-fade-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .ai-fade-leave-active { transition: opacity 0.15s ease; }
@@ -425,24 +423,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   color: var(--color-accent);
 }
 
-.tm-view__goal-select {
-  font-size: 12px;
-  font-family: inherit;
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-elevated);
-  color: var(--color-text);
-  cursor: pointer;
-  outline: none;
+.tm-view__goal-wrap {
   max-width: 200px;
 }
 
-.tm-view__goal-select:focus {
-  border-color: var(--color-accent);
-}
-
 @media (max-width: 767px) {
-  .tm-view__goal-select { max-width: 150px; }
+  .tm-view__goal-wrap { max-width: 150px; }
 }
 </style>

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import type { Note, NoteType } from '../types'
 import { NOTE_TYPE_META, NOTE_TYPES } from '../types'
 import NoteListItem from './NoteListItem.vue'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiIconButton, UiInput } from '@/ui'
 
 defineProps<{
   notes: Note[]
@@ -20,8 +19,9 @@ const emit = defineEmits<{
   'update:typeFilter': [value: NoteType | 'all']
 }>()
 
-const searchInputRef = ref<HTMLInputElement>()
-defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
+import { ref } from 'vue'
+const searchRef = ref<InstanceType<typeof UiInput>>()
+defineExpose({ focusSearch: () => searchRef.value?.focus() })
 </script>
 
 <template>
@@ -29,22 +29,26 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
     <!-- Header -->
     <div class="note-list__header">
       <span class="note-list__title">Notes <span class="note-list__count">{{ notes.length }}</span></span>
-      <button class="note-list__new" title="New note (⌘N)" @click="emit('new')">+</button>
+      <UiIconButton
+        name="Plus"
+        aria-label="New note (⌘N)"
+        size="sm"
+        @click="emit('new')"
+      />
     </div>
 
     <!-- Search -->
     <div class="note-list__search-wrap">
-      <input
-        ref="searchInputRef"
-        class="note-list__search"
-        type="search"
+      <UiInput
+        ref="searchRef"
+        :model-value="searchQuery"
         placeholder="Search…"
-        :value="searchQuery"
-        @input="emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
+        type="search"
+        @update:model-value="emit('update:searchQuery', $event)"
       />
     </div>
 
-    <!-- Type filter chips -->
+    <!-- Type filter chips (bespoke: per-option icon + dynamic color — not UiFilterChips) -->
     <div class="note-list__filters">
       <button
         class="note-list__filter"
@@ -123,48 +127,13 @@ defineExpose({ focusSearch: () => searchInputRef.value?.focus() })
   border-radius: 99px;
 }
 
-.note-list__new {
-  font-size: 19px;
-  line-height: 1;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-  transition: background var(--t-fast), color var(--t-fast);
-}
-
-.note-list__new:hover {
-  background: var(--color-surface-elevated);
-  color: var(--color-text);
-}
-
 .note-list__search-wrap {
   padding: 8px 10px;
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
-.note-list__search {
-  width: 100%;
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 5px 10px;
-  font-size: 13px;
-  color: var(--color-text);
-  outline: none;
-}
-
-.note-list__search:focus {
-  border-color: var(--color-accent);
-}
-
-.note-list__search::placeholder { color: var(--color-text-muted); }
-
-/* Type filter chips */
+/* Type filter chips — bespoke for per-option dynamic color + icon */
 .note-list__filters {
   display: flex;
   gap: 4px;
