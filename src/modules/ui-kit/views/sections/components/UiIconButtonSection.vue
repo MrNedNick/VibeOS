@@ -14,9 +14,9 @@ const clicks = ref(0)
 
 const rows: PropDef[] = [
   { prop: 'name',       type: 'string',                        purpose: 'Lucide icon name (required)' },
-  { prop: 'aria-label', type: 'string',                        purpose: 'Required — accessible label (no visible text)' },
+  { prop: 'aria-label', type: 'string',                        purpose: 'Required HTML attr — accessible label (no visible text)' },
   { prop: 'size',       type: "'sm' | 'md'",                  purpose: 'Button size: 26px / 32px (default: md)' },
-  { prop: 'variant',   type: "'ghost' | 'danger' | 'subtle'", purpose: 'Visual style (default: ghost)' },
+  { prop: 'variant',    type: "'ghost' | 'danger' | 'subtle'", purpose: 'Visual style (default: ghost)' },
   { prop: 'loading',    type: 'boolean',                       purpose: 'Shows spinner, disables clicks' },
   { prop: 'disabled',   type: 'boolean',                       purpose: 'Dims and blocks interaction' },
   { prop: 'type',       type: "'button' | 'submit' | 'reset'", purpose: 'Native button type (default: button)' },
@@ -26,11 +26,11 @@ const rows: PropDef[] = [
 <template>
   <ShowcaseCard
     title="UiIconButton"
-    purpose="Icon-only button for close (×), add (+), toolbar, and action icons. Always requires aria-label — there is no visible text. Use UiButton for labelled actions."
+    purpose="Icon-only button for close (×), add (+), toolbar, and action icons. Always pass aria-label — there is no visible text. Use UiButton for labelled actions."
     canon="src/ui/components/UiIconButton.vue"
   >
     <template #playground>
-      <PgStage hint="An icon-only button. aria-label is always required." :readout="`clicks = ${clicks}`">
+      <PgStage hint="An icon-only button. aria-label is required." :readout="`clicks = ${clicks}`">
         <template #stage>
           <UiIconButton
             :name="name"
@@ -38,7 +38,7 @@ const rows: PropDef[] = [
             :variant="variant"
             :loading="loading"
             :disabled="disabled"
-            ariaLabel="Playground icon button"
+            aria-label="Playground icon button"
             @click="clicks++"
           />
         </template>
@@ -75,34 +75,34 @@ const rows: PropDef[] = [
       <div class="row">
         <div class="demo-group">
           <span class="demo-label">ghost</span>
-          <UiIconButton name="X"      variant="ghost"  ariaLabel="Close" />
-          <UiIconButton name="Plus"   variant="ghost"  ariaLabel="Add" />
-          <UiIconButton name="Pencil" variant="ghost"  ariaLabel="Edit" />
+          <UiIconButton name="X"       variant="ghost"  aria-label="Close" />
+          <UiIconButton name="Plus"    variant="ghost"  aria-label="Add" />
+          <UiIconButton name="Pencil"  variant="ghost"  aria-label="Edit" />
         </div>
         <div class="demo-group">
           <span class="demo-label">subtle</span>
-          <UiIconButton name="X"       variant="subtle" ariaLabel="Close" />
-          <UiIconButton name="Settings" variant="subtle" ariaLabel="Settings" />
+          <UiIconButton name="X"        variant="subtle" aria-label="Close" />
+          <UiIconButton name="Settings" variant="subtle" aria-label="Settings" />
         </div>
         <div class="demo-group">
           <span class="demo-label">danger</span>
-          <UiIconButton name="Trash2" variant="danger" ariaLabel="Delete" />
+          <UiIconButton name="Trash2" variant="danger" aria-label="Delete" />
         </div>
         <div class="demo-group">
           <span class="demo-label">sm</span>
-          <UiIconButton name="X"    size="sm" ariaLabel="Close small" />
-          <UiIconButton name="Plus" size="sm" ariaLabel="Add small" />
+          <UiIconButton name="X"    size="sm" aria-label="Close small" />
+          <UiIconButton name="Plus" size="sm" aria-label="Add small" />
         </div>
         <div class="demo-group">
           <span class="demo-label">states</span>
-          <UiIconButton name="X" loading ariaLabel="Loading" />
-          <UiIconButton name="X" disabled ariaLabel="Disabled" />
+          <UiIconButton name="X" loading  aria-label="Loading" />
+          <UiIconButton name="X" disabled aria-label="Disabled" />
         </div>
       </div>
     </template>
 
     <template #props>
-      <PropTable :rows="rows" note="aria-label is required — icon buttons have no visible text." />
+      <PropTable :rows="rows" note="aria-label passes through as an HTML attr (not a Vue prop) via v-bind=&quot;$attrs&quot;." />
     </template>
   </ShowcaseCard>
 </template>

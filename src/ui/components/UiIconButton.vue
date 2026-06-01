@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import UiIcon from './UiIcon.vue'
 
+/**
+ * Icon-only button. ALWAYS pass aria-label — there is no visible text.
+ * Usage: <UiIconButton name="X" aria-label="Close" />
+ */
 interface Props {
   name: string
-  ariaLabel: string
   size?: 'sm' | 'md'
   variant?: 'ghost' | 'danger' | 'subtle'
   loading?: boolean
@@ -18,15 +21,17 @@ const {
   disabled = false,
   type = 'button',
 } = defineProps<Props>()
+
+defineOptions({ inheritAttrs: false })
 </script>
 
 <template>
   <button
+    v-bind="$attrs"
     :type="type"
     class="ui-icon-btn"
     :class="[`ui-icon-btn--${size}`, `ui-icon-btn--${variant}`, { 'ui-icon-btn--loading': loading }]"
     :disabled="disabled || loading"
-    :aria-label="ariaLabel"
   >
     <span v-if="loading" class="ui-icon-btn__spinner" aria-hidden="true" />
     <UiIcon v-else :name="name" :size="size === 'sm' ? 14 : 16" />
