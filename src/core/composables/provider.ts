@@ -6,7 +6,13 @@
  * single config change, not a code edit across call sites.
  *
  *   VITE_AI_ENDPOINT  — POST endpoint (default: Pollinations.ai free, no key)
- *   VITE_AI_MODEL     — model name passed in the request body (default: openai)
+ *   VITE_AI_MODEL     — model name passed in the request body (default: openai-fast)
+ *
+ * Why `openai-fast`: as of 2026-06 Pollinations moved every other text model
+ * (the real gpt-4o `openai`, `mistral`, `llama`, …) behind authentication at
+ * enter.pollinations.ai — anonymous requests for those now return a "migrate"
+ * notice instead of a completion. `openai-fast` (GPT-OSS 20B, OVH) is the only
+ * remaining `tier: anonymous` model, so it's the one that always works key-free.
  *
  * No fallback chain on purpose: every AI feature is optional/dismissable, so
  * if the provider is down the app still fully works.
@@ -16,7 +22,7 @@ export const AI_ENDPOINT =
   (import.meta.env.VITE_AI_ENDPOINT as string | undefined) ?? 'https://text.pollinations.ai/'
 
 export const AI_MODEL =
-  (import.meta.env.VITE_AI_MODEL as string | undefined) ?? 'openai'
+  (import.meta.env.VITE_AI_MODEL as string | undefined) ?? 'openai-fast'
 
 export interface AIOptions {
   model?: string

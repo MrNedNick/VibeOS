@@ -17,7 +17,7 @@
 | S5 — Life Depth | Learning + Training + Analytics | ✅ complete |
 | S6 — AI Integration | AI as planning layer | ✅ complete — 9 features |
 | S7 — Polish | Credibility + reliability | ✅ complete — Vitest ✅, CI ✅, Lighthouse 82 ✅, a11y 100 ✅ |
-| S8 — Design System | Unified component library | 🔄 active — items 1–3 ✅, item 4 (/ui-kit page) ❌ |
+| S8 — Design System | Unified component library | ✅ complete — items 1–4 ✅ (/ui-kit page v1.0.12) |
 | **S9 — Full Redesign** | Premium visual identity | ✅ **complete** — v0.9.x |
 | **S10 — Vibe-pak Consolidation** | 4 clean paks, Revolut + CRT redesign | ✅ **complete** — v1.0.x |
 | **S11 — Welcome & Positioning** | "Simple Notion for life, where everything is connected" + live cascade demo | 🔜 **next** — repositioned 2026-06-01 |
@@ -200,7 +200,12 @@ Order:
    - **Before starting:** use Claude in Chrome to scan all views and catalog every unique one-off pattern
    - **✅ Phase 3 complete (v0.8.4):** Analytics, Finance, Tasks, Goals, Learning, Training, Dashboard, Habits all migrated — section labels → UiSectionLabel, progress bars → UiProgressBar, stats → UiStat, filter chips → UiFilterChips, card containers → UiCard
 
-4. **`/ui-kit` component library page** ← LARGE TASK, multi-session
+4. **`/ui-kit` component library page** ✅ complete (v1.0.12)
+   - Built `src/modules/ui-kit/`: `UiKitView` (sidebar Tokens/Components/Patterns + main area) + `ShowcaseCard`, `PropTable`, `PgStage`, `TokenSwatch`, `TokenRow`.
+   - 5 token sections (Colors, Typography, Spacing, Shadows & Radius, Motion) + 15 component/pattern sections (UiButton, UiInput, UiField, UiCard, UiSkeleton, UiBadge, UiIcon, UiProgressBar, UiProgressRing, UiStat, UiSectionLabel, UiFilterChips, UiEmptyState, UiConfirmDialog, UiPlannedView). Each: Header → live Playground (real `@/ui`) → Prop table.
+   - Theme switcher (4 paks) in the sidebar footer; route `/ui-kit` hidden in production (`import.meta.env.PROD` → empty routes, view dead-code-eliminated from the prod bundle).
+   - Original spec ↓
+
    - Route: `/ui-kit` — accessible from Settings → Developer (hidden in production)
    - Structure: left sidebar with categories, main area with live component cards (example + code snippet + prop table)
    - Theme switcher at top: preview all 6 vibe-paks at once

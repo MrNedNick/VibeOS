@@ -31,6 +31,9 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
   const apiKey         = useStorage<string>('platform:studio:apikey', '')
   const model          = useStorage<StudioModel>('platform:studio:model', 'claude-sonnet-4-6')
   const freeModel      = useStorage<FreeModel>('platform:studio:freeModel', 'openai-fast')
+  // Coerce a stale persisted value (mistral/llama) — those lost anonymous
+  // access in 2026-06 and would now return a "migrate" notice, not a reply.
+  if (freeModel.value !== 'openai-fast') freeModel.value = 'openai-fast'
   const provider       = useStorage<StudioProvider>('platform:studio:provider', 'free') // default: free
   const system         = useStorage<string>('platform:studio:system', '')
   const includeContext = useStorage<boolean>('platform:studio:includeContext', false)

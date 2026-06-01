@@ -5,7 +5,10 @@ export type StudioModel =
   | 'claude-sonnet-4-6'
   | 'claude-haiku-4-5-20251001'
 
-export type FreeModel = 'openai-fast' | 'mistral' | 'llama'
+// Pollinations dropped anonymous access to mistral/llama in 2026-06 — only
+// openai-fast (GPT-OSS 20B) still works without an account, so it's the sole
+// free option. Other providers come back via user keys in a later sprint.
+export type FreeModel = 'openai-fast'
 
 export interface StudioModelMeta {
   id: StudioModel
@@ -28,9 +31,7 @@ export const STUDIO_MODELS: StudioModelMeta[] = [
 ]
 
 export const FREE_MODELS: FreeModelMeta[] = [
-  { id: 'openai-fast', label: 'GPT-4o mini', desc: 'Fast · Free',    color: '#10b981' },
-  { id: 'mistral',     label: 'Mistral',     desc: 'Open source',   color: '#6366f1' },
-  { id: 'llama',       label: 'Llama 3',     desc: 'Meta · Open',   color: '#f59e0b' },
+  { id: 'openai-fast', label: 'GPT-OSS 20B', desc: 'Free · No key',  color: '#10b981' },
 ]
 
 export interface StudioRun {

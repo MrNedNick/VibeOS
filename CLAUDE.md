@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v1.0.11 — 2026-06-01**
+**Version: v1.0.12 — 2026-06-01**
 
 | Sprint | Status |
 |--------|--------|
@@ -17,7 +17,7 @@
 | S5 — Life Depth | ✅ complete |
 | S6 — AI Integration | ✅ complete |
 | S7 — Polish | ✅ complete — Vitest ✅ (59 tests), CI ✅, Lighthouse 82 ✅, a11y 100 ✅, bundle badge ✅ |
-| S8 — Design System | 🔄 active — @/ui ✅, tokens ✅, skeletons ✅, widgets ✅, /ui-kit page ❌ |
+| S8 — Design System | ✅ complete — @/ui ✅, tokens ✅, skeletons ✅, widgets ✅, /ui-kit page ✅ (v1.0.12) |
 | S9 — Full Redesign | ✅ complete — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ |
 | S10 — Vibe-pak Consolidation | ✅ complete — T1 ✅ T2 ✅ T3 ✅ T4 ✅ T5 ✅ |
 | S11 — Welcome & Positioning | 🔜 next — "simpler Notion for life, everything connected" + live cascade demo (repositioned 2026-06-01) |
@@ -25,7 +25,7 @@
 | S13 — Design Pass | 🔜 planned — module quality pass (requires user review session) |
 | S14 — Quick Wins | 🔄 active — T1 lazy routes ✅ (v1.0.8), T5 AI provider seam ✅ (v1.0.9), T3 soft-delete ✅ (v1.0.10); README refresh, hex cleanup pending |
 
-**Active next (re-ordered 2026-06-01): S11 (positioning + welcome) → S12 (Analytics monthly report first) → S8 item 4 /ui-kit (kept — owner wants it personally) + S14 quick wins as fill-in.**
+**Active next (re-ordered 2026-06-01): S11 (positioning + welcome) → S12 AI Depth (Habits/Notes/Finance remain — Analytics report ✅). Done as fill-in: S8 item 4 /ui-kit ✅, S14 T1/T3/T5 ✅. Remaining S14: T2 README refresh, T4 hex cleanup.**
 
 ---
 
