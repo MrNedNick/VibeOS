@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { useStorage } from '@/core/composables/useStorage'
+import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
 import { storageKey } from '@/core/utils/storage'
 import { generateId } from '@/core/utils/id'
 import { useEventBus } from '@/core/events'
@@ -9,10 +9,7 @@ import type { Task, TaskFilter, TaskPriority, TaskCategory } from '../types'
 const STORAGE_KEY = storageKey('task-manager', 'tasks')
 
 export const useTasksStore = defineStore('task-manager:tasks', () => {
-  // Raw persisted array — includes soft-deleted tombstones so deletes survive
-  // a cross-device merge. Everything user-facing reads `tasks` (filtered).
-  const allTasks = useStorage<Task[]>(STORAGE_KEY, [])
-  const tasks = computed<Task[]>(() => allTasks.value.filter(t => !t.deletedAt))
+  const { all: allTasks, items: tasks, softDelete } = useSoftDeletable<Task>(STORAGE_KEY)
   const filter = ref<TaskFilter>('all')
   const categoryFilter = ref<TaskCategory | 'all'>('all')
   const events = useEventBus()
@@ -76,7 +73,7 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
   function deleteTask(id: string) {
     const task = allTasks.value.find(t => t.id === id)
     if (task && !task.deletedAt) {
-      task.deletedAt = Date.now()
+      softDelete(id)
       events.emit({ type: 'task:deleted', taskId: id, label: task.text, timestamp: new Date().toISOString() })
     }
   }
@@ -88,9 +85,8 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
 
   function clearDone() {
     // Soft-delete done tasks so the removal syncs as a tombstone, not a gap.
-    const now = Date.now()
     for (const t of allTasks.value) {
-      if (t.done && !t.deletedAt) t.deletedAt = now
+      if (t.done && !t.deletedAt) softDelete(t.id)
     }
   }
 

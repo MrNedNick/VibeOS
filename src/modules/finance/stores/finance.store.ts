@@ -1,14 +1,13 @@
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
+import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
 import { storageKey } from '@/core/utils/storage'
 import type { Expense, CategoryBudget, ExpenseCategory } from '../types'
 import { isCurrentMonth, EXPENSE_CATEGORIES } from '../types'
 
 export const useFinanceStore = defineStore('finance:main', () => {
-  // Raw persisted array — includes soft-deleted tombstones (see S14 T3).
-  const allExpenses = useStorage<Expense[]>(storageKey('finance', 'expenses'), [])
-  const expenses    = computed<Expense[]>(() => allExpenses.value.filter(e => !e.deletedAt))
+  const { all: allExpenses, items: expenses, softDelete: softDeleteExpense } = useSoftDeletable<Expense>(storageKey('finance', 'expenses'))
   const budgets     = useStorage<CategoryBudget[]>(storageKey('finance', 'budgets'), [])
   const currency    = useStorage<string>(storageKey('finance', 'currency'), '€')
   /** Base currency code (e.g. 'EUR') — all amounts stored in this currency */
@@ -65,8 +64,7 @@ export const useFinanceStore = defineStore('finance:main', () => {
   }
 
   function deleteExpense(id: string): void {
-    const e = allExpenses.value.find(x => x.id === id)
-    if (e && !e.deletedAt) e.deletedAt = Date.now()
+    softDeleteExpense(id)
   }
 
   function updateExpense(id: string, patch: Partial<Omit<Expense, 'id' | 'createdAt'>>): void {

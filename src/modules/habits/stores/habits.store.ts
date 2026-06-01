@@ -1,15 +1,13 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { useStorage } from '@/core/composables/useStorage'
+import { ref } from 'vue'
+import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
 import { storageKey } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
 import { todayStr, computeStreak, STREAK_MILESTONES } from '../types'
 import type { Habit, HabitCategory } from '../types'
 
 export const useHabitsStore = defineStore('habits:habits', () => {
-  // Raw persisted array — includes soft-deleted tombstones (see S14 T3).
-  const allHabits = useStorage<Habit[]>(storageKey('habits', 'habits'), [])
-  const habits = computed<Habit[]>(() => allHabits.value.filter(h => !h.deletedAt))
+  const { all: allHabits, items: habits, softDelete } = useSoftDeletable<Habit>(storageKey('habits', 'habits'))
   const events = useEventBus()
 
   // Milestone celebration state — watched by HabitsView to show banner
@@ -120,8 +118,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
   }
 
   function deleteHabit(id: string): void {
-    const habit = allHabits.value.find(h => h.id === id)
-    if (habit && !habit.deletedAt) habit.deletedAt = Date.now()
+    softDelete(id)
   }
 
   function reorderHabits(fromId: string, toId: string): void {

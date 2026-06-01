@@ -1,15 +1,13 @@
 import { computed } from 'vue'
 import { defineStore } from 'pinia'
-import { useStorage } from '@/core/composables/useStorage'
+import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
 import { storageKey } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
 import { deriveTitle } from '../types'
 import type { Note, NoteType } from '../types'
 
 export const useNotesStore = defineStore('notes:notes', () => {
-  // Raw persisted array — includes soft-deleted tombstones (see S14 T3).
-  const allNotes = useStorage<Note[]>(storageKey('notes', 'notes'), [])
-  const notes = computed<Note[]>(() => allNotes.value.filter(n => !n.deletedAt))
+  const { all: allNotes, items: notes, softDelete } = useSoftDeletable<Note>(storageKey('notes', 'notes'))
   const events = useEventBus()
 
   const sortedNotes = computed(() =>
@@ -65,7 +63,7 @@ export const useNotesStore = defineStore('notes:notes', () => {
     const note = allNotes.value.find(n => n.id === id)
     if (note && !note.deletedAt) {
       const title = deriveTitle(note.content)
-      note.deletedAt = Date.now()
+      softDelete(id)
       events.emit({ type: 'note:deleted', noteId: id, title, timestamp: new Date().toISOString() })
     }
   }

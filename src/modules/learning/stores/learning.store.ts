@@ -1,17 +1,14 @@
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
-import { useStorage } from '@/core/composables/useStorage'
+import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
 import { storageKey } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
 import type { LearningPlan, LearningSession, LearningResource, ResourceType } from '../types'
 import { todayStr, calcProgress, calcStreak, calcHoursLogged, isScheduledToday } from '../types'
 
 export const useLearningStore = defineStore('learning:plans', () => {
-  // Raw persisted arrays — include soft-deleted tombstones (see S14 T3).
-  const allPlans = useStorage<LearningPlan[]>(storageKey('learning', 'plans'), [])
-  const allSessions = useStorage<LearningSession[]>(storageKey('learning', 'sessions'), [])
-  const plans = computed<LearningPlan[]>(() => allPlans.value.filter(p => !p.deletedAt))
-  const sessions = computed<LearningSession[]>(() => allSessions.value.filter(s => !s.deletedAt))
+  const { all: allPlans, items: plans, softDelete: softDeletePlan } = useSoftDeletable<LearningPlan>(storageKey('learning', 'plans'))
+  const { all: allSessions, items: sessions, softDelete: softDeleteSession } = useSoftDeletable<LearningSession>(storageKey('learning', 'sessions'))
   const events = useEventBus()
 
   const activePlans = computed(() => plans.value.filter(p => p.active))
@@ -71,11 +68,9 @@ export const useLearningStore = defineStore('learning:plans', () => {
   function deletePlan(id: string): void {
     // Soft-delete the plan and cascade tombstones to its sessions so the
     // removal survives a cross-device merge.
-    const now = Date.now()
-    const plan = allPlans.value.find(p => p.id === id)
-    if (plan && !plan.deletedAt) plan.deletedAt = now
+    softDeletePlan(id)
     for (const s of allSessions.value) {
-      if (s.planId === id && !s.deletedAt) s.deletedAt = now
+      if (s.planId === id && !s.deletedAt) softDeleteSession(s.id)
     }
   }
 

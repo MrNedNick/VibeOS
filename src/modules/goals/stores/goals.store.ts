@@ -1,15 +1,13 @@
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
-import { useStorage } from '@/core/composables/useStorage'
+import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
 import { storageKey } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
 import type { Goal, GoalMilestone } from '../types'
 import { calcProgress } from '../types'
 
 export const useGoalsStore = defineStore('goals:goals', () => {
-  // Raw persisted array — includes soft-deleted tombstones (see S14 T3).
-  const allGoals = useStorage<Goal[]>(storageKey('goals', 'goals'), [])
-  const goals = computed<Goal[]>(() => allGoals.value.filter(g => !g.deletedAt))
+  const { all: allGoals, items: goals, softDelete } = useSoftDeletable<Goal>(storageKey('goals', 'goals'))
   const events = useEventBus()
 
   const activeGoals = computed(() =>
@@ -39,8 +37,7 @@ export const useGoalsStore = defineStore('goals:goals', () => {
   }
 
   function deleteGoal(id: string): void {
-    const goal = allGoals.value.find(g => g.id === id)
-    if (goal && !goal.deletedAt) goal.deletedAt = Date.now()
+    softDelete(id)
   }
 
   function completeGoal(id: string): void {
