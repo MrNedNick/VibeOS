@@ -16,4 +16,17 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Heavy, rarely-on-first-screen deps get their own chunks so they
+          // never land in the initial bundle.
+          if (id.includes('node_modules/highlight.js')) return 'highlight'
+          if (id.includes('node_modules/marked')) return 'marked'
+          if (id.includes('node_modules/lucide-vue-next')) return 'icons'
+        },
+      },
+    },
+  },
 })

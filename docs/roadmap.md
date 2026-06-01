@@ -660,7 +660,9 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T1 — Lazy-load module routes ⚡ (highest ROI, ~30 min)
+### T1 — Lazy-load module routes ⚡ ✅ (v1.0.8)
+
+**Done:** the 4 remaining static module views (Studio, Settings, About, Board) converted to `() => import(...)` (the rest were already lazy). Added `build.rollupOptions.output.manualChunks` splitting `marked`, `highlight.js`, and `lucide-vue-next` (icons) into their own chunks. Initial entry chunk `index.js` dropped from **264.84 → 45.52 kB gzip**; module code (Games/Studio/Analytics/etc.) is no longer in the initial bundle. The `icons` chunk is large (≈188 kB gzip) because `UiIcon` resolves icons by string at runtime (`import *`) — now isolated into its own cacheable chunk. README badge updated to the new initial-JS figure.
 
 **Problem:** `src/router/index.ts` imports all 16 modules statically — Games (Tetris/Snake/Sudoku/etc.), Studio, charts, `highlight.js`, `marked` all land in one `index.js` chunk. The `/welcome` page (first thing a friend/recruiter sees) ships the code for Tetris.
 
