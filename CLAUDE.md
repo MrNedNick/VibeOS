@@ -20,11 +20,12 @@
 | S8 — Design System | 🔄 active — @/ui ✅, tokens ✅, skeletons ✅, widgets ✅, /ui-kit page ❌ |
 | S9 — Full Redesign | ✅ complete — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ |
 | S10 — Vibe-pak Consolidation | ✅ complete — T1 ✅ T2 ✅ T3 ✅ T4 ✅ T5 ✅ |
-| S11 — Welcome & Positioning | 🔜 planned — life accelerator copy + premium welcome page |
-| S12 — AI Depth | 🔜 planned — Habits/Notes/Finance/Analytics AI features |
+| S11 — Welcome & Positioning | 🔜 next — "simpler Notion for life, everything connected" + live cascade demo (repositioned 2026-06-01) |
+| S12 — AI Depth | 🔜 planned — Habits/Notes/Finance/Analytics; start with Analytics monthly report |
 | S13 — Design Pass | 🔜 planned — module quality pass (requires user review session) |
+| S14 — Quick Wins | 🔜 planned — lazy routes, README refresh, soft-delete before sync, hex cleanup |
 
-**Active next: S8 item 4 — /ui-kit component library page → then S11 (positioning + welcome)**
+**Active next (re-ordered 2026-06-01): S11 (positioning + welcome) → S12 (Analytics monthly report first) → S8 item 4 /ui-kit (kept — owner wants it personally) + S14 quick wins as fill-in.**
 
 ---
 

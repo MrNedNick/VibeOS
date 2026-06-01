@@ -20,9 +20,10 @@
 | S8 — Design System | Unified component library | 🔄 active — items 1–3 ✅, item 4 (/ui-kit page) ❌ |
 | **S9 — Full Redesign** | Premium visual identity | ✅ **complete** — v0.9.x |
 | **S10 — Vibe-pak Consolidation** | 4 clean paks, Revolut + CRT redesign | ✅ **complete** — v1.0.x |
-| **S11 — Welcome & Positioning** | Life accelerator framing + premium welcome page | 🔜 planned — T1 needs user copy decisions |
-| **S12 — AI Depth** | AI in every module (Habits, Notes, Finance, Analytics) | 🔜 planned — analysis-first sprint |
+| **S11 — Welcome & Positioning** | "Simple Notion for life, where everything is connected" + live cascade demo | 🔜 **next** — repositioned 2026-06-01 |
+| **S12 — AI Depth** | AI in every module; start with Analytics monthly report (shows connected data) | 🔜 planned — analysis-first sprint |
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
+| **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔜 planned — small independent tasks |
 
 ---
 
@@ -424,9 +425,15 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ## S11 — Welcome Page & Positioning 🔜 planned
 
-**Goal:** turn VibeOS from "personal life OS" into a clearly positioned **life efficiency accelerator** — a product that makes you faster, sharper, and more intentional. Welcome page becomes the primary conversion surface for recruiters and potential users.
+**Goal:** position VibeOS as a **simple, lightweight Notion alternative for your life — where everything is connected.** The welcome page must, in 10 seconds, make a friend (or recruiter) understand: this is a clean, no-setup daily tool, and one action updates everything across modules.
 
-**Why this sprint matters:** current positioning is generic ("life OS" is a category, not a promise). The new positioning is a specific value claim: *VibeOS accelerates you — it connects your goals, habits, learning, and work into one feedback loop so nothing slips and you compound faster.*
+**Audience (re-decided 2026-06-01):** primary user is the owner + friends who want a simpler-than-Notion daily tool ("open the link, do your habits/notes/tasks, get more effective"). Recruiter is a welcome bonus, not the main target. So copy should sound like a personal tool you'd share with a friend — not a SaaS pitch, not a portfolio brag.
+
+**Why this sprint matters:** two real strengths are currently invisible on the welcome page —
+1. **Simplicity** — "open it and use it, no setup like Notion."
+2. **Everything connected** — log a workout → linked habit checks off → linked goal advances, automatically. This auto-cascade is the one thing you can't rebuild from Notion/Todoist/Obsidian in an hour, and it's the whole story. It's implemented (`training.store.ts`, `habits.store.ts`) but shown nowhere.
+
+**Dropped:** the "life efficiency accelerator" framing — too marketing-y for a personal tool. We do not lead with a category metaphor ("OS" / "accelerator"); we lead with the mechanism.
 
 ---
 
@@ -436,42 +443,47 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 **Complexity:** medium — many touch points, requires consistency
 
 **Current:** "A personal life operating system"  
-**New direction:** "Your personal life accelerator" / "The system that compounds your growth"
+**New direction:** "A simpler Notion for your life — everything connected."
 
 **Touch points to update:**
 - `WelcomeView.vue` — hero headline + subheadline + feature section copy
-- `README.md` — tagline + "What it is" section
+- `README.md` — tagline + "What it is" section (also fix stale sprint table — see S14 T2)
 - `AboutView.vue` — VibeOS description block
-- `docs/strategy.md` — product positioning section
+- `docs/strategy.md` — §3 product positioning section
 - `<title>` and `<meta description>` in `index.html`
 
-**Tone:** direct, confident, no fluff. Not "helps you manage tasks" — "you close every day knowing nothing slipped." Not "tracks habits" — "builds the proof that you show up."
+**Tone:** like recommending your own tool to a friend. Plain, light, honest. "Open it, do your habits, see your goals move." Not corporate, not a buzzword pitch.
 
-**Before implementing:** read current `WelcomeView.vue` and `docs/strategy.md` in full.
+**✅ Copy decisions locked (2026-06-01 — replaces 2026-05-31 "accelerator" copy):**
 
-**✅ Copy decisions locked (2026-05-31):**
+**Eyebrow:** `"A simpler Notion — for your life"`
 
-**Headline:** `"Everything connected. Nothing slips."`
-> Two-beat promise. Speaks to the real pain (fragmented tools, things falling through) and the real solution. Not a category ("life OS"), but a result.
+**Headline:** `"Log one thing. Everything updates."`
+> Describes the actual mechanism (the auto-cascade), is literally true, and is provable in the demo in 10 seconds. This is the one thing Notion can't do without manual setup.
 
-**Subheadline:** `"Goals, habits, learning, and training in one feedback loop — with AI that knows your actual data."`
-> "feedback loop" = compound growth framing. "AI that knows your actual data" = differentiator from generic AI tools.
+**Subheadline:** `"Habits, tasks, goals, learning — in one light, no-setup place. Check off a habit and your goal moves on its own."`
+> Leads with simplicity + the cascade. No "feedback loop" jargon.
 
 **3 feature pillars:**
-1. icon: Link2 — **"Connected by design"** — *"Goals link to habits, habits to training plans, tasks to goals. One action updates everything."*
-2. icon: TrendingUp — **"Progress that compounds"** — *"Your streaks, learning hours, and milestones stack up visibly. Consistency becomes confidence."*
-3. icon: Sparkles — **"AI that knows your context"** — *"Ask anything with your real data already loaded — goals, habits, tasks, learning. Free, no key required."*
+1. icon: Link2 — **"Everything connected"** — *"Log a workout, the habit checks off and the goal advances — automatically. No manual linking."*
+2. icon: Feather — **"Light by design"** — *"No databases to configure, no templates to wrestle. Open it and use it."*
+3. icon: Sparkles — **"AI that knows your data"** — *"Ask anything — your goals, habits, and tasks are already loaded. Free, no key required."*
 
 **CTA buttons:** `"Open VibeOS"` (primary, accent) + `"View on GitHub"` (ghost, links to GitHub)
-> "Open" not "Try" — sounds like your own tool, not a vendor's demo.
+> "Open" not "Try" — it's your own tool, not a vendor's demo.
 
-**Additional design decisions (from code analysis):**
+**⭐ Hero visual — THE key element (do this well, it carries the whole page):**
+- A small **live, interactive cascade demo** on seeded fake data — NOT a static animated stats card.
+- One clickable habit row: when clicked, a linked goal's progress ring visibly ticks up. Caption: *"Go ahead — check it off."*
+- This is the single most convincing thing on the page. It shows the differentiator instead of claiming it. Everything else is secondary.
+
+**Additional design decisions:**
 - Remove terminal preview tab — not a conversion argument; move CRT pak into vibe-paks section
-- Stats strip: `"16 modules"` · `"AI in every workflow"` · `"100% local-first"` · `"No subscription. Ever."`
+- Stats strip: `"16 modules"` · `"No setup needed"` · `"100% local-first"` · `"No subscription. Ever."`
 - Add Vibe-paks section: 4 swatches (Dark / Light / Brutalist / CRT) side-by-side with accent color preview
-- Hero visual: animated life-stats card (fake data) showing `"🔥 14-day streak · 3 goals active · 2h learning"` — not a generic mockup
 - Replace current "OS-first thinking" pillar with the 3 new pillars above
-- Remove "Your data, only yours" as its own pillar — absorb into subheadline and stats
+- Remove "Your data, only yours" as its own pillar — absorb into stats strip + final CTA
+- Fix S9 violation while here: WelcomeView hardcodes hex (`#4f8ef7`, the `MODULES` color array) — replace with `var(--color-accent)` / module accent vars (see S14 T4)
 
 ---
 
@@ -480,33 +492,35 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 **Scope:** `src/modules/welcome/WelcomeView.vue` — full redesign  
 **Complexity:** high — design-heavy, multi-section landing page
 
-**Goal:** a recruiter or potential user lands here and in 10 seconds understands: *this person ships real products.* Conversion target: they click "Launch App" and explore.
+**Goal:** a friend or visitor lands here and in 10 seconds understands: *this is a clean, simple daily tool, and one action updates everything.* Conversion target: they click "Open VibeOS" and try the live cascade.
 
 **Structure:**
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  NAV — logo + "Sign in" link (minimal, no clutter)              │
+│  NAV — logo + GitHub + "Sign in" + "Open VibeOS" (minimal)      │
 ├─────────────────────────────────────────────────────────────────┤
 │  HERO — full viewport height, 2-column on desktop              │
-│  LEFT: eyebrow chip → headline (big, 2 lines) → sub → 2 CTAs   │
-│  Headline: "Everything connected. Nothing slips."               │
-│  Sub: "Goals, habits, learning, and training in one feedback    │
-│       loop — with AI that knows your actual data."              │
+│  LEFT: eyebrow → headline (big) → sub → 2 CTAs                  │
+│  Eyebrow: "A simpler Notion — for your life"                    │
+│  Headline: "Log one thing. Everything updates."                 │
+│  Sub: "Habits, tasks, goals, learning — in one light, no-setup  │
+│       place. Check off a habit and your goal moves on its own." │
 │  CTA 1: "Open VibeOS" (primary, accent, ArrowRight icon)        │
 │  CTA 2: "View on GitHub" (ghost, Github icon)                   │
-│  RIGHT: animated life-stats card (fake data, looks real):       │
-│    🔥 14-day streak · 3 goals active · 2h learning this week    │
-│    progress rings + habit check row + task count                │
+│  RIGHT: ⭐ LIVE INTERACTIVE CASCADE (the key element)            │
+│    clickable habit row → linked goal ring ticks up on click     │
+│    seeded fake data, caption "Go ahead — check it off."         │
+│    (NOT a static animated stats card — it must actually react)  │
 ├─────────────────────────────────────────────────────────────────┤
 │  PROOF STRIP — 4 bordered stat chips, single row                │
-│  "16 modules" · "AI in every workflow"                          │
+│  "16 modules" · "No setup needed"                               │
 │  "100% local-first" · "No subscription. Ever."                  │
 ├─────────────────────────────────────────────────────────────────┤
 │  3 FEATURE PILLARS — icon + headline + 2-line copy              │
-│  Link2: "Connected by design"                                   │
-│  TrendingUp: "Progress that compounds"                          │
-│  Sparkles: "AI that knows your context"                         │
+│  Link2: "Everything connected"                                  │
+│  Feather: "Light by design"                                     │
+│  Sparkles: "AI that knows your data"                            │
 ├─────────────────────────────────────────────────────────────────┤
 │  MODULE GRID — 12 cards, 4-column, icon + name + 1-line desc    │
 │  (keep from current — good content, needs visual polish only)   │
@@ -640,6 +654,67 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
+## S14 — Quick Wins 🔜 planned (small independent tasks)
+
+**Goal:** small, high-value fixes that came out of the 2026-06-01 architecture + positioning review. Each is independent and can ship in its own commit. None require a design session or user decisions.
+
+---
+
+### T1 — Lazy-load module routes ⚡ (highest ROI, ~30 min)
+
+**Problem:** `src/router/index.ts` imports all 16 modules statically — Games (Tetris/Snake/Sudoku/etc.), Studio, charts, `highlight.js`, `marked` all land in one `index.js` chunk. The `/welcome` page (first thing a friend/recruiter sees) ships the code for Tetris.
+
+**Fix:** convert module route components to dynamic `() => import(...)`. Welcome must load near-empty. Obvious split points: Games, Studio, Analytics, Finance.
+
+**Do NOT** lazy-load Pinia stores — they're tiny, it adds complexity for no gain.
+
+**Verify:** `npm run build` — confirm multiple chunks + smaller initial bundle; welcome still loads.
+
+---
+
+### T2 — Refresh README.md 📄
+
+**Problem:** README is badly stale — it's the first thing seen on GitHub. It still says "S1 active", lists the removed **Snippets** module, and marks Goals/Learning/Training as "planned" (all shipped).
+
+**Fix:**
+- Tagline + "What it is" → new positioning ("a simpler Notion for your life, everything connected"; lead with the cascade).
+- Module table → actual 16 shipped modules; remove Snippets.
+- Sprint table → current state (S1–S10 ✅, S11 next).
+- Keep it short and honest.
+
+---
+
+### T3 — Soft-delete (tombstones) before Supabase sync ⚠️
+
+**Problem:** each module stores one JSON array under one key; `useCloudSync._merge()` unions records by id with last-write-wins on `updated_at`. There are **no tombstones**, so a record deleted on device A reappears after merge with device B (it's just "missing" from one array, not marked deleted). Deletes will silently come back once sync is on.
+
+**Fix (do before resuming S3):**
+- Add `deletedAt?: number` to synced entities; filter deleted items out of UI lists.
+- Pass tombstones through `_merge` so a delete wins over an older edit.
+- Physically drop tombstoned rows in a later GC pass (not urgent).
+
+**Scope:** `useStorage`/entity types + `useCloudSync.ts`. Not needed until S3 unpauses, but it's a prerequisite — log it now so it isn't forgotten.
+
+---
+
+### T4 — Hex cleanup + lint guard 🎨
+
+**Problem:** `WelcomeView.vue` (and a few spots) hardcode hex like `#4f8ef7` and a per-module `color` array — direct violations of the S9 "no hardcoded hex" rule. The rule isn't enforced, so it leaks.
+
+**Fix:**
+- Replace hardcoded hex with `var(--color-accent)` and per-module accent vars.
+- Add a stylelint rule (or simple CI grep) banning hex outside `main.css`, wired into the existing CI gate so it can't regress.
+
+---
+
+### T5 — Single AI provider seam 🔌 (optional, low urgency)
+
+**Problem:** the Pollinations.ai endpoint + model are hardcoded in **two** places (`aiComplete()` and `useAI()` duplicate the same `fetch`). Swapping providers (Groq/Gemini, already in S6 item 10) means editing both + 9 call sites.
+
+**Fix:** one provider module with a single `fetch`, endpoint/model from env. No fallback chain needed yet — all AI features are already optional/dismissable, so if Pollinations dies the app still fully works.
+
+---
+
 ## ── NEXT CHAT INSTRUCTIONS ────────────────────────────────────────────
 
 > Актуально на v1.0.7 (2026-05-31). Промпты в порядке приоритета.
@@ -705,28 +780,34 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 Контекст: S8 ✅ complete. Версия: актуальная (смотри CLAUDE.md).
 
-ВСЕ COPY-РЕШЕНИЯ УЖЕ ПРИНЯТЫ — не нужно согласовывать, сразу реализуй:
+ВСЕ COPY-РЕШЕНИЯ ПРИНЯТЫ (репозиционирование 2026-06-01) — сразу реализуй.
+Позиционирование: "простой Notion для жизни, где всё связано". НЕ "accelerator".
+Главная аудитория — сам пользователь + друзья; рекрутёр — бонус.
 
-Headline: "Everything connected. Nothing slips."
-Subheadline: "Goals, habits, learning, and training in one feedback loop
-              — with AI that knows your actual data."
+Eyebrow: "A simpler Notion — for your life"
+Headline: "Log one thing. Everything updates."
+Subheadline: "Habits, tasks, goals, learning — in one light, no-setup place.
+              Check off a habit and your goal moves on its own."
 CTA buttons: "Open VibeOS" (primary) + "View on GitHub" (ghost → github.com/mrnednick/VibeOS)
 3 Pillars:
-  1. Link2 icon — "Connected by design"
-     "Goals link to habits, habits to training plans, tasks to goals. One action updates everything."
-  2. TrendingUp icon — "Progress that compounds"
-     "Your streaks, learning hours, and milestones stack up visibly. Consistency becomes confidence."
-  3. Sparkles icon — "AI that knows your context"
-     "Ask anything with your real data already loaded — goals, habits, tasks, learning. Free, no key required."
-Proof strip: "16 modules" · "AI in every workflow" · "100% local-first" · "No subscription. Ever."
+  1. Link2 icon — "Everything connected"
+     "Log a workout, the habit checks off and the goal advances — automatically. No manual linking."
+  2. Feather icon — "Light by design"
+     "No databases to configure, no templates to wrestle. Open it and use it."
+  3. Sparkles icon — "AI that knows your data"
+     "Ask anything — your goals, habits, and tasks are already loaded. Free, no key required."
+Proof strip: "16 modules" · "No setup needed" · "100% local-first" · "No subscription. Ever."
 
 Структура новой страницы (сверху вниз):
 1. NAV — logo + GitHub link + "Sign in" + "Open VibeOS" CTA
-2. HERO — 2 колонки: [LEFT] eyebrow → headline → sub → CTAs | [RIGHT] animated life-stats card
-   Animated card (fake data): 🔥 14-day streak · 3 goals active · 2h learning this week
-   + progress rings (3 шт) + habit check row + task count chip
+2. HERO — 2 колонки: [LEFT] eyebrow → headline → sub → CTAs
+   [RIGHT] ⭐ ЖИВОЙ ИНТЕРАКТИВНЫЙ КАСКАД (ключевой элемент, сделать хорошо):
+   кликабельная строка привычки → при клике кольцо прогресса связанной цели
+   реально дёргается вверх. Seeded fake data. Caption: "Go ahead — check it off."
+   ЭТО НЕ статичная анимированная карточка статов — она должна реально реагировать.
+   Это единственная вещь, которая показывает фишку вместо того чтобы про неё заявлять.
 3. PROOF STRIP — 4 bordered stat chips
-4. PILLARS — 3 карточки (Connected / Compounds / AI)
+4. PILLARS — 3 карточки (Connected / Light / AI)
 5. MODULE GRID — 12 cards, 4-col (переиспользуй логику из текущей страницы)
 6. VIBE-PAKS — 4 pak карточки: name + accent swatch + bg color preview
 7. FINAL CTA — "Your data stays in your browser. Always." + "Open VibeOS" button
@@ -736,6 +817,7 @@ Proof strip: "16 modules" · "AI in every workflow" · "100% local-first" · "No
 - Terminal preview tab (welcome__preview-section целиком)
 - "OS-first thinking" и "Vibe-paks" pillars
 - "Your data, only yours" standalone pillar
+- Захардкоженный hex (#4f8ef7, массив MODULES.color) → var(--color-accent) / module accent vars
 
 Что обновить помимо welcome:
 - docs/strategy.md §3 — новое позиционирование

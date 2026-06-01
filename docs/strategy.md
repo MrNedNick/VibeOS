@@ -42,7 +42,18 @@ See `docs/privacy-security.md` for implementation details.
 
 ## 3. Positioning
 
+> **Repositioned 2026-06-01.** Primary audience is the owner + friends who want a simpler-than-Notion daily tool; recruiter is a welcome bonus, not the target. We lead with the *mechanism* (everything auto-connects), not a category metaphor. Dropped the short-lived "life efficiency accelerator" framing — too marketing-y for a personal tool. See `docs/roadmap.md` S11 for locked welcome copy.
+
 ### Core concept
+**"A simpler Notion for your life — where everything is connected."**
+
+Two real, demonstrable strengths drive everything:
+1. **Simplicity** — open it and use it, no databases/templates to configure like Notion.
+2. **Everything connected** — log a workout → linked habit checks off → linked goal advances, automatically. This auto-cascade across life domains is the one thing you can't rebuild from Notion/Todoist/Obsidian in an hour. It's implemented; the welcome page must *show* it (live cascade demo), not claim it.
+
+Headline (locked): **"Log one thing. Everything updates."**
+
+### Previous concept (superseded)
 **"An operating system for your life — the one you actually use every day."**
 
 Not just tasks. Not just habits. Not just notes. All of them, unified, with a dashboard that answers:
