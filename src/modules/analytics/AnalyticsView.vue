@@ -6,7 +6,8 @@ import { useLearningStore } from '@/modules/learning/stores/learning.store'
 import { useTrainingStore } from '@/modules/training/stores/training.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useLocale } from '@/core/i18n'
-import { UiSectionLabel, UiFilterChips, UiProgressBar } from '@/ui'
+import { useAI } from '@/core/composables/useAI'
+import { UiSectionLabel, UiFilterChips, UiProgressBar, UiIcon, UiSkeleton } from '@/ui'
 import type { FilterChipOption } from '@/ui'
 
 const i18n = useLocale()
@@ -226,6 +227,75 @@ const goalsProgress = computed(() =>
     progress: goalsStore.getProgress(g.id),
   }))
 )
+
+// ─────────────────────────────────────────────────────────────
+// AI — Monthly report (cross-module narrative, S12 T1)
+// Synthesises the SELECTED period's real data into one paragraph.
+// ─────────────────────────────────────────────────────────────
+const { complete, loading: reportLoading } = useAI()
+const report      = ref<string | null>(null)
+const reportError = ref<string | null>(null)
+const reportOpen  = ref(false)
+
+function buildSummary(): string {
+  const dates = getDateSet(period.value)
+  const days  = period.value
+
+  // Tasks created / completed within the period
+  const tasksCreated = tasksStore.tasks.filter(t =>
+    dates.has(new Date(t.createdAt).toISOString().slice(0, 10)),
+  ).length
+  const tasksDone = tasksStore.tasks.filter(t =>
+    t.done && t.completedAt && dates.has(t.completedAt.slice(0, 10)),
+  ).length
+
+  const lines: string[] = [
+    `Period: last ${days} days`,
+    `Habit consistency: ${statHabitRate.value !== null ? statHabitRate.value + '%' : 'no habits tracked'}` +
+      `${habitsStore.habits.length ? ` across ${habitsStore.habits.length} habit(s)` : ''}`,
+    `Tasks: ${tasksDone} completed, ${tasksCreated} created in this window (${statTasksDone.value} done of ${statTasksTotal.value} all-time)`,
+    `Learning: ${statLearningHours.value} hours logged across ${learningStore.activePlans.length} active plan(s)`,
+    `Training: ${statWorkouts.value} workout session(s)`,
+  ]
+
+  if (goalsProgress.value.length) {
+    const goalsTxt = goalsProgress.value
+      .map(g => `"${g.title}" ${g.progress}%`)
+      .join(', ')
+    lines.push(`Active goals: ${goalsTxt}`)
+  } else {
+    lines.push('Active goals: none')
+  }
+  if (goalsStore.completedGoals.length) {
+    lines.push(`Completed goals: ${goalsStore.completedGoals.length}`)
+  }
+
+  return lines.join('\n')
+}
+
+async function generateReport() {
+  reportError.value = null
+  reportOpen.value  = true
+  report.value      = null
+
+  const prompt =
+    `Here is my personal data for the period:\n${buildSummary()}\n\n` +
+    `Write a single short paragraph (3–5 sentences) reviewing my month like a personal reflection. ` +
+    `Mention concrete numbers from the data, note what went well and the weakest area, and keep an encouraging tone. ` +
+    `Base everything strictly on the data above — do not invent anything. No preamble, no headings, no bullet points — just the paragraph.`
+
+  try {
+    report.value = await complete(prompt)
+  } catch {
+    reportError.value = 'Network error — check your connection'
+  }
+}
+
+function dismissReport() {
+  reportOpen.value  = false
+  report.value      = null
+  reportError.value = null
+}
 </script>
 
 <template>
@@ -235,6 +305,50 @@ const goalsProgress = computed(() =>
       <h1 class="analytics__title">{{ i18n.t('modules.analytics') }}</h1>
       <UiFilterChips v-model="periodStr" :options="PERIOD_OPTIONS" />
     </div>
+
+    <!-- AI monthly report -->
+    <section class="report" :class="{ 'report--open': reportOpen }">
+      <div class="report__header">
+        <div class="report__title-row">
+          <UiIcon name="Sparkles" :size="14" :stroke-width="2" class="report__icon" />
+          <span class="report__title">AI report · last {{ period }} days</span>
+        </div>
+        <div class="report__actions">
+          <button
+            v-if="!reportOpen || (!reportLoading && !report)"
+            class="report__generate-btn"
+            :disabled="reportLoading"
+            @click="generateReport"
+          >
+            <UiIcon v-if="reportLoading" name="Loader" :size="13" :stroke-width="2" class="report__spinner" />
+            {{ reportLoading ? 'Generating…' : '✦ Generate monthly report' }}
+          </button>
+          <button v-if="reportOpen && (report || reportError)" class="report__icon-btn" title="Regenerate" :disabled="reportLoading" @click="generateReport">
+            <UiIcon name="RefreshCw" :size="13" :stroke-width="2" />
+          </button>
+          <button v-if="reportOpen" class="report__icon-btn" title="Dismiss" @click="dismissReport">
+            <UiIcon name="X" :size="13" :stroke-width="2" />
+          </button>
+        </div>
+      </div>
+
+      <Transition name="report-body">
+        <div v-if="reportOpen" class="report__body">
+          <div v-if="reportLoading" class="report__skeleton">
+            <UiSkeleton width="100%" height="14px" rounded="full" />
+            <UiSkeleton width="96%" height="14px" rounded="full" />
+            <UiSkeleton width="90%" height="14px" rounded="full" />
+            <UiSkeleton width="70%" height="14px" rounded="full" />
+          </div>
+          <div v-else-if="reportError" class="report__error">
+            <UiIcon name="AlertCircle" :size="14" :stroke-width="2" />
+            <span>{{ reportError }}</span>
+            <button class="report__retry" @click="generateReport">Retry</button>
+          </div>
+          <p v-else-if="report" class="report__text">{{ report }}</p>
+        </div>
+      </Transition>
+    </section>
 
     <!-- Overview stat cards -->
     <section class="analytics__overview">
@@ -476,6 +590,126 @@ const goalsProgress = computed(() =>
   color: var(--color-text);
   margin: 0;
 }
+
+/* ────────────────────────────────────────────────────────────
+   AI monthly report
+──────────────────────────────────────────────────────────── */
+.report {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-1);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.report--open {
+  border-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+  box-shadow: var(--shadow-2);
+}
+
+.report__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.report__title-row { display: flex; align-items: center; gap: 7px; }
+.report__icon { color: var(--color-accent); }
+
+.report__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.report__actions { display: flex; align-items: center; gap: 4px; }
+
+.report__generate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-accent);
+  background: transparent;
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.report__generate-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.report__generate-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.report__icon-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-xs);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.report__icon-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  color: var(--color-text);
+}
+.report__icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.report__spinner { animation: report-spin 0.8s linear infinite; }
+@keyframes report-spin { to { transform: rotate(360deg); } }
+
+.report__body { display: flex; flex-direction: column; gap: 8px; }
+.report__skeleton { display: flex; flex-direction: column; gap: 8px; padding: 2px 0; }
+
+.report__error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+.report__retry {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.report__text {
+  font-size: 14px;
+  line-height: var(--leading-lg, 1.65);
+  color: var(--color-text-secondary);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.report-body-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.report-body-leave-active { transition: opacity 0.15s ease; }
+.report-body-enter-from   { opacity: 0; transform: translateY(-6px); }
+.report-body-leave-to     { opacity: 0; }
 
 /* ────────────────────────────────────────────────────────────
    Overview stat cards

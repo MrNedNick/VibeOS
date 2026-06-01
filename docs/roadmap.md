@@ -604,7 +604,9 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T4 — Analytics AI: "Monthly report"
+### T4 — Analytics AI: "Monthly report" ✅ (v1.0.11)
+
+**Done:** "✦ Generate monthly report" card at the top of AnalyticsView. `buildSummary()` reads the real store getters for the **selected period** (7/30/90d): habit consistency % (`statHabitRate`), tasks completed/created in-window + all-time, learning hours (`statLearningHours`), training sessions (`statWorkouts`), and active/completed goals with progress (`goalsProgress`). Button → `useAI().complete(prompt)`, loading via `useAI().loading`; result is a dismissable narrative card (empty → loading skeleton → paragraph → dismiss), not persisted. Prompt is grounded strictly in the passed data and asks for one preamble-free paragraph. Verified the full flow in-browser.
 
 **What:** "✦ Generate monthly report" button in AnalyticsView → reads ALL module data for the selected period and produces a narrative summary:
 - Habit consistency %

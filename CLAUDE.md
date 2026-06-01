@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v1.0.10 — 2026-06-01**
+**Version: v1.0.11 — 2026-06-01**
 
 | Sprint | Status |
 |--------|--------|
@@ -21,7 +21,7 @@
 | S9 — Full Redesign | ✅ complete — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ |
 | S10 — Vibe-pak Consolidation | ✅ complete — T1 ✅ T2 ✅ T3 ✅ T4 ✅ T5 ✅ |
 | S11 — Welcome & Positioning | 🔜 next — "simpler Notion for life, everything connected" + live cascade demo (repositioned 2026-06-01) |
-| S12 — AI Depth | 🔜 planned — Habits/Notes/Finance/Analytics; start with Analytics monthly report |
+| S12 — AI Depth | 🔄 active — Analytics monthly report ✅ (v1.0.11); Habits/Notes/Finance pending |
 | S13 — Design Pass | 🔜 planned — module quality pass (requires user review session) |
 | S14 — Quick Wins | 🔄 active — T1 lazy routes ✅ (v1.0.8), T5 AI provider seam ✅ (v1.0.9), T3 soft-delete ✅ (v1.0.10); README refresh, hex cleanup pending |
 
