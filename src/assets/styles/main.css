@@ -23,6 +23,19 @@
   --color-warning:          #f0a030;
   --color-info:             #5c7cfa;
 
+  /* Module identity colors — calendar dots, legend, analytics, future module accents */
+  --color-mod-tasks:        #818cf8;
+  --color-mod-habits:       #34d399;
+  --color-mod-learning:     #fbbf24;
+  --color-mod-training:     #f87171;
+  --color-mod-goals:        #a78bfa;
+
+  /* Priority colors — calendar task dots, task list indicators */
+  --color-priority-urgent:  #ef4444;
+  --color-priority-high:    #f97316;
+  --color-priority-medium:  var(--color-warning);
+  --color-priority-low:     var(--color-text-muted);
+
   /* Text — improved contrast for dark mode */
   --color-text:             #f0f0f4;
   --color-text-secondary:   #c4c4cc;   /* was #a1a1aa — much more readable */

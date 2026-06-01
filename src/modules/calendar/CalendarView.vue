@@ -218,8 +218,11 @@ function selectDate(ds: string) {
 }
 
 const PRIORITY_COLOR: Record<string, string> = {
-  urgent: '#ef4444', high: '#f97316', medium: '#f59e0b',
-  low: '#6b7280', none: 'var(--color-text-muted)',
+  urgent: 'var(--color-priority-urgent)',
+  high:   'var(--color-priority-high)',
+  medium: 'var(--color-priority-medium)',
+  low:    'var(--color-priority-low)',
+  none:   'var(--color-text-muted)',
 }
 
 onMounted(() => {
@@ -485,7 +488,7 @@ onMounted(() => {
 /* Today: accent circle on number */
 .cal-cell--today .cal-cell__day {
   background: var(--color-accent);
-  color: #fff;
+  color: white;
   border-radius: 50%;
   width: 26px;
   height: 26px;
@@ -514,7 +517,7 @@ onMounted(() => {
 /* Today + selected: keep accent fill, just add ring */
 .cal-cell--today.cal-cell--selected .cal-cell__day {
   background: var(--color-accent);
-  color: #fff;
+  color: white;
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
@@ -537,11 +540,11 @@ onMounted(() => {
 
 /* ── Dots ────────────────────────────────────────────────────── */
 .cal-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
-.cal-dot--task     { background: #818cf8; }
-.cal-dot--habit    { background: #34d399; }
-.cal-dot--learning { background: #fbbf24; }
-.cal-dot--training { background: #f87171; }
-.cal-dot--goal     { background: #a78bfa; }
+.cal-dot--task     { background: var(--color-mod-tasks); }
+.cal-dot--habit    { background: var(--color-mod-habits); }
+.cal-dot--learning { background: var(--color-mod-learning); }
+.cal-dot--training { background: var(--color-mod-training); }
+.cal-dot--goal     { background: var(--color-mod-goals); }
 
 /* ── Legend ──────────────────────────────────────────────────── */
 .cal-legend {
@@ -630,7 +633,7 @@ onMounted(() => {
 .detail__emoji { font-size: 0.875rem; flex-shrink: 0; }
 .detail__row-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .detail__row-badge { font-size: 0.625rem; font-weight: 600; color: var(--color-text-secondary); background: var(--color-surface-elevated); border-radius: 99px; padding: 1px 6px; flex-shrink: 0; white-space: nowrap; }
-.detail__row-badge--done { color: #34d399; background: rgba(52, 211, 153, 0.12); }
+.detail__row-badge--done { color: var(--color-mod-habits); background: color-mix(in srgb, var(--color-mod-habits) 12%, transparent); }
 
 /* ── Responsive — tablet ─────────────────────────────────────── */
 @media (max-width: 1023px) {
