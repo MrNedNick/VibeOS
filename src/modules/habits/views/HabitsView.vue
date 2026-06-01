@@ -3,8 +3,9 @@ import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useHabitsStore } from '../stores/habits.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useLocale } from '@/core/i18n'
+import { useAiInsight } from '@/core/composables/useAiInsight'
 import HabitCard from '../components/HabitCard.vue'
-import { HABIT_CATEGORIES, HABIT_CATEGORY_META, computeStreak, todayStr } from '../types'
+import { HABIT_CATEGORIES, HABIT_CATEGORY_META, computeStreak, computeBestStreak, todayStr } from '../types'
 import type { HabitCategory } from '../types'
 
 const HABIT_TEMPLATES: { name: string; emoji: string; purpose: string; category: HabitCategory }[] = [
@@ -70,6 +71,56 @@ const filteredHabits = computed(() => {
   if (activeCategory.value === 'all') return store.habits
   return store.habits.filter(h => h.category === activeCategory.value)
 })
+
+// ── AI pattern insights (S12 T1) ──────────────────────────────────────
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const { result: aiInsight, loading: aiLoading, run: runInsight, dismiss: dismissInsight } = useAiInsight()
+
+/** Last 14 calendar dates, oldest → newest */
+function last14Dates(): string[] {
+  const out: string[] = []
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i)
+    out.push(d.toISOString().split('T')[0])
+  }
+  return out
+}
+
+function buildHabitsPrompt(): string {
+  const dates = last14Dates()
+  const lines = store.habits.map(h => {
+    const cat   = h.category ? HABIT_CATEGORY_META[h.category].label : 'Uncategorised'
+    const cur   = computeStreak(h.completedDates, h.skippedDates)
+    const best  = computeBestStreak(h.completedDates)
+    const doneSet = new Set(h.completedDates)
+    // Weekdays consistently missed over the last 14 days
+    const missedByDay: Record<string, number> = {}
+    const totalByDay: Record<string, number> = {}
+    for (const ds of dates) {
+      const wd = WEEKDAYS[new Date(ds + 'T00:00:00').getDay()]
+      totalByDay[wd] = (totalByDay[wd] ?? 0) + 1
+      if (!doneSet.has(ds)) missedByDay[wd] = (missedByDay[wd] ?? 0) + 1
+    }
+    const missedDays = Object.keys(missedByDay)
+      .filter(wd => missedByDay[wd] === totalByDay[wd]) // missed every occurrence
+      .join(', ') || 'none'
+    const last14 = dates.map(ds => (doneSet.has(ds) ? '✓' : '·')).join('')
+    return `- "${h.name}" [${cat}] · current streak ${cur}d, best ${best}d · last 14 days: ${last14} · always missed on: ${missedDays}`
+  }).join('\n')
+
+  return [
+    'You are analysing a user\'s habit tracking data. Below are their habits with the last 14 days of check-ins (✓ = done, · = missed), current and best streaks, category, and weekdays they always miss.',
+    '',
+    lines,
+    '',
+    'Give 2-3 short insight bullets (one line each, start each with "- "). Only observations grounded strictly in the data above — point out consistently missed weekdays, strong categories, or habits done together. No generic advice, no preamble.',
+  ].join('\n')
+}
+
+function askInsights(): void {
+  if (!store.habits.length) return
+  runInsight(buildHabitsPrompt())
+}
 
 // ── Milestone banner ──────────────────────────────────────────────────
 const milestone = computed(() => store.milestoneHabit)
@@ -160,10 +211,30 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <h1 class="habits__title">{{ i18n.t('habits.title') }}</h1>
         <p class="habits__date">{{ todayLabel }}</p>
       </div>
-      <button class="habits__add-btn" :title="i18n.t('habits.addBtn') + ' (N)'" @click="openForm">
-        {{ i18n.t('habits.addBtn') }}
-      </button>
+      <div class="habits__header-actions">
+        <button
+          v-if="store.habits.length > 0"
+          class="habits__ai-btn"
+          :title="aiLoading ? 'Thinking…' : 'AI: find patterns in your check-ins'"
+          :disabled="aiLoading"
+          @click="askInsights"
+        >{{ aiLoading ? '✦ …' : '✦ Patterns' }}</button>
+        <button class="habits__add-btn" :title="i18n.t('habits.addBtn') + ' (N)'" @click="openForm">
+          {{ i18n.t('habits.addBtn') }}
+        </button>
+      </div>
     </div>
+
+    <!-- AI pattern insights card -->
+    <Transition name="ai-fade">
+      <div v-if="aiInsight" class="habits__ai-card">
+        <div class="habits__ai-head">
+          <span class="habits__ai-label">✦ Pattern insights</span>
+          <button class="habits__ai-dismiss" @click="dismissInsight">×</button>
+        </div>
+        <p class="habits__ai-text">{{ aiInsight }}</p>
+      </div>
+    </Transition>
 
     <!-- New habit form -->
     <div v-if="showForm" class="habits__form" @keydown="onFormKeydown">
@@ -392,6 +463,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   margin: 4px 0 0;
 }
 
+.habits__header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
 .habits__add-btn {
   padding: 8px 16px;
   background: var(--color-accent);
@@ -404,6 +477,42 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   transition: opacity var(--t-fast);
 }
 .habits__add-btn:hover { opacity: 0.88; }
+
+.habits__ai-btn {
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+  color: var(--color-accent);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t-fast), opacity var(--t-fast);
+}
+.habits__ai-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.habits__ai-btn:disabled { opacity: 0.6; cursor: default; }
+
+/* AI pattern insights card */
+.habits__ai-card {
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-1);
+}
+.habits__ai-head { display: flex; align-items: center; justify-content: space-between; }
+.habits__ai-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
+.habits__ai-dismiss { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+.habits__ai-dismiss:hover { color: var(--color-text); }
+.habits__ai-text { font-size: var(--text-sm); line-height: var(--leading-lg); color: var(--color-text-secondary); margin: 0; white-space: pre-line; }
+
+.ai-fade-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.ai-fade-leave-active { transition: opacity 0.2s ease; }
+.ai-fade-enter-from   { opacity: 0; transform: translateY(-8px); }
+.ai-fade-leave-to     { opacity: 0; }
 
 /* New habit form */
 .habits__form {

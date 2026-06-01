@@ -1,20 +1,18 @@
 # VibeOS
 
-> A personal life OS — tasks, goals, habits, notes, learning, training, analytics, and AI in one place.
+> A simpler Notion for your life — where everything is connected. Log one thing, and the rest updates on its own.
 
 Live → **https://mrnednick.github.io/VibeOS**
 
-![Bundle Size](https://img.shields.io/badge/initial_JS-46_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-68_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square)
+![Bundle Size](https://img.shields.io/badge/initial_JS-46_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-128_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square)
 
 ---
 
 ## What it is
 
-VibeOS is a personal life OS: a single app where everything is connected. Your task list knows about your goals. Your habit streaks feed the analytics. Your AI report pulls from all of it.
+VibeOS is a light, no-setup daily tool for the parts of life Notion makes you build by hand — habits, tasks, goals, learning, training, notes — in one place where **everything is connected**. Check off a habit and its linked goal advances on its own. Log a workout and the habit checks itself off. One action cascades across modules; nothing to wire up.
 
-Not a demo that mimics real tools — a real tool that also demonstrates sophisticated engineering.
-
-Built with Vue 3 + TypeScript + Vite. No CSS frameworks. No unnecessary dependencies. State is versioned localStorage today; Supabase sync is coded and waiting on credentials.
+No databases to configure, no templates to wrestle. Open the link and use it. Your data stays in your browser (versioned localStorage today; Supabase sync is coded and waiting on credentials). And the built-in AI already knows your data — ask it anything, free, no key required.
 
 ---
 
@@ -26,11 +24,11 @@ Built with Vue 3 + TypeScript + Vite. No CSS frameworks. No unnecessary dependen
 | **Tasks** | Priorities, due dates, categories, goal links. Keyboard nav (`j/k/space/d`) · CSV/JSON export |
 | **Board** | Kanban + Timeline swimlane views of the same task data. Drag-and-drop sets column AND due date. |
 | **Goals** | Life goals with milestones, progress tracking, linked tasks, AI planning |
-| **Habits** | Daily check-offs, streak counter, GitHub-style heatmap, linked goals |
-| **Notes** | Three-pane workspace — list · editor · live preview. Daily journal, wiki backlinks, pin, `.md` export |
+| **Habits** | Daily check-offs, streak counter, GitHub-style heatmap, linked goals, AI pattern insights |
+| **Notes** | Three-pane workspace — list · editor · live preview. Daily journal, wiki backlinks, pin, `.md` export, AI summarise + action items |
 | **Learning** | Structured study plans — sessions, hours tracking, resources, habit integration, AI plan generation |
 | **Training** | Workout plans and session logs — running, strength, any sport. AI workout analysis. |
-| **Finance** | Expense tracking, category budgets, monthly charts |
+| **Finance** | Expense tracking, category budgets, monthly charts, AI spending analysis |
 | **Analytics** | Personal stats — habit heatmap, task completion, learning hours, training trends, AI monthly report |
 | **Calendar** | Monthly grid with habit and task dots |
 | **Studio** | AI chat lab — Claude (Opus/Sonnet/Haiku) with your API key, or GPT-OSS free, conversation history |
@@ -81,7 +79,7 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # production build → dist/
 npm run type-check # vue-tsc --noEmit
-npm test           # vitest run (68 tests, happy-dom)
+npm test           # vitest run (128 tests, happy-dom)
 ```
 
 ---
@@ -96,12 +94,12 @@ npm test           # vitest run (68 tests, happy-dom)
 | S4 — Core Life Modules | Goals, Tasks life categories, Habits→Goals | ✅ complete |
 | S5 — Life Depth | Learning, Training, Analytics | ✅ complete |
 | S6 — AI Integration | AI in 9 modules | ✅ complete |
-| S7 — Polish | 68 Vitest tests, CI gate, Lighthouse 82, a11y 100 | ✅ complete |
+| S7 — Polish | Vitest test suite, CI gate, Lighthouse 82, a11y 100 | ✅ complete |
 | S8 — Design System | @/ui component library + /ui-kit showcase page | ✅ complete |
 | S9 — Full Redesign | Revolut/Linear premium visual identity | ✅ complete |
 | S10 — Vibe-pak Consolidation | 4 clean paks: Dark, Light, Brutalist, CRT Retro | ✅ complete |
 | S11 — Welcome & Positioning | New welcome page + "everything connected" cascade | 🔜 next |
-| S12 — AI Depth | AI monthly report ✅ · Habits/Notes/Finance pending | 🔄 active |
+| S12 — AI Depth | AI in every data module — Analytics report, Habits insights, Notes summarise, Finance analysis | ✅ complete |
 | S13 — Design Pass | Module-by-module quality pass | 🔜 planned |
 | S14 — Quick Wins | Lazy routes, soft-delete, AI provider seam | 🔄 active |
 | S15 — Refactor & De-dup | Extract shared composables, split god-components | 🔜 planned |

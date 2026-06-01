@@ -10,6 +10,7 @@ import NoteEditor from '../components/NoteEditor.vue'
 import NotePreview from '../components/NotePreview.vue'
 import { UiIcon } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
+import { useAiInsight } from '@/core/composables/useAiInsight'
 
 const {
   selectedId, mode, searchQuery, typeFilter,
@@ -53,6 +54,41 @@ const wordCount = computed(() => {
   return text.trim() ? text.trim().split(/\s+/).length : 0
 })
 const readingTime = computed(() => Math.max(1, Math.ceil(wordCount.value / 200)))
+
+// ── AI: summarise / action items (S12 T2) ─────────────────────────────
+const { result: aiResult, loading: aiLoading, run: runAi, dismiss: dismissAi } = useAiInsight()
+const aiKind = ref<'summary' | 'actions' | null>(null)
+
+// Buttons only when a note is open with enough text to be worth analysing
+const canAnalyse = computed(() => (selectedNote.value?.content.trim().length ?? 0) > 200)
+
+function summariseNote() {
+  if (!canAnalyse.value) return
+  aiKind.value = 'summary'
+  runAi([
+    'Summarise the following note into 3-5 concise bullet points. Output only the bullets, each starting with "- ". No preamble, no title.',
+    '',
+    selectedNote.value!.content,
+  ].join('\n'))
+}
+
+function extractActions() {
+  if (!canAnalyse.value) return
+  aiKind.value = 'actions'
+  runAi([
+    'Extract concrete action items / next steps from the following note. Output only a bullet list, each starting with "- ". If there are no actionable items, reply with the single line "- No clear action items found." No preamble.',
+    '',
+    selectedNote.value!.content,
+  ].join('\n'))
+}
+
+function dismissAiCard() {
+  dismissAi()
+  aiKind.value = null
+}
+
+// Clear stale AI card when switching notes
+watch(selectedId, () => dismissAiCard())
 
 // Export as .md file
 function downloadNote() {
@@ -154,6 +190,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             {{ wordCount }} words · {{ readingTime }} min
           </span>
 
+          <!-- AI: summarise + action items (shown when note has >200 chars) -->
+          <template v-if="canAnalyse">
+            <button
+              class="notes-toolbar__ai"
+              :disabled="aiLoading"
+              title="AI: summarise this note into bullets"
+              @click="summariseNote"
+            >{{ aiLoading && aiKind === 'summary' ? '✦ …' : '✦ Summarise' }}</button>
+            <button
+              class="notes-toolbar__ai"
+              :disabled="aiLoading"
+              title="AI: extract action items from this note"
+              @click="extractActions"
+            >{{ aiLoading && aiKind === 'actions' ? '✦ …' : '✦ Action items' }}</button>
+          </template>
+
           <!-- Note type selector -->
           <div v-if="selectedNote" class="notes-type-select">
             <UiIcon
@@ -228,6 +280,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <p class="notes-empty__sub">Pick a note from the list, or start fresh.</p>
         <button class="notes-empty__btn" @click="newNote">New note</button>
       </div>
+
+      <!-- AI result card (floating, doesn't replace note content) -->
+      <Transition name="ai-fade">
+        <div v-if="aiResult" class="notes-ai-card">
+          <div class="notes-ai-card__head">
+            <span class="notes-ai-card__label">✦ {{ aiKind === 'actions' ? 'Action items' : 'Summary' }}</span>
+            <button class="notes-ai-card__dismiss" @click="dismissAiCard">×</button>
+          </div>
+          <p class="notes-ai-card__text">{{ aiResult }}</p>
+        </div>
+      </Transition>
 
       <!-- Backlinks bar (shown when note is open) -->
       <div v-if="selectedNote" class="notes-backlinks">
@@ -459,6 +522,43 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .notes-empty__btn:hover { opacity: 0.88; }
+
+/* AI toolbar buttons */
+.notes-toolbar__ai {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-accent);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: background var(--t-fast), opacity var(--t-fast);
+}
+.notes-toolbar__ai:hover:not(:disabled) { background: var(--color-accent-muted); }
+.notes-toolbar__ai:disabled { opacity: 0.6; cursor: default; }
+
+/* AI result card */
+.notes-ai-card {
+  flex-shrink: 0;
+  margin: 0 16px 12px;
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-1);
+}
+.notes-ai-card__head { display: flex; align-items: center; justify-content: space-between; }
+.notes-ai-card__label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
+.notes-ai-card__dismiss { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+.notes-ai-card__dismiss:hover { color: var(--color-text); }
+.notes-ai-card__text { font-size: var(--text-sm); line-height: var(--leading-lg); color: var(--color-text-secondary); margin: 0; white-space: pre-line; }
+
+.ai-fade-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.ai-fade-leave-active { transition: opacity 0.2s ease; }
+.ai-fade-enter-from   { opacity: 0; transform: translateY(-8px); }
+.ai-fade-leave-to     { opacity: 0; }
 
 /* ── Backlinks ───────────────────────────────────────────────── */
 .notes-backlinks {

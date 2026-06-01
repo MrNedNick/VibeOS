@@ -21,7 +21,7 @@
 | **S9 — Full Redesign** | Premium visual identity | ✅ **complete** — v0.9.x |
 | **S10 — Vibe-pak Consolidation** | 4 clean paks, Revolut + CRT redesign | ✅ **complete** — v1.0.x |
 | **S11 — Welcome & Positioning** | "Simple Notion for life, where everything is connected" + live cascade demo | 🔜 **next** — repositioned 2026-06-01 |
-| **S12 — AI Depth** | AI in every module; start with Analytics monthly report (shows connected data) | 🔜 planned — analysis-first sprint |
+| **S12 — AI Depth** | AI in every module; start with Analytics monthly report (shows connected data) | ✅ complete — Analytics ✅ (v1.0.11), Habits/Notes/Finance ✅ (v1.1.0) |
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔜 planned — small independent tasks |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | 🔜 planned — analysis-first, ordered T1–T9 (see below) |
@@ -562,7 +562,9 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T1 — Habits AI: "Pattern insights"
+### T1 — Habits AI: "Pattern insights" ✅ (v1.1.0)
+
+**Done:** "✦ Patterns" button in the HabitsView header (shown when habits exist). `buildHabitsPrompt()` injects, per habit, the last 14 days of check-ins (✓/·), current + best streak, category, and weekdays that are *always* missed in the window. Uses the shared `useAiInsight` composable → dismissable "✦ Pattern insights" card. Prompt is grounded strictly in the passed data, asks for 2-3 observation bullets, no generic advice. Verified live (button → loading → result card → dismiss).
 
 **What:** after user opens HabitsView or clicks "✦ Analyse" button → AI reads:  
 - Habit names, categories, current streaks, best streaks
@@ -580,7 +582,9 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T2 — Notes AI: "Summarise + extract"
+### T2 — Notes AI: "Summarise + extract" ✅ (v1.1.0)
+
+**Done:** "✦ Summarise" + "✦ Action items" buttons in the NotesView toolbar, shown only when the open note has >200 chars (`canAnalyse` computed). Both share one `useAiInsight` instance with an `aiKind` ref so only one card shows at a time; the floating "✦ Summary"/"✦ Action items" card renders below the editor (doesn't touch note content), is dismissable, and auto-clears when switching notes. Prompts pass raw note markdown, ask for bullets only. Verified live (both buttons appear at 51-word note).
 
 **What:** two buttons in NotesView toolbar (visible when a note is open and has >200 chars):
 1. **"✦ Summarise"** → distils note into 3–5 bullet points
@@ -594,7 +598,9 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T3 — Finance AI: "Spending analysis"
+### T3 — Finance AI: "Spending analysis" ✅ (v1.1.0)
+
+**Done:** "✦ Analyse spending" button at the top of the FinanceView Overview tab (shown when the selected month has categories). `buildSpendingPrompt()` injects the month's per-category spend (amount + % of total + budget + over-budget delta) and the 3 biggest single expenses, scoped to `selectedMonth`. Uses `useAiInsight` → dismissable "✦ Spending analysis" card. Asks for 3-4 grounded observations + 1-2 suggestions in the user's currency. Verified live (button + seeded Food/Transport/Housing categories render). Covered by new `finance.store.test.ts` (S16 T2) for the underlying aggregates.
 
 **What:** "✦ Analyse spending" button in FinanceView Overview tab → AI reads:
 - Current month expenses by category (total per category)
@@ -683,9 +689,9 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T2 — Refresh README.md 📄
+### T2 — Refresh README.md 📄 ✅ (v1.1.0)
 
-**Problem:** README is badly stale — it's the first thing seen on GitHub. It still says "S1 active", lists the removed **Snippets** module, and marks Goals/Learning/Training as "planned" (all shipped).
+**Done:** new tagline ("A simpler Notion for your life — where everything is connected. Log one thing, and the rest updates on its own.") + rewritten "What it is" leading with the cascade + no-setup framing. Module table updated with the new AI features (Habits insights, Notes summarise, Finance analysis). Sprint history table refreshed (S12 ✅ complete). Test badge + counts bumped 68 → 128.
 
 **Fix:**
 - Tagline + "What it is" → new positioning ("a simpler Notion for your life, everything connected"; lead with the cascade).
@@ -856,9 +862,11 @@ Re-measure the baseline (LOC of the 5 god-components, store count, duplication) 
 
 ---
 
-### T2 — Store unit tests: data-critical modules 🗄️
+### T2 — Store unit tests: data-critical modules 🗄️ 🔄 in progress
 
 Cover the stores that own irreplaceable user data, in priority order: **finance** (money math, budgets), **habits** (streak/heatmap logic), **notes** (backlinks, soft-delete), **training** + **learning** store (plan/session lifecycle, cascade delete). Mirror the existing `tasks.store.test.ts` style. Target: every data store has add/edit/delete/derived-count coverage.
+
+**Done so far:** `habits.store` + `notes.store` (earlier), and **`finance.store`** (v1.1.0) — 22 cases: expense CRUD + soft-delete, monthly aggregates (`totalThisMonth`/`spentByCategory`), budgets (set/update/remove/`totalBudget`/`activeCategories`), recurring toggle + `addFromRecurring`, `expensesByMonth`/`recentExpenses` cap, and currency conversion (identity / rate+rounding / symbol). **Remaining:** training + learning stores.
 
 ---
 

@@ -6,6 +6,7 @@ import type { ExpenseCategory } from '../types'
 import { UiIcon, UiSectionLabel, UiFilterChips, UiProgressBar } from '@/ui'
 import type { FilterChipOption } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
+import { useAiInsight } from '@/core/composables/useAiInsight'
 
 const todayDateStr = new Date().toISOString().split('T')[0]
 
@@ -53,6 +54,45 @@ const viewCategories = computed(() =>
     viewSpentByCategory.value[cat] > 0 || (isViewingCurrentMonth.value && (store.budgetMap[cat] ?? 0) > 0),
   )
 )
+
+// ── AI spending analysis (S12 T3) ──────────────────────────────────────────
+const { result: aiResult, loading: aiLoading, run: runAi, dismiss: dismissAi } = useAiInsight()
+
+function buildSpendingPrompt(): string {
+  const cur = store.currency
+  const lines = viewCategories.value.map(cat => {
+    const spent = viewSpentByCategory.value[cat]
+    const limit = store.budgetMap[cat] ?? 0
+    const pct   = viewTotal.value > 0 ? Math.round((spent / viewTotal.value) * 100) : 0
+    const budgetStr = limit > 0
+      ? ` · budget ${formatAmount(limit, cur)}${spent > limit ? ` (OVER by ${formatAmount(spent - limit, cur)})` : ''}`
+      : ' · no budget set'
+    return `- ${CATEGORY_META[cat].label}: ${formatAmount(spent, cur)} (${pct}% of total)${budgetStr}`
+  }).join('\n')
+
+  const biggest = [...viewExpenses.value]
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 3)
+    .map(e => `- ${formatAmount(e.amount, cur)} on ${CATEGORY_META[e.category].label}${e.note ? ` (${e.note})` : ''}`)
+    .join('\n')
+
+  return [
+    `You are analysing a user's spending for ${monthLabel.value}. All amounts are in ${cur}. Total spent: ${formatAmount(viewTotal.value, cur)}.`,
+    '',
+    'By category:',
+    lines,
+    '',
+    'Biggest single expenses:',
+    biggest || '- none',
+    '',
+    'Give 3-4 short observations grounded strictly in this data (largest category, over-budget categories, categories with no spending), then 1-2 concrete suggestions. One line per point, each starting with "- ". Use the same currency. No preamble.',
+  ].join('\n')
+}
+
+function analyseSpending(): void {
+  if (!viewCategories.value.length) return
+  runAi(buildSpendingPrompt())
+}
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
 type Tab = 'overview' | 'transactions' | 'budgets'
@@ -269,6 +309,25 @@ async function deleteExpense(id: string) {
       </div>
 
       <template v-else>
+        <!-- AI spending analysis -->
+        <div class="finance__ai">
+          <button
+            class="finance__ai-btn"
+            :disabled="aiLoading"
+            title="AI: analyse this month's spending"
+            @click="analyseSpending"
+          >{{ aiLoading ? '✦ Analysing…' : '✦ Analyse spending' }}</button>
+          <Transition name="ai-fade">
+            <div v-if="aiResult" class="finance__ai-card">
+              <div class="finance__ai-head">
+                <span class="finance__ai-label">✦ Spending analysis</span>
+                <button class="finance__ai-dismiss" @click="dismissAi">×</button>
+              </div>
+              <p class="finance__ai-text">{{ aiResult }}</p>
+            </div>
+          </Transition>
+        </div>
+
         <!-- Category stacked proportion bar -->
         <div class="finance__breakdown">
           <UiSectionLabel size="sm">Category breakdown</UiSectionLabel>
@@ -726,6 +785,44 @@ async function deleteExpense(id: string) {
   transition: background var(--t-fast);
 }
 .finance__empty-btn:hover { background: var(--color-border); }
+
+/* Overview — AI spending analysis */
+.finance__ai { display: flex; flex-direction: column; gap: 12px; }
+.finance__ai-btn {
+  align-self: flex-start;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+  color: var(--color-accent);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t-fast), opacity var(--t-fast);
+}
+.finance__ai-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.finance__ai-btn:disabled { opacity: 0.6; cursor: default; }
+
+.finance__ai-card {
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-1);
+}
+.finance__ai-head { display: flex; align-items: center; justify-content: space-between; }
+.finance__ai-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
+.finance__ai-dismiss { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+.finance__ai-dismiss:hover { color: var(--color-text); }
+.finance__ai-text { font-size: var(--text-sm); line-height: var(--leading-lg); color: var(--color-text-secondary); margin: 0; white-space: pre-line; }
+
+.ai-fade-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.ai-fade-leave-active { transition: opacity 0.2s ease; }
+.ai-fade-enter-from   { opacity: 0; transform: translateY(-8px); }
+.ai-fade-leave-to     { opacity: 0; }
 
 /* Overview — category rows */
 .finance__categories {
