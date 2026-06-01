@@ -17,3 +17,10 @@ export { default as UiFilterChips } from './components/UiFilterChips.vue'
 export type { FilterChipOption } from './components/UiFilterChips.vue'
 export { default as UiCard } from './components/UiCard.vue'
 export { default as UiField } from './components/UiField.vue'
+
+// ── S17 Phase 0 — new primitives ────────────────────────────────────────
+export { default as UiModal } from './components/UiModal.vue'
+export { default as UiIconButton } from './components/UiIconButton.vue'
+export { default as UiSelect } from './components/UiSelect.vue'
+export type { SelectOption } from './components/UiSelect.vue'
+export { default as UiTextarea } from './components/UiTextarea.vue'

@@ -934,19 +934,19 @@ Add `vitest --coverage` (c8/v8) reporting; set a *floor* (not 100%) on stores/co
 
 ---
 
-### Phase 0 — Fill the kit gaps (blockers; ship first)
+### Phase 0 — Fill the kit gaps (blockers; ship first) ✅ complete (v1.2.1)
 
 Each new primitive must: follow S9 visual rules, be exported from `src/ui/index.ts`, get a live showcase section under `/docs/ui-kit` (so it appears in Docs automatically), and get a `@vue/test-utils` test (counts toward S16 T4).
 
-**T1 — `UiModal`** — base overlay/dialog primitive: teleport to body, backdrop, scroll-lock, focus trap, Esc-to-close, `header`/`body`/`footer` slots, `v-model:open`. Refactor `UiConfirmDialog` to build on it. This replaces the 5+ hand-rolled `position: fixed` modals (finance, kanban, learning, training, games). *(Note: `UiModal` is already referenced in S16 T4 as if it exists — it does not yet.)*
+**T1 — `UiModal` ✅** — base overlay/dialog primitive: teleport to body, backdrop, scroll-lock, focus trap, Esc-to-close, `header`/`body`/`footer` slots, `v-model:open`, `@close` emit, `size` (sm/md/lg). `UiConfirmDialog` refactored to build on it. Showcase at `/docs/ui-kit/modal`. 9 `@vue/test-utils` tests.
 
-**T2 — `UiIconButton`** — icon-only button: `size` (sm/md), `variant` (ghost/danger/subtle), **required `aria-label`**, optional `:badge`. Covers the dozens of × / + / toolbar buttons that should NOT become full `UiButton`s.
+**T2 — `UiIconButton` ✅** — icon-only button: `size` (sm/md), `variant` (ghost/danger/subtle), **required `ariaLabel`** (binds to `aria-label`), `loading`, `disabled`. Showcase at `/docs/ui-kit/iconbutton`. 8 tests.
 
-**T3 — `UiSelect`** — token-styled dropdown wrapping native `<select>` (28 call sites). `v-model`, `:options`, disabled, sizes. Pairs with `UiField` for labels.
+**T3 — `UiSelect` ✅** — token-styled dropdown wrapping native `<select>` (28 call sites). `v-model`, `options` (`SelectOption[]`), `placeholder`, `size` (sm/md), `disabled`. Pairs with `UiField`. Showcase at `/docs/ui-kit/select`. 6 tests.
 
-**T4 — `UiTextarea`** — multiline text (9 call sites). Decide: standalone component vs `multiline`/`rows` prop on `UiInput`. Document the decision in `conventions.md`.
+**T4 — `UiTextarea` ✅** — standalone multiline text component (9 call sites). `v-model`, `rows`, `resize`, `placeholder`, `disabled`. Decision: separate component (not a prop on UiInput) — documented in `conventions.md`. Showcase at `/docs/ui-kit/textarea`. 8 tests.
 
-**T5 — `UiTabs` / `UiSegmented`** *(evaluate)* — view-switchers appear in kanban, analytics, calendar, finance, settings. If ≥4 real call sites share the pattern, extract it; otherwise skip and note why.
+**T5 — `UiTabs` / `UiSegmented` → SKIPPED** — only 2 modules use a custom tab-switcher pattern (`FinanceView`, `WelcomeView`), and both already delegate to the existing `UiFilterChips` (14× adopted). Threshold of ≥4 real tab-switching spots not met. `UiFilterChips` is the canonical tab/chip component.
 
 ---
 
@@ -972,6 +972,191 @@ Each task = one cluster: replace raw elements with `@/ui`, **delete the now-dead
 **T15 — Sprint close** — final audit re-run (the table above should drop to ~0 raw in scope), update `CLAUDE.md` + `conventions.md` `@/ui` reference with the new primitives, record final counts here, bump minor version.
 
 **Payoff:** one edit to `src/ui/components/UiButton.vue` (or any token) restyles the entire app — the design-system promise actually holds.
+
+---
+
+## S18 — Product Analytics & Feedback 🔜 planned
+
+**Goal:** understand how users actually use VibeOS — which modules they visit, which features they use, how long they stay, and what they think. Today the app is flying blind: the Analytics module shows data-store stats (tasks done, habits rate) but **zero behavioral usage data**. No navigation events, no session tracking, no UI interaction tracking, no feedback loop. This sprint builds that layer — privacy-first, entirely self-hosted, no external SDKs, data stays in localStorage and optionally syncs to Supabase (S3).
+
+> **Audit baseline (2026-06-01, v1.2.0):**
+> | Signal | Current state |
+> |--------|--------------|
+> | `useEventBus` event bus | ✅ exists — typed `PlatformEvent` union, ring buffer of 100, localStorage-persisted |
+> | `PlatformEvent` types | ✅ 19 types (task/habit/note/card/studio/game/learning/training/goal events) |
+> | Modules emitting events | 9/18 — **9 are silent**: finance, calendar, settings, about, auth, docs, welcome, analytics, not-found |
+> | Navigation tracking | ❌ none — no `router.afterEach`, no `module:visited` events |
+> | Session tracking | ❌ none — no session start/end, no time-in-module |
+> | Click / UI interaction | ❌ none — no semantic click events beyond store mutations |
+> | Event buffer size | 100 — far too small for behavioral analytics (a single day of use fills it) |
+> | Feedback / NPS | ❌ none — no modal, no store, no trigger logic |
+> | Analytics dashboard | Shows data-store stats only — no behavioral view |
+> | Privacy | ✅ fully local today — must stay that way |
+
+---
+
+### Architecture decisions (locked before implementation)
+
+**Privacy-first, zero external SDKs.** All data stays in localStorage. When Supabase is live (S3), sync `analytics_events` and `feedback_entries` tables. No Mixpanel, Amplitude, PostHog, or any third-party tracking — this is a personal life OS, the data is the user's.
+
+**Semantic events, not raw clicks.** A global `document.addEventListener('click')` is a trap — it fires on everything and produces noise. Instead: emit named semantic events at the call site (`feature:ai-insight-triggered`, `module:filter-applied`, `ui:command-palette-opened`). Use a Vue directive `v-track` for components where adding a composable is cumbersome. The rule: **every event must answer "what did the user accomplish?" not "what DOM element did they touch?"**
+
+**Two-layer event model:**
+1. **Platform events** (`PlatformEvent` — already exists) — data mutations: task created, habit checked. These already drive achievements.
+2. **Interaction events** (`InteractionEvent` — new) — behavioral signals: module visited, feature used, session start, feedback submitted. Separate type union, separate store, larger buffer (10 000 entries), separate localStorage key.
+
+**Sessions** = a contiguous visit to the app. Session starts on first navigation, ends after 30 min of inactivity or tab close. Each session has an ID, start time, active modules list, and duration.
+
+**Feedback trigger logic** (not annoying):
+- First time: after the user has opened the app on 3 different calendar days and has ≥5 platform events
+- Repeat: every 30 days of active use (not calendar days — actual sessions)
+- Never: during onboarding, immediately after an error, if dismissed twice
+- Always: user can trigger it manually from Settings → Feedback
+
+---
+
+### Phase 0 — Core infrastructure (T1–T4)
+
+**T1 — Interaction event types + upgraded event bus**
+
+Add `src/core/events/interaction.types.ts` with the full `InteractionEvent` discriminated union:
+```
+session:start           { sessionId, timestamp, referrer? }
+session:end             { sessionId, duration, modulesVisited: string[] }
+module:visited          { module, from?, timestamp, sessionId }
+module:time-spent       { module, seconds, sessionId }
+feature:used            { module, feature, context?, timestamp }  ← semantic, named
+ui:command-palette      { query?, resultCount, selected? }
+ui:theme-switched       { from, to }
+ui:feedback-triggered   { trigger: 'auto'|'manual' }
+ui:feedback-submitted   { score: 0-10, hasComment: boolean }
+ui:feedback-dismissed   { dismissCount }
+ui:ai-insight           { module, action: 'triggered'|'dismissed' }
+ui:export               { format: 'json'|'csv', module }
+```
+Create `useInteractionBus` Pinia store in `src/core/events/interaction.ts` — same pattern as `useEventBus` but:
+- Buffer size: **10 000** (not 100)
+- localStorage key: `platform:interaction-events`
+- Rotation: when buffer full, drop oldest 20% (not ALL)
+- Expose `recent(n, type)`, `countByModule(days)`, `countByFeature(days)`, `sessionHistory(days)`
+
+**T2 — Router navigation tracker**
+
+`src/core/plugins/navigationTracker.ts` — Vue plugin, installed in `main.ts`.
+Uses `router.afterEach` to:
+- Emit `module:visited` on every navigation (derive module from route meta)
+- Start/restart a per-module timer on enter; emit `module:time-spent` on leave
+- Start a new session on first navigation after 30 min gap or fresh app load
+- Emit `session:start` / `session:end` accordingly (use `document.addEventListener('visibilitychange')` + `beforeunload`)
+
+No store imports at the plugin level — write to `useInteractionBus` only.
+
+**T3 — `useTrack` composable + `v-track` directive**
+
+`src/core/composables/useTrack.ts` — thin wrapper:
+```ts
+function track(feature: string, context?: Record<string, unknown>): void
+// → emits feature:used with { module: currentRoute.meta.module, feature, context }
+```
+`src/core/directives/vTrack.ts` — directive for template use:
+```html
+<button v-track="'filter:applied'" ...>
+<UiButton v-track="{ feature: 'task:quick-add', context: { from: 'dashboard' } }" ...>
+```
+Register both globally in `main.ts`. The directive attaches a single `click` listener that calls `track()`. Does NOT replace semantic events from stores — supplements them for UI-layer signals.
+
+**T4 — Wire silent modules to event bus**
+
+Add semantic `feature:used` events to the 9 currently-silent modules. Do NOT add noise — only meaningful user actions:
+- `finance`: expense added, budget set, AI analysis triggered
+- `calendar`: view switched (month/week/list), event clicked
+- `settings`: theme changed (already via ui:theme-switched), module visibility toggled, data exported
+- `about`: external link clicked (GitHub, live demo)
+- `analytics`: period changed, AI report generated
+- `docs`: page navigated, search used
+- `welcome`: CTA clicked, demo mode entered
+- `auth`: sign-in attempted, demo mode activated
+
+---
+
+### Phase 1 — Feedback system (T5–T7)
+
+**T5 — `UiFeedbackModal` component**
+
+`src/ui/components/UiFeedbackModal.vue` — exported from `@/ui`, uses `UiModal` (from S17 T1):
+- Step 1: NPS score 0–10 with labeled anchors ("Not at all" / "Absolutely")
+- Step 2 (conditional, score ≤ 6 or ≥ 9): optional free-text "Tell us more" textarea
+- Step 3: Thank you screen (auto-dismiss after 2s)
+- Props: `v-model:open`, `@submitted`, `@dismissed`
+- No network calls — just emits the result upward
+- Add showcase section `/docs/ui-kit/feedbackmodal`
+
+**T6 — `useFeedback` composable**
+
+`src/core/composables/useFeedback.ts`:
+- `shouldPrompt()` — returns true when: ≥3 distinct active days, ≥5 platform events, not dismissed twice, last submission > 30 active-days ago
+- `markSubmitted(score, comment?)` — stores in feedback store + emits `ui:feedback-submitted`
+- `markDismissed()` — increments dismiss count, stores timestamp
+- `openManually()` — bypasses trigger logic, used from Settings
+- Trigger check runs on `session:start` event, not on a timer
+
+**T7 — `feedback.store` + Supabase schema**
+
+`src/core/stores/feedback.store.ts` — Pinia store, localStorage key `platform:feedback`:
+```ts
+interface FeedbackEntry { id, score, comment?, timestamp, sessionId, appVersion }
+```
+- `entries: FeedbackEntry[]`
+- `dismissCount: number`, `lastDismissedAt: string`, `lastSubmittedAt: string`
+- `activeDays: string[]` — dates the user has opened the app (maintained by navigation tracker)
+- Supabase table schema: `feedback_entries(id, user_id, score, comment, timestamp, app_version)` — add to `supabase.types.ts`
+
+---
+
+### Phase 2 — Analytics dashboard: behavioral view (T8–T10)
+
+**T8 — "Usage" tab in AnalyticsView**
+
+Add a second tab to the existing `AnalyticsView`: **Usage** (alongside the current data-stats view).
+Sections:
+- **Module usage** — horizontal bar chart of visit counts per module in selected period; time-spent breakdown; most-used vs. least-used modules
+- **Session history** — sessions per day sparkline, average session duration, longest session
+- **Feature use** — top 10 most-used features (from `feature:used` events), trending up/down vs. previous period
+- **Streak** — consecutive days the app was opened (supplement to habit streaks)
+
+All data from `useInteractionBus.countByModule()` / `countByFeature()` — no extra stores.
+
+**T9 — Command palette: analytics commands**
+
+Add commands to `commandPalette.store`:
+- "View usage analytics" → `/analytics#usage`
+- "Submit feedback" → opens `UiFeedbackModal`
+- "Clear analytics data" → confirmation → `useInteractionBus.clear()`
+
+**T10 — Settings: Privacy & Data section**
+
+New section in `SettingsView` — **Privacy & Data**:
+- "Usage analytics" toggle — opt out of interaction tracking (writes to `ui.store`, checked before every `track()` call)
+- Feedback history — list of past submissions with scores
+- "Submit feedback now" button — `useFeedback.openManually()`
+- "Export my data" (already planned as feature-gated)
+- "Clear all analytics data" — clears both `useEventBus` and `useInteractionBus`
+
+---
+
+### Phase 3 — Lock it in (T11–T12)
+
+**T11 — Supabase schema + sync**
+
+Add `analytics_events` and `feedback_entries` tables to `supabase.types.ts`. When S3 (auth) lands, wire `useInteractionBus` to `useCloudSync` so events sync per user. Gate behind `useFeatureGate('cloud-sync')`. Local-only behavior unchanged for unauthenticated users.
+
+**T12 — Sprint close + documentation**
+
+- Update `CLAUDE.md` with S18 complete, new composables/stores reference
+- Update `docs/conventions.md` — document `useTrack` and `v-track` usage rules (what to track, what not to track)
+- Add `/docs/ui-kit/feedbackmodal` showcase to docs-registry
+- Final event coverage audit: all 18 modules should now emit meaningful signals
+- Bump minor version
 
 ---
 

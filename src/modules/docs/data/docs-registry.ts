@@ -20,10 +20,15 @@ import UiProgressRingSection from '@/modules/ui-kit/views/sections/components/Ui
 import UiStatSection from '@/modules/ui-kit/views/sections/components/UiStatSection.vue'
 import UiSectionLabelSection from '@/modules/ui-kit/views/sections/components/UiSectionLabelSection.vue'
 import UiFilterChipsSection from '@/modules/ui-kit/views/sections/components/UiFilterChipsSection.vue'
+// S17 Phase 0 — new primitives
+import UiIconButtonSection from '@/modules/ui-kit/views/sections/components/UiIconButtonSection.vue'
+import UiSelectSection from '@/modules/ui-kit/views/sections/components/UiSelectSection.vue'
+import UiTextareaSection from '@/modules/ui-kit/views/sections/components/UiTextareaSection.vue'
 // Patterns
 import UiEmptyStateSection from '@/modules/ui-kit/views/sections/patterns/UiEmptyStateSection.vue'
 import UiConfirmDialogSection from '@/modules/ui-kit/views/sections/patterns/UiConfirmDialogSection.vue'
 import UiPlannedViewSection from '@/modules/ui-kit/views/sections/patterns/UiPlannedViewSection.vue'
+import UiModalSection from '@/modules/ui-kit/views/sections/patterns/UiModalSection.vue'
 
 export interface DocPage {
   slug: string
@@ -170,6 +175,9 @@ export const DOC_REGISTRY: DocSection[] = [
       { slug: 'ui-kit/stat',         label: 'UiStat',         labelRu: 'UiStat',         component: UiStatSection,         description: 'Single metric display',         descriptionRu: 'Отображение метрики' },
       { slug: 'ui-kit/sectionlabel', label: 'UiSectionLabel', labelRu: 'UiSectionLabel', component: UiSectionLabelSection, description: 'Section heading label',         descriptionRu: 'Заголовок секции' },
       { slug: 'ui-kit/filterchips',  label: 'UiFilterChips',  labelRu: 'UiFilterChips',  component: UiFilterChipsSection,  description: 'Toggleable filter chips',       descriptionRu: 'Переключаемые чипсы-фильтры' },
+      { slug: 'ui-kit/iconbutton',   label: 'UiIconButton',   labelRu: 'UiIconButton',   component: UiIconButtonSection,   description: 'Icon-only action button',       descriptionRu: 'Кнопка только с иконкой' },
+      { slug: 'ui-kit/select',       label: 'UiSelect',       labelRu: 'UiSelect',       component: UiSelectSection,       description: 'Token-styled native select',    descriptionRu: 'Нативный select в токенах' },
+      { slug: 'ui-kit/textarea',     label: 'UiTextarea',     labelRu: 'UiTextarea',     component: UiTextareaSection,     description: 'Multi-line text input',         descriptionRu: 'Многострочное поле ввода' },
     ],
   },
   {
@@ -177,9 +185,10 @@ export const DOC_REGISTRY: DocSection[] = [
     label: 'UI Patterns',
     labelRu: 'UI-паттерны',
     pages: [
-      { slug: 'ui-kit/emptystate',    label: 'UiEmptyState',    labelRu: 'UiEmptyState',    component: UiEmptyStateSection,    description: 'Empty / zero-data state',  descriptionRu: 'Состояние без данных' },
-      { slug: 'ui-kit/confirmdialog', label: 'UiConfirmDialog', labelRu: 'UiConfirmDialog', component: UiConfirmDialogSection, description: 'Confirmation modal',       descriptionRu: 'Модал подтверждения' },
-      { slug: 'ui-kit/plannedview',   label: 'UiPlannedView',   labelRu: 'UiPlannedView',   component: UiPlannedViewSection,   description: 'Planned / coming-soon view', descriptionRu: 'Экран «в планах»' },
+      { slug: 'ui-kit/emptystate',    label: 'UiEmptyState',    labelRu: 'UiEmptyState',    component: UiEmptyStateSection,    description: 'Empty / zero-data state',     descriptionRu: 'Состояние без данных' },
+      { slug: 'ui-kit/confirmdialog', label: 'UiConfirmDialog', labelRu: 'UiConfirmDialog', component: UiConfirmDialogSection, description: 'Confirmation modal',          descriptionRu: 'Модал подтверждения' },
+      { slug: 'ui-kit/plannedview',   label: 'UiPlannedView',   labelRu: 'UiPlannedView',   component: UiPlannedViewSection,   description: 'Planned / coming-soon view',  descriptionRu: 'Экран «в планах»' },
+      { slug: 'ui-kit/modal',         label: 'UiModal',         labelRu: 'UiModal',         component: UiModalSection,         description: 'Base overlay / dialog primitive', descriptionRu: 'Базовый оверлей/диалог' },
     ],
   },
 ]

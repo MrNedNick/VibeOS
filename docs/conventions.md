@@ -88,6 +88,7 @@ import {
   UiFilterChips, UiCard, UiField,
   UiButton, UiBadge, UiInput, UiSkeleton,
   UiEmptyState, UiProgressRing, UiIcon,
+  UiModal, UiIconButton, UiSelect, UiTextarea,
 } from '@/ui'
 ```
 
@@ -105,9 +106,20 @@ import {
 | `UiField` | Form field with label | `label`, `hint`, `error`, `required`, `fieldId` |
 | `UiSkeleton` | Loading placeholders | `width`, `height`, `rounded`, `inline` |
 | `UiEmptyState` | Empty lists/views | `icon`, `title`, `subtitle`, `action-label` |
-| `UiButton` | All buttons | `variant`, `size`, `loading`, `disabled` |
+| `UiButton` | All labelled buttons | `variant`, `size`, `loading`, `disabled` |
 | `UiBadge` | Status tags | `color`, `size` |
 | `UiProgressRing` | Circular progress | `value`, `size`, `label` |
+| `UiModal` | Overlay dialogs | `v-model:open`, `size="sm\|md\|lg"`, `@close`, slots: `header/body/footer` |
+| `UiIconButton` | Icon-only actions (×, +, ✎…) | `name`, `aria-label` (required), `size`, `variant`, `loading` |
+| `UiSelect` | Dropdown / select | `v-model`, `options`, `placeholder`, `size`, `disabled` |
+| `UiTextarea` | Multi-line text input | `v-model`, `rows`, `resize`, `placeholder`, `disabled` |
+
+### UiTextarea design decision (S17)
+
+`UiTextarea` is a **separate component**, not a `multiline` prop on `UiInput`. Reasons:
+- `<textarea>` and `<input>` are distinct HTML elements with different semantics (rows, resize, scroll, Enter behaviour).
+- Mixing them into one component adds conditional rendering and complicates both CSS and TypeScript props.
+- Separate components are independently evolvable (e.g. auto-resize on `UiTextarea` won't affect `UiInput`).
 
 ## S9 Visual Conventions (enforced from v0.9.0)
 

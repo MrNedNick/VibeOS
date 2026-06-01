@@ -1,95 +1,58 @@
 <script setup lang="ts">
 import { useConfirm } from '@/core/composables/useConfirm'
+import UiModal from './UiModal.vue'
 import UiIcon from './UiIcon.vue'
 
 const { isOpen, title, body, isDanger, confirmLabel, cancelLabel, accept, dismiss } = useConfirm()
 
-function onBackdropKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') dismiss()
-}
-
 function onDialogKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') { e.preventDefault(); accept() }
-  if (e.key === 'Escape') dismiss()
 }
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition name="confirm-fade">
-      <div
-        v-if="isOpen"
-        class="confirm-backdrop"
-        role="presentation"
-        @mousedown.self="dismiss"
-        @keydown="onBackdropKeydown"
-      >
-        <div
-          class="confirm-modal"
-          role="dialog"
-          aria-modal="true"
-          :aria-labelledby="title"
-          @keydown="onDialogKeydown"
-        >
-          <!-- Icon -->
-          <div class="confirm-modal__icon" :class="{ 'confirm-modal__icon--danger': isDanger }">
-            <UiIcon :name="isDanger ? 'AlertTriangle' : 'HelpCircle'" :size="20" :stroke-width="1.8" />
-          </div>
-
-          <!-- Text -->
-          <div class="confirm-modal__text">
-            <h2 class="confirm-modal__title">{{ title }}</h2>
-            <p v-if="body" class="confirm-modal__body">{{ body }}</p>
-          </div>
-
-          <!-- Actions -->
-          <div class="confirm-modal__actions">
-            <button class="confirm-btn confirm-btn--cancel" @click="dismiss">
-              {{ cancelLabel }}
-            </button>
-            <button
-              class="confirm-btn"
-              :class="isDanger ? 'confirm-btn--danger' : 'confirm-btn--primary'"
-              @click="accept"
-            >
-              {{ confirmLabel }}
-            </button>
-          </div>
+  <UiModal v-model:open="isOpen" size="sm" @close="dismiss">
+    <template #header>
+      <div class="confirm-header">
+        <div class="confirm-header__icon" :class="{ 'confirm-header__icon--danger': isDanger }">
+          <UiIcon :name="isDanger ? 'AlertTriangle' : 'HelpCircle'" :size="20" :stroke-width="1.8" />
         </div>
+        <h2 class="confirm-header__title">{{ title }}</h2>
       </div>
-    </Transition>
-  </Teleport>
+    </template>
+
+    <template #body>
+      <div @keydown="onDialogKeydown">
+        <p v-if="body" class="confirm-body">{{ body }}</p>
+        <p v-else class="confirm-body confirm-body--empty" aria-hidden="true" />
+      </div>
+    </template>
+
+    <template #footer>
+      <button class="confirm-btn confirm-btn--cancel" @click="dismiss">
+        {{ cancelLabel }}
+      </button>
+      <button
+        class="confirm-btn"
+        :class="isDanger ? 'confirm-btn--danger' : 'confirm-btn--primary'"
+        @click="accept"
+      >
+        {{ confirmLabel }}
+      </button>
+    </template>
+  </UiModal>
 </template>
 
 <style scoped>
-.confirm-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(3px);
+.confirm-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 20px;
+  gap: 12px;
 }
 
-.confirm-modal {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-4), 0 0 0 1px rgba(255,255,255,0.04);
-  width: 100%;
-  max-width: 380px;
-  padding: 24px 24px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.confirm-modal__icon {
-  width: 40px;
-  height: 40px;
+.confirm-header__icon {
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -98,14 +61,13 @@ function onDialogKeydown(e: KeyboardEvent) {
   color: var(--color-text-muted);
   flex-shrink: 0;
 }
-.confirm-modal__icon--danger {
-  background: color-mix(in srgb, #ef4444 12%, transparent);
-  color: #ef4444;
+
+.confirm-header__icon--danger {
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
 }
 
-.confirm-modal__text { display: flex; flex-direction: column; gap: 6px; }
-
-.confirm-modal__title {
+.confirm-header__title {
   font-size: var(--text-md);
   font-weight: 700;
   color: var(--color-text);
@@ -113,19 +75,15 @@ function onDialogKeydown(e: KeyboardEvent) {
   line-height: var(--leading-2xl);
 }
 
-.confirm-modal__body {
+.confirm-body {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   margin: 0;
   line-height: var(--leading-sm);
+  min-height: 0;
 }
 
-.confirm-modal__actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  padding-top: 4px;
-}
+.confirm-body--empty { display: none; }
 
 .confirm-btn {
   padding: 8px 18px;
@@ -142,7 +100,9 @@ function onDialogKeydown(e: KeyboardEvent) {
   border: 1px solid var(--color-border);
   color: var(--color-text-secondary);
 }
-.confirm-btn--cancel:hover { background: var(--color-border); }
+.confirm-btn--cancel:hover {
+  background: color-mix(in srgb, var(--color-text-muted) 12%, var(--color-surface-elevated));
+}
 
 .confirm-btn--primary {
   background: var(--color-accent);
@@ -151,18 +111,8 @@ function onDialogKeydown(e: KeyboardEvent) {
 .confirm-btn--primary:hover { opacity: 0.88; }
 
 .confirm-btn--danger {
-  background: #ef4444;
+  background: var(--color-danger);
   color: #fff;
 }
 .confirm-btn--danger:hover { opacity: 0.88; }
-
-/* Transition */
-.confirm-fade-enter-active { transition: opacity 140ms var(--ease); }
-.confirm-fade-enter-active .confirm-modal { transition: transform 140ms var(--ease), opacity 140ms var(--ease); }
-.confirm-fade-leave-active { transition: opacity 100ms var(--ease); }
-.confirm-fade-leave-active .confirm-modal { transition: transform 100ms var(--ease), opacity 100ms var(--ease); }
-.confirm-fade-enter-from { opacity: 0; }
-.confirm-fade-enter-from .confirm-modal { transform: scale(0.95) translateY(6px); opacity: 0; }
-.confirm-fade-leave-to { opacity: 0; }
-.confirm-fade-leave-to .confirm-modal { transform: scale(0.97) translateY(3px); opacity: 0; }
 </style>
