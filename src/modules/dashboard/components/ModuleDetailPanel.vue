@@ -2,7 +2,7 @@
 import { useRouter } from 'vue-router'
 import type { ModuleMeta } from '@/core/registry/modules'
 import type { ModuleDetail } from '../data/platform-notes'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel, UiProgressBar } from '@/ui'
 import { useLocale } from '@/core/i18n'
 
 interface LiveStats {
@@ -76,19 +76,13 @@ function modMilestone(modId: string): string {
         <span class="detail__progress-label">{{ i18n.t('dashboardDetail.completeness') }}</span>
         <span class="detail__progress-pct">{{ detail.progress }}%</span>
       </div>
-      <div class="detail__progress-bar">
-        <div
-          class="detail__progress-fill"
-          :class="{ 'detail__progress-fill--accent': detail.progress > 0 }"
-          :style="{ width: `${detail.progress}%` }"
-        />
-      </div>
+      <UiProgressBar :value="detail.progress" />
       <p class="detail__milestone">{{ modMilestone(mod.id) }}</p>
     </div>
 
     <!-- Live usage stats (task-manager only for now) -->
     <div v-if="liveStats && mod.status === 'available'" class="detail__live-stats">
-      <p class="detail__section-label">{{ i18n.t('dashboardDetail.liveStats') }}</p>
+      <UiSectionLabel>{{ i18n.t('dashboardDetail.liveStats') }}</UiSectionLabel>
       <div class="live-stats">
         <div class="live-stat">
           <span class="live-stat__value">{{ liveStats.totalCount }}</span>
@@ -111,7 +105,7 @@ function modMilestone(modId: string): string {
 
     <!-- Shipped Tasks -->
     <div v-if="detail.shippedTasks.length" class="detail__section">
-      <p class="detail__section-label detail__section-label--success">{{ i18n.t('dashboardDetail.shipped') }} ✓</p>
+      <UiSectionLabel class="detail__section-label--success">{{ i18n.t('dashboardDetail.shipped') }} ✓</UiSectionLabel>
       <div class="task-list">
         <div
           v-for="(task, i) in detail.shippedTasks"
@@ -127,7 +121,7 @@ function modMilestone(modId: string): string {
 
     <!-- Next Tasks -->
     <div v-if="detail.nextTasks.length" class="detail__section">
-      <p class="detail__section-label">{{ i18n.t('dashboardDetail.nextTasks') }}</p>
+      <UiSectionLabel>{{ i18n.t('dashboardDetail.nextTasks') }}</UiSectionLabel>
       <div class="task-list">
         <div
           v-for="(task, i) in detail.nextTasks"
@@ -145,7 +139,7 @@ function modMilestone(modId: string): string {
 
     <!-- Planned Improvements -->
     <div v-if="detail.improvements.length" class="detail__section">
-      <p class="detail__section-label">{{ i18n.t('dashboardDetail.improvements') }}</p>
+      <UiSectionLabel>{{ i18n.t('dashboardDetail.improvements') }}</UiSectionLabel>
       <ul class="detail__list">
         <li v-for="(item, i) in detail.improvements" :key="i">{{ item }}</li>
       </ul>
@@ -153,7 +147,7 @@ function modMilestone(modId: string): string {
 
     <!-- Tech Debt -->
     <div v-if="detail.techDebt.length" class="detail__section">
-      <p class="detail__section-label">{{ i18n.t('dashboardDetail.techDebt') }}</p>
+      <UiSectionLabel>{{ i18n.t('dashboardDetail.techDebt') }}</UiSectionLabel>
       <div class="debt-list">
         <div v-for="(item, i) in detail.techDebt" :key="i" class="debt-row">
           <span class="debt-row__sev" :class="`debt-row__sev--${SEVERITY_COLOR[item.severity]}`">
@@ -166,7 +160,7 @@ function modMilestone(modId: string): string {
 
     <!-- Ideas -->
     <div v-if="detail.ideas.length" class="detail__section">
-      <p class="detail__section-label">{{ i18n.t('dashboardDetail.ideas') }}</p>
+      <UiSectionLabel>{{ i18n.t('dashboardDetail.ideas') }}</UiSectionLabel>
       <ul class="detail__list detail__list--muted">
         <li v-for="(item, i) in detail.ideas" :key="i">{{ item }}</li>
       </ul>
@@ -276,22 +270,6 @@ function modMilestone(modId: string): string {
   color: var(--color-text-muted);
 }
 
-.detail__progress-bar {
-  height: 4px;
-  background: var(--color-surface-elevated);
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.detail__progress-fill {
-  height: 100%;
-  background: var(--color-border);
-  border-radius: 99px;
-  transition: width 500ms var(--ease-out);
-}
-
-.detail__progress-fill--accent { background: var(--color-accent); }
-
 .detail__milestone {
   font-size: 13px;
   color: var(--color-text-muted);
@@ -340,14 +318,6 @@ function modMilestone(modId: string): string {
 
 /* Sections */
 .detail__section { display: flex; flex-direction: column; gap: 8px; }
-
-.detail__section-label {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-}
 
 /* Task list */
 .task-list { display: flex; flex-direction: column; gap: 5px; }

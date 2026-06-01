@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiSectionLabel } from '@/ui'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -179,7 +179,7 @@ const activeTab = ref<'overview' | 'terminal'>('overview')
 
     <!-- ── Module grid ──────────────────────────────────────────── -->
     <section class="welcome__modules">
-      <p class="welcome__section-label">What's inside — 15 modules total, 12 highlighted</p>
+      <UiSectionLabel class="welcome__section-label">What's inside — 15 modules total, 12 highlighted</UiSectionLabel>
       <div class="welcome__grid">
         <button
           v-for="mod in MODULES"
@@ -503,11 +503,7 @@ const activeTab = ref<'overview' | 'terminal'>('overview')
   width: 100%;
 }
 
-.welcome__section-label {
-  font-size: 12px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--color-text-muted); margin: 0 0 20px;
-}
+.welcome__section-label { margin-bottom: 20px; }
 
 .welcome__grid {
   display: grid;
