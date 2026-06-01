@@ -26,6 +26,7 @@
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔜 planned — small independent tasks |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | 🔜 planned — analysis-first, ordered T1–T9 (see below) |
 | **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔜 planned — ordered T1–T8, follows S15 |
+| **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | 🔜 planned — analysis done (v1.2.0), Phase 0 fills kit gaps (UiModal/UiIconButton/UiSelect/UiTextarea), then per-module migration T6–T13, lint gate T14 |
 
 ---
 
@@ -906,13 +907,118 @@ Add `vitest --coverage` (c8/v8) reporting; set a *floor* (not 100%) on stores/co
 
 ---
 
+## S17 — Component Unification 🔜 planned (single source of truth for UI)
+
+**Goal:** every reusable UI element in the app comes from `@/ui` and nowhere else. Change `UiButton` once → every button in the app changes. Today most modules hand-roll `<button>`, `<input>`, cards, badges, progress bars and modals with their own scoped CSS, so a design change has to be repeated in dozens of files. This sprint closes that gap and locks it shut with a lint rule.
+
+> **Audit baseline (measured 2026-06-01, v1.2.0 — counts exclude the `/docs/ui-kit` showcase):**
+> | Element | Raw in modules | `@/ui` adoption today |
+> |---------|---------------|----------------------|
+> | `<button>` | **277** occurrences | `UiButton` ×15 |
+> | `<input>` | **54** occurrences | `UiInput` ×3 / `UiField` ×1 |
+> | `<select>` | **28** | — (no `UiSelect`) |
+> | `<textarea>` | **9** | — (no `UiTextarea`) |
+> | native `confirm()` | **10** | `UiConfirmDialog` ×0 |
+> | bespoke modals (`position: fixed`) | **5+ files** (finance, kanban, learning, training, games) | — (no `UiModal`) |
+> | card/panel divs | nearly every module | `UiCard` ×2 |
+> | progress bars | ~38 raw | `UiProgressBar` ×7 |
+> | status pills/badges | ~20+ raw | `UiBadge` ×6 |
+> | empty states | most modules raw | `UiEmptyState` ×1 |
+>
+> **Well-adopted already (leave alone):** `UiIcon` ×170, `UiSectionLabel` ×40, `UiSkeleton` ×23.
+> **Per-module raw `<button>` heat:** games 36, dashboard 32, learning 26, training 25, habits 19, goals 18, kanban/finance 17, notes/ai-playground 15, settings 12, task-manager/auth 10, welcome 7, docs 5, calendar/analytics 4.
+
+**Two rules of scope:**
+1. **Not every `<button>` becomes `UiButton`.** Labelled actions (Save/Cancel/Add/CTAs) → `UiButton`. Icon-only (× close, + add, toolbar) → new `UiIconButton`. Genuinely structural interactive elements (kanban cards, calendar day cells, **all game cells/controls**, nav items, tabs) stay bespoke — they are not "buttons" in the design-system sense. **Games module is explicitly out of scope** for this sprint.
+2. **Fill the kit before migrating.** Several primitives don't exist yet — migration is blocked on them. Phase 0 ships them first.
+
+---
+
+### Phase 0 — Fill the kit gaps (blockers; ship first)
+
+Each new primitive must: follow S9 visual rules, be exported from `src/ui/index.ts`, get a live showcase section under `/docs/ui-kit` (so it appears in Docs automatically), and get a `@vue/test-utils` test (counts toward S16 T4).
+
+**T1 — `UiModal`** — base overlay/dialog primitive: teleport to body, backdrop, scroll-lock, focus trap, Esc-to-close, `header`/`body`/`footer` slots, `v-model:open`. Refactor `UiConfirmDialog` to build on it. This replaces the 5+ hand-rolled `position: fixed` modals (finance, kanban, learning, training, games). *(Note: `UiModal` is already referenced in S16 T4 as if it exists — it does not yet.)*
+
+**T2 — `UiIconButton`** — icon-only button: `size` (sm/md), `variant` (ghost/danger/subtle), **required `aria-label`**, optional `:badge`. Covers the dozens of × / + / toolbar buttons that should NOT become full `UiButton`s.
+
+**T3 — `UiSelect`** — token-styled dropdown wrapping native `<select>` (28 call sites). `v-model`, `:options`, disabled, sizes. Pairs with `UiField` for labels.
+
+**T4 — `UiTextarea`** — multiline text (9 call sites). Decide: standalone component vs `multiline`/`rows` prop on `UiInput`. Document the decision in `conventions.md`.
+
+**T5 — `UiTabs` / `UiSegmented`** *(evaluate)* — view-switchers appear in kanban, analytics, calendar, finance, settings. If ≥4 real call sites share the pattern, extract it; otherwise skip and note why.
+
+---
+
+### Phase 1 — Migrate per module (ordered by leverage × risk)
+
+Each task = one cluster: replace raw elements with `@/ui`, **delete the now-dead scoped CSS**, verify at `lg` + `sm` in `/docs/ui-kit`-consistent styling, `type-check` → 0, tests green, commit (+patch each). Use the existing **task-manager** migration as the reference pattern.
+
+- **T6 — task-manager + notes** — finish task-manager (already partly on `@/ui`); establish the canonical before/after diff that later tasks copy. Notes: inputs, search, note cards → `UiCard`, confirm → `UiConfirmDialog`.
+- **T7 — habits + goals** — forms (`UiField`+`UiInput`+`UiSelect`), habit/goal cards → `UiCard`, status pills → `UiBadge`, progress → `UiProgressBar`, native `confirm()` → `UiConfirmDialog`, ×/+ → `UiIconButton`.
+- **T8 — learning + training** — heaviest forms: `SessionLogForm`/`WorkoutLogForm` modals → `UiModal`, selects/textarea, progress rings/bars, 25–26 buttons each.
+- **T9 — finance + kanban** — finance modal + selects + budget bars; kanban card-add modal, column controls, status badges. Coordinate with S15 T4 (these are god-components being split).
+- **T10 — dashboard** — highest visibility & volume (32 buttons, ~34 badge-ish, many widgets). Widget headers, quick-add buttons, stat tiles → `UiStat`, empty states → `UiEmptyState`.
+- **T11 — settings + ai-playground** — settings controls/toggles, Studio composer (textarea → `UiTextarea`, send/stop → `UiIconButton`, model picker → `UiSelect`).
+- **T12 — analytics + calendar + docs + about** — lighter: badges, buttons, empty states, cards. (Calendar day cells stay bespoke.)
+- **T13 — auth + welcome** *(careful)* — bespoke landing/marketing styling; migrate form inputs + primary CTAs to `@/ui` but **preserve the distinctive hero/landing look**; do not flatten them into generic app chrome.
+
+---
+
+### Phase 2 — Lock it in
+
+**T14 — Enforcement lint rule** — add `vue/no-restricted-html-elements` (eslint-plugin-vue) banning raw `<button> <input> <select> <textarea>` in `src/modules/**` (allowed in `src/ui/**` and the `/docs/ui-kit` showcase). Document `@/ui is mandatory` as a hard rule in `conventions.md`. Wire into the CI ESLint gate (synergy with S15 T8) so regressions can't merge.
+
+**T15 — Sprint close** — final audit re-run (the table above should drop to ~0 raw in scope), update `CLAUDE.md` + `conventions.md` `@/ui` reference with the new primitives, record final counts here, bump minor version.
+
+**Payoff:** one edit to `src/ui/components/UiButton.vue` (or any token) restyles the entire app — the design-system promise actually holds.
+
+---
+
 ## ── NEXT CHAT INSTRUCTIONS ────────────────────────────────────────────
 
 > Актуально на v1.0.7 (2026-05-31). Промпты в порядке приоритета.
 
 ---
 
-**[СЛЕДУЮЩИЙ] Session: S8 item 4 — /ui-kit Component Library Page**
+**[СЛЕДУЮЩИЙ] Session: S17 Phase 0 — Component Unification, fill the kit gaps**
+
+```
+Сессия — S17 Phase 0: новые примитивы @/ui (фундамент для миграции всего приложения)
+
+Прочитай перед началом (в этом порядке):
+1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
+2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← раздел "S17 — Component Unification" целиком (там аудит + все таски T1–T15)
+3. /Users/test/Documents/Work/AIProjects/VibeOS/docs/conventions.md  ← S9 visual rules + @/ui reference
+
+Контекст:
+- Версия: v1.2.0. UI Kit теперь живёт ПОД Docs: /docs/ui-kit/<key>, виден в проде.
+  Витрина = src/modules/ui-kit/views/sections/, подключена через src/modules/docs/data/docs-registry.ts (поле DocPage.component). Новый компонент → добавь секцию туда, и он автоматически появится в меню Docs.
+- @/ui сейчас = 15 компонентов (src/ui/components/, экспорт в src/ui/index.ts). Нет: UiModal, UiIconButton, UiSelect, UiTextarea.
+- Аудит (v1.2.0, без витрины): 277 сырых <button> vs 15 UiButton; 54 <input>; 28 <select>; 9 <textarea>; 10 native confirm(); 5+ самописных модалок; UiConfirmDialog не используется нигде; UiCard ×2.
+
+ЦЕЛЬ всего S17: чтобы везде использовались только компоненты из @/ui — поменяли кнопку один раз → поменялась везде. Зафиксировать lint-правилом (T14).
+
+ЗАДАЧА ЭТОЙ СЕССИИ — Phase 0 (блокеры миграции). Реализуй по порядку, коммить по компоненту (+patch):
+  T1 UiModal      — базовый оверлей (teleport, backdrop, scroll-lock, focus-trap, Esc, слоты header/body/footer, v-model:open). Перевести UiConfirmDialog на него.
+  T2 UiIconButton — icon-only кнопка (size sm/md, variant ghost/danger/subtle, ОБЯЗАТЕЛЬНЫЙ aria-label).
+  T3 UiSelect     — нативный <select> в токенах (v-model, :options, sizes), дружит с UiField.
+  T4 UiTextarea   — многострочный ввод (или проп multiline у UiInput — реши и задокументируй в conventions.md).
+  T5 UiTabs/UiSegmented — ТОЛЬКО если найдёшь ≥4 реальных места переключения вкладок; иначе пропусти и напиши почему.
+
+Для КАЖДОГО нового компонента:
+  - экспорт в src/ui/index.ts
+  - живая секция-витрина в src/modules/ui-kit/views/sections/components/ + регистрация в docs-registry.ts (группа UI Components)
+  - тест @vue/test-utils (идёт в зачёт S16 T4)
+
+НЕ начинай миграцию модулей (это Phase 1, T6+) в этой сессии — только примитивы.
+
+Правила: type-check → 0, npm test → всё зелёное (сейчас 128), S9 visual (color-mix, --shadow-*, --leading-*, без hex/rgba). Auto-commit + push + bump версии после каждого блока. Игры (games) — вне scope S17.
+```
+
+---
+
+**Session: S8 item 4 — /ui-kit Component Library Page**
 
 ```
 Сессия — S8 item 4: /ui-kit Component Library Page

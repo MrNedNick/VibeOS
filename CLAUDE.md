@@ -28,6 +28,7 @@
 | S14 — Quick Wins | 🔄 active — T1 lazy routes ✅ (v1.0.8), T5 AI provider seam ✅ (v1.0.9), T3 soft-delete ✅ (v1.0.10), T6 pin Pollinations anon model ✅ (v1.0.12), T2 README refresh ✅ (v1.1.0); T4 hex cleanup (CalendarView ✅) remaining: WelcomeView (folds into S11) |
 | S15 — Refactor & De-dup | 🔜 planned — analysis-first, T1–T9 (de-dup soft-delete/AI, finish @/ui CSS migration, split 5 god-components). See docs/roadmap.md |
 | S16 — Test Coverage | 🔜 planned — T1–T8, follows S15 (12 untested stores, 0 component tests today). See docs/roadmap.md |
+| S17 — Component Unification | 🔜 planned — single source of truth for UI. Audit done (v1.2.0): 277 raw `<button>` vs 15 `UiButton`, no `UiModal`/`UiIconButton`/`UiSelect`/`UiTextarea`. Phase 0 fills kit gaps → per-module migration T6–T13 → lint gate T14. See docs/roadmap.md |
 
 **Active next (re-ordered 2026-06-01): S11 (positioning + welcome) is now the main remaining sprint — S12 AI Depth is ✅ complete (Habits/Notes/Finance AI shipped v1.1.0). Done as fill-in: S8 item 4 /ui-kit ✅, S14 T1/T2/T3/T5/T6 ✅. Remaining S14: T4 hex cleanup (WelcomeView portion folds into the S11 rewrite). S15 (refactor) + S16 (tests, finance.store added v1.1.0) ongoing.**
 
