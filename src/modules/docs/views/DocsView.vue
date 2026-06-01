@@ -96,6 +96,11 @@ function goToFirst() {
         </button>
       </div>
 
+      <!-- Live UI Kit showcase (component page) -->
+      <div v-else-if="currentPage?.component" class="docs-showcase">
+        <component :is="currentPage.component" />
+      </div>
+
       <!-- Doc page not found -->
       <div v-else-if="!currentPage || !currentContent" class="docs-missing">
         <p class="docs-missing__title">This page doesn't exist yet.</p>
@@ -229,6 +234,9 @@ function goToFirst() {
   padding: 1px 5px;
   border-radius: var(--radius-xs);
 }
+
+/* Live UI Kit showcase ──────────────────────────────────────── */
+.docs-showcase { min-width: 0; }
 
 /* Rendered markdown ─────────────────────────────────────────── */
 .doc-article { min-width: 0; }

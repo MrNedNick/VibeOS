@@ -1,8 +1,38 @@
+import type { Component } from 'vue'
+
+// ── UI Kit showcase sections (live component demos, rendered in <DocsView>) ──
+// Tokens
+import ColorsSection from '@/modules/ui-kit/views/sections/tokens/ColorsSection.vue'
+import TypographySection from '@/modules/ui-kit/views/sections/tokens/TypographySection.vue'
+import SpacingSection from '@/modules/ui-kit/views/sections/tokens/SpacingSection.vue'
+import ShadowsSection from '@/modules/ui-kit/views/sections/tokens/ShadowsSection.vue'
+import MotionSection from '@/modules/ui-kit/views/sections/tokens/MotionSection.vue'
+// Components
+import UiButtonSection from '@/modules/ui-kit/views/sections/components/UiButtonSection.vue'
+import UiInputSection from '@/modules/ui-kit/views/sections/components/UiInputSection.vue'
+import UiFieldSection from '@/modules/ui-kit/views/sections/components/UiFieldSection.vue'
+import UiCardSection from '@/modules/ui-kit/views/sections/components/UiCardSection.vue'
+import UiSkeletonSection from '@/modules/ui-kit/views/sections/components/UiSkeletonSection.vue'
+import UiBadgeSection from '@/modules/ui-kit/views/sections/components/UiBadgeSection.vue'
+import UiIconSection from '@/modules/ui-kit/views/sections/components/UiIconSection.vue'
+import UiProgressBarSection from '@/modules/ui-kit/views/sections/components/UiProgressBarSection.vue'
+import UiProgressRingSection from '@/modules/ui-kit/views/sections/components/UiProgressRingSection.vue'
+import UiStatSection from '@/modules/ui-kit/views/sections/components/UiStatSection.vue'
+import UiSectionLabelSection from '@/modules/ui-kit/views/sections/components/UiSectionLabelSection.vue'
+import UiFilterChipsSection from '@/modules/ui-kit/views/sections/components/UiFilterChipsSection.vue'
+// Patterns
+import UiEmptyStateSection from '@/modules/ui-kit/views/sections/patterns/UiEmptyStateSection.vue'
+import UiConfirmDialogSection from '@/modules/ui-kit/views/sections/patterns/UiConfirmDialogSection.vue'
+import UiPlannedViewSection from '@/modules/ui-kit/views/sections/patterns/UiPlannedViewSection.vue'
+
 export interface DocPage {
   slug: string
   label: string
   labelRu: string
-  filePath: string
+  /** Markdown source path — for prose docs. Mutually exclusive with `component`. */
+  filePath?: string
+  /** Live Vue showcase — for UI Kit pages. Rendered instead of markdown. */
+  component?: Component
   description?: string
   descriptionRu?: string
 }
@@ -107,6 +137,49 @@ export const DOC_REGISTRY: DocSection[] = [
         description: 'Live exchange rates module — spec and API design',
         descriptionRu: 'Модуль курсов валют — спецификация и API',
       },
+    ],
+  },
+  // ── UI Kit — live component catalogue (the single source of truth for
+  // every reusable @/ui component, shown with all its states) ──────────────
+  {
+    id: 'ui-kit-tokens',
+    label: 'Design Tokens',
+    labelRu: 'Дизайн-токены',
+    pages: [
+      { slug: 'ui-kit/colors',     label: 'Colors',           labelRu: 'Цвета',       component: ColorsSection,     description: 'Theme color palette and roles',     descriptionRu: 'Палитра и роли цветов темы' },
+      { slug: 'ui-kit/typography', label: 'Typography',       labelRu: 'Типографика', component: TypographySection, description: 'Font sizes, weights, line-heights',  descriptionRu: 'Размеры, начертания, интерлиньяж' },
+      { slug: 'ui-kit/spacing',    label: 'Spacing',          labelRu: 'Отступы',     component: SpacingSection,    description: 'Spacing scale and radius tokens',    descriptionRu: 'Шкала отступов и радиусов' },
+      { slug: 'ui-kit/shadows',    label: 'Shadows & Radius', labelRu: 'Тени',        component: ShadowsSection,    description: 'Elevation shadows and corner radii', descriptionRu: 'Тени и скругления' },
+      { slug: 'ui-kit/motion',     label: 'Motion & Easing',  labelRu: 'Анимация',    component: MotionSection,     description: 'Durations and easing curves',        descriptionRu: 'Длительности и кривые анимации' },
+    ],
+  },
+  {
+    id: 'ui-kit-components',
+    label: 'UI Components',
+    labelRu: 'UI-компоненты',
+    pages: [
+      { slug: 'ui-kit/button',       label: 'UiButton',       labelRu: 'UiButton',       component: UiButtonSection,       description: 'Primary action element',        descriptionRu: 'Основной элемент действия' },
+      { slug: 'ui-kit/input',        label: 'UiInput',        labelRu: 'UiInput',        component: UiInputSection,        description: 'Text input control',            descriptionRu: 'Текстовое поле ввода' },
+      { slug: 'ui-kit/field',        label: 'UiField',        labelRu: 'UiField',        component: UiFieldSection,        description: 'Labelled form field wrapper',   descriptionRu: 'Обёртка поля формы с лейблом' },
+      { slug: 'ui-kit/card',         label: 'UiCard',         labelRu: 'UiCard',         component: UiCardSection,         description: 'Surface container',             descriptionRu: 'Контейнер-поверхность' },
+      { slug: 'ui-kit/skeleton',     label: 'UiSkeleton',     labelRu: 'UiSkeleton',     component: UiSkeletonSection,     description: 'Loading placeholder',           descriptionRu: 'Плейсхолдер загрузки' },
+      { slug: 'ui-kit/badge',        label: 'UiBadge',        labelRu: 'UiBadge',        component: UiBadgeSection,        description: 'Status / count label',          descriptionRu: 'Метка статуса или счётчика' },
+      { slug: 'ui-kit/icon',         label: 'UiIcon',         labelRu: 'UiIcon',         component: UiIconSection,         description: 'Lucide icon wrapper',           descriptionRu: 'Обёртка иконок Lucide' },
+      { slug: 'ui-kit/progressbar',  label: 'UiProgressBar',  labelRu: 'UiProgressBar',  component: UiProgressBarSection,  description: 'Linear progress indicator',     descriptionRu: 'Линейный индикатор прогресса' },
+      { slug: 'ui-kit/progressring', label: 'UiProgressRing', labelRu: 'UiProgressRing', component: UiProgressRingSection, description: 'Circular progress indicator',   descriptionRu: 'Круговой индикатор прогресса' },
+      { slug: 'ui-kit/stat',         label: 'UiStat',         labelRu: 'UiStat',         component: UiStatSection,         description: 'Single metric display',         descriptionRu: 'Отображение метрики' },
+      { slug: 'ui-kit/sectionlabel', label: 'UiSectionLabel', labelRu: 'UiSectionLabel', component: UiSectionLabelSection, description: 'Section heading label',         descriptionRu: 'Заголовок секции' },
+      { slug: 'ui-kit/filterchips',  label: 'UiFilterChips',  labelRu: 'UiFilterChips',  component: UiFilterChipsSection,  description: 'Toggleable filter chips',       descriptionRu: 'Переключаемые чипсы-фильтры' },
+    ],
+  },
+  {
+    id: 'ui-kit-patterns',
+    label: 'UI Patterns',
+    labelRu: 'UI-паттерны',
+    pages: [
+      { slug: 'ui-kit/emptystate',    label: 'UiEmptyState',    labelRu: 'UiEmptyState',    component: UiEmptyStateSection,    description: 'Empty / zero-data state',  descriptionRu: 'Состояние без данных' },
+      { slug: 'ui-kit/confirmdialog', label: 'UiConfirmDialog', labelRu: 'UiConfirmDialog', component: UiConfirmDialogSection, description: 'Confirmation modal',       descriptionRu: 'Модал подтверждения' },
+      { slug: 'ui-kit/plannedview',   label: 'UiPlannedView',   labelRu: 'UiPlannedView',   component: UiPlannedViewSection,   description: 'Planned / coming-soon view', descriptionRu: 'Экран «в планах»' },
     ],
   },
 ]

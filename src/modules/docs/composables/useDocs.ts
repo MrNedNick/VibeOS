@@ -23,8 +23,9 @@ export function useDocs() {
   )
 
   const currentContent = computed<string | null>(() => {
-    if (!currentPage.value) return null
-    return DOC_FILES[currentPage.value.filePath] ?? null
+    const path = currentPage.value?.filePath
+    if (!path) return null
+    return DOC_FILES[path] ?? null
   })
 
   function getContent(filePath: string): string | null {

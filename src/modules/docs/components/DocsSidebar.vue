@@ -43,7 +43,7 @@ interface FilteredPage {
   slug: string
   label: string
   labelRu: string
-  filePath: string
+  filePath?: string
   description?: string
   descriptionRu?: string
   snippet?: string
@@ -67,8 +67,8 @@ const filteredSections = computed(() => {
         continue
       }
 
-      // Fall through to content search
-      const content = DOC_FILES[p.filePath]
+      // Fall through to content search (markdown pages only)
+      const content = p.filePath ? DOC_FILES[p.filePath] : undefined
       if (content && content.toLowerCase().includes(q)) {
         pages.push({ ...p, snippet: extractSnippet(content, q) })
       }

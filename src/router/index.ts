@@ -20,7 +20,6 @@ import { analyticsRoutes } from '@/modules/analytics'
 import { calendarRoutes } from '@/modules/calendar'
 import { authRoutes } from '@/modules/auth'
 import { financeRoutes } from '@/modules/finance'
-import { uiKitRoutes } from '@/modules/ui-kit'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -30,8 +29,6 @@ const routes: RouteRecordRaw[] = [
   },
   // Auth pages — full-page, outside AppLayout
   ...authRoutes,
-  // Dev-only component catalogue — full-page, own layout, hidden in prod
-  ...uiKitRoutes,
   {
     path: '/',
     component: AppLayout,
