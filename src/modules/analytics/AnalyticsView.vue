@@ -11,14 +11,30 @@ import AnalyticsAiReport from './components/AnalyticsAiReport.vue'
 import AnalyticsHabits from './components/AnalyticsHabits.vue'
 import AnalyticsBarChart from './components/AnalyticsBarChart.vue'
 import AnalyticsGoals from './components/AnalyticsGoals.vue'
+import AnalyticsUsage from './components/AnalyticsUsage.vue'
 import { useTrack } from '@/core/composables/useTrack'
+import { useRoute } from 'vue-router'
 
 const i18n = useLocale()
+const route = useRoute()
 const tasksStore    = useTasksStore()
 const habitsStore   = useHabitsStore()
 const learningStore = useLearningStore()
 const trainingStore = useTrainingStore()
 const { track } = useTrack()
+
+// Tab switcher: data | usage. Supports #usage hash from command palette
+type MainTab = 'data' | 'usage'
+const mainTab = ref<MainTab>(route.hash === '#usage' ? 'usage' : 'data')
+
+const MAIN_TAB_OPTIONS: FilterChipOption[] = [
+  { value: 'data',  label: 'Data' },
+  { value: 'usage', label: 'Usage' },
+]
+const mainTabStr = computed({
+  get: () => mainTab.value as string,
+  set: (v: string) => { mainTab.value = v as MainTab },
+})
 
 type Period = 7 | 30 | 90
 const period = ref<Period>(30)
@@ -132,82 +148,91 @@ const trainingBars = computed((): BarItem[] =>
     <!-- Header -->
     <div class="analytics__header">
       <h1 class="analytics__title">{{ i18n.t('modules.analytics') }}</h1>
-      <UiFilterChips v-model="periodStr" :options="PERIOD_OPTIONS" />
+      <div class="analytics__header-right">
+        <UiFilterChips v-model="mainTabStr" :options="MAIN_TAB_OPTIONS" />
+        <UiFilterChips v-if="mainTab === 'data'" v-model="periodStr" :options="PERIOD_OPTIONS" />
+      </div>
     </div>
 
-    <!-- AI report -->
-    <AnalyticsAiReport :period="period" />
+    <!-- ── Data tab ─────────────────────────────────────────────── -->
+    <template v-if="mainTab === 'data'">
+      <!-- AI report -->
+      <AnalyticsAiReport :period="period" />
 
-    <!-- Overview stat cards -->
-    <section class="analytics__overview">
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--tasks">✓</div>
-        <div class="stat-card__body">
-          <div class="stat-card__value">{{ statTasksDone }}</div>
-          <div class="stat-card__label">{{ i18n.t('analytics.statTasksDone') }}</div>
-          <div class="stat-card__sub">{{ i18n.t('analytics.ofTotal') }} {{ statTasksTotal }}</div>
+      <!-- Overview stat cards -->
+      <section class="analytics__overview">
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--tasks">✓</div>
+          <div class="stat-card__body">
+            <div class="stat-card__value">{{ statTasksDone }}</div>
+            <div class="stat-card__label">{{ i18n.t('analytics.statTasksDone') }}</div>
+            <div class="stat-card__sub">{{ i18n.t('analytics.ofTotal') }} {{ statTasksTotal }}</div>
+          </div>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--habits">◉</div>
-        <div class="stat-card__body">
-          <div class="stat-card__value">{{ statHabitRate !== null ? `${statHabitRate}%` : '—' }}</div>
-          <div class="stat-card__label">{{ i18n.t('analytics.statHabitRate') }}</div>
-          <div class="stat-card__sub">{{ period }}d window</div>
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--habits">◉</div>
+          <div class="stat-card__body">
+            <div class="stat-card__value">{{ statHabitRate !== null ? `${statHabitRate}%` : '—' }}</div>
+            <div class="stat-card__label">{{ i18n.t('analytics.statHabitRate') }}</div>
+            <div class="stat-card__sub">{{ period }}d window</div>
+          </div>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--learning">▶</div>
-        <div class="stat-card__body">
-          <div class="stat-card__value">{{ statLearningHours }}</div>
-          <div class="stat-card__label">{{ i18n.t('analytics.statLearning') }}</div>
-          <div class="stat-card__sub">{{ period }}d window</div>
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--learning">▶</div>
+          <div class="stat-card__body">
+            <div class="stat-card__value">{{ statLearningHours }}</div>
+            <div class="stat-card__label">{{ i18n.t('analytics.statLearning') }}</div>
+            <div class="stat-card__sub">{{ period }}d window</div>
+          </div>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--training">⚡</div>
-        <div class="stat-card__body">
-          <div class="stat-card__value">{{ statWorkouts }}</div>
-          <div class="stat-card__label">{{ i18n.t('analytics.statWorkouts') }}</div>
-          <div class="stat-card__sub">{{ period }}d window</div>
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--training">⚡</div>
+          <div class="stat-card__body">
+            <div class="stat-card__value">{{ statWorkouts }}</div>
+            <div class="stat-card__label">{{ i18n.t('analytics.statWorkouts') }}</div>
+            <div class="stat-card__sub">{{ period }}d window</div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Habits -->
-    <AnalyticsHabits :habit-rows="habitRows" />
+      <!-- Habits -->
+      <AnalyticsHabits :habit-rows="habitRows" />
 
-    <!-- Tasks -->
-    <AnalyticsBarChart
-      :title="i18n.t('analytics.tasksTitle')"
-      :bars="taskBars"
-      :empty-label="i18n.t('analytics.noData')"
-      :legend="[
-        { colorClass: 'legend-dot--primary', label: i18n.t('analytics.tasksCreated') },
-        { colorClass: 'legend-dot--secondary', label: i18n.t('analytics.tasksDoneLabel') },
-      ]"
-    />
+      <!-- Tasks -->
+      <AnalyticsBarChart
+        :title="i18n.t('analytics.tasksTitle')"
+        :bars="taskBars"
+        :empty-label="i18n.t('analytics.noData')"
+        :legend="[
+          { colorClass: 'legend-dot--primary', label: i18n.t('analytics.tasksCreated') },
+          { colorClass: 'legend-dot--secondary', label: i18n.t('analytics.tasksDoneLabel') },
+        ]"
+      />
 
-    <!-- Learning -->
-    <AnalyticsBarChart
-      :title="i18n.t('analytics.learningTitle')"
-      :bars="learningBars"
-      fill-class="bar-col__fill--learning"
-      :empty-label="i18n.t('analytics.noData')"
-      :legend="[{ colorClass: 'legend-dot--learning', label: i18n.t('analytics.learningUnit') + ' / week' }]"
-    />
+      <!-- Learning -->
+      <AnalyticsBarChart
+        :title="i18n.t('analytics.learningTitle')"
+        :bars="learningBars"
+        fill-class="bar-col__fill--learning"
+        :empty-label="i18n.t('analytics.noData')"
+        :legend="[{ colorClass: 'legend-dot--learning', label: i18n.t('analytics.learningUnit') + ' / week' }]"
+      />
 
-    <!-- Training -->
-    <AnalyticsBarChart
-      :title="i18n.t('analytics.trainingTitle')"
-      :bars="trainingBars"
-      fill-class="bar-col__fill--training"
-      :empty-label="i18n.t('analytics.noData')"
-      :legend="[{ colorClass: 'legend-dot--training', label: i18n.t('analytics.trainingUnit') + ' / week' }]"
-    />
+      <!-- Training -->
+      <AnalyticsBarChart
+        :title="i18n.t('analytics.trainingTitle')"
+        :bars="trainingBars"
+        fill-class="bar-col__fill--training"
+        :empty-label="i18n.t('analytics.noData')"
+        :legend="[{ colorClass: 'legend-dot--training', label: i18n.t('analytics.trainingUnit') + ' / week' }]"
+      />
 
-    <!-- Goals -->
-    <AnalyticsGoals />
+      <!-- Goals -->
+      <AnalyticsGoals />
+    </template>
+
+    <!-- ── Usage tab ─────────────────────────────────────────────── -->
+    <AnalyticsUsage v-else :period="period" />
   </div>
 </template>
 
@@ -229,6 +254,7 @@ const trainingBars = computed((): BarItem[] =>
   flex-wrap: wrap;
 }
 .analytics__title { font-size: 27px; font-weight: 700; color: var(--color-text); margin: 0; }
+.analytics__header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 .analytics__overview {
   display: grid;

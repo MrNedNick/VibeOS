@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { UiButton, UiInput } from '@/ui'
+import { ref, computed } from 'vue'
+import { UiButton, UiInput, UiFeedbackModal } from '@/ui'
 import { useUiStore } from '@/core/stores/ui.store'
 import type { Theme } from '@/core/stores/ui.store'
 import { useLocale } from '@/core/i18n'
@@ -8,10 +8,27 @@ import { useStorage } from '@/core/composables/useStorage'
 import { useModuleVisibility } from '@/core/composables/useModuleVisibility'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { useTrack } from '@/core/composables/useTrack'
+import { useFeedback } from '@/core/composables/useFeedback'
+import { useFeedbackStore } from '@/core/stores/feedback.store'
+import { useInteractionBus } from '@/core/stores/interaction.store'
 
 const uiStore = useUiStore()
 const i18n    = useLocale()
 const { track } = useTrack()
+const feedback      = useFeedback()
+const feedbackStore = useFeedbackStore()
+const interBus      = useInteractionBus()
+
+// Privacy & Data — analytics opt-out toggle
+const analyticsEnabled = useStorage<boolean>('platform:analytics:enabled', true)
+
+// Recent feedback entries (last 5)
+const recentFeedback = computed(() => [...feedbackStore.entries].reverse().slice(0, 5))
+
+function clearAnalyticsData(): void {
+  interBus.clear()
+  track('data:analytics-cleared')
+}
 
 // ── Vibe-paks ─────────────────────────────────────────────────────
 interface VibePak {
@@ -331,6 +348,73 @@ function cancelImport() {
       </div>
     </section>
 
+    <!-- ── Privacy & Data ───────────────────────────────── -->
+    <section class="settings__section">
+      <h2 class="settings__section-title">Privacy & Data</h2>
+
+      <!-- Analytics opt-out -->
+      <div class="settings__row">
+        <div class="settings__row-info">
+          <span class="settings__row-name">Usage analytics</span>
+          <p class="settings__row-hint">Track which modules and features you use. Stays local, never shared.</p>
+        </div>
+        <button
+          class="settings__vis-toggle"
+          :class="{ 'settings__vis-toggle--on': analyticsEnabled }"
+          title="Toggle usage analytics"
+          @click="analyticsEnabled = !analyticsEnabled"
+        >
+          <span class="settings__vis-knob" />
+        </button>
+      </div>
+
+      <!-- Feedback history -->
+      <div class="settings__row settings__row--col">
+        <div>
+          <span class="settings__row-name">Feedback history</span>
+          <p class="settings__row-hint">Your past NPS submissions.</p>
+        </div>
+        <div v-if="recentFeedback.length" class="pv-feedback-list">
+          <div
+            v-for="entry in recentFeedback"
+            :key="entry.id"
+            class="pv-feedback-row"
+          >
+            <span class="pv-feedback-score" :class="{
+              'pv-feedback-score--low':  entry.score <= 6,
+              'pv-feedback-score--mid':  entry.score >= 7 && entry.score <= 8,
+              'pv-feedback-score--high': entry.score >= 9,
+            }">{{ entry.score }}/10</span>
+            <span class="pv-feedback-date">{{ new Date(entry.timestamp).toLocaleDateString() }}</span>
+            <span v-if="entry.comment" class="pv-feedback-comment">"{{ entry.comment }}"</span>
+          </div>
+        </div>
+        <p v-else class="pv-feedback-empty">No feedback submitted yet.</p>
+      </div>
+
+      <!-- Submit feedback -->
+      <div class="settings__row">
+        <div class="settings__row-info">
+          <span class="settings__row-name">Submit feedback now</span>
+          <p class="settings__row-hint">Rate VibeOS and share a comment.</p>
+        </div>
+        <UiButton variant="ghost" @click="feedback.openManually()">
+          Submit feedback
+        </UiButton>
+      </div>
+
+      <!-- Clear analytics data -->
+      <div class="settings__row">
+        <div class="settings__row-info">
+          <span class="settings__row-name">Clear analytics data</span>
+          <p class="settings__row-hint">Remove all recorded usage events from this device.</p>
+        </div>
+        <UiButton variant="ghost" @click="clearAnalyticsData">
+          Clear events
+        </UiButton>
+      </div>
+    </section>
+
     <!-- ── Account ─────────────────────────────────────── -->
     <section class="settings__section settings__section--soon">
       <h2 class="settings__section-title">
@@ -340,6 +424,13 @@ function cancelImport() {
       <p class="settings__soon-desc">{{ i18n.t('settings.accountDesc') }}</p>
     </section>
   </div>
+
+  <!-- Feedback modal -->
+  <UiFeedbackModal
+    v-model:open="feedback.isOpen.value"
+    @submitted="(score, comment) => feedback.markSubmitted(score, comment)"
+    @dismissed="feedback.markDismissed()"
+  />
 </template>
 
 <style scoped>
@@ -705,4 +796,15 @@ function cancelImport() {
   .settings__key-input { min-width: 0; }
   .pak-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Privacy & Data */
+.pv-feedback-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.pv-feedback-row  { display: flex; align-items: baseline; gap: 10px; font-size: 13px; }
+.pv-feedback-score { font-weight: 700; font-family: var(--font-mono); min-width: 36px; }
+.pv-feedback-score--low  { color: var(--color-danger); }
+.pv-feedback-score--mid  { color: var(--color-warning); }
+.pv-feedback-score--high { color: var(--color-success); }
+.pv-feedback-date { font-size: 11px; color: var(--color-text-muted); }
+.pv-feedback-comment { font-size: 12px; color: var(--color-text-secondary); font-style: italic; }
+.pv-feedback-empty { font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0; }
 </style>

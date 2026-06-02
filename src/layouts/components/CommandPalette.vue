@@ -9,9 +9,12 @@ import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useNotesStore } from '@/modules/notes/stores/notes.store'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiFeedbackModal } from '@/ui'
 import type { Theme } from '@/core/stores/ui.store'
 import { aiComplete } from '@/core/composables/useAI'
+import { useFeedback } from '@/core/composables/useFeedback'
+import { useInteractionBus } from '@/core/stores/interaction.store'
+import { useConfirm } from '@/core/composables/useConfirm'
 
 const palette     = useCommandPaletteStore()
 const uiStore     = useUiStore()
@@ -21,6 +24,9 @@ const tasksStore  = useTasksStore()
 const habitsStore = useHabitsStore()
 const goalsStore  = useGoalsStore()
 const notesStore  = useNotesStore()
+const feedback    = useFeedback()
+const interBus    = useInteractionBus()
+const { confirm } = useConfirm()
 
 // ── Search state ──────────────────────────────────────────────────────
 const query    = ref('')
@@ -204,6 +210,36 @@ const commands = computed<Command[]>(() => [
     keywords: ['theme', 'appearance', 'pak', 'color', 'skin'],
     action:   () => { uiStore.setTheme(t.id); palette.close() },
   })),
+
+  // ── Analytics ─────────────────────────────────────────────────────
+  {
+    id:       'analytics:usage',
+    label:    'View usage analytics',
+    icon:     'BarChart2',
+    group:    'Analytics',
+    keywords: ['analytics', 'usage', 'stats', 'tracking', 'modules'],
+    action:   () => { router.push('/analytics#usage'); palette.close() },
+  },
+  {
+    id:       'analytics:feedback',
+    label:    'Submit feedback',
+    icon:     'MessageSquare',
+    group:    'Analytics',
+    keywords: ['feedback', 'nps', 'rate', 'review', 'opinion'],
+    action:   () => { feedback.openManually(); palette.close() },
+  },
+  {
+    id:       'analytics:clear',
+    label:    'Clear analytics data',
+    icon:     'Trash2',
+    group:    'Analytics',
+    keywords: ['clear', 'delete', 'reset', 'analytics', 'tracking'],
+    action:   async () => {
+      palette.close()
+      const ok = await confirm({ body: 'Clear all usage analytics data? This cannot be undone.', confirmLabel: 'Clear', danger: true })
+      if (ok) interBus.clear()
+    },
+  },
 
   // ── System ────────────────────────────────────────────────────────
   {
@@ -433,6 +469,13 @@ function onSubInputKeydown(e: KeyboardEvent) {
       </div>
     </Transition>
   </Teleport>
+
+  <!-- Feedback modal (opened from command palette) -->
+  <UiFeedbackModal
+    v-model:open="feedback.isOpen.value"
+    @submitted="(score, comment) => feedback.markSubmitted(score, comment)"
+    @dismissed="feedback.markDismissed()"
+  />
 </template>
 
 <style scoped>
