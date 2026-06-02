@@ -7,6 +7,8 @@ import type { BoardColumnId, CardPriority } from '../types'
 import { useLocale } from '@/core/i18n'
 import TimelineGrid from '../components/TimelineGrid.vue'
 import { useConfirm } from '@/core/composables/useConfirm'
+import { UiButton, UiIconButton, UiInput, UiSelect, UiTextarea, UiModal } from '@/ui'
+import type { SelectOption } from '@/ui'
 
 const store      = useBoardStore()
 const tasksStore = useTasksStore()
@@ -59,7 +61,7 @@ const modalTitle       = ref('')
 const modalDesc        = ref('')
 const modalPriority    = ref<CardPriority>('none')
 const modalDueDate     = ref('')
-const modalTitleRef    = ref<HTMLInputElement | null>(null)
+const modalTitleRef    = ref<InstanceType<typeof UiInput> | null>(null)
 
 async function startAdd(colId: BoardColumnId) {
   modalCol.value      = colId
@@ -80,6 +82,29 @@ function confirmAdd() {
 }
 
 function cancelAdd() { showAddModal.value = false }
+
+// UiSelect bridges: BoardColumnId + CardPriority are strings, UiSelect emits string|number
+const colOptions = computed<SelectOption[]>(() =>
+  BOARD_COLUMNS.map(c => ({ value: c.id, label: colLabel(c.id) }))
+)
+
+const PRIORITY_OPTIONS: SelectOption[] = [
+  { value: 'none',   label: 'None' },
+  { value: 'low',    label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high',   label: 'High' },
+  { value: 'urgent', label: 'Urgent' },
+]
+
+const modalColStr = computed({
+  get: () => modalCol.value as string,
+  set: (v: string | number) => { modalCol.value = String(v) as BoardColumnId },
+})
+
+const modalPriorityStr = computed({
+  get: () => modalPriority.value as string,
+  set: (v: string | number) => { modalPriority.value = String(v) as CardPriority },
+})
 
 function onModalKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') cancelAdd()
@@ -220,7 +245,7 @@ const activeColMobile = ref<BoardColumnId>('backlog')
           placeholder="Search cards…"
           autocomplete="off"
         />
-        <button v-if="searchQuery" class="board__search-clear" @click="searchQuery = ''">×</button>
+        <UiIconButton v-if="searchQuery" name="X" aria-label="Clear search" size="sm" class="board__search-clear" @click="searchQuery = ''" />
       </div>
       <div class="board__priority-chips">
         <button
@@ -347,15 +372,14 @@ const activeColMobile = ref<BoardColumnId>('backlog')
                   </button>
 
                   <!-- Delete (hover) -->
-                  <button
+                  <UiIconButton
+                    name="X"
+                    aria-label="Delete card"
+                    size="sm"
+                    variant="danger"
                     class="board-card__del"
-                    title="Delete card"
                     @click.stop="deleteCard(card.id)"
-                  >
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path d="M2 2L8 8M8 2L2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
-                  </button>
+                  />
                 </div>
 
                 <!-- Expanded section -->
@@ -410,9 +434,9 @@ const activeColMobile = ref<BoardColumnId>('backlog')
             </div>
           </div>
 
-          <button class="board-col__add-btn" @click="startAdd(col.id)">
+          <UiButton variant="ghost" size="sm" class="board-col__add-btn" @click="startAdd(col.id)">
             + {{ i18n.t('kanban.addCard') }}
-          </button>
+          </UiButton>
         </div>
       </div>
 
@@ -424,7 +448,7 @@ const activeColMobile = ref<BoardColumnId>('backlog')
         <div v-if="showTaskPanel" class="task-panel">
           <div class="task-panel__header">
             <span class="task-panel__title">{{ i18n.t('kanban.fromTasks') }}</span>
-            <button class="task-panel__close" @click="showTaskPanel = false">✕</button>
+            <UiIconButton name="X" aria-label="Close task panel" size="sm" @click="showTaskPanel = false" />
           </div>
 
           <div v-if="importableTasks.length === 0" class="task-panel__empty">
@@ -454,75 +478,51 @@ const activeColMobile = ref<BoardColumnId>('backlog')
     </div>
 
     <!-- ── Add card modal ──────────────────────────────── -->
-    <Teleport to="body">
-      <Transition name="modal-fade">
-        <div v-if="showAddModal" class="modal-backdrop" @mousedown.self="cancelAdd">
-          <div class="modal" @keydown="onModalKeydown">
-            <div class="modal__header">
-              <h2 class="modal__title">{{ i18n.t('kanban.modalTitle') }}</h2>
-              <button class="modal__close" @click="cancelAdd">✕</button>
+    <UiModal v-model:open="showAddModal" size="sm" @close="cancelAdd">
+      <template #header>
+        <h2 class="modal__title">{{ i18n.t('kanban.modalTitle') }}</h2>
+      </template>
+
+      <template #body>
+        <div class="modal__body-inner" @keydown="onModalKeydown">
+          <UiInput
+            ref="modalTitleRef"
+            v-model="modalTitle"
+            :placeholder="i18n.t('kanban.addPlaceholder')"
+            @enter="confirmAdd"
+          />
+
+          <UiTextarea
+            v-model="modalDesc"
+            :placeholder="i18n.t('kanban.modalDescPlaceholder')"
+            :rows="3"
+            resize="none"
+          />
+
+          <div class="modal__row">
+            <div class="modal__field">
+              <label class="modal__label">{{ i18n.t('kanban.modalColumn') }}</label>
+              <UiSelect v-model="modalColStr" :options="colOptions" />
             </div>
-
-            <div class="modal__body">
-              <input
-                ref="modalTitleRef"
-                v-model="modalTitle"
-                class="modal__input"
-                :placeholder="i18n.t('kanban.addPlaceholder')"
-                @keydown.enter.prevent="confirmAdd"
-              />
-
-              <textarea
-                v-model="modalDesc"
-                class="modal__textarea"
-                :placeholder="i18n.t('kanban.modalDescPlaceholder')"
-                rows="3"
-              />
-
-              <div class="modal__row">
-                <div class="modal__field">
-                  <label class="modal__label">{{ i18n.t('kanban.modalColumn') }}</label>
-                  <select v-model="modalCol" class="modal__select">
-                    <option v-for="col in BOARD_COLUMNS" :key="col.id" :value="col.id">
-                      {{ colLabel(col.id) }}
-                    </option>
-                  </select>
-                </div>
-
-                <div class="modal__field">
-                  <label class="modal__label">{{ i18n.t('kanban.modalPriority') }}</label>
-                  <select v-model="modalPriority" class="modal__select">
-                    <option value="none">{{ i18n.t('kanban.priorityNone') }}</option>
-                    <option value="low">{{ i18n.t('kanban.priorityLow') }}</option>
-                    <option value="medium">{{ i18n.t('kanban.priorityMedium') }}</option>
-                    <option value="high">{{ i18n.t('kanban.priorityHigh') }}</option>
-                    <option value="urgent">{{ i18n.t('kanban.priorityUrgent') }}</option>
-                  </select>
-                </div>
-
-                <div class="modal__field">
-                  <label class="modal__label">{{ i18n.t('kanban.modalDueDate') }}</label>
-                  <input type="date" v-model="modalDueDate" class="modal__date-input" />
-                </div>
-              </div>
+            <div class="modal__field">
+              <label class="modal__label">{{ i18n.t('kanban.modalPriority') }}</label>
+              <UiSelect v-model="modalPriorityStr" :options="PRIORITY_OPTIONS" />
             </div>
-
-            <div class="modal__footer">
-              <button class="modal__btn modal__btn--secondary" @click="cancelAdd">
-                {{ i18n.t('kanban.modalCancel') }}
-              </button>
-              <button
-                class="modal__btn modal__btn--primary"
-                :disabled="!modalTitle.trim()"
-                @click="confirmAdd"
-              >
-                {{ i18n.t('kanban.modalCreate') }}
-              </button>
+            <div class="modal__field">
+              <label class="modal__label">{{ i18n.t('kanban.modalDueDate') }}</label>
+              <UiInput v-model="modalDueDate" type="date" />
             </div>
           </div>
         </div>
-      </Transition>
-    </Teleport>
+      </template>
+
+      <template #footer>
+        <UiButton variant="ghost" @click="cancelAdd">{{ i18n.t('kanban.modalCancel') }}</UiButton>
+        <UiButton :disabled="!modalTitle.trim()" @click="confirmAdd">
+          {{ i18n.t('kanban.modalCreate') }}
+        </UiButton>
+      </template>
+    </UiModal>
 
   </div>
 </template>

@@ -3,8 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useFinanceStore } from '../stores/finance.store'
 import { CATEGORY_META, EXPENSE_CATEGORIES, formatAmount, currentMonthKey } from '../types'
 import type { ExpenseCategory } from '../types'
-import { UiIcon, UiSectionLabel, UiFilterChips, UiProgressBar } from '@/ui'
-import type { FilterChipOption } from '@/ui'
+import { UiIcon, UiSectionLabel, UiFilterChips, UiProgressBar, UiButton, UiIconButton, UiSelect, UiInput, UiModal } from '@/ui'
+import type { FilterChipOption, SelectOption } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { useAiInsight } from '@/core/composables/useAiInsight'
 
@@ -107,6 +107,20 @@ const TAB_OPTIONS: FilterChipOption[] = [
 const activeTabStr = computed({
   get: () => activeTab.value as string,
   set: (v: string) => { activeTab.value = v as Tab },
+})
+
+const currencyOptions = computed<SelectOption[]>(() =>
+  store.POPULAR_CURRENCIES.map((c: string) => ({ value: c, label: c }))
+)
+
+// bridge to handle UiSelect string|number → string
+const baseCurrencyStr = computed({
+  get: () => store.baseCurrency,
+  set: (v: string | number) => { store.baseCurrency = String(v); store.fetchRates() },
+})
+const displayCurrencyStr = computed({
+  get: () => store.displayCurrency,
+  set: (v: string | number) => { store.displayCurrency = String(v); store.fetchRates() },
 })
 
 // ── Add expense form ─────────────────────────────────────────────────────
@@ -252,18 +266,9 @@ async function deleteExpense(id: string) {
         <h1 class="finance__title">Finance</h1>
         <!-- Month navigation -->
         <div class="finance__month-nav">
-          <button class="finance__month-btn" title="Previous month" @click="prevMonth">
-            <UiIcon name="ChevronLeft" :size="14" />
-          </button>
+          <UiIconButton name="ChevronLeft" aria-label="Previous month" size="sm" @click="prevMonth" />
           <span class="finance__month-label">{{ monthLabel }}</span>
-          <button
-            class="finance__month-btn"
-            title="Next month"
-            :disabled="isViewingCurrentMonth"
-            @click="nextMonth"
-          >
-            <UiIcon name="ChevronRight" :size="14" />
-          </button>
+          <UiIconButton name="ChevronRight" aria-label="Next month" size="sm" :disabled="isViewingCurrentMonth" @click="nextMonth" />
         </div>
       </div>
       <div class="finance__header-stats">
@@ -278,7 +283,7 @@ async function deleteExpense(id: string) {
         <div v-if="store.totalBudget > 0 && isViewingCurrentMonth" class="finance__header-stat">
           <span
             class="finance__header-stat-value"
-            :style="{ color: viewTotal > store.totalBudget ? '#ef4444' : '#22c55e' }"
+            :style="{ color: viewTotal > store.totalBudget ? 'var(--color-danger)' : 'var(--color-success)' }"
           >
             {{ formatAmount(store.totalBudget, store.currency) }}
           </span>
@@ -289,10 +294,10 @@ async function deleteExpense(id: string) {
           {{ viewOverBudgetCount }} over budget
         </div>
       </div>
-      <button class="finance__add-btn" @click="openAddForm">
+      <UiButton @click="openAddForm">
         <UiIcon name="Plus" :size="15" />
         Add expense
-      </button>
+      </UiButton>
     </div>
 
     <!-- Tabs -->
@@ -305,23 +310,24 @@ async function deleteExpense(id: string) {
       <div v-if="viewCategories.length === 0" class="finance__empty">
         <UiIcon name="PiggyBank" :size="32" />
         <p>No expenses {{ isViewingCurrentMonth ? 'this month' : 'in ' + monthLabel }} yet.</p>
-        <button v-if="isViewingCurrentMonth" class="finance__empty-btn" @click="openAddForm">Add your first expense</button>
+        <UiButton v-if="isViewingCurrentMonth" @click="openAddForm">Add your first expense</UiButton>
       </div>
 
       <template v-else>
         <!-- AI spending analysis -->
         <div class="finance__ai">
-          <button
-            class="finance__ai-btn"
+          <UiButton
+            variant="ghost"
+            size="sm"
             :disabled="aiLoading"
             title="AI: analyse this month's spending"
             @click="analyseSpending"
-          >{{ aiLoading ? '✦ Analysing…' : '✦ Analyse spending' }}</button>
+          >{{ aiLoading ? '✦ Analysing…' : '✦ Analyse spending' }}</UiButton>
           <Transition name="ai-fade">
             <div v-if="aiResult" class="finance__ai-card">
               <div class="finance__ai-head">
                 <span class="finance__ai-label">✦ Spending analysis</span>
-                <button class="finance__ai-dismiss" @click="dismissAi">×</button>
+                <UiIconButton name="X" aria-label="Dismiss spending analysis" size="sm" @click="dismissAi" />
               </div>
               <p class="finance__ai-text">{{ aiResult }}</p>
             </div>
@@ -407,16 +413,16 @@ async function deleteExpense(id: string) {
       <div v-if="viewExpenses.length === 0" class="finance__empty">
         <UiIcon name="Receipt" :size="32" />
         <p>No transactions in {{ monthLabel }}.</p>
-        <button v-if="isViewingCurrentMonth" class="finance__empty-btn" @click="openAddForm">Add your first expense</button>
+        <UiButton v-if="isViewingCurrentMonth" @click="openAddForm">Add your first expense</UiButton>
       </div>
 
       <template v-else>
         <div class="finance__txn-header">
           <span class="finance__txn-count">{{ viewExpenses.length }} transaction{{ viewExpenses.length !== 1 ? 's' : '' }}</span>
-          <button class="finance__csv-btn" title="Export as CSV" @click="exportTransactionsCSV">
+          <UiButton variant="ghost" size="sm" title="Export as CSV" @click="exportTransactionsCSV">
             <UiIcon name="Download" :size="13" />
             CSV
-          </button>
+          </UiButton>
         </div>
 
         <!-- Recurring expenses quick-add section -->
@@ -459,9 +465,7 @@ async function deleteExpense(id: string) {
             title="Mark as recurring monthly expense"
             @click.stop="store.toggleRecurring(expense.id)"
           >🔄</button>
-          <button class="txn__del" title="Delete" @click="deleteExpense(expense.id)">
-            <UiIcon name="X" :size="13" />
-          </button>
+          <UiIconButton name="X" aria-label="Delete expense" size="sm" @click="deleteExpense(expense.id)" />
         </div>
       </div>
       </template>
@@ -494,9 +498,7 @@ async function deleteExpense(id: string) {
               @keydown="onBudgetKeydown($event, cat)"
               @blur="saveBudget(cat)"
             />
-            <button class="budget-row__save" @click="saveBudget(cat)">
-              <UiIcon name="Check" :size="13" />
-            </button>
+            <UiIconButton name="Check" aria-label="Save budget limit" size="sm" @click="saveBudget(cat)" />
           </template>
 
           <!-- Display mode -->
@@ -524,105 +526,90 @@ async function deleteExpense(id: string) {
       <!-- Currency settings -->
       <div class="finance__currency-row">
         <span class="finance__currency-label">Base currency</span>
-        <select v-model="store.baseCurrency" class="finance__currency-select" @change="store.fetchRates()">
-          <option v-for="c in store.POPULAR_CURRENCIES" :key="c" :value="c">{{ c }}</option>
-        </select>
+        <UiSelect v-model="baseCurrencyStr" :options="currencyOptions" size="sm" class="finance__currency-select" />
       </div>
       <div class="finance__currency-row">
         <span class="finance__currency-label">Display currency</span>
-        <select v-model="store.displayCurrency" class="finance__currency-select" @change="store.fetchRates()">
-          <option v-for="c in store.POPULAR_CURRENCIES" :key="c" :value="c">{{ c }}</option>
-        </select>
+        <UiSelect v-model="displayCurrencyStr" :options="currencyOptions" size="sm" class="finance__currency-select" />
         <span v-if="store.exchangeRate !== 1" class="finance__rate-badge">
           1 {{ store.baseCurrency }} = {{ store.exchangeRate.toFixed(4) }} {{ store.displayCurrency }}
         </span>
       </div>
       <div class="finance__currency-row">
         <span class="finance__currency-label">Symbol</span>
-        <input v-model="store.currency" type="text" class="finance__currency-input" maxlength="3" placeholder="€" />
+        <UiInput v-model="store.currency" :maxlength="3" placeholder="€" class="finance__currency-input" />
       </div>
     </div>
 
     <!-- ── Add expense modal ────────────────────────────────────────── -->
-    <Teleport to="body">
-      <div v-if="showAddForm" class="finance-modal-overlay" @click.self="showAddForm = false">
-        <div class="finance-modal">
-          <div class="finance-modal__header">
-            <h2 class="finance-modal__title">Add expense</h2>
-            <button class="finance-modal__close" @click="showAddForm = false">
-              <UiIcon name="X" :size="16" />
-            </button>
+    <UiModal v-model:open="showAddForm" size="sm">
+      <template #header>
+        <h2 class="fm-title">Add expense</h2>
+      </template>
+
+      <template #body>
+        <div class="fm-form">
+          <!-- Amount — bespoke: type=number with step=0.01 -->
+          <div class="fm-field">
+            <label class="fm-label">Amount ({{ store.currency }})</label>
+            <input
+              v-model="formAmount"
+              type="number"
+              min="0"
+              step="0.01"
+              class="fm-input fm-input--large"
+              placeholder="0.00"
+              autofocus
+              @keydown.enter="submitExpense"
+            />
           </div>
 
-          <div class="finance-modal__form">
-            <!-- Amount -->
-            <div class="fm-field">
-              <label class="fm-label">Amount ({{ store.currency }})</label>
-              <input
-                v-model="formAmount"
-                type="number"
-                min="0"
-                step="0.01"
-                class="fm-input fm-input--large"
-                placeholder="0.00"
-                autofocus
-                @keydown.enter="submitExpense"
-              />
+          <!-- Category — bespoke: per-category color grid -->
+          <div class="fm-field">
+            <label class="fm-label">Category</label>
+            <div class="fm-cat-grid">
+              <button
+                v-for="cat in EXPENSE_CATEGORIES"
+                :key="cat"
+                class="fm-cat-btn"
+                :class="{ 'fm-cat-btn--active': formCategory === cat }"
+                :style="formCategory === cat ? { '--cat-color': CATEGORY_META[cat].color } : {}"
+                @click="formCategory = cat"
+              >
+                {{ CATEGORY_META[cat].icon }}
+                <span>{{ CATEGORY_META[cat].label }}</span>
+              </button>
             </div>
+          </div>
 
-            <!-- Category -->
-            <div class="fm-field">
-              <label class="fm-label">Category</label>
-              <div class="fm-cat-grid">
-                <button
-                  v-for="cat in EXPENSE_CATEGORIES"
-                  :key="cat"
-                  class="fm-cat-btn"
-                  :class="{ 'fm-cat-btn--active': formCategory === cat }"
-                  :style="formCategory === cat ? { '--cat-color': CATEGORY_META[cat].color } : {}"
-                  @click="formCategory = cat"
-                >
-                  {{ CATEGORY_META[cat].icon }}
-                  <span>{{ CATEGORY_META[cat].label }}</span>
-                </button>
-              </div>
-            </div>
+          <!-- Note -->
+          <div class="fm-field">
+            <label class="fm-label">Note <span class="fm-optional">(optional)</span></label>
+            <UiInput
+              v-model="formNote"
+              placeholder="What did you spend on?"
+              @enter="submitExpense"
+            />
+          </div>
 
-            <!-- Note -->
-            <div class="fm-field">
-              <label class="fm-label">Note <span class="fm-optional">(optional)</span></label>
-              <input
-                v-model="formNote"
-                type="text"
-                class="fm-input"
-                placeholder="What did you spend on?"
-                @keydown.enter="submitExpense"
-              />
-            </div>
+          <!-- Date -->
+          <div class="fm-field">
+            <label class="fm-label">Date</label>
+            <UiInput v-model="formDate" type="date" />
+          </div>
 
-            <!-- Date -->
-            <div class="fm-field">
-              <label class="fm-label">Date</label>
-              <input
-                v-model="formDate"
-                type="date"
-                class="fm-input"
-              />
-            </div>
-
-            <div v-if="formError" class="fm-error">
-              <UiIcon name="AlertCircle" :size="13" />
-              {{ formError }}
-            </div>
-
-            <div class="fm-actions">
-              <button class="fm-btn fm-btn--ghost" @click="showAddForm = false">Cancel</button>
-              <button class="fm-btn fm-btn--primary" @click="submitExpense">Add expense</button>
-            </div>
+          <div v-if="formError" class="fm-error">
+            <UiIcon name="AlertCircle" :size="13" />
+            {{ formError }}
           </div>
         </div>
-      </div>
-    </Teleport>
+      </template>
+
+      <template #footer>
+        <UiButton variant="ghost" @click="showAddForm = false">Cancel</UiButton>
+        <UiButton @click="submitExpense">Add expense</UiButton>
+      </template>
+    </UiModal>
   </div>
 </template>
 
