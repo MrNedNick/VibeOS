@@ -8,8 +8,10 @@ import type { FilterChipOption } from '@/ui'
 import FinanceOverview from '../components/FinanceOverview.vue'
 import FinanceTransactions from '../components/FinanceTransactions.vue'
 import FinanceBudgets from '../components/FinanceBudgets.vue'
+import { useTrack } from '@/core/composables/useTrack'
 
 const store = useFinanceStore()
+const { track } = useTrack()
 
 type Tab = 'overview' | 'transactions' | 'budgets'
 const activeTab = ref<Tab>('overview')
@@ -22,8 +24,19 @@ const TAB_OPTIONS: FilterChipOption[] = [
 
 const activeTabStr = computed({
   get: () => activeTab.value as string,
-  set: (v: string) => { activeTab.value = v as Tab },
+  set: (v: string) => { activeTab.value = v as Tab; track('tab:switched', { tab: v }) },
 })
+
+function addExpense(): void {
+  store.openAddForm()
+  track('expense:form-opened')
+}
+
+function submitExpense(): void {
+  const had_error = !!store.formError
+  store.submitExpense()
+  if (!had_error && !store.formError) track('expense:added')
+}
 
 onMounted(() => store.fetchRates())
 </script>
@@ -61,7 +74,7 @@ onMounted(() => store.fetchRates())
           {{ store.viewOverBudgetCount }} over budget
         </div>
       </div>
-      <UiButton @click="store.openAddForm()">
+      <UiButton @click="addExpense()">
         <UiIcon name="Plus" :size="15" />
         Add expense
       </UiButton>
@@ -97,7 +110,7 @@ onMounted(() => store.fetchRates())
               class="fm-input fm-input--large"
               placeholder="0.00"
               autofocus
-              @keydown.enter="store.submitExpense()"
+              @keydown.enter="submitExpense()"
             />
           </div>
 
@@ -137,7 +150,7 @@ onMounted(() => store.fetchRates())
 
       <template #footer>
         <UiButton variant="ghost" @click="store.showAddForm = false">Cancel</UiButton>
-        <UiButton @click="store.submitExpense()">Add expense</UiButton>
+        <UiButton @click="submitExpense()">Add expense</UiButton>
       </template>
     </UiModal>
   </div>

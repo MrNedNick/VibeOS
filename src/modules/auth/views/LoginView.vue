@@ -3,9 +3,11 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon, UiButton, UiInput } from '@/ui'
+import { useTrack } from '@/core/composables/useTrack'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { track } = useTrack()
 
 const APP_VERSION = __APP_VERSION__
 
@@ -24,6 +26,7 @@ const canSubmit = computed(() => email.value.trim().length > 0 && password.value
 async function submit() {
   if (!canSubmit.value) return
   error.value = null
+  track('auth:sign-in-attempted')
   const result = await auth.login(email.value.trim(), password.value)
   if (result.error) {
     error.value = result.error
@@ -33,6 +36,7 @@ async function submit() {
 }
 
 function tryDemo() {
+  track('auth:demo-activated')
   auth.loginDemo()
   router.replace('/')
 }

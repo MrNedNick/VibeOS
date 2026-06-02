@@ -6,11 +6,13 @@ import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
+import { useTrack } from '@/core/composables/useTrack'
 
 const i18n        = useLocale()
 const habitsStore = useHabitsStore()
 const tasksStore  = useTasksStore()
 const goalsStore  = useGoalsStore()
+const { track } = useTrack()
 
 const APP_VERSION   = __APP_VERSION__
 const GITHUB_URL    = 'https://github.com/MrNedNick/VibeOS'
@@ -117,6 +119,7 @@ const STATS = computed(() => [
               class="about__cta"
               target="_blank"
               rel="noopener noreferrer"
+              @click="track('link:external', { label: s.label })"
             >
               <UiIcon :name="s.icon" :size="15" />
               {{ s.label }}
@@ -171,10 +174,10 @@ const STATS = computed(() => [
         </div>
         <div class="about__project-links">
           <span class="about__version-chip">v{{ APP_VERSION }}</span>
-          <a :href="GITHUB_URL" class="about__proj-link" target="_blank" rel="noopener noreferrer">
+          <a :href="GITHUB_URL" class="about__proj-link" target="_blank" rel="noopener noreferrer" @click="track('link:external', { label: 'GitHub' })">
             <UiIcon name="Github" :size="13" /> GitHub
           </a>
-          <a :href="LIVE_SITE_URL" class="about__proj-link" target="_blank" rel="noopener noreferrer">
+          <a :href="LIVE_SITE_URL" class="about__proj-link" target="_blank" rel="noopener noreferrer" @click="track('link:external', { label: 'Live' })">
             <UiIcon name="ExternalLink" :size="13" /> Live
           </a>
         </div>

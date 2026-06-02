@@ -5,9 +5,11 @@ import { marked } from 'marked'
 import { useDocs } from '../composables/useDocs'
 import DocsSidebar from '../components/DocsSidebar.vue'
 import { UiIcon, UiButton } from '@/ui'
+import { useTrack } from '@/core/composables/useTrack'
 
 const router = useRouter()
 const { DOC_REGISTRY, currentSlug, currentPage, currentContent } = useDocs()
+const { track } = useTrack()
 
 // Anchor links for headings
 marked.use({
@@ -55,8 +57,15 @@ watch(renderedHtml, async () => {
 const firstPage = DOC_REGISTRY[0]?.pages[0]
 
 function goToFirst() {
-  if (firstPage) router.push(`/docs/${firstPage.slug}`)
+  if (firstPage) {
+    router.push(`/docs/${firstPage.slug}`)
+    track('page:navigated', { slug: firstPage.slug })
+  }
 }
+
+watch(currentSlug, (slug) => {
+  if (slug) track('page:navigated', { slug })
+})
 </script>
 
 <template>

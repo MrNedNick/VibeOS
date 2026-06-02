@@ -7,9 +7,11 @@ import { useLocale } from '@/core/i18n'
 import { useStorage } from '@/core/composables/useStorage'
 import { useModuleVisibility } from '@/core/composables/useModuleVisibility'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
+import { useTrack } from '@/core/composables/useTrack'
 
 const uiStore = useUiStore()
 const i18n    = useLocale()
+const { track } = useTrack()
 
 // ── Vibe-paks ─────────────────────────────────────────────────────
 interface VibePak {
@@ -81,6 +83,7 @@ function exportData() {
   })
   a.click()
   URL.revokeObjectURL(url)
+  track('data:exported', { format: 'json' })
 }
 
 function startClear() {
@@ -166,7 +169,7 @@ function cancelImport() {
             :key="pak.id"
             class="pak-card"
             :class="{ 'pak-card--active': uiStore.theme === pak.id }"
-            @click="uiStore.setTheme(pak.id)"
+            @click="uiStore.setTheme(pak.id); track('theme:changed', { theme: pak.id })"
           >
             <div class="pak-preview">
               <span
@@ -221,7 +224,7 @@ function cancelImport() {
           class="settings__vis-toggle"
           :class="{ 'settings__vis-toggle--on': isVisible(mod.id) }"
           :title="isVisible(mod.id) ? 'Click to hide' : 'Click to show'"
-          @click="toggleModule(mod.id)"
+          @click="toggleModule(mod.id); track('module:visibility-toggled', { module: mod.id, nowVisible: !isVisible(mod.id) })"
         >
           <span class="settings__vis-knob" />
         </button>

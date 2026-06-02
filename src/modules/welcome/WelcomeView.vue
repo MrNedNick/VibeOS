@@ -3,14 +3,22 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon, UiSectionLabel, UiButton } from '@/ui'
+import { useTrack } from '@/core/composables/useTrack'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { track } = useTrack()
 const APP_VERSION = __APP_VERSION__
 
 function tryDemo() {
+  track('cta:demo-entered')
   auth.loginDemo()
   router.push('/')
+}
+
+function goToLogin() {
+  track('cta:sign-in-clicked')
+  router.push('/login')
 }
 
 // ── Module showcase ──────────────────────────────────────────────────
@@ -75,7 +83,7 @@ const activeTab = ref<'overview' | 'terminal'>('overview')
           <UiIcon name="Github" :size="15" :stroke-width="1.75" />
           GitHub
         </a>
-        <UiButton variant="ghost" size="sm" @click="router.push('/login')">Sign in</UiButton>
+        <UiButton variant="ghost" size="sm" @click="goToLogin()">Sign in</UiButton>
         <UiButton @click="tryDemo">
           Try demo
           <UiIcon name="ArrowRight" :size="14" :stroke-width="2" />

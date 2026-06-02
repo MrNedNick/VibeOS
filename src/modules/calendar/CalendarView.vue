@@ -6,6 +6,7 @@ import { useLearningStore } from '@/modules/learning/stores/learning.store'
 import { useTrainingStore } from '@/modules/training/stores/training.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useLocale } from '@/core/i18n'
+import { useTrack } from '@/core/composables/useTrack'
 
 const i18n         = useLocale()
 const tasksStore   = useTasksStore()
@@ -13,6 +14,7 @@ const habitsStore  = useHabitsStore()
 const learningStore = useLearningStore()
 const trainingStore = useTrainingStore()
 const goalsStore   = useGoalsStore()
+const { track } = useTrack()
 
 // ─────────────────────────────────────────────────────────────
 // Current month state
@@ -43,6 +45,7 @@ function prevMonth() {
   } else {
     selectedDate.value = toDateStr(new Date(y, m, 1))
   }
+  track('month:navigated', { direction: 'prev' })
 }
 
 function nextMonth() {
@@ -60,12 +63,14 @@ function nextMonth() {
   } else {
     selectedDate.value = toDateStr(new Date(y, m, 1))
   }
+  track('month:navigated', { direction: 'next' })
 }
 
 function goToToday() {
   currentYear.value  = today.getFullYear()
   currentMonth.value = today.getMonth()
   selectedDate.value = todayStr
+  track('month:jumped-to-today')
 }
 
 const monthLabel = computed(() =>
@@ -215,6 +220,7 @@ const selectedHasEvents = computed(() => {
 
 function selectDate(ds: string) {
   selectedDate.value = ds
+  track('day:selected', { date: ds })
 }
 
 const PRIORITY_COLOR: Record<string, string> = {

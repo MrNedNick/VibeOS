@@ -3,9 +3,11 @@ import { useFinanceStore } from '../stores/finance.store'
 import { CATEGORY_META, formatAmount } from '../types'
 import { UiButton, UiIconButton, UiSectionLabel, UiProgressBar, UiIcon } from '@/ui'
 import { useAiInsight } from '@/core/composables/useAiInsight'
+import { useTrack } from '@/core/composables/useTrack'
 
 const store = useFinanceStore()
 const todayDateStr = new Date().toISOString().split('T')[0]
+const { track } = useTrack()
 
 const { result: aiResult, loading: aiLoading, run: runAi, dismiss: dismissAi } = useAiInsight()
 
@@ -40,6 +42,7 @@ function buildSpendingPrompt(): string {
 
 function analyseSpending(): void {
   if (!store.viewCategories.length) return
+  track('ai:spending-analysis')
   runAi(buildSpendingPrompt())
 }
 </script>

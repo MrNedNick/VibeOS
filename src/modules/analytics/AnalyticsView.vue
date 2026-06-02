@@ -11,12 +11,14 @@ import AnalyticsAiReport from './components/AnalyticsAiReport.vue'
 import AnalyticsHabits from './components/AnalyticsHabits.vue'
 import AnalyticsBarChart from './components/AnalyticsBarChart.vue'
 import AnalyticsGoals from './components/AnalyticsGoals.vue'
+import { useTrack } from '@/core/composables/useTrack'
 
 const i18n = useLocale()
 const tasksStore    = useTasksStore()
 const habitsStore   = useHabitsStore()
 const learningStore = useLearningStore()
 const trainingStore = useTrainingStore()
+const { track } = useTrack()
 
 type Period = 7 | 30 | 90
 const period = ref<Period>(30)
@@ -28,7 +30,7 @@ const PERIOD_OPTIONS = computed<FilterChipOption[]>(() => [
 ])
 const periodStr = computed({
   get: () => String(period.value),
-  set: (v: string) => { period.value = parseInt(v) as Period },
+  set: (v: string) => { period.value = parseInt(v) as Period; track('period:changed', { days: parseInt(v) }) },
 })
 
 // ── Date helpers ──────────────────────────────────────────────────────

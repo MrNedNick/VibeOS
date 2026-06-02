@@ -7,6 +7,7 @@ import { useTrainingStore } from '@/modules/training/stores/training.store'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useAI } from '@/core/composables/useAI'
 import { UiIcon, UiSkeleton } from '@/ui'
+import { useTrack } from '@/core/composables/useTrack'
 
 const props = defineProps<{ period: number }>()
 
@@ -17,6 +18,7 @@ const trainingStore = useTrainingStore()
 const goalsStore    = useGoalsStore()
 
 const { complete, loading: reportLoading } = useAI()
+const { track } = useTrack()
 const report      = ref<string | null>(null)
 const reportError = ref<string | null>(null)
 const reportOpen  = ref(false)
@@ -75,6 +77,7 @@ async function generateReport(): Promise<void> {
   reportError.value = null
   reportOpen.value  = true
   report.value      = null
+  track('ai:report-generated', { period: props.period })
   const prompt =
     `Here is my personal data for the period:\n${buildSummary()}\n\n` +
     `Write a single short paragraph (3–5 sentences) reviewing my month like a personal reflection. ` +
