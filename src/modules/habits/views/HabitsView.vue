@@ -7,6 +7,8 @@ import { useAiInsight } from '@/core/composables/useAiInsight'
 import HabitCard from '../components/HabitCard.vue'
 import { HABIT_CATEGORIES, HABIT_CATEGORY_META, computeStreak, computeBestStreak, todayStr } from '../types'
 import type { HabitCategory } from '../types'
+import { UiButton, UiIconButton, UiSelect, UiProgressBar } from '@/ui'
+import type { SelectOption } from '@/ui'
 
 const HABIT_TEMPLATES: { name: string; emoji: string; purpose: string; category: HabitCategory }[] = [
   { name: 'Exercise', emoji: '💪', purpose: 'Stay active and energized', category: 'health' },
@@ -29,6 +31,11 @@ const newCategory = ref<HabitCategory | undefined>(undefined)
 const newGoalId   = ref('')
 const nameInputRef = ref<HTMLInputElement>()
 
+const goalOptions = computed<SelectOption[]>(() => [
+  { value: '', label: '🎯 No goal' },
+  ...goalsStore.activeGoals.map(g => ({ value: g.id, label: `${g.coverEmoji} ${g.title}` })),
+])
+
 // ── At-risk + weekly summary ──────────────────────────────────────────
 const today = todayStr()
 
@@ -39,7 +46,6 @@ const atRiskHabits = computed(() =>
   }),
 )
 
-// Last 7 days summary
 const weeklySummary = computed(() => {
   const days: string[] = []
   for (let i = 6; i >= 0; i--) {
@@ -55,6 +61,12 @@ const weeklySummary = computed(() => {
   const pct = Math.round((doneDays / totalSlots) * 100)
   const bestStreak = Math.max(...store.habits.map(h => computeStreak(h.completedDates, h.skippedDates)), 0)
   return { pct, doneDays, totalSlots, bestStreak }
+})
+
+const weeklyBarColor = computed((): 'success' | 'accent' | 'warning' => {
+  if (!weeklySummary.value) return 'accent'
+  const p = weeklySummary.value.pct
+  return p >= 80 ? 'success' : p >= 50 ? 'accent' : 'warning'
 })
 
 // ── Category filter ───────────────────────────────────────────────────
@@ -76,7 +88,6 @@ const filteredHabits = computed(() => {
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const { result: aiInsight, loading: aiLoading, run: runInsight, dismiss: dismissInsight } = useAiInsight()
 
-/** Last 14 calendar dates, oldest → newest */
 function last14Dates(): string[] {
   const out: string[] = []
   for (let i = 13; i >= 0; i--) {
@@ -93,7 +104,6 @@ function buildHabitsPrompt(): string {
     const cur   = computeStreak(h.completedDates, h.skippedDates)
     const best  = computeBestStreak(h.completedDates)
     const doneSet = new Set(h.completedDates)
-    // Weekdays consistently missed over the last 14 days
     const missedByDay: Record<string, number> = {}
     const totalByDay: Record<string, number> = {}
     for (const ds of dates) {
@@ -102,7 +112,7 @@ function buildHabitsPrompt(): string {
       if (!doneSet.has(ds)) missedByDay[wd] = (missedByDay[wd] ?? 0) + 1
     }
     const missedDays = Object.keys(missedByDay)
-      .filter(wd => missedByDay[wd] === totalByDay[wd]) // missed every occurrence
+      .filter(wd => missedByDay[wd] === totalByDay[wd])
       .join(', ') || 'none'
     const last14 = dates.map(ds => (doneSet.has(ds) ? '✓' : '·')).join('')
     return `- "${h.name}" [${cat}] · current streak ${cur}d, best ${best}d · last 14 days: ${last14} · always missed on: ${missedDays}`
@@ -170,8 +180,8 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 // ── Drag-to-reorder ───────────────────────────────────────────────────
-const draggingId  = ref<string | null>(null)
-const dragOverId  = ref<string | null>(null)
+const draggingId = ref<string | null>(null)
+const dragOverId = ref<string | null>(null)
 
 function onDragStart(e: DragEvent, id: string) {
   draggingId.value = id
@@ -202,7 +212,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <strong>{{ milestone.streak }}-day streak!</strong>
           <span>{{ milestone.name }} — keep it up 🎉</span>
         </div>
-        <button class="habits__milestone-close">×</button>
+        <UiIconButton name="X" aria-label="Dismiss" size="sm" @click.stop="store.dismissMilestone()" />
       </div>
     </Transition>
 
@@ -212,16 +222,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <p class="habits__date">{{ todayLabel }}</p>
       </div>
       <div class="habits__header-actions">
-        <button
+        <UiButton
           v-if="store.habits.length > 0"
-          class="habits__ai-btn"
-          :title="aiLoading ? 'Thinking…' : 'AI: find patterns in your check-ins'"
+          variant="ghost"
+          size="sm"
           :disabled="aiLoading"
+          :title="aiLoading ? 'Thinking…' : 'AI: find patterns in your check-ins'"
           @click="askInsights"
-        >{{ aiLoading ? '✦ …' : '✦ Patterns' }}</button>
-        <button class="habits__add-btn" :title="i18n.t('habits.addBtn') + ' (N)'" @click="openForm">
+        >{{ aiLoading ? '✦ …' : '✦ Patterns' }}</UiButton>
+        <UiButton :title="i18n.t('habits.addBtn') + ' (N)'" @click="openForm">
           {{ i18n.t('habits.addBtn') }}
-        </button>
+        </UiButton>
       </div>
     </div>
 
@@ -230,7 +241,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <div v-if="aiInsight" class="habits__ai-card">
         <div class="habits__ai-head">
           <span class="habits__ai-label">✦ Pattern insights</span>
-          <button class="habits__ai-dismiss" @click="dismissInsight">×</button>
+          <UiIconButton name="X" aria-label="Dismiss AI insights" size="sm" @click="dismissInsight" />
         </div>
         <p class="habits__ai-text">{{ aiInsight }}</p>
       </div>
@@ -238,6 +249,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
     <!-- New habit form -->
     <div v-if="showForm" class="habits__form" @keydown="onFormKeydown">
+      <!-- Bespoke inputs: emoji (center-aligned, 44px) + name/purpose (borderless, inline) -->
       <input v-model="newEmoji" class="habits__form-emoji" placeholder="⭐" maxlength="2" />
       <input
         v-model="newName"
@@ -252,7 +264,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         placeholder="Why? (optional)"
         maxlength="120"
       />
-      <!-- Category chips row -->
+      <!-- Category chips — bespoke: per-category color via --cat CSS var, toggle-to-deselect -->
       <div class="habits__form-cats">
         <span class="habits__form-cat-label">Category:</span>
         <button
@@ -266,21 +278,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           {{ HABIT_CATEGORY_META[cat].icon }} {{ HABIT_CATEGORY_META[cat].label }}
         </button>
       </div>
-      <!-- Optional goal link -->
-      <select
-        v-if="goalsStore.activeGoals.length"
-        v-model="newGoalId"
-        class="habits__form-goal"
-        title="Link this habit to a goal (optional)"
-      >
-        <option value="">🎯 No goal</option>
-        <option v-for="g in goalsStore.activeGoals" :key="g.id" :value="g.id">
-          {{ g.coverEmoji }} {{ g.title }}
-        </option>
-      </select>
+      <!-- Goal link -->
+      <div v-if="goalsStore.activeGoals.length" class="habits__form-goal-wrap">
+        <UiSelect
+          v-model="newGoalId"
+          size="sm"
+          :options="goalOptions"
+          title="Link this habit to a goal (optional)"
+        />
+      </div>
       <div class="habits__form-actions">
-        <button class="habits__form-save" @click="submitForm">{{ i18n.t('habits.formSave') }}</button>
-        <button class="habits__form-cancel" @click="cancelForm">{{ i18n.t('habits.formCancel') }}</button>
+        <UiButton size="sm" @click="submitForm">{{ i18n.t('habits.formSave') }}</UiButton>
+        <UiButton variant="ghost" size="sm" @click="cancelForm">{{ i18n.t('habits.formCancel') }}</UiButton>
       </div>
     </div>
 
@@ -290,14 +299,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <span class="habits__weekly-value">{{ weeklySummary.pct }}%</span>
         <span class="habits__weekly-label">last 7 days</span>
       </div>
-      <div class="habits__weekly-bar">
-        <div
-          class="habits__weekly-fill"
-          :style="{
-            width: weeklySummary.pct + '%',
-            background: weeklySummary.pct >= 80 ? 'var(--color-success)' : weeklySummary.pct >= 50 ? 'var(--color-accent)' : 'var(--color-warning)',
-          }"
-        />
+      <div class="habits__weekly-bar-wrap">
+        <UiProgressBar :value="weeklySummary.pct" :height="6" :color="weeklyBarColor" />
       </div>
       <div class="habits__weekly-right">
         <span class="habits__weekly-done">{{ weeklySummary.doneDays }}/{{ weeklySummary.totalSlots }} check-ins</span>
@@ -305,7 +308,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       </div>
     </div>
 
-    <!-- Category filter chips (shown when 2+ categories in use) -->
+    <!-- Category filter chips — bespoke: per-category color + at-risk special chip -->
     <div v-if="categoriesInUse.length > 1 || atRiskHabits.length > 0" class="habits__cats">
       <button
         class="habits__cat"
@@ -363,21 +366,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <div class="habits__empty-icon">📋</div>
       <p class="habits__empty-title">{{ i18n.t('habits.emptyTitle') }}</p>
       <p class="habits__empty-sub">{{ i18n.t('habits.emptySub') }}</p>
-      <button class="habits__empty-btn" @click="openForm">{{ i18n.t('habits.emptyBtn') }}</button>
+      <UiButton class="habits__empty-cta" @click="openForm">{{ i18n.t('habits.emptyBtn') }}</UiButton>
 
-      <!-- Quick-start templates -->
       <div class="habits__templates">
         <p class="habits__templates-label">Or start with a template:</p>
         <div class="habits__templates-grid">
-          <button
+          <UiButton
             v-for="t in HABIT_TEMPLATES"
             :key="t.name"
-            class="habits__template-btn"
+            variant="ghost"
             @click="store.createHabit(t.name, t.emoji, t.purpose, t.category)"
           >
             <span class="habits__template-emoji">{{ t.emoji }}</span>
             <span class="habits__template-name">{{ t.name }}</span>
-          </button>
+          </UiButton>
         </div>
       </div>
     </div>
@@ -409,34 +411,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .habits__milestone-emoji { font-size: 32px; flex-shrink: 0; line-height: 1; }
-
 .habits__milestone-text {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-
-.habits__milestone-text strong {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.habits__milestone-text span {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-.habits__milestone-close {
-  font-size: 18px;
-  color: var(--color-text-muted);
-  line-height: 1;
-  padding: 2px 4px;
-  flex-shrink: 0;
-  transition: color var(--t-fast);
-}
-.habits__milestone-close:hover { color: var(--color-text); }
+.habits__milestone-text strong { font-size: 16px; font-weight: 700; color: var(--color-text); }
+.habits__milestone-text span { font-size: 13px; color: var(--color-text-secondary); }
 
 .milestone-enter-active { transition: opacity 0.3s ease, transform 0.3s ease; }
 .milestone-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
@@ -450,47 +432,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   gap: 16px;
 }
 
-.habits__title {
-  font-size: 27px;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.habits__date {
-  font-size: 14px;
-  color: var(--color-text-muted);
-  margin: 4px 0 0;
-}
-
+.habits__title { font-size: 27px; font-weight: 700; color: var(--color-text); margin: 0; }
+.habits__date { font-size: 14px; color: var(--color-text-muted); margin: 4px 0 0; }
 .habits__header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
-.habits__add-btn {
-  padding: 8px 16px;
-  background: var(--color-accent);
-  color: #fff;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: opacity var(--t-fast);
-}
-.habits__add-btn:hover { opacity: 0.88; }
-
-.habits__ai-btn {
-  padding: 8px 14px;
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
-  color: var(--color-accent);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--t-fast), opacity var(--t-fast);
-}
-.habits__ai-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
-.habits__ai-btn:disabled { opacity: 0.6; cursor: default; }
 
 /* AI pattern insights card */
 .habits__ai-card {
@@ -505,8 +449,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 .habits__ai-head { display: flex; align-items: center; justify-content: space-between; }
 .habits__ai-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
-.habits__ai-dismiss { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
-.habits__ai-dismiss:hover { color: var(--color-text); }
 .habits__ai-text { font-size: var(--text-sm); line-height: var(--leading-lg); color: var(--color-text-secondary); margin: 0; white-space: pre-line; }
 
 .ai-fade-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
@@ -531,9 +473,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .habits__form-name    { grid-row: 1; grid-column: 2; }
 .habits__form-purpose { grid-row: 2; grid-column: 2 / 5; }
 .habits__form-cats    { grid-row: 3; grid-column: 1 / 4; }
-.habits__form-goal    { grid-row: 1; grid-column: 3; }
-.habits__form-actions { grid-row: 1; grid-column: 4; }
+.habits__form-goal-wrap { grid-row: 1; grid-column: 3; }
+.habits__form-actions { grid-row: 1; grid-column: 4; display: flex; gap: 6px; flex-shrink: 0; }
 
+/* Bespoke emoji input — 44px, center-aligned, emoji-size font */
 .habits__form-emoji {
   width: 44px;
   font-size: 22px;
@@ -546,6 +489,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   color: var(--color-text);
 }
 
+/* Bespoke inline name + purpose inputs — borderless, integrated into form grid */
 .habits__form-name {
   font-size: 16px;
   font-weight: 500;
@@ -573,12 +517,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   flex-wrap: wrap;
 }
 
-.habits__form-cat-label {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  margin-right: 2px;
-}
+.habits__form-cat-label { font-size: 11px; color: var(--color-text-muted); margin-right: 2px; }
 
+/* Category chips — bespoke: per-category --cat CSS var, toggle-to-deselect */
 .habits__form-cat {
   display: inline-flex;
   align-items: center;
@@ -603,50 +544,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   border-color: color-mix(in srgb, var(--cat, var(--color-accent)) 40%, transparent);
   color: var(--cat, var(--color-accent));
 }
-
-.habits__form-actions {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.habits__form-save {
-  padding: 6px 14px;
-  background: var(--color-accent);
-  color: #fff;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity var(--t-fast);
-}
-.habits__form-save:hover { opacity: 0.88; }
-
-.habits__form-cancel {
-  padding: 6px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  background: var(--color-surface-elevated);
-  cursor: pointer;
-  transition: background var(--t-fast);
-}
-.habits__form-cancel:hover { background: var(--color-border); }
-
-.habits__form-goal {
-  font-size: 13px;
-  font-family: var(--font-sans);
-  color: var(--color-text);
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 5px 8px;
-  outline: none;
-  cursor: pointer;
-  transition: border-color var(--t-fast);
-}
-.habits__form-goal:focus { border-color: var(--color-accent); }
 
 /* Weekly summary */
 .habits__weekly {
@@ -683,20 +580,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   margin-top: 2px;
 }
 
-.habits__weekly-bar {
-  flex: 1;
-  height: 6px;
-  background: var(--color-surface-elevated);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.habits__weekly-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.5s ease;
-  min-width: 2px;
-}
+.habits__weekly-bar-wrap { flex: 1; }
 
 .habits__weekly-right {
   display: flex;
@@ -706,19 +590,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   flex-shrink: 0;
 }
 
-.habits__weekly-done {
-  font-size: 12px;
-  font-family: var(--font-mono);
-  color: var(--color-text-muted);
-}
+.habits__weekly-done { font-size: 12px; font-family: var(--font-mono); color: var(--color-text-muted); }
+.habits__weekly-streak { font-size: 12px; font-weight: 600; color: var(--color-warning); }
 
-.habits__weekly-streak {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-warning);
-}
-
-/* Category filter chips */
+/* Category filter chips — bespoke: per-category --cat CSS var + at-risk special */
 .habits__cats {
   display: flex;
   align-items: center;
@@ -749,7 +624,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   border-color: color-mix(in srgb, var(--cat, var(--color-accent)) 40%, transparent);
   color: var(--cat, var(--color-accent));
 }
-
 .habits__cat--risk { border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border)); }
 .habits__cat--risk.habits__cat--active {
   background: color-mix(in srgb, var(--color-warning) 12%, transparent);
@@ -767,13 +641,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   border-radius: var(--radius-lg);
   transition: opacity var(--t-fast), box-shadow var(--t-fast);
 }
-
 .habits__drag-row--dragging { opacity: 0.45; }
-
-.habits__drag-row--over {
-  box-shadow: 0 -3px 0 var(--color-accent);
-  border-radius: 0;
-}
+.habits__drag-row--over { box-shadow: 0 -3px 0 var(--color-accent); border-radius: 0; }
 
 .habits__drag-handle {
   cursor: grab;
@@ -804,19 +673,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 .habits__empty-icon { font-size: 40px; line-height: 1; }
 .habits__empty-title { font-size: 19px; font-weight: 600; color: var(--color-text-secondary); margin: 0; }
-.habits__empty-sub { font-size: 15px; color: var(--color-text-muted); margin: 0; max-width: 380px; line-height: 1.6; }
-.habits__empty-btn {
-  margin-top: 6px;
-  padding: 9px 22px;
-  background: var(--color-accent);
-  color: #fff;
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity var(--t-fast);
-}
-.habits__empty-btn:hover { opacity: 0.88; }
+.habits__empty-sub { font-size: 15px; color: var(--color-text-muted); margin: 0; max-width: 380px; line-height: var(--leading-lg); }
+.habits__empty-cta { margin-top: 6px; }
 
 .habits__templates { margin-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .habits__templates-label { font-size: 13px; color: var(--color-text-muted); margin: 0; }
@@ -827,27 +685,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   justify-content: center;
   max-width: 480px;
 }
-.habits__template-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  cursor: pointer;
-  transition: border-color var(--t-fast), background var(--t-fast);
-}
-.habits__template-btn:hover {
-  border-color: var(--color-accent);
-  background: var(--color-accent-muted);
-}
+
 .habits__template-emoji { font-size: 16px; line-height: 1; }
 .habits__template-name { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); }
 
 @media (max-width: 767px) {
   .habits__header { flex-direction: column; gap: 12px; }
-  .habits__add-btn { align-self: flex-start; }
   .habits__form {
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto auto auto;
@@ -856,7 +699,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   .habits__form-name    { grid-row: 1; grid-column: 2; }
   .habits__form-purpose { grid-row: 2; grid-column: 1 / 3; }
   .habits__form-cats    { grid-row: 3; grid-column: 1 / 3; }
-  .habits__form-goal    { grid-row: 4; grid-column: 1 / 3; }
+  .habits__form-goal-wrap { grid-row: 4; grid-column: 1 / 3; }
   .habits__form-actions { grid-row: 1; grid-column: 3; display: none; }
 }
 </style>

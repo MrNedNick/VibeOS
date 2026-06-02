@@ -7,7 +7,7 @@ import { useNotesStore } from '@/modules/notes/stores/notes.store'
 import { deriveTitle } from '@/modules/notes/types'
 import MilestoneList from '../components/MilestoneList.vue'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '../types'
-import { UiIcon, UiSectionLabel, UiProgressBar } from '@/ui'
+import { UiIcon, UiSectionLabel, UiProgressBar, UiButton, UiIconButton, UiInput, UiTextarea } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { aiComplete } from '@/core/composables/useAI'
 
@@ -22,18 +22,14 @@ if (!goal.value) router.replace('/goals')
 
 const progress = computed(() => goal.value ? calcProgress(goal.value) : 0)
 
-// Notes — local ref, synced to store on change with debounce
 const localNotes = ref(goal.value?.notes ?? '')
 let notesTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(localNotes, (val) => {
   if (notesTimer) clearTimeout(notesTimer)
-  notesTimer = setTimeout(() => {
-    store.updateNotes(goalId.value, val)
-  }, 600)
+  notesTimer = setTimeout(() => { store.updateNotes(goalId.value, val) }, 600)
 })
 
-// Due date display
 const dueDisplay = computed(() => {
   if (!goal.value?.targetDate) return null
   const days = daysUntil(goal.value.targetDate)
@@ -50,14 +46,14 @@ const { confirm } = useConfirm()
 
 // ── AI milestone suggestions ──────────────────────────────────────────
 const suggestLoading = ref(false)
-const suggestError = ref<string | null>(null)
-const suggestions = ref<string[]>([])
+const suggestError   = ref<string | null>(null)
+const suggestions    = ref<string[]>([])
 
 async function suggestMilestones() {
   if (!goal.value) return
   suggestLoading.value = true
-  suggestError.value = null
-  suggestions.value = []
+  suggestError.value   = null
+  suggestions.value    = []
 
   const existing = goal.value.milestones.map(m => m.title)
   const existingNote = existing.length ? `Existing milestones: ${existing.join(', ')}. ` : ''
@@ -107,21 +103,18 @@ async function askDelete() {
 
 // ── Linked notes ────────────────────────────────────────────────────
 const notesStore = useNotesStore()
-
 const linkedNotes = computed(() => notesStore.getNotesForGoal(goalId.value))
 
 // ── Linked tasks ────────────────────────────────────────────────────
 const tasksStore = useTasksStore()
 
-const linkedTasks = computed(() =>
-  tasksStore.tasks.filter(t => t.linkedGoalId === goalId.value)
-)
+const linkedTasks  = computed(() => tasksStore.tasks.filter(t => t.linkedGoalId === goalId.value))
 const linkedActive = computed(() => linkedTasks.value.filter(t => !t.done))
 const linkedDone   = computed(() => linkedTasks.value.filter(t => t.done))
 
-const newTaskText    = ref('')
-const taskInputRef   = ref<HTMLInputElement>()
-const showAddTask    = ref(false)
+const newTaskText  = ref('')
+const taskInputRef = ref<InstanceType<typeof UiInput>>()
+const showAddTask  = ref(false)
 
 async function openAddTask() {
   showAddTask.value = true
@@ -137,7 +130,7 @@ function submitTask() {
 }
 
 function onTaskKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') { e.preventDefault(); submitTask() }
+  if (e.key === 'Enter')  { e.preventDefault(); submitTask() }
   if (e.key === 'Escape') { showAddTask.value = false }
 }
 </script>
@@ -146,10 +139,10 @@ function onTaskKeydown(e: KeyboardEvent) {
   <div v-if="goal" class="gdetail">
 
     <div class="gdetail__nav">
-      <button class="gdetail__back" @click="router.push('/goals')">
+      <UiButton variant="ghost" size="sm" @click="router.push('/goals')">
         <UiIcon name="ArrowLeft" :size="14" :stroke-width="2" />
         Goals
-      </button>
+      </UiButton>
     </div>
 
     <div class="gdetail__header">
@@ -163,31 +156,23 @@ function onTaskKeydown(e: KeyboardEvent) {
             class="gdetail__due"
             :class="{ 'gdetail__due--overdue': dueDisplay.overdue }"
           >{{ dueDisplay.text }}</span>
-          <span
-            v-if="goal.status === 'completed'"
-            class="gdetail__status-badge"
-          >✓ Completed</span>
+          <span v-if="goal.status === 'completed'" class="gdetail__status-badge">✓ Completed</span>
         </div>
       </div>
       <span class="gdetail__pct">{{ progress }}%</span>
     </div>
 
-    <!-- Progress bar -->
     <UiProgressBar :value="progress" :height="6" />
 
     <!-- Milestones -->
     <div class="gdetail__section">
       <div class="gdetail__section-header">
         <UiSectionLabel>Milestones</UiSectionLabel>
-        <button
-          class="gdetail__ai-btn"
-          :disabled="suggestLoading"
-          @click="suggestMilestones"
-        >
+        <UiButton variant="ghost" size="sm" :disabled="suggestLoading" @click="suggestMilestones">
           <span v-if="suggestLoading" class="gdetail__ai-spinner">◌</span>
           <span v-else>✦</span>
           {{ suggestLoading ? 'Thinking…' : 'Suggest' }}
-        </button>
+        </UiButton>
       </div>
       <MilestoneList
         :milestones="goal.milestones"
@@ -195,15 +180,15 @@ function onTaskKeydown(e: KeyboardEvent) {
         @add="store.addMilestone(goalId, $event)"
         @delete="store.deleteMilestone(goalId, $event)"
       />
-      <!-- AI suggestions -->
       <div v-if="suggestError" class="gdetail__suggest-error">{{ suggestError }}</div>
+      <!-- AI suggestion chips — bespoke: dashed border, + prefix, multi-line layout -->
       <div v-if="suggestions.length > 0" class="gdetail__suggest-list">
         <button
           v-for="s in suggestions"
           :key="s"
           class="gdetail__suggest-chip"
-          @click="addSuggestion(s)"
           :title="'Add: ' + s"
+          @click="addSuggestion(s)"
         >
           <span class="gdetail__suggest-plus">+</span>
           {{ s }}
@@ -214,10 +199,9 @@ function onTaskKeydown(e: KeyboardEvent) {
     <!-- Notes -->
     <div class="gdetail__section">
       <UiSectionLabel>Notes</UiSectionLabel>
-      <textarea
+      <UiTextarea
         v-model="localNotes"
-        class="gdetail__notes"
-        rows="4"
+        :rows="4"
         placeholder="Planning notes, context, ideas…"
       />
     </div>
@@ -231,37 +215,33 @@ function onTaskKeydown(e: KeyboardEvent) {
             {{ linkedActive.length }} active · {{ linkedDone.length }} done
           </span>
         </UiSectionLabel>
-        <button class="gdetail__tasks-add-btn" @click="openAddTask">
+        <UiButton size="sm" @click="openAddTask">
           <UiIcon name="Plus" :size="13" />
           Add task
-        </button>
+        </UiButton>
       </div>
 
-      <!-- Quick-add input -->
       <Transition name="task-add">
         <div v-if="showAddTask" class="gdetail__task-input-row">
-          <input
+          <UiInput
             ref="taskInputRef"
             v-model="newTaskText"
-            class="gdetail__task-input"
             placeholder="Task description…"
-            maxlength="200"
+            :maxlength="200"
             @keydown="onTaskKeydown"
           />
-          <button class="gdetail__task-submit" :disabled="!newTaskText.trim()" @click="submitTask">
-            Add
-          </button>
-          <button class="gdetail__task-cancel" @click="showAddTask = false">×</button>
+          <UiButton size="sm" :disabled="!newTaskText.trim()" @click="submitTask">Add</UiButton>
+          <UiIconButton name="X" aria-label="Cancel add task" size="sm" @click="showAddTask = false" />
         </div>
       </Transition>
 
-      <!-- Active tasks -->
       <div v-if="linkedActive.length > 0" class="gdetail__task-list">
         <div
           v-for="task in linkedActive"
           :key="task.id"
           class="gdetail__task-row"
         >
+          <!-- Circle check — bespoke: structural toggle, not a standard action button -->
           <button
             class="gdetail__task-check"
             title="Mark done"
@@ -270,20 +250,15 @@ function onTaskKeydown(e: KeyboardEvent) {
             <UiIcon name="Circle" :size="15" :stroke-width="1.75" />
           </button>
           <span class="gdetail__task-text">{{ task.text }}</span>
-          <span
-            v-if="task.dueDate"
-            class="gdetail__task-due"
-          >{{ task.dueDate }}</span>
+          <span v-if="task.dueDate" class="gdetail__task-due">{{ task.dueDate }}</span>
         </div>
       </div>
 
-      <!-- Done tasks (collapsed count) -->
       <div v-if="linkedDone.length > 0" class="gdetail__task-done-row">
         <UiIcon name="CheckCircle2" :size="13" />
         {{ linkedDone.length }} completed task{{ linkedDone.length !== 1 ? 's' : '' }}
       </div>
 
-      <!-- Empty -->
       <p v-if="linkedTasks.length === 0 && !showAddTask" class="gdetail__tasks-empty">
         No tasks linked to this goal yet.
       </p>
@@ -296,9 +271,9 @@ function onTaskKeydown(e: KeyboardEvent) {
           Linked notes
           <span class="gdetail__tasks-count">{{ linkedNotes.length }}</span>
         </UiSectionLabel>
-        <button class="gdetail__notes-open" @click="router.push('/notes')">
+        <UiButton variant="ghost" size="sm" @click="router.push('/notes')">
           Open Notes →
-        </button>
+        </UiButton>
       </div>
       <div class="gdetail__notes-list">
         <div
@@ -316,6 +291,7 @@ function onTaskKeydown(e: KeyboardEvent) {
 
     <!-- Actions -->
     <div class="gdetail__actions">
+      <!-- Complete button — bespoke: success color, not in UiButton variants -->
       <button v-if="goal.status === 'active'" class="gdetail__btn gdetail__btn--outline" @click="askComplete">
         Mark complete
       </button>
@@ -323,7 +299,7 @@ function onTaskKeydown(e: KeyboardEvent) {
 
     <!-- Danger zone -->
     <div class="gdetail__danger">
-      <button class="gdetail__danger-btn" @click="askDelete">Delete goal</button>
+      <UiButton variant="danger" @click="askDelete">Delete goal</UiButton>
     </div>
 
   </div>
@@ -338,22 +314,6 @@ function onTaskKeydown(e: KeyboardEvent) {
   gap: 28px;
 }
 
-.gdetail__back {
-  background: none;
-  border: none;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 0;
-  transition: color var(--t-fast);
-  font-family: inherit;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.gdetail__back:hover { color: var(--color-text-secondary); }
-
 .gdetail__header {
   display: flex;
   align-items: flex-start;
@@ -361,7 +321,6 @@ function onTaskKeydown(e: KeyboardEvent) {
 }
 
 .gdetail__emoji { font-size: 44px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
-
 .gdetail__heading { flex: 1; min-width: 0; }
 
 .gdetail__title {
@@ -417,29 +376,6 @@ function onTaskKeydown(e: KeyboardEvent) {
   gap: 8px;
 }
 
-.gdetail__ai-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 12px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--t-fast);
-}
-
-.gdetail__ai-btn:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  background: var(--color-accent-muted);
-}
-
-.gdetail__ai-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
@@ -452,6 +388,7 @@ function onTaskKeydown(e: KeyboardEvent) {
   padding: 4px 0;
 }
 
+/* AI suggestion chips — bespoke: dashed border, left-aligned text, + prefix icon */
 .gdetail__suggest-list {
   display: flex;
   flex-direction: column;
@@ -473,13 +410,11 @@ function onTaskKeydown(e: KeyboardEvent) {
   text-align: left;
   transition: all var(--t-fast);
 }
-
 .gdetail__suggest-chip:hover {
   border-color: var(--color-accent);
   color: var(--color-text);
   background: var(--color-accent-muted);
 }
-
 .gdetail__suggest-plus {
   color: var(--color-accent);
   font-weight: 700;
@@ -487,23 +422,6 @@ function onTaskKeydown(e: KeyboardEvent) {
   line-height: 1.2;
   flex-shrink: 0;
 }
-
-.gdetail__notes {
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 12px;
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  font-family: inherit;
-  width: 100%;
-  box-sizing: border-box;
-  resize: vertical;
-  transition: border-color var(--t-fast);
-  min-height: 100px;
-}
-
-.gdetail__notes:focus { outline: none; border-color: var(--color-accent); }
 
 /* ── Linked tasks section ────────────────────────────────────────── */
 .gdetail__tasks {
@@ -527,77 +445,19 @@ function onTaskKeydown(e: KeyboardEvent) {
   margin-left: 6px;
 }
 
-.gdetail__tasks-add-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-accent);
-  padding: 3px 10px;
-  border: 1px solid var(--color-accent-muted);
-  border-radius: var(--radius-sm);
-  background: var(--color-accent-muted);
-  cursor: pointer;
-  transition: opacity var(--t-fast);
-}
-.gdetail__tasks-add-btn:hover { opacity: 0.8; }
-
 .gdetail__task-input-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.gdetail__task-input {
-  flex: 1;
-  padding: 7px 10px;
-  font-size: 13px;
-  font-family: inherit;
-  color: var(--color-text);
-  background: var(--color-bg);
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-sm);
-  outline: none;
-}
-.gdetail__task-input::placeholder { color: var(--color-text-muted); }
+/* Task add transition */
+.task-add-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.task-add-leave-active { transition: opacity 0.1s ease; }
+.task-add-enter-from   { opacity: 0; transform: translateY(-4px); }
+.task-add-leave-to     { opacity: 0; }
 
-.gdetail__task-submit {
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  background: var(--color-accent);
-  color: #fff;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: opacity var(--t-fast);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.gdetail__task-submit:hover { opacity: 0.88; }
-.gdetail__task-submit:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.gdetail__task-cancel {
-  font-size: 18px;
-  line-height: 1;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-muted);
-  border-radius: var(--radius-xs);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: color var(--t-fast);
-}
-.gdetail__task-cancel:hover { color: var(--color-text); }
-
-.gdetail__task-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+.gdetail__task-list { display: flex; flex-direction: column; gap: 2px; }
 
 .gdetail__task-row {
   display: flex;
@@ -609,6 +469,7 @@ function onTaskKeydown(e: KeyboardEvent) {
 }
 .gdetail__task-row:hover { background: var(--color-surface-elevated); }
 
+/* Task circle check — bespoke: structural icon toggle */
 .gdetail__task-check {
   flex-shrink: 0;
   color: var(--color-text-muted);
@@ -652,12 +513,6 @@ function onTaskKeydown(e: KeyboardEvent) {
   font-style: italic;
 }
 
-/* Task add transition */
-.task-add-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
-.task-add-leave-active { transition: opacity 0.1s ease; }
-.task-add-enter-from   { opacity: 0; transform: translateY(-4px); }
-.task-add-leave-to     { opacity: 0; }
-
 /* ── Linked notes ────────────────────────────────────────────────── */
 .gdetail__notes-section {
   display: flex; flex-direction: column; gap: 12px;
@@ -665,11 +520,6 @@ function onTaskKeydown(e: KeyboardEvent) {
   border: 1px solid var(--color-border); border-radius: var(--radius-lg);
   box-shadow: var(--shadow-1);
 }
-.gdetail__notes-open {
-  font-size: 12px; font-weight: 500; color: var(--color-accent);
-  padding: 2px 6px; border-radius: var(--radius-xs); transition: background var(--t-fast);
-}
-.gdetail__notes-open:hover { background: var(--color-accent-muted); }
 .gdetail__notes-list { display: flex; flex-direction: column; gap: 2px; }
 .gdetail__note-row {
   display: flex; align-items: center; gap: 8px;
@@ -686,6 +536,7 @@ function onTaskKeydown(e: KeyboardEvent) {
 
 .gdetail__actions { display: flex; align-items: center; gap: 10px; }
 
+/* Mark complete — bespoke: success color not in UiButton variants */
 .gdetail__btn {
   padding: 8px 18px;
   border-radius: var(--radius);
@@ -696,25 +547,12 @@ function onTaskKeydown(e: KeyboardEvent) {
   transition: all var(--t-fast);
   font-family: inherit;
 }
-
 .gdetail__btn--outline {
   background: transparent;
   border-color: var(--color-success);
   color: var(--color-success);
 }
-
 .gdetail__btn--outline:hover { background: var(--color-success); color: #fff; }
-
-.gdetail__btn--success { background: var(--color-success); color: #fff; }
-.gdetail__btn--success:hover { opacity: 0.88; }
-
-.gdetail__btn--ghost {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border-color: var(--color-border);
-}
-
-.gdetail__btn--ghost:hover { color: var(--color-text); }
 
 .gdetail__danger {
   display: flex;
@@ -723,9 +561,6 @@ function onTaskKeydown(e: KeyboardEvent) {
   padding-top: 8px;
   border-top: 1px solid var(--color-border);
 }
-
-.gdetail__danger-btn { background: none; border: none; font-size: var(--text-sm); color: var(--color-text-muted); cursor: pointer; padding: 0; transition: color var(--t-fast); font-family: inherit; }
-.gdetail__danger-btn:hover { color: var(--color-danger); }
 
 @media (max-width: 767px) {
   .gdetail__title { font-size: var(--text-2xl, 22px); }

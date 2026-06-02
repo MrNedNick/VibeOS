@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
 import type { GoalMilestone } from '../types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiInput, UiButton, UiIconButton } from '@/ui'
 
 defineProps<{
   milestones: GoalMilestone[]
@@ -14,7 +14,7 @@ const emit = defineEmits<{
 }>()
 
 const newTitle = ref('')
-const inputRef = ref<HTMLInputElement>()
+const inputRef = ref<InstanceType<typeof UiInput>>()
 
 async function focusInput() {
   await nextTick()
@@ -43,38 +43,37 @@ function onAddKeydown(e: KeyboardEvent) {
         class="milestones__item"
         :class="{ 'milestones__item--done': m.completed }"
       >
+        <!-- Circular checkbox — bespoke: circular shape + conditional inner icon/dot -->
         <button
           class="milestones__check"
           :class="{ 'milestones__check--on': m.completed }"
-          @click="emit('toggle', m.id)"
           :aria-label="m.completed ? 'Uncheck milestone' : 'Check milestone'"
+          @click="emit('toggle', m.id)"
         >
           <UiIcon v-if="m.completed" name="Check" :size="12" :stroke-width="2.5" />
           <span v-else class="milestones__circle" />
         </button>
         <span class="milestones__title">{{ m.title }}</span>
-        <button
+        <UiIconButton
+          name="X"
+          aria-label="Delete milestone"
+          size="sm"
+          variant="danger"
           class="milestones__del"
           @click="emit('delete', m.id)"
-          aria-label="Delete milestone"
-        ><UiIcon name="X" :size="14" :stroke-width="2" /></button>
+        />
       </div>
     </div>
 
     <div class="milestones__add">
-      <input
-        v-model="newTitle"
+      <UiInput
         ref="inputRef"
-        class="milestones__input"
+        v-model="newTitle"
         placeholder="Add milestone…"
-        maxlength="120"
+        :maxlength="120"
         @keydown="onAddKeydown"
       />
-      <button
-        class="milestones__add-btn"
-        :disabled="!newTitle.trim()"
-        @click="submitAdd"
-      >Add</button>
+      <UiButton size="sm" :disabled="!newTitle.trim()" @click="submitAdd">Add</UiButton>
     </div>
   </div>
 </template>
@@ -99,10 +98,9 @@ function onAddKeydown(e: KeyboardEvent) {
   transition: opacity var(--t-fast);
 }
 
-.milestones__item--done {
-  opacity: 0.6;
-}
+.milestones__item--done { opacity: 0.6; }
 
+/* Circular checkbox — bespoke: circular shape not in UiButton variants */
 .milestones__check {
   width: 20px;
   height: 20px;
@@ -114,7 +112,6 @@ function onAddKeydown(e: KeyboardEvent) {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 12px;
   transition: all var(--t-fast);
   color: var(--color-text-muted);
   padding: 0;
@@ -144,59 +141,16 @@ function onAddKeydown(e: KeyboardEvent) {
   color: var(--color-text-muted);
 }
 
+/* Delete button — opacity-0 by default, shows on hover */
 .milestones__del {
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 0 4px;
-  display: flex;
-  align-items: center;
-  line-height: 1;
   opacity: 0;
-  transition: opacity var(--t-fast), color var(--t-fast);
+  transition: opacity var(--t-fast) !important;
 }
-
 .milestones__item:hover .milestones__del { opacity: 1; }
-.milestones__del:hover { color: var(--color-danger); }
 
 .milestones__add {
   display: flex;
   gap: 8px;
   align-items: center;
 }
-
-.milestones__input {
-  flex: 1;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 8px 12px;
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  font-family: inherit;
-  transition: border-color var(--t-fast);
-}
-
-.milestones__input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
-.milestones__add-btn {
-  padding: 8px 16px;
-  border-radius: var(--radius);
-  border: none;
-  background: var(--color-accent);
-  color: #fff;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background var(--t-fast);
-  font-family: inherit;
-  flex-shrink: 0;
-}
-
-.milestones__add-btn:hover { background: var(--color-accent-hover); }
-.milestones__add-btn:disabled { opacity: 0.4; cursor: default; }
 </style>
