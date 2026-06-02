@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '@/modules/goals/types'
-import { UiIcon, UiSectionLabel } from '@/ui'
+import { UiIcon, UiSectionLabel, UiButton } from '@/ui'
 
 const router     = useRouter()
 const goalsStore = useGoalsStore()
@@ -39,16 +39,16 @@ function dueLabel(targetDate?: string): string {
   <div class="goals-panel">
     <div class="goals-panel__header">
       <UiSectionLabel as="span">Active Goals</UiSectionLabel>
-      <button class="goals-panel__all" @click="router.push('/goals')">
+      <UiButton variant="ghost" size="sm" @click="router.push('/goals')">
         View all <UiIcon name="ArrowRight" :size="12" />
-      </button>
+      </UiButton>
     </div>
 
     <!-- Empty state -->
     <div v-if="activeGoals.length === 0" class="goals-panel__empty">
       <UiIcon name="Target" :size="28" class="goals-panel__empty-icon" />
       <p>No active goals yet.</p>
-      <button class="goals-panel__empty-btn" @click="router.push('/goals')">Create a goal</button>
+      <UiButton @click="router.push('/goals')">Create a goal</UiButton>
     </div>
 
     <!-- Goals list -->

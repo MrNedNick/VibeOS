@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { UiIcon, UiSectionLabel } from '@/ui'
+import { UiIcon, UiSectionLabel, UiButton } from '@/ui'
 import { useLocale } from '@/core/i18n'
 
 export interface AggregatedTask {
@@ -121,11 +121,12 @@ const shippedRest    = computed(() => props.shippedTasks?.slice(3) ?? [])
     <div v-if="shippedTasks && shippedTasks.length" class="all-tasks__section">
       <div class="all-tasks__shipped-header">
         <UiSectionLabel class="all-tasks__section-label--success">{{ i18n.t('allTasksPanel.shipped') }} ({{ shippedTasks.length }})</UiSectionLabel>
-        <button
+        <UiButton
           v-if="shippedRest.length"
-          class="all-tasks__shipped-toggle"
+          variant="ghost"
+          size="sm"
           @click="shippedExpanded = !shippedExpanded"
-        >{{ shippedExpanded ? i18n.t('allTasksPanel.showLess') : i18n.t('allTasksPanel.showAll') }}</button>
+        >{{ shippedExpanded ? i18n.t('allTasksPanel.showLess') : i18n.t('allTasksPanel.showAll') }}</UiButton>
       </div>
       <div class="task-list">
         <div

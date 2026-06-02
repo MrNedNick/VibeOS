@@ -4,7 +4,7 @@ import { marked } from 'marked'
 import { useStudioStore } from '../stores/studio.store'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { STUDIO_MODELS, FREE_MODELS } from '../types'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiButton, UiIconButton, UiInput } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
@@ -240,12 +240,9 @@ onMounted(() => inputEl.value?.focus())
     <aside class="studio__sidebar">
       <div class="studio__sidebar-header">
         <span class="studio__sidebar-title">History</span>
-        <button
-          class="studio__sidebar-clear"
-          :disabled="!store.savedConversations.length"
-          title="Clear all history"
-          @click="askClearHistory"
-        >Clear</button>
+        <UiButton variant="ghost" size="sm" :disabled="!store.savedConversations.length" title="Clear all history" @click="askClearHistory">
+          Clear
+        </UiButton>
       </div>
 
       <div class="studio__sidebar-list">
@@ -260,11 +257,7 @@ onMounted(() => inputEl.value?.focus())
         >
           <span class="studio__sidebar-item-date">{{ fmtDate(conv.updatedAt) }}</span>
           <span class="studio__sidebar-item-title">{{ conv.title }}</span>
-          <button
-            class="studio__sidebar-item-del"
-            title="Delete this conversation"
-            @click.stop="store.deleteConversation(conv.id)"
-          >×</button>
+          <UiIconButton name="X" aria-label="Delete conversation" size="sm" @click.stop="store.deleteConversation(conv.id)" />
         </button>
       </div>
     </aside>
@@ -274,14 +267,12 @@ onMounted(() => inputEl.value?.focus())
 
     <!-- ── Top bar ──────────────────────────────────── -->
     <div class="studio__topbar">
-      <button
-        class="studio__sidebar-toggle"
+      <UiIconButton
+        name="PanelLeft"
+        :aria-label="showSidebar ? 'Hide history' : 'Show history'"
         :class="{ 'studio__sidebar-toggle--active': showSidebar }"
-        :title="showSidebar ? 'Hide history' : 'Show history'"
         @click="showSidebar = !showSidebar"
-      >
-        <UiIcon name="PanelLeft" :size="15" />
-      </button>
+      />
       <div class="studio__tabs">
         <button
           class="studio__tab"
@@ -302,15 +293,10 @@ onMounted(() => inputEl.value?.focus())
         </button>
       </div>
 
-      <button
-        class="studio__new-btn"
-        :disabled="!store.messages.length"
-        title="Start a new conversation"
-        @click="store.newConversation()"
-      >
+      <UiButton variant="ghost" size="sm" :disabled="!store.messages.length" title="Start a new conversation" @click="store.newConversation()">
         <UiIcon name="SquarePen" :size="14" />
         New chat
-      </button>
+      </UiButton>
     </div>
 
     <!-- ── Settings bar ─────────────────────────────── -->
@@ -345,27 +331,24 @@ onMounted(() => inputEl.value?.focus())
       <!-- API key (Claude only) -->
       <div v-if="!isFree" class="studio__key-row">
         <div class="studio__key-wrap">
-          <input
+          <UiInput
             v-model="store.apiKey"
             :type="showKey ? 'text' : 'password'"
-            class="studio__key-input"
             placeholder="sk-ant-..."
             autocomplete="off"
             spellcheck="false"
           />
-          <button class="studio__key-eye" :title="showKey ? 'Hide' : 'Show'" @click="showKey = !showKey">
-            <UiIcon :name="showKey ? 'EyeOff' : 'Eye'" :size="13" />
-          </button>
+          <UiIconButton :name="showKey ? 'EyeOff' : 'Eye'" :aria-label="showKey ? 'Hide key' : 'Show key'" size="sm" @click="showKey = !showKey" />
         </div>
         <span v-if="store.apiKey" class="studio__key-ok">● key set</span>
       </div>
 
       <!-- System prompt toggle -->
-      <button class="studio__sys-btn" @click="showSystem = !showSystem">
+      <UiButton variant="ghost" size="sm" @click="showSystem = !showSystem">
         <UiIcon name="Settings2" :size="13" />
         System
         <UiIcon :name="showSystem ? 'ChevronUp' : 'ChevronDown'" :size="12" />
-      </button>
+      </UiButton>
 
       <!-- Project context toggle -->
       <button
@@ -469,11 +452,12 @@ onMounted(() => inputEl.value?.focus())
               >{{ modelLabel(msg.model) }}</span>
               <span v-if="msg.durationMs" class="studio__meta-dur">{{ fmtDuration(msg.durationMs) }}</span>
               <span class="studio__meta-time">{{ fmtTime(msg.timestamp) }}</span>
-              <button
+              <UiButton
                 v-if="!msg.error"
-                class="studio__copy-btn"
+                variant="ghost"
+                size="sm"
                 @click="copyMessage(msg.id, msg.content)"
-              >{{ copiedId === msg.id ? 'Copied!' : 'Copy' }}</button>
+              >{{ copiedId === msg.id ? 'Copied!' : 'Copy' }}</UiButton>
             </div>
           </div>
         </div>

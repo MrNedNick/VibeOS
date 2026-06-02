@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { computeStreak, todayStr } from '@/modules/habits/types'
-import { UiIcon, UiSectionLabel } from '@/ui'
+import { UiIcon, UiSectionLabel, UiButton } from '@/ui'
 
 const router      = useRouter()
 const habitsStore = useHabitsStore()
@@ -51,9 +51,9 @@ function toggleHabit(id: string) {
           class="habits-panel__count"
           :class="{ 'habits-panel__count--all': allDone }"
         >{{ doneToday }}/{{ totalCount }}</span>
-        <button class="habits-panel__all" @click="router.push('/habits')">
+        <UiButton variant="ghost" size="sm" @click="router.push('/habits')">
           View all <UiIcon name="ArrowRight" :size="12" />
-        </button>
+        </UiButton>
       </div>
     </div>
 
@@ -78,7 +78,7 @@ function toggleHabit(id: string) {
     <div v-if="habits.length === 0" class="habits-panel__empty">
       <UiIcon name="Flame" :size="28" class="habits-panel__empty-icon" />
       <p>No habits yet. Start building a streak!</p>
-      <button class="habits-panel__empty-btn" @click="router.push('/habits')">Add habits</button>
+      <UiButton @click="router.push('/habits')">Add habits</UiButton>
     </div>
 
     <!-- Habit rows (up to 6) -->

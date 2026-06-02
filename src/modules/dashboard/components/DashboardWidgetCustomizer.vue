@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useWidgetsStore, WIDGET_META, type WidgetId } from '../stores/widgets.store'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiButton, UiIconButton } from '@/ui'
 
 const emit = defineEmits<{ close: [] }>()
 
@@ -43,13 +43,11 @@ function onDragEnd() {
         <span class="wc__title">Customize Widgets</span>
       </div>
       <div class="wc__header-actions">
-        <button class="wc__reset" title="Reset to defaults" @click="store.resetToDefaults">
+        <UiButton variant="ghost" size="sm" title="Reset to defaults" @click="store.resetToDefaults">
           <UiIcon name="RotateCcw" :size="12" :stroke-width="2" />
           Reset
-        </button>
-        <button class="wc__close" title="Close" @click="emit('close')">
-          <UiIcon name="X" :size="14" :stroke-width="2" />
-        </button>
+        </UiButton>
+        <UiIconButton name="X" aria-label="Close" size="sm" @click="emit('close')" />
       </div>
     </div>
 
@@ -87,14 +85,14 @@ function onDragEnd() {
         </div>
 
         <!-- Visibility toggle -->
-        <button
+        <UiIconButton
+          :name="cfg.visible ? 'Eye' : 'EyeOff'"
+          :aria-label="cfg.visible ? 'Hide widget' : 'Show widget'"
+          size="sm"
           class="wc__eye"
           :class="{ 'wc__eye--off': !cfg.visible }"
-          :title="cfg.visible ? 'Hide widget' : 'Show widget'"
           @click="store.toggleWidget(cfg.id)"
-        >
-          <UiIcon :name="cfg.visible ? 'Eye' : 'EyeOff'" :size="14" :stroke-width="1.75" />
-        </button>
+        />
       </li>
     </ul>
   </div>

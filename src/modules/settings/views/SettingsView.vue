@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { UiButton, UiInput } from '@/ui'
 import { useUiStore } from '@/core/stores/ui.store'
 import type { Theme } from '@/core/stores/ui.store'
 import { useLocale } from '@/core/i18n'
@@ -238,17 +239,16 @@ function cancelImport() {
           <p class="settings__row-hint">{{ i18n.t('settings.anthropicKeyHint') }}</p>
         </div>
         <div class="settings__key-row">
-          <input
+          <UiInput
             v-model="anthropicKey"
             :type="showAnthropic ? 'text' : 'password'"
-            class="settings__key-input"
             placeholder="sk-ant-…"
             spellcheck="false"
             autocomplete="off"
           />
-          <button class="settings__key-toggle" @click="showAnthropic = !showAnthropic">
+          <UiButton variant="ghost" size="sm" @click="showAnthropic = !showAnthropic">
             {{ showAnthropic ? i18n.t('settings.keyHide') : i18n.t('settings.keyShow') }}
-          </button>
+          </UiButton>
           <span class="settings__key-status" :class="{ 'settings__key-status--set': anthropicKey }">
             {{ anthropicKey ? i18n.t('settings.keySet') : i18n.t('settings.keyNotSet') }}
           </span>
@@ -267,9 +267,9 @@ function cancelImport() {
           <span class="settings__row-name">{{ i18n.t('settings.exportLabel') }}</span>
           <p class="settings__row-hint">{{ i18n.t('settings.exportHint') }}</p>
         </div>
-        <button class="settings__action-btn" @click="exportData">
+        <UiButton variant="ghost" @click="exportData">
           {{ i18n.t('settings.exportBtn') }}
-        </button>
+        </UiButton>
       </div>
 
       <!-- Import -->
@@ -280,9 +280,9 @@ function cancelImport() {
         </div>
         <div class="settings__import-actions">
           <template v-if="!importConfirm">
-            <button class="settings__action-btn" @click="triggerImport">
+            <UiButton variant="ghost" @click="triggerImport">
               {{ i18n.t('settings.importBtn') }}
-            </button>
+            </UiButton>
             <input
               ref="fileInputRef"
               type="file"
@@ -293,12 +293,12 @@ function cancelImport() {
           </template>
           <template v-else>
             <span class="settings__danger-confirm">{{ i18n.t('settings.importConfirm') }}</span>
-            <button class="settings__danger-btn settings__danger-btn--confirm" @click="confirmImport">
+            <UiButton variant="danger" @click="confirmImport">
               {{ i18n.t('settings.importYes') }}
-            </button>
-            <button class="settings__cancel-btn" @click="cancelImport">
+            </UiButton>
+            <UiButton variant="ghost" @click="cancelImport">
               {{ i18n.t('settings.importNo') }}
-            </button>
+            </UiButton>
           </template>
         </div>
       </div>
@@ -311,18 +311,18 @@ function cancelImport() {
         </div>
         <div class="settings__clear-actions">
           <template v-if="!clearConfirm">
-            <button class="settings__danger-btn" @click="startClear">
+            <UiButton variant="danger" @click="startClear">
               {{ i18n.t('settings.clearBtn') }}
-            </button>
+            </UiButton>
           </template>
           <template v-else>
             <span class="settings__danger-confirm">{{ i18n.t('settings.clearConfirm') }}</span>
-            <button class="settings__danger-btn settings__danger-btn--confirm" @click="confirmClear">
+            <UiButton variant="danger" @click="confirmClear">
               {{ i18n.t('settings.clearYes') }}
-            </button>
-            <button class="settings__cancel-btn" @click="cancelClear">
+            </UiButton>
+            <UiButton variant="ghost" @click="cancelClear">
               {{ i18n.t('settings.clearNo') }}
-            </button>
+            </UiButton>
           </template>
         </div>
       </div>

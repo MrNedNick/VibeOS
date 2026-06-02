@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { marked } from 'marked'
 import { useDocs } from '../composables/useDocs'
 import DocsSidebar from '../components/DocsSidebar.vue'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiButton } from '@/ui'
 
 const router = useRouter()
 const { DOC_REGISTRY, currentSlug, currentPage, currentContent } = useDocs()
@@ -91,9 +91,9 @@ function goToFirst() {
             </button>
           </div>
         </div>
-        <button class="docs-home__start" @click="goToFirst">
+        <UiButton @click="goToFirst">
           Start reading <UiIcon name="ArrowRight" :size="14" :stroke-width="2" />
-        </button>
+        </UiButton>
       </div>
 
       <!-- Live UI Kit showcase (component page) -->
@@ -105,9 +105,9 @@ function goToFirst() {
       <div v-else-if="!currentPage || !currentContent" class="docs-missing">
         <p class="docs-missing__title">This page doesn't exist yet.</p>
         <p class="docs-missing__sub">No doc found for <code>{{ currentSlug }}</code> — maybe it's in the backlog.</p>
-        <button class="docs-home__start" @click="router.push('/docs')">
+        <UiButton @click="router.push('/docs')">
           <UiIcon name="ArrowLeft" :size="14" :stroke-width="2" /> Back to index
-        </button>
+        </UiButton>
       </div>
 
       <!-- Rendered markdown -->

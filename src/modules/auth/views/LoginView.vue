@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiButton, UiInput } from '@/ui'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -79,10 +79,9 @@ function onKeydown(e: KeyboardEvent) {
           <div class="auth-form">
             <div class="auth-field">
               <label class="auth-label">Email</label>
-              <input
+              <UiInput
                 v-model="resetEmail"
                 type="email"
-                class="auth-input"
                 placeholder="you@example.com"
                 autocomplete="email"
                 :disabled="auth.loading"
@@ -94,10 +93,10 @@ function onKeydown(e: KeyboardEvent) {
               {{ resetError }}
             </div>
 
-            <button class="auth-btn auth-btn--primary" :disabled="auth.loading" @click="sendReset">
+            <UiButton :disabled="auth.loading" @click="sendReset">
               <span v-if="auth.loading">Sending…</span>
               <span v-else>Send reset link</span>
-            </button>
+            </UiButton>
           </div>
         </template>
 
@@ -107,9 +106,9 @@ function onKeydown(e: KeyboardEvent) {
         </div>
 
         <p class="auth-footer-link">
-          <button class="auth-text-btn" @click="showReset = false; resetSent = false">
+          <UiButton variant="ghost" size="sm" @click="showReset = false; resetSent = false">
             ← Back to sign in
-          </button>
+          </UiButton>
         </p>
       </template>
 
@@ -127,10 +126,9 @@ function onKeydown(e: KeyboardEvent) {
         <div class="auth-form">
           <div class="auth-field">
             <label class="auth-label">Email</label>
-            <input
+            <UiInput
               v-model="email"
               type="email"
-              class="auth-input"
               placeholder="you@example.com"
               autocomplete="email"
               :disabled="auth.loading"
@@ -139,18 +137,18 @@ function onKeydown(e: KeyboardEvent) {
           <div class="auth-field">
             <div class="auth-label-row">
               <label class="auth-label">Password</label>
-              <button
+              <UiButton
                 v-if="auth.isSupabaseConfigured"
-                class="auth-text-btn auth-text-btn--small"
+                variant="ghost"
+                size="sm"
                 @click.prevent="showReset = true"
               >
                 Forgot password?
-              </button>
+              </UiButton>
             </div>
-            <input
+            <UiInput
               v-model="password"
               type="password"
-              class="auth-input"
               placeholder="••••••••"
               autocomplete="current-password"
               :disabled="auth.loading"
@@ -162,26 +160,22 @@ function onKeydown(e: KeyboardEvent) {
             {{ error }}
           </div>
 
-          <button
-            class="auth-btn auth-btn--primary"
-            :disabled="auth.loading || !canSubmit"
-            @click="submit"
-          >
+          <UiButton :disabled="auth.loading || !canSubmit" @click="submit">
             <span v-if="auth.loading">Signing in…</span>
             <span v-else>Sign in</span>
-          </button>
+          </UiButton>
         </div>
 
         <div class="auth-divider"><span>or</span></div>
 
-        <button class="auth-btn auth-btn--demo" @click="tryDemo">
+        <UiButton variant="ghost" @click="tryDemo">
           <UiIcon name="Play" :size="14" />
           Try demo — no account needed
-        </button>
+        </UiButton>
 
         <p class="auth-footer-link">
           Don't have an account?
-          <button class="auth-text-btn" @click="router.push('/register')">Create one</button>
+          <UiButton variant="ghost" size="sm" @click="router.push('/register')">Create one</UiButton>
         </p>
       </template>
     </div>

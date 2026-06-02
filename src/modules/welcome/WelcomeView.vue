@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
-import { UiIcon, UiSectionLabel } from '@/ui'
+import { UiIcon, UiSectionLabel, UiButton } from '@/ui'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -75,11 +75,11 @@ const activeTab = ref<'overview' | 'terminal'>('overview')
           <UiIcon name="Github" :size="15" :stroke-width="1.75" />
           GitHub
         </a>
-        <button class="welcome__nav-link" @click="router.push('/login')">Sign in</button>
-        <button class="welcome__nav-cta" @click="tryDemo">
+        <UiButton variant="ghost" size="sm" @click="router.push('/login')">Sign in</UiButton>
+        <UiButton @click="tryDemo">
           Try demo
           <UiIcon name="ArrowRight" :size="14" :stroke-width="2" />
-        </button>
+        </UiButton>
       </div>
     </header>
 
@@ -95,14 +95,14 @@ const activeTab = ref<'overview' | 'terminal'>('overview')
           Open-source. Local-first. No subscriptions.
         </p>
         <div class="welcome__hero-actions">
-          <button class="welcome__btn-primary" @click="tryDemo">
+          <UiButton @click="tryDemo">
             Try demo — free
             <UiIcon name="ArrowRight" :size="15" :stroke-width="2.2" />
-          </button>
-          <button class="welcome__btn-ghost" @click="router.push('/login')">
+          </UiButton>
+          <UiButton variant="ghost" @click="router.push('/login')">
             <UiIcon name="LogIn" :size="15" :stroke-width="1.75" />
             Sign in
-          </button>
+          </UiButton>
         </div>
       </div>
     </section>

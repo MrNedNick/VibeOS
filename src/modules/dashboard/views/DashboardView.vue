@@ -23,7 +23,7 @@ import DigestWidget from '../components/DigestWidget.vue'
 import DashboardWidgetCustomizer from '../components/DashboardWidgetCustomizer.vue'
 import { useWidgetsStore, type WidgetId } from '../stores/widgets.store'
 import { useLocale } from '@/core/i18n'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiButton } from '@/ui'
 
 // ── Widget component map (markRaw prevents Vue from making them reactive) ──
 const WIDGET_COMPONENTS: Record<WidgetId, object> = {
@@ -147,15 +147,16 @@ const APP_VERSION = __APP_VERSION__
       </div>
       <div class="dashboard__header-right">
         <!-- Customize widgets button -->
-        <button
-          class="dashboard__customize-btn"
+        <UiButton
+          variant="ghost"
+          size="sm"
           :class="{ 'dashboard__customize-btn--active': showCustomizer }"
           title="Customize widgets"
           @click="showCustomizer = !showCustomizer"
         >
           <UiIcon name="LayoutDashboard" :size="14" :stroke-width="1.75" />
           <span class="dashboard__customize-label">Widgets</span>
-        </button>
+        </UiButton>
         <span class="dashboard__version">v{{ APP_VERSION }} · VibeOS</span>
       </div>
     </div>
@@ -303,12 +304,13 @@ const APP_VERSION = __APP_VERSION__
         >
           <span class="mod-row__icon"><UiIcon :name="mod.icon" :size="15" :stroke-width="1.75" /></span>
           <span class="mod-row__name">{{ i18n.t('modules.' + mod.id) === 'modules.' + mod.id ? mod.label : i18n.t('modules.' + mod.id) }}</span>
-          <button
+          <UiButton
             v-if="mod.status === 'available'"
-            class="mod-row__launch"
+            variant="ghost"
+            size="sm"
             title="Open app"
             @click.stop="router.push(mod.path)"
-          >→</button>
+          >→</UiButton>
           <span
             v-else
             class="mod-row__indicator"

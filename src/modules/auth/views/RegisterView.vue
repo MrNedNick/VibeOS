@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
-import { UiIcon } from '@/ui'
+import { UiIcon, UiButton, UiInput } from '@/ui'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -97,9 +97,7 @@ function onKeydown(e: KeyboardEvent) {
           </div>
         </div>
 
-        <button class="auth-btn auth-btn--primary" @click="router.replace('/login')">
-          Go to sign in
-        </button>
+        <UiButton @click="router.replace('/login')">Go to sign in</UiButton>
       </template>
 
       <!-- ── Registration form ──────────────────────────────────────── -->
@@ -116,10 +114,8 @@ function onKeydown(e: KeyboardEvent) {
         <div class="auth-form">
           <div class="auth-field">
             <label class="auth-label">Display name <span class="auth-optional">(optional)</span></label>
-            <input
+            <UiInput
               v-model="displayName"
-              type="text"
-              class="auth-input"
               placeholder="Your name"
               autocomplete="name"
               :disabled="auth.loading"
@@ -127,10 +123,9 @@ function onKeydown(e: KeyboardEvent) {
           </div>
           <div class="auth-field">
             <label class="auth-label">Email</label>
-            <input
+            <UiInput
               v-model="email"
               type="email"
-              class="auth-input"
               placeholder="you@example.com"
               autocomplete="email"
               :disabled="auth.loading"
@@ -138,10 +133,9 @@ function onKeydown(e: KeyboardEvent) {
           </div>
           <div class="auth-field">
             <label class="auth-label">Password <span class="auth-optional">(min. 8 chars)</span></label>
-            <input
+            <UiInput
               v-model="password"
               type="password"
-              class="auth-input"
               placeholder="Create a strong password"
               autocomplete="new-password"
               :disabled="auth.loading"
@@ -149,10 +143,9 @@ function onKeydown(e: KeyboardEvent) {
           </div>
           <div class="auth-field">
             <label class="auth-label">Confirm password</label>
-            <input
+            <UiInput
               v-model="confirm"
               type="password"
-              class="auth-input"
               placeholder="Repeat password"
               autocomplete="new-password"
               :disabled="auth.loading"
@@ -178,26 +171,22 @@ function onKeydown(e: KeyboardEvent) {
             {{ error }}
           </div>
 
-          <button
-            class="auth-btn auth-btn--primary"
-            :disabled="auth.loading || !canSubmit"
-            @click="submit"
-          >
+          <UiButton :disabled="auth.loading || !canSubmit" @click="submit">
             <span v-if="auth.loading">Creating account…</span>
             <span v-else>Create account</span>
-          </button>
+          </UiButton>
         </div>
 
         <div class="auth-divider"><span>or</span></div>
 
-        <button class="auth-btn auth-btn--demo" @click="tryDemo">
+        <UiButton variant="ghost" @click="tryDemo">
           <UiIcon name="Play" :size="14" />
           Try demo — no account needed
-        </button>
+        </UiButton>
 
         <p class="auth-footer-link">
           Already have an account?
-          <button class="auth-text-btn" @click="router.push('/login')">Sign in</button>
+          <UiButton variant="ghost" size="sm" @click="router.push('/login')">Sign in</UiButton>
         </p>
       </template>
     </div>
