@@ -46,9 +46,10 @@ const SKILLS = [
 
 const VIBEOS_DECISIONS = [
   { label: 'State management',  value: 'Pinia (no Vuex)',       desc: 'Simpler, composable, TypeScript-native' },
-  { label: 'Styles',            value: 'Zero CSS frameworks',   desc: 'Design tokens + scoped component CSS' },
+  { label: 'Styles',            value: 'Zero CSS frameworks',   desc: 'Design tokens + scoped component CSS; @/ui single source of truth (S17)' },
   { label: 'AI',                value: 'Pollinations.ai first', desc: 'Free tier, no key — works for every visitor' },
   { label: 'Data',              value: 'localStorage-first',    desc: 'Works offline, Supabase sync on auth' },
+  { label: 'Testing',           value: 'Vitest + happy-dom',    desc: '274 tests, CI gate — deploy blocked on failure' },
 ]
 
 const LANGUAGES = [

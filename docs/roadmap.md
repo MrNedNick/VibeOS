@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · **v11 2026-06-02 S17 T15 sprint close (v1.3.0), S15 T4 god-component decomposition, S18 Phase 0 interaction tracking.**
+> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · **v11 2026-06-02 S17 T15 (v1.3.0) + S15 T4 god-components (v1.3.1–1.3.5) + S15 T9 close (v1.4.0) + S18 T1–T3 interaction tracking (v1.4.1–1.4.3).**
 > ⚠️ **Keep this file current.** Mark sprint items done the moment they ship. Add Phase 4+ specs before the session that implements them. A roadmap that lags the code is useless.
 > See `docs/strategy.md` for product context · `docs/privacy-security.md` for auth plan.
 
@@ -27,7 +27,7 @@
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 (Learning/Training unification) deferred. |
 | **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1 useSoftDeletable ✅ T2 training/learning stores ✅ T3 ui/commandPalette ✅ T4 UiButton/UiCard/UiFilterChips ✅; remaining: T5 god-components, T6 E2E, T7 QA, T8 coverage gate. **274 tests in 21 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
-| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | 🔜 planned — see spec below |
+| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | 🔄 active — T1 InteractionEvent+bus ✅ T2 navigation tracker ✅ T3 useTrack+vTrack ✅; remaining: T4 silent module wiring, T5–T12 feedback+analytics UI |
 
 ---
 
@@ -1036,53 +1036,11 @@ Each task = one cluster: replace raw elements with `@/ui`, **delete the now-dead
 
 ### Phase 0 — Core infrastructure (T1–T4)
 
-**T1 — Interaction event types + upgraded event bus**
+**T1 — Interaction event types + upgraded event bus** ✅ (v1.4.1) — `src/core/events/interaction.types.ts` (13-event union) + `useInteractionBus` Pinia store (`src/core/stores/interaction.store.ts`): 10,000-entry buffer, 20% rotation on full, `countByModule/countByFeature/sessionHistory(days)` helpers.
 
-Add `src/core/events/interaction.types.ts` with the full `InteractionEvent` discriminated union:
-```
-session:start           { sessionId, timestamp, referrer? }
-session:end             { sessionId, duration, modulesVisited: string[] }
-module:visited          { module, from?, timestamp, sessionId }
-module:time-spent       { module, seconds, sessionId }
-feature:used            { module, feature, context?, timestamp }  ← semantic, named
-ui:command-palette      { query?, resultCount, selected? }
-ui:theme-switched       { from, to }
-ui:feedback-triggered   { trigger: 'auto'|'manual' }
-ui:feedback-submitted   { score: 0-10, hasComment: boolean }
-ui:feedback-dismissed   { dismissCount }
-ui:ai-insight           { module, action: 'triggered'|'dismissed' }
-ui:export               { format: 'json'|'csv', module }
-```
-Create `useInteractionBus` Pinia store in `src/core/events/interaction.ts` — same pattern as `useEventBus` but:
-- Buffer size: **10 000** (not 100)
-- localStorage key: `platform:interaction-events`
-- Rotation: when buffer full, drop oldest 20% (not ALL)
-- Expose `recent(n, type)`, `countByModule(days)`, `countByFeature(days)`, `sessionHistory(days)`
+**T2 — Router navigation tracker** ✅ (v1.4.2) — `src/core/plugins/navigationTracker.ts` installed in `main.ts`. Emits `module:visited` on every navigation, `module:time-spent` on leave, `session:start/end` with 30-min gap + visibilitychange/beforeunload.
 
-**T2 — Router navigation tracker**
-
-`src/core/plugins/navigationTracker.ts` — Vue plugin, installed in `main.ts`.
-Uses `router.afterEach` to:
-- Emit `module:visited` on every navigation (derive module from route meta)
-- Start/restart a per-module timer on enter; emit `module:time-spent` on leave
-- Start a new session on first navigation after 30 min gap or fresh app load
-- Emit `session:start` / `session:end` accordingly (use `document.addEventListener('visibilitychange')` + `beforeunload`)
-
-No store imports at the plugin level — write to `useInteractionBus` only.
-
-**T3 — `useTrack` composable + `v-track` directive**
-
-`src/core/composables/useTrack.ts` — thin wrapper:
-```ts
-function track(feature: string, context?: Record<string, unknown>): void
-// → emits feature:used with { module: currentRoute.meta.module, feature, context }
-```
-`src/core/directives/vTrack.ts` — directive for template use:
-```html
-<button v-track="'filter:applied'" ...>
-<UiButton v-track="{ feature: 'task:quick-add', context: { from: 'dashboard' } }" ...>
-```
-Register both globally in `main.ts`. The directive attaches a single `click` listener that calls `track()`. Does NOT replace semantic events from stores — supplements them for UI-layer signals.
+**T3 — `useTrack` composable + `v-track` directive** ✅ (v1.4.3) — `src/core/composables/useTrack.ts` (reads module from route meta, emits `feature:used`) + `src/core/directives/vTrack.ts` (click listener, globally registered). Both supplement semantic store events.
 
 **T4 — Wire silent modules to event bus**
 

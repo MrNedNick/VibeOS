@@ -15,21 +15,21 @@ export interface TechDebtItem {
 }
 
 export const TECH_DEBT: TechDebtItem[] = [
-  { id: 'd1', label: 'Нет юнит и компонентных тестов — запланировано S7 (Vitest + CI gate)', severity: 'high' },
   { id: 'd3', label: 'Версионирование схемы localStorage добавлено, но хранилища не все подключены', severity: 'low' },
   { id: 'd5', label: 'Google Fonts загружается через @import (блокирует рендер)', severity: 'low' },
   { id: 'd6', label: 'S3 Supabase: весь код написан и задеплоен, но ждёт создания проекта пользователем', severity: 'medium' },
+  { id: 'd7', label: 'S16 T6–T8: E2E (Playwright), manual QA pass, coverage gate — ещё открыты', severity: 'medium' },
 ]
 
 export const PLATFORM_STATUS = [
-  { labelKey: 'platformHealth.architecture', status: 'good',    note: 'Слоистая, модульная — types → store → composable → components → view' },
-  { labelKey: 'platformHealth.typescript',   status: 'good',    note: 'Строгий режим, 0 ошибок на каждом коммите' },
-  { labelKey: 'platformHealth.build',        status: 'good',    note: 'Чистая production-сборка, деплой на mrnednick.github.io/VibeOS' },
-  { labelKey: 'platformHealth.deployment',   status: 'good',    note: 'GitHub Actions → GitHub Pages, автодеплой на каждый пуш в main' },
-  { labelKey: 'platformHealth.i18n',         status: 'good',    note: 'EN + RU, кастомный Pinia-стор, 90+ ключей' },
-  { labelKey: 'platformHealth.tests',        status: 'missing', note: 'Vitest запланирован в S7 — goals store, learning, task filter' },
-  { labelKey: 'platformHealth.backend',      status: 'wip',     note: 'Весь код Supabase написан — ждём создания проекта (нужны VITE_SUPABASE_URL + ANON_KEY)' },
-  { labelKey: 'platformHealth.identity',     status: 'good',    note: 'S1 закрыт: лого, 6 vibe-пакетов, лендинг /welcome, Lucide иконки' },
+  { labelKey: 'platformHealth.architecture', status: 'good', note: 'Слоистая, модульная — types → store → composable → components → view. S15 ✅: god-компоненты декомпозированы.' },
+  { labelKey: 'platformHealth.typescript',   status: 'good', note: 'Строгий режим, 0 ошибок на каждом коммите' },
+  { labelKey: 'platformHealth.build',        status: 'good', note: 'Чистая production-сборка, деплой на mrnednick.github.io/VibeOS' },
+  { labelKey: 'platformHealth.deployment',   status: 'good', note: 'GitHub Actions → GitHub Pages, автодеплой на каждый пуш в main' },
+  { labelKey: 'platformHealth.i18n',         status: 'good', note: 'EN + RU, кастомный Pinia-стор, 90+ ключей' },
+  { labelKey: 'platformHealth.tests',        status: 'good', note: '274 тестов в 21 файле (v1.4.3). Vitest v4 + happy-dom. CI gate блокирует деплой при падении.' },
+  { labelKey: 'platformHealth.backend',      status: 'wip',  note: 'Весь код Supabase написан — ждём создания проекта (нужны VITE_SUPABASE_URL + ANON_KEY)' },
+  { labelKey: 'platformHealth.identity',     status: 'good', note: 'S17 ✅: @/ui единый источник UI. S18 Phase 0 ✅: interaction tracking активен.' },
 ] as const
 
 // ─── Per-module detail data ───────────────────────────────────────
