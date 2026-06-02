@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · **v9 2026-05-31 S9 Phase 3 complete, Phase 4 specced, next-chat instructions added.**
+> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · **v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files.**
 > ⚠️ **Keep this file current.** Mark sprint items done the moment they ship. Add Phase 4+ specs before the session that implements them. A roadmap that lags the code is useless.
 > See `docs/strategy.md` for product context · `docs/privacy-security.md` for auth plan.
 
@@ -23,10 +23,11 @@
 | **S11 — Welcome & Positioning** | "Simple Notion for life, where everything is connected" + live cascade demo | 🔜 **next** — repositioned 2026-06-01 |
 | **S12 — AI Depth** | AI in every module; start with Analytics monthly report (shows connected data) | ✅ complete — Analytics ✅ (v1.0.11), Habits/Notes/Finance ✅ (v1.1.0) |
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
-| **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔜 planned — small independent tasks |
-| **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | 🔜 planned — analysis-first, ordered T1–T9 (see below) |
-| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔜 planned — ordered T1–T8, follows S15 |
-| **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | 🔜 planned — analysis done (v1.2.0), Phase 0 fills kit gaps (UiModal/UiIconButton/UiSelect/UiTextarea), then per-module migration T6–T13, lint gate T14 |
+| **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔄 active — T1/T2/T3/T5/T6 ✅; T4 hex cleanup: CalendarView ✅, WelcomeView folds into S11 |
+| **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | 🔄 active — T1 useSoftDeletable ✅ T2 useAiInsight ✅ T3 CSS migration ✅ T6 jsdom ✅ T7 docs ✅ T8 ESLint ✅; remaining: T4 god-components, T5 Learning/Training shared, T9 sprint close |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1 useSoftDeletable ✅ T2 training/learning stores ✅ T3 ui/commandPalette ✅ T4 UiButton/UiCard/UiFilterChips ✅; remaining: T5 god-components, T6 E2E, T7 QA, T8 coverage gate. **274 tests in 21 files** |
+| **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint enforcement (v1.2.10). T15 sprint-close docs remaining. |
+| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | 🔜 planned — see spec below |
 
 ---
 
@@ -1162,94 +1163,12 @@ Add `analytics_events` and `feedback_entries` tables to `supabase.types.ts`. Whe
 
 ## ── NEXT CHAT INSTRUCTIONS ────────────────────────────────────────────
 
-> Актуально на v1.0.7 (2026-05-31). Промпты в порядке приоритета.
+> Актуально на **v1.2.10 (2026-06-02)**. Промпты в порядке приоритета.
+> S17 ✅ полностью завершён (Phase 0+1+T14). S12 ✅ complete. Следующий главный спринт — S11.
 
 ---
 
-**[СЛЕДУЮЩИЙ] Session: S17 Phase 0 — Component Unification, fill the kit gaps**
-
-```
-Сессия — S17 Phase 0: новые примитивы @/ui (фундамент для миграции всего приложения)
-
-Прочитай перед началом (в этом порядке):
-1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
-2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← раздел "S17 — Component Unification" целиком (там аудит + все таски T1–T15)
-3. /Users/test/Documents/Work/AIProjects/VibeOS/docs/conventions.md  ← S9 visual rules + @/ui reference
-
-Контекст:
-- Версия: v1.2.0. UI Kit теперь живёт ПОД Docs: /docs/ui-kit/<key>, виден в проде.
-  Витрина = src/modules/ui-kit/views/sections/, подключена через src/modules/docs/data/docs-registry.ts (поле DocPage.component). Новый компонент → добавь секцию туда, и он автоматически появится в меню Docs.
-- @/ui сейчас = 15 компонентов (src/ui/components/, экспорт в src/ui/index.ts). Нет: UiModal, UiIconButton, UiSelect, UiTextarea.
-- Аудит (v1.2.0, без витрины): 277 сырых <button> vs 15 UiButton; 54 <input>; 28 <select>; 9 <textarea>; 10 native confirm(); 5+ самописных модалок; UiConfirmDialog не используется нигде; UiCard ×2.
-
-ЦЕЛЬ всего S17: чтобы везде использовались только компоненты из @/ui — поменяли кнопку один раз → поменялась везде. Зафиксировать lint-правилом (T14).
-
-ЗАДАЧА ЭТОЙ СЕССИИ — Phase 0 (блокеры миграции). Реализуй по порядку, коммить по компоненту (+patch):
-  T1 UiModal      — базовый оверлей (teleport, backdrop, scroll-lock, focus-trap, Esc, слоты header/body/footer, v-model:open). Перевести UiConfirmDialog на него.
-  T2 UiIconButton — icon-only кнопка (size sm/md, variant ghost/danger/subtle, ОБЯЗАТЕЛЬНЫЙ aria-label).
-  T3 UiSelect     — нативный <select> в токенах (v-model, :options, sizes), дружит с UiField.
-  T4 UiTextarea   — многострочный ввод (или проп multiline у UiInput — реши и задокументируй в conventions.md).
-  T5 UiTabs/UiSegmented — ТОЛЬКО если найдёшь ≥4 реальных места переключения вкладок; иначе пропусти и напиши почему.
-
-Для КАЖДОГО нового компонента:
-  - экспорт в src/ui/index.ts
-  - живая секция-витрина в src/modules/ui-kit/views/sections/components/ + регистрация в docs-registry.ts (группа UI Components)
-  - тест @vue/test-utils (идёт в зачёт S16 T4)
-
-НЕ начинай миграцию модулей (это Phase 1, T6+) в этой сессии — только примитивы.
-
-Правила: type-check → 0, npm test → всё зелёное (сейчас 128), S9 visual (color-mix, --shadow-*, --leading-*, без hex/rgba). Auto-commit + push + bump версии после каждого блока. Игры (games) — вне scope S17.
-```
-
----
-
-**Session: S8 item 4 — /ui-kit Component Library Page**
-
-```
-Сессия — S8 item 4: /ui-kit Component Library Page
-
-Прочитай перед началом (в этом порядке):
-1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
-2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md
-3. /Users/test/Documents/Work/AIProjects/VibeOS/docs/ui-kit-plan.md  ← ОБЯЗАТЕЛЬНО полностью
-
-Контекст:
-- Версия: v1.0.7
-- S7 ✅ complete. S8 items 1–3 ✅. S10 ✅ (4 пака: Dark, Light, Brutalist, CRT)
-- Vitest: 59 тестов, happy-dom (не jsdom)
-
-Задача: реализовать /ui-kit component library page по плану из ui-kit-plan.md.
-
-Структура (ui-kit-plan.md §8):
-  src/modules/ui-kit/
-    views/
-      UiKitView.vue              ← root: sidebar + main area
-      sections/tokens/           ← Colors, Typography, Spacing, Shadows, Motion
-      sections/components/       ← один файл на каждый @/ui компонент
-      sections/patterns/         ← UiEmptyState, UiConfirmDialog
-    components/
-      ShowcaseCard.vue, PropTable.vue, PgStage.vue, TokenSwatch.vue, TokenRow.vue
-
-Решения (уже приняты):
-- Route /ui-kit скрыт в production (import.meta.env.PROD)
-- Сайдбар: Tokens / Components / Patterns
-- Каждый компонент: Header → Playground (живой @/ui) → Prop table (Prop / Type / Purpose)
-- Theme switcher в footer сайдбара — 4 пака вживую
-- 15 @/ui компонентов + 5 token секций — полный список в ui-kit-plan.md §9
-
-Порядок (коммить по блокам, +patch каждый):
-1. UiKitView + сайдбар + routing + ShowcaseCard/PropTable/PgStage
-2. Token pages: Colors, Typography, Spacing, Shadows, Motion
-3. UiButton, UiInput, UiField, UiCard
-4. UiSkeleton, UiBadge, UiIcon, UiProgressBar, UiProgressRing
-5. UiStat, UiSectionLabel, UiFilterChips, UiEmptyState, UiConfirmDialog
-
-Правила: type-check → 0, test → 59 pass, S9 visual rules (color-mix, --shadow-*, no hex)
-```
-
----
-
-**Session: S11 — Welcome Page & Positioning**
+**[СЛЕДУЮЩИЙ] Session: S11 — Welcome Page & Positioning**
 
 ```
 Сессия — S11: Welcome Page redesign + Positioning update
@@ -1260,7 +1179,7 @@ Add `analytics_events` and `feedback_entries` tables to `supabase.types.ts`. Whe
 3. /Users/test/Documents/Work/AIProjects/VibeOS/docs/strategy.md  ← текущее позиционирование
 4. src/modules/welcome/WelcomeView.vue  ← текущая страница (читай полностью)
 
-Контекст: S8 ✅ complete. Версия: актуальная (смотри CLAUDE.md).
+Контекст: S8/S12/S17 ✅ complete. Версия: v1.2.10. 274 теста в 21 файле.
 
 ВСЕ COPY-РЕШЕНИЯ ПРИНЯТЫ (репозиционирование 2026-06-01) — сразу реализуй.
 Позиционирование: "простой Notion для жизни, где всё связано". НЕ "accelerator".
@@ -1307,43 +1226,38 @@ Proof strip: "16 modules" · "No setup needed" · "100% local-first" · "No subs
 - index.html — <title> и <meta name="description">
 
 Визуальные правила: S9 tokens, color-mix, --shadow-*, no hardcoded hex.
-Правила: type-check → 0, test → 59 pass, коммит + push после каждого блока.
+Правила: type-check → 0, npm test → 274 pass, коммит + push после каждого блока.
 Версии: +patch за каждый блок.
 ```
 
 ---
 
-**Session: S12 — AI Depth (Habits, Notes, Finance, Analytics)**
+**Session: S15 T4 — Decompose god-components (fill-in, no user decisions)**
 
 ```
-Сессия — S12: AI depth — 4 модуля
+Сессия — S15 T4: декомпозиция god-компонентов
 
 Прочитай перед началом:
 1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
-2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S12 описан там (T1–T4)
-3. src/core/composables/useAI.ts  ← существующий AI composable
+2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S15 T4 описан там
 
-Контекст: S11 ✅. Версия: актуальная.
-Текущее AI-покрытие: Goals ✅ Tasks ✅ Learning ✅ Training ✅ Dashboard ✅
-Осталось: Habits ❌ Notes ❌ Finance ❌ Analytics ❌
+Контекст: v1.2.10. S15 T1/T2/T3/T6/T7/T8 ✅ done. S17 ✅ done. 274 теста.
 
-ПЕРЕД КАЖДЫМ МОДУЛЕМ: прочитай store + view файлы этого модуля.
-Prompt должен опираться на реальные data-структуры, не на предположения.
+Измерь LOC каждого файла перед началом (wc -l) — после S17 миграций они уже меньше.
+Приоритет декомпозиции (biggest pain first):
+1. FinanceView.vue — извлечь FinanceSummary, TransactionList, BudgetList
+2. BoardView.vue — извлечь BoardColumn, BoardCard; drag-логику в composable
+3. AnalyticsView.vue — извлечь per-section panels
+4. StudioView.vue — split conversation pane / model picker / history sidebar
+5. HabitCard.vue — ТОЛЬКО если всё ещё > 800 LOC; паттерны, НЕ реструктурировать streak
 
-Паттерн (как в существующих интеграциях):
-- User-initiated кнопка "✦ [action]"
-- loading state через useAI().loading
-- dismissable result card (не сохраняется)
+Правила (жёсткие):
+- Behavior-preserving only. До и после — один и тот же экран, те же данные.
+- Один компонент = один коммит = один patch bump.
+- type-check → 0, npm test → все зелёные после каждого.
+- Если extraction делает call site длиннее или менее понятным — не делать.
 
-Задачи в порядке приоритета:
-1. Analytics — "✦ Generate monthly report" кнопка → нарратив по всем модулям за период
-   (самая высокая ценность — cross-module synthesis)
-2. Habits — "✦ Pattern insights" в HabitsView → 2-3 наблюдения по check-in паттернам
-3. Notes — "✦ Summarise" + "✦ Action items" кнопки в toolbar когда note > 200 chars
-4. Finance — "✦ Analyse spending" в Overview tab → observations + 1-2 suggestions
-
-Детальные спецификации каждого — в roadmap.md S12 T1–T4.
-Правила: type-check → 0, test → 59 pass, коммит + push после каждого модуля.
+Правила: auto-commit + push после каждого блока.
 ```
 
 ---
@@ -1374,8 +1288,6 @@ Prompt должен опираться на реальные data-структу
 
 Правила: S9 visual rules, коммит + push после каждого модуля, type-check → 0.
 ```
-
----
 
 ---
 

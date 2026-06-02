@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v1.2.6 — 2026-06-02**
+**Version: v1.2.10 — 2026-06-02**
 
 > **UI Kit now lives under Docs (v1.2.0):** the live component catalogue is no longer a hidden dev-only `/ui-kit` page. It's integrated into the Docs module as three sidebar sections — **Design Tokens**, **UI Components**, **UI Patterns** — at `/docs/ui-kit/<key>` (e.g. `/docs/ui-kit/button`). Visible in production. Showcase section components live in `src/modules/ui-kit/views/sections/` and are wired in via `src/modules/docs/data/docs-registry.ts` (`DocPage.component`). `DocsView` renders the live component when a page has `component`, else markdown. This is the single source of truth for every reusable `@/ui` component and all its states.
 
@@ -18,22 +18,22 @@
 | S4 — Core Life Modules | ✅ complete |
 | S5 — Life Depth | ✅ complete |
 | S6 — AI Integration | ✅ complete |
-| S7 — Polish | ✅ complete — Vitest ✅ (59 tests), CI ✅, Lighthouse 82 ✅, a11y 100 ✅, bundle badge ✅ |
+| S7 — Polish | ✅ complete — Vitest ✅, CI ✅, Lighthouse 82 ✅, a11y 100 ✅, bundle badge ✅ |
 | S8 — Design System | ✅ complete — @/ui ✅, tokens ✅, skeletons ✅, widgets ✅, UI Kit catalogue ✅ — moved under Docs at `/docs/ui-kit`, visible in prod (v1.2.0) |
 | S9 — Full Redesign | ✅ complete — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ |
 | S10 — Vibe-pak Consolidation | ✅ complete — T1 ✅ T2 ✅ T3 ✅ T4 ✅ T5 ✅ |
-| S11 — Welcome & Positioning | 🔜 next — "simpler Notion for life, everything connected" + live cascade demo (repositioned 2026-06-01) |
+| S11 — Welcome & Positioning | 🔜 **next** — "simpler Notion for life, everything connected" + live cascade demo. Copy locked (2026-06-01). |
 | S12 — AI Depth | ✅ complete — Analytics report ✅ (v1.0.11), Habits insights + Notes summarise + Finance analysis ✅ (v1.1.0) |
 | S13 — Design Pass | 🔜 planned — module quality pass (requires user review session) |
-| S14 — Quick Wins | 🔄 active — T1 lazy routes ✅ (v1.0.8), T5 AI provider seam ✅ (v1.0.9), T3 soft-delete ✅ (v1.0.10), T6 pin Pollinations anon model ✅ (v1.0.12), T2 README refresh ✅ (v1.1.0); T4 hex cleanup (CalendarView ✅) remaining: WelcomeView (folds into S11) |
-| S15 — Refactor & De-dup | 🔜 planned — analysis-first, T1–T9 (de-dup soft-delete/AI, finish @/ui CSS migration, split 5 god-components). See docs/roadmap.md |
-| S16 — Test Coverage | 🔜 planned — T1–T8, follows S15 (12 untested stores, 0 component tests today). See docs/roadmap.md |
-| S17 — Component Unification | 🔄 active — Phase 0 ✅ (v1.2.1): `UiModal`, `UiIconButton`, `UiSelect`, `UiTextarea` shipped; 19 new `@vue/test-utils` tests (total 159). Phase 1 (module migration T6–T13) + Phase 2 (lint gate T14) remaining. See docs/roadmap.md |
-| S18 — Product Analytics & Feedback | 🔜 planned — behavioral tracking (navigation, sessions, semantic feature events), NPS feedback modal, Usage tab in Analytics, Privacy settings. Privacy-first (localStorage), no external SDKs. Syncs to Supabase when S3 lands. See docs/roadmap.md |
+| S14 — Quick Wins | 🔄 active — T1 ✅ T2 ✅ T3 ✅ T5 ✅ T6 ✅; T4 hex cleanup: CalendarView ✅, WelcomeView folds into S11 |
+| S15 — Refactor & De-dup | 🔄 active — T1 useSoftDeletable ✅ T2 useAiInsight ✅ T3 CSS migration ✅ T6 jsdom ✅ T7 docs ✅ T8 ESLint ✅; remaining: T4 god-components, T5 Learning/Training shared, T9 sprint close |
+| S16 — Test Coverage | 🔄 active — T1 useSoftDeletable ✅ T2 training+learning stores ✅ T3 ui+commandPalette stores ✅ T4 UiButton+UiCard+UiFilterChips ✅; remaining: T5 god-component tests, T6 E2E, T7 QA pass, T8 coverage gate. **274 tests in 21 files** |
+| S17 — Component Unification | ✅ **complete** — Phase 0 (v1.2.1): UiModal/UiIconButton/UiSelect/UiTextarea; Phase 1 T6–T13 (v1.2.2–v1.2.6): all modules migrated; Phase 2 T14 (v1.2.10): ESLint enforcement rule. T15 sprint close remaining. |
+| S18 — Product Analytics & Feedback | 🔜 planned — behavioral tracking, NPS modal, Usage tab in Analytics, Privacy settings. See docs/roadmap.md |
 
-**Active next (re-ordered 2026-06-01): S11 (positioning + welcome) is now the main remaining sprint — S12 AI Depth is ✅ complete (Habits/Notes/Finance AI shipped v1.1.0). Done as fill-in: S8 item 4 /ui-kit ✅, S14 T1/T2/T3/T5/T6 ✅. Remaining S14: T4 hex cleanup (WelcomeView portion folds into the S11 rewrite). S15 (refactor) + S16 (tests, finance.store added v1.1.0) ongoing.**
+**Active next (2026-06-02): S11 (welcome + positioning) is the main remaining sprint. S17 is functionally complete (T14 enforcement rule landed). S15 T4 (god-components) + S16 T5–T8 (E2E, QA, coverage gate) are open fill-in work. S13 (design pass) requires a live user review session.**
 
-> **AI provider note (v1.0.12):** Pollinations left only `openai-fast` (GPT-OSS 20B) on the anonymous tier; the real `openai`/`mistral`/`llama` now require a key and return a "migrate" notice anonymously (this leaked into the Analytics AI report). Default model is pinned to `openai-fast` in `src/core/composables/provider.ts` and Studio's free-model list trimmed to it.
+> **AI provider note (v1.0.12):** Pollinations left only `openai-fast` (GPT-OSS 20B) on the anonymous tier. Default model is pinned to `openai-fast` in `src/core/composables/provider.ts` and Studio's free-model list trimmed to it.
 
 ---
 
