@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
 import { storageKey } from '@/core/utils/storage'
 import type { Expense, CategoryBudget, ExpenseCategory } from '../types'
-import { isCurrentMonth, EXPENSE_CATEGORIES } from '../types'
+import { isCurrentMonth, EXPENSE_CATEGORIES, CATEGORY_META, currentMonthKey } from '../types'
 
 export const useFinanceStore = defineStore('finance:main', () => {
   const { all: allExpenses, items: expenses, softDelete: softDeleteExpense } = useSoftDeletable<Expense>(storageKey('finance', 'expenses'))
@@ -153,6 +153,133 @@ export const useFinanceStore = defineStore('finance:main', () => {
 
   const POPULAR_CURRENCIES = ['EUR', 'USD', 'GBP', 'JPY', 'RUB', 'UAH', 'CHF', 'CAD', 'AUD', 'CNY']
 
+  // ── Month navigation (UI state) ─────────────────────────────────────────
+  const selectedMonth = ref(currentMonthKey())
+  const isViewingCurrentMonth = computed(() => selectedMonth.value === currentMonthKey())
+  const monthLabel = computed(() => {
+    const [y, m] = selectedMonth.value.split('-')
+    return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+  })
+  function prevMonth(): void {
+    const [y, m] = selectedMonth.value.split('-').map(Number)
+    const d = new Date(y, m - 2, 1)
+    selectedMonth.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  }
+  function nextMonth(): void {
+    if (isViewingCurrentMonth.value) return
+    const [y, m] = selectedMonth.value.split('-').map(Number)
+    const d = new Date(y, m, 1)
+    selectedMonth.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  }
+
+  // ── Month-scoped derived data ────────────────────────────────────────────
+  const viewExpenses = computed(() => expensesByMonth(selectedMonth.value))
+  const viewTotal = computed(() => viewExpenses.value.reduce((s, e) => s + e.amount, 0))
+  const viewSpentByCategory = computed(() => {
+    const map: Record<string, number> = {}
+    for (const cat of EXPENSE_CATEGORIES) map[cat] = 0
+    for (const e of viewExpenses.value) map[e.category] = (map[e.category] ?? 0) + e.amount
+    return map as Record<ExpenseCategory, number>
+  })
+  const viewOverBudgetCount = computed(() =>
+    EXPENSE_CATEGORIES.filter(cat => {
+      const limit = budgetMap.value[cat] ?? 0
+      return limit > 0 && viewSpentByCategory.value[cat] > limit
+    }).length,
+  )
+  const viewCategories = computed(() =>
+    EXPENSE_CATEGORIES.filter(cat =>
+      viewSpentByCategory.value[cat] > 0 || (isViewingCurrentMonth.value && (budgetMap.value[cat] ?? 0) > 0),
+    ),
+  )
+
+  // ── Day-by-day chart data ────────────────────────────────────────────────
+  const daysInMonth = computed(() => {
+    const [y, m] = selectedMonth.value.split('-').map(Number)
+    const last = new Date(y, m, 0).getDate()
+    const result: { day: string; total: number }[] = []
+    for (let d = 1; d <= last; d++) {
+      const dayStr = `${selectedMonth.value}-${String(d).padStart(2, '0')}`
+      const total = viewExpenses.value.filter(e => e.date === dayStr).reduce((s, e) => s + e.amount, 0)
+      result.push({ day: dayStr, total })
+    }
+    return result
+  })
+  const maxDaySpend = computed(() => Math.max(...daysInMonth.value.map(d => d.total), 0.01))
+  const hasDayData = computed(() => daysInMonth.value.some(d => d.total > 0))
+
+  // ── Category bar helpers ─────────────────────────────────────────────────
+  function barPct(cat: ExpenseCategory): number {
+    const limit = budgetMap.value[cat] ?? 0
+    if (limit <= 0) return 0
+    return Math.min(100, (viewSpentByCategory.value[cat] / limit) * 100)
+  }
+  function barColorToken(cat: ExpenseCategory): 'success' | 'warning' | 'danger' {
+    const pct = barPct(cat)
+    if (pct >= 100) return 'danger'
+    if (pct >= 80) return 'warning'
+    return 'success'
+  }
+
+  // ── Budget editing state ─────────────────────────────────────────────────
+  const editingBudget = ref<ExpenseCategory | null>(null)
+  const budgetInput = ref('')
+  function startBudgetEdit(cat: ExpenseCategory): void {
+    editingBudget.value = cat
+    budgetInput.value = String(budgetMap.value[cat] ?? '')
+  }
+  function saveBudget(cat: ExpenseCategory): void {
+    const val = parseFloat(budgetInput.value.replace(',', '.'))
+    if (!isNaN(val) && val > 0) setBudget(cat, val)
+    else if (budgetInput.value === '' || val === 0) removeBudget(cat)
+    editingBudget.value = null
+  }
+  function onBudgetKeydown(e: KeyboardEvent, cat: ExpenseCategory): void {
+    if (e.key === 'Enter') saveBudget(cat)
+    if (e.key === 'Escape') editingBudget.value = null
+  }
+
+  // ── Add expense form state ───────────────────────────────────────────────
+  const showAddForm = ref(false)
+  const formAmount = ref('')
+  const formCategory = ref<ExpenseCategory>('food')
+  const formNote = ref('')
+  const formDate = ref(new Date().toISOString().split('T')[0])
+  const formError = ref('')
+  function openAddForm(): void {
+    formAmount.value = ''
+    formNote.value = ''
+    formDate.value = new Date().toISOString().split('T')[0]
+    formCategory.value = 'food'
+    formError.value = ''
+    showAddForm.value = true
+  }
+  function submitExpense(): void {
+    formError.value = ''
+    const amount = parseFloat(formAmount.value.replace(',', '.'))
+    if (isNaN(amount) || amount <= 0) {
+      formError.value = 'Enter a valid amount greater than 0'
+      return
+    }
+    addExpense({ amount, category: formCategory.value, note: formNote.value.trim(), date: formDate.value })
+    showAddForm.value = false
+  }
+
+  // ── CSV export ───────────────────────────────────────────────────────────
+  function exportTransactionsCSV(): void {
+    if (!viewExpenses.value.length) return
+    const rows = ['Date,Category,Note,Amount']
+    for (const e of viewExpenses.value) {
+      const note = e.note ? `"${e.note.replace(/"/g, '""')}"` : ''
+      rows.push(`${e.date},${CATEGORY_META[e.category].label},${note},${e.amount.toFixed(2)}`)
+    }
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = Object.assign(document.createElement('a'), { href: url, download: `expenses-${selectedMonth.value}.csv` })
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return {
     expenses,
     budgets,
@@ -180,5 +307,38 @@ export const useFinanceStore = defineStore('finance:main', () => {
     setBudget,
     removeBudget,
     expensesByMonth,
+    // Month navigation
+    selectedMonth,
+    isViewingCurrentMonth,
+    monthLabel,
+    prevMonth,
+    nextMonth,
+    // Month-scoped data
+    viewExpenses,
+    viewTotal,
+    viewSpentByCategory,
+    viewOverBudgetCount,
+    viewCategories,
+    daysInMonth,
+    maxDaySpend,
+    hasDayData,
+    barPct,
+    barColorToken,
+    // Budget editing
+    editingBudget,
+    budgetInput,
+    startBudgetEdit,
+    saveBudget,
+    onBudgetKeydown,
+    // Add form
+    showAddForm,
+    formAmount,
+    formCategory,
+    formNote,
+    formDate,
+    formError,
+    openAddForm,
+    submitExpense,
+    exportTransactionsCSV,
   }
 })
