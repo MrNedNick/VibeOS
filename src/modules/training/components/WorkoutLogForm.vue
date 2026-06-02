@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import type { TrainingPlan, WorkoutLog } from '../types'
 import { FEELING_EMOJI } from '../types'
+import { UiModal, UiButton, UiIconButton, UiInput, UiTextarea } from '@/ui'
 
 const props = defineProps<{
   plan: TrainingPlan
@@ -12,6 +13,7 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
+const isOpen = ref(true)
 const title = ref('')
 const duration = ref(45)
 const distance = ref<number | ''>('')
@@ -37,11 +39,7 @@ function submit() {
   })
 }
 
-function onOverlayKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') emit('cancel')
-}
-
-function onPanelKeydown(e: KeyboardEvent) {
+function onBodyKeydown(e: KeyboardEvent) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') submit()
 }
 
@@ -49,49 +47,44 @@ const FEELINGS = ([1, 2, 3, 4, 5] as const).map(n => ({ val: n, emoji: FEELING_E
 </script>
 
 <template>
-  <div class="wlog-overlay" @keydown="onOverlayKeydown" @click.self="emit('cancel')">
-    <div class="wlog-panel" @keydown="onPanelKeydown">
-
-      <div class="wlog-panel__header">
-        <span class="wlog-panel__emoji">{{ plan.coverEmoji }}</span>
-        <div class="wlog-panel__heading">
-          <span class="wlog-panel__eyebrow">Log workout</span>
-          <span class="wlog-panel__plan">{{ plan.title }}</span>
+  <UiModal v-model:open="isOpen" size="sm" @close="emit('cancel')">
+    <template #header>
+      <div class="wlog-header">
+        <span class="wlog-header__emoji">{{ plan.coverEmoji }}</span>
+        <div class="wlog-header__text">
+          <span class="wlog-header__eyebrow">Log workout</span>
+          <span class="wlog-header__plan">{{ plan.title }}</span>
         </div>
-        <button class="wlog-panel__close" @click="emit('cancel')" aria-label="Close">✕</button>
+        <UiIconButton name="X" aria-label="Close" @click="emit('cancel')" />
       </div>
+    </template>
 
-      <div class="wlog-panel__body">
-        <label class="wlog-panel__field">
-          <span class="wlog-panel__label">
+    <template #body>
+      <div class="wlog-body" @keydown="onBodyKeydown">
+        <div class="wlog-field">
+          <span class="wlog-label">
             What did you do?
-            <span class="wlog-panel__opt">defaults to plan name</span>
+            <span class="wlog-opt">defaults to plan name</span>
           </span>
-          <input
-            v-model="title"
-            type="text"
-            :placeholder="plan.title"
-            class="wlog-panel__input"
-            maxlength="80"
-          />
-        </label>
+          <UiInput v-model="title" :placeholder="plan.title" :maxlength="80" />
+        </div>
 
-        <div class="wlog-panel__row">
-          <label class="wlog-panel__field">
-            <span class="wlog-panel__label">Duration (min)</span>
+        <div class="wlog-row">
+          <div class="wlog-field">
+            <span class="wlog-label">Duration (min)</span>
+            <!-- Number inputs — bespoke: type=number with min/max/step -->
             <input
               v-model.number="duration"
               type="number"
               min="1"
               max="600"
-              class="wlog-panel__input wlog-panel__input--sm"
+              class="wlog-input wlog-input--sm"
             />
-          </label>
-
-          <label class="wlog-panel__field">
-            <span class="wlog-panel__label">
+          </div>
+          <div class="wlog-field">
+            <span class="wlog-label">
               Distance (km)
-              <span class="wlog-panel__opt">optional</span>
+              <span class="wlog-opt">optional</span>
             </span>
             <input
               v-model="distance"
@@ -100,97 +93,73 @@ const FEELINGS = ([1, 2, 3, 4, 5] as const).map(n => ({ val: n, emoji: FEELING_E
               step="0.1"
               max="999"
               placeholder="—"
-              class="wlog-panel__input wlog-panel__input--sm"
+              class="wlog-input wlog-input--sm"
             />
-          </label>
+          </div>
         </div>
 
-        <div class="wlog-panel__field">
-          <span class="wlog-panel__label">How did it feel?</span>
-          <div class="wlog-panel__feeling">
+        <div class="wlog-field">
+          <span class="wlog-label">How did it feel?</span>
+          <!-- Feeling emoji — bespoke: emoji rating widget with opacity + scale -->
+          <div class="wlog-feeling">
             <button
               v-for="f in FEELINGS"
               :key="f.val"
               type="button"
-              class="wlog-panel__feel-btn"
-              :class="{ 'wlog-panel__feel-btn--on': f.val === feeling }"
+              class="wlog-feel-btn"
+              :class="{ 'wlog-feel-btn--on': f.val === feeling }"
               @click="feeling = f.val"
             >{{ f.emoji }}</button>
           </div>
         </div>
 
-        <label class="wlog-panel__field">
-          <span class="wlog-panel__label">
+        <div class="wlog-field">
+          <span class="wlog-label">
             Notes
-            <span class="wlog-panel__opt">optional</span>
+            <span class="wlog-opt">optional</span>
           </span>
-          <textarea
+          <UiTextarea
             v-model="notes"
-            rows="2"
+            :rows="2"
             placeholder="How'd it go? Any PRs, challenges, or notes?"
-            class="wlog-panel__textarea"
-            maxlength="400"
+            :maxlength="400"
           />
-        </label>
+        </div>
       </div>
+    </template>
 
-      <div class="wlog-panel__footer">
-        <button class="wlog-panel__btn wlog-panel__btn--ghost" @click="emit('cancel')">Cancel</button>
-        <button class="wlog-panel__btn wlog-panel__btn--primary" @click="submit">Log Workout</button>
-      </div>
-
-    </div>
-  </div>
+    <template #footer>
+      <UiButton variant="ghost" @click="emit('cancel')">Cancel</UiButton>
+      <UiButton @click="submit">Log Workout</UiButton>
+    </template>
+  </UiModal>
 </template>
 
 <style scoped>
-.wlog-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  padding: 16px;
-}
-
-.wlog-panel {
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  width: 100%;
-  max-width: 480px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow-lg);
-}
-
-.wlog-panel__header {
+.wlog-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid var(--color-border);
 }
 
-.wlog-panel__emoji { font-size: 26px; flex-shrink: 0; }
+.wlog-header__emoji { font-size: 26px; flex-shrink: 0; }
 
-.wlog-panel__heading {
+.wlog-header__text {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 
-.wlog-panel__eyebrow {
+.wlog-header__eyebrow {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
-.wlog-panel__plan {
+.wlog-header__plan {
   font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-text);
@@ -199,41 +168,22 @@ const FEELINGS = ([1, 2, 3, 4, 5] as const).map(n => ({ val: n, emoji: FEELING_E
   text-overflow: ellipsis;
 }
 
-.wlog-panel__close {
-  margin-left: auto;
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  font-size: 15px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--radius);
-  transition: color var(--t-fast);
-}
-
-.wlog-panel__close:hover { color: var(--color-text); }
-
-.wlog-panel__body {
-  padding: 20px;
+.wlog-body {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.wlog-panel__row {
-  display: flex;
-  gap: 16px;
-}
+.wlog-row { display: flex; gap: 16px; }
 
-.wlog-panel__field {
+.wlog-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
   flex: 1;
 }
 
-.wlog-panel__label {
+.wlog-label {
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--color-text-secondary);
@@ -242,57 +192,31 @@ const FEELINGS = ([1, 2, 3, 4, 5] as const).map(n => ({ val: n, emoji: FEELING_E
   gap: 6px;
 }
 
-.wlog-panel__opt {
+.wlog-opt {
   font-weight: 400;
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
-.wlog-panel__input {
-  background: var(--color-bg);
+/* Number inputs — bespoke: type=number with specific sizing */
+.wlog-input {
+  background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
   font-size: var(--text-sm);
   color: var(--color-text);
   font-family: inherit;
-  width: 100%;
-  box-sizing: border-box;
   transition: border-color var(--t-fast);
-}
-
-.wlog-panel__input--sm { width: 96px; flex: none; }
-
-.wlog-panel__input:focus {
   outline: none;
-  border-color: var(--color-accent);
 }
+.wlog-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent); }
+.wlog-input--sm { width: 96px; flex: none; }
 
-.wlog-panel__textarea {
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 9px 12px;
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  font-family: inherit;
-  width: 100%;
-  box-sizing: border-box;
-  resize: vertical;
-  transition: border-color var(--t-fast);
-}
+/* Feeling emoji — bespoke: opacity + scale interactive widget */
+.wlog-feeling { display: flex; gap: 4px; }
 
-.wlog-panel__textarea:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
-.wlog-panel__feeling {
-  display: flex;
-  gap: 4px;
-}
-
-.wlog-panel__feel-btn {
+.wlog-feel-btn {
   font-size: 24px;
   background: none;
   border: 1px solid transparent;
@@ -303,50 +227,10 @@ const FEELINGS = ([1, 2, 3, 4, 5] as const).map(n => ({ val: n, emoji: FEELING_E
   transition: all var(--t-fast);
   line-height: 1;
 }
-
-.wlog-panel__feel-btn--on {
+.wlog-feel-btn--on {
   opacity: 1;
   border-color: var(--color-border);
-  background: var(--color-surface);
+  background: var(--color-surface-elevated);
   transform: scale(1.15);
-}
-
-.wlog-panel__footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 20px 20px;
-  border-top: 1px solid var(--color-border);
-}
-
-.wlog-panel__btn {
-  padding: 8px 18px;
-  border-radius: var(--radius);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all var(--t-fast);
-  font-family: inherit;
-}
-
-.wlog-panel__btn--ghost {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border-color: var(--color-border);
-}
-
-.wlog-panel__btn--ghost:hover { color: var(--color-text); }
-
-.wlog-panel__btn--primary {
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.wlog-panel__btn--primary:hover { background: var(--color-accent-hover); }
-
-@media (max-width: 767px) {
-  .wlog-overlay { align-items: flex-end; padding: 0; }
-  .wlog-panel { border-radius: var(--radius-xl) var(--radius-xl) 0 0; max-width: 100%; }
 }
 </style>

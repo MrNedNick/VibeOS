@@ -5,6 +5,7 @@ import type { LearningPlan } from '../types'
 import { estimateTargetDate } from '../types'
 import { useLearningStore } from '../stores/learning.store'
 import ProgressRing from './ProgressRing.vue'
+import { UiButton, UiProgressBar } from '@/ui'
 
 const props = defineProps<{
   plan: LearningPlan
@@ -56,11 +57,14 @@ function openDetail() {
       <span class="plan-card__stat plan-card__stat--end">{{ formatShortDate(targetDate) }}</span>
     </div>
 
-    <div class="plan-card__bar">
-      <div class="plan-card__bar-fill" :style="{ width: progress + '%' }" />
-    </div>
+    <UiProgressBar
+      :value="progress"
+      :height="5"
+      :color="loggedToday ? 'success' : 'accent'"
+    />
 
     <div class="plan-card__footer">
+      <!-- Done state — bespoke: success-color outline, not in UiButton variants -->
       <button
         v-if="loggedToday"
         class="plan-card__action plan-card__action--done"
@@ -68,13 +72,7 @@ function openDetail() {
       >
         ✓ Done today
       </button>
-      <button
-        v-else
-        class="plan-card__action plan-card__action--log"
-        @click.stop="emit('log', plan.id)"
-      >
-        Log Session
-      </button>
+      <UiButton v-else size="sm" @click.stop="emit('log', plan.id)">Log Session</UiButton>
     </div>
   </div>
 </template>
@@ -174,50 +172,23 @@ function openDetail() {
   color: var(--color-text-muted);
 }
 
-.plan-card__bar {
-  height: 5px;
-  background: var(--color-surface-elevated);
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.plan-card__bar-fill {
-  height: 100%;
-  background: var(--color-accent);
-  border-radius: 99px;
-  transition: width 0.6s var(--ease);
-  min-width: 0;
-}
-
 .plan-card__footer {
   display: flex;
   justify-content: flex-end;
 }
 
-.plan-card__action {
+/* Done state — bespoke: success-color outline not in UiButton variants */
+.plan-card__action--done {
   padding: 7px 16px;
   border-radius: var(--radius);
   font-size: var(--text-sm);
   font-weight: 500;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all var(--t-fast);
-  font-family: inherit;
-}
-
-.plan-card__action--log {
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.plan-card__action--log:hover { background: var(--color-accent-hover); }
-
-.plan-card__action--done {
+  cursor: default;
+  border: 1px solid var(--color-success);
   background: transparent;
   color: var(--color-success);
-  border-color: var(--color-success);
-  cursor: default;
   opacity: 0.75;
+  font-family: inherit;
 }
 
 @media (max-width: 767px) {

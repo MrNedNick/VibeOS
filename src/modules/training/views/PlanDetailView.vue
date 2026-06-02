@@ -5,7 +5,8 @@ import { useTrainingStore } from '../stores/training.store'
 import WorkoutLogForm from '../components/WorkoutLogForm.vue'
 import type { WorkoutLog, ResourceType } from '../types'
 import { FEELING_EMOJI, todayStr, RESOURCE_META, RESOURCE_TYPES } from '../types'
-import { UiIcon, UiSectionLabel, UiStat } from '@/ui'
+import { UiIcon, UiSectionLabel, UiStat, UiButton, UiIconButton, UiInput, UiSelect } from '@/ui'
+import type { SelectOption } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { useAiInsight } from '@/core/composables/useAiInsight'
@@ -77,6 +78,11 @@ function saveHabitLink() {
   store.updatePlanLink(planId.value, linkedHabitId.value || undefined)
 }
 
+const habitOptions = computed<SelectOption[]>(() => [
+  { value: '', label: '— none —' },
+  ...habitsStore.habits.map(h => ({ value: h.id, label: h.name })),
+])
+
 // ── Resources ────────────────────────────────────────────────────────
 const resources = computed(() => store.getPlanResources(planId.value))
 
@@ -106,9 +112,9 @@ function safeDomain(url: string): string {
   <div v-if="plan" class="tdetail">
 
     <div class="tdetail__nav">
-      <button class="tdetail__back" @click="router.push('/training')">
+      <UiButton variant="ghost" size="sm" @click="router.push('/training')">
         <UiIcon name="ArrowLeft" :size="14" :stroke-width="2" /> Training
-      </button>
+      </UiButton>
     </div>
 
     <div class="tdetail__header">
@@ -142,18 +148,14 @@ function safeDomain(url: string): string {
           :class="{ 'tdetail__today-status--done': loggedToday }"
         >{{ loggedToday ? '✓ Workout logged' : 'Ready to train' }}</span>
       </div>
-      <button
-        v-if="!loggedToday"
-        class="tdetail__log-btn"
-        @click="showLog = true"
-      >Log Workout</button>
+      <UiButton v-if="!loggedToday" @click="showLog = true">Log Workout</UiButton>
     </div>
 
     <!-- AI analysis card -->
     <div v-if="aiAnalyzing || aiAnalysis" class="tdetail__ai-card">
       <div class="tdetail__ai-header">
         <span class="tdetail__ai-label">✦ AI Insight</span>
-        <button v-if="aiAnalysis" class="tdetail__ai-dismiss" @click="dismissAiAnalysis">×</button>
+        <UiIconButton v-if="aiAnalysis" name="X" aria-label="Dismiss AI insight" size="sm" @click="dismissAiAnalysis" />
       </div>
       <div v-if="aiAnalyzing" class="tdetail__ai-loading">
         <UiIcon name="Loader" :size="14" :stroke-width="2" class="tdetail__ai-spinner" />
@@ -193,15 +195,16 @@ function safeDomain(url: string): string {
     <div class="tdetail__resources">
       <div class="tdetail__resources-header">
         <UiSectionLabel class="tdetail__section-label">Resources</UiSectionLabel>
-        <button class="tdetail__resources-add-btn" @click="showAddResource = !showAddResource">
+        <UiButton variant="ghost" size="sm" @click="showAddResource = !showAddResource">
           <UiIcon :name="showAddResource ? 'X' : 'Plus'" :size="13" />
           {{ showAddResource ? 'Cancel' : 'Add resource' }}
-        </button>
+        </UiButton>
       </div>
       <div v-if="showAddResource" class="tdetail__res-form">
-        <input v-model="newResUrl" class="tdetail__res-input" placeholder="https://..." @keydown.enter="submitResource" />
-        <input v-model="newResTitle" class="tdetail__res-input" placeholder="Title (optional)" @keydown.enter="submitResource" />
+        <UiInput v-model="newResUrl" placeholder="https://..." @enter="submitResource" />
+        <UiInput v-model="newResTitle" placeholder="Title (optional)" @enter="submitResource" />
         <div class="tdetail__res-form-row">
+          <!-- Resource type — bespoke: emoji icon selector -->
           <div class="tdetail__res-types">
             <button
               v-for="t in RESOURCE_TYPES" :key="t"
@@ -211,7 +214,7 @@ function safeDomain(url: string): string {
               @click="newResType = t"
             >{{ RESOURCE_META[t].icon }}</button>
           </div>
-          <button class="tdetail__res-submit" :disabled="!newResUrl.trim()" @click="submitResource">Add</button>
+          <UiButton size="sm" :disabled="!newResUrl.trim()" @click="submitResource">Add</UiButton>
         </div>
       </div>
       <div v-if="resources.length > 0" class="tdetail__res-list">
@@ -228,7 +231,7 @@ function safeDomain(url: string): string {
           <button class="tdetail__res-done" :class="{ 'tdetail__res-done--active': res.done }" @click="store.toggleResourceDone(planId, res.id)">
             <UiIcon :name="res.done ? 'CheckCircle2' : 'Circle'" :size="15" :stroke-width="1.75" />
           </button>
-          <button class="tdetail__res-del" title="Remove" @click="store.deleteResource(planId, res.id)">×</button>
+          <UiIconButton name="X" aria-label="Remove resource" size="sm" @click="store.deleteResource(planId, res.id)" />
         </div>
       </div>
       <p v-else-if="!showAddResource" class="tdetail__resources-empty">No resources yet — add videos, guides, or references for this plan.</p>
@@ -238,15 +241,10 @@ function safeDomain(url: string): string {
     <div class="tdetail__link-habit">
       <UiSectionLabel class="tdetail__section-label">Linked habit</UiSectionLabel>
       <div class="tdetail__link-habit-row">
-        <select v-model="linkedHabitId" class="tdetail__habit-select">
-          <option value="">— none —</option>
-          <option v-for="h in habitsStore.habits" :key="h.id" :value="h.id">{{ h.name }}</option>
-        </select>
-        <button
-          class="tdetail__habit-save"
-          :disabled="linkedHabitId === (plan.linkedHabitId ?? '')"
-          @click="saveHabitLink"
-        >Save</button>
+        <UiSelect v-model="linkedHabitId" :options="habitOptions" />
+        <UiButton size="sm" :disabled="linkedHabitId === (plan.linkedHabitId ?? '')" @click="saveHabitLink">
+          Save
+        </UiButton>
       </div>
       <p v-if="plan.linkedHabitId" class="tdetail__habit-hint">
         ✓ Logging a workout will auto-check this habit
@@ -254,7 +252,7 @@ function safeDomain(url: string): string {
     </div>
 
     <div class="tdetail__danger">
-      <button class="tdetail__danger-btn" @click="askDelete">Delete plan</button>
+      <UiButton variant="danger" @click="askDelete">Delete plan</UiButton>
     </div>
 
     <WorkoutLogForm

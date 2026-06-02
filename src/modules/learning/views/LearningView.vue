@@ -5,7 +5,7 @@ import LearningPlanCard from '../components/LearningPlanCard.vue'
 import SessionLogForm from '../components/SessionLogForm.vue'
 import type { LearningCategory, LearningSession } from '../types'
 import { todayStr } from '../types'
-import { UiIcon, UiSectionLabel, UiFilterChips } from '@/ui'
+import { UiIcon, UiSectionLabel, UiFilterChips, UiButton, UiIconButton, UiInput } from '@/ui'
 import type { FilterChipOption } from '@/ui'
 import { aiComplete } from '@/core/composables/useAI'
 
@@ -18,7 +18,7 @@ const formEmoji = ref('📚')
 const formMinutes = ref(20)
 const formHours = ref(10)
 const formDays = ref<3 | 5 | 7>(5)
-const titleRef = ref<HTMLInputElement>()
+const titleRef = ref<InstanceType<typeof UiInput>>()
 
 function openForm() {
   showForm.value = true
@@ -156,24 +156,24 @@ async function generateWithAI() {
         <h1 class="learning__title">Learning</h1>
         <p class="learning__date">{{ todayLabel }}</p>
       </div>
-      <button class="learning__add-btn" @click="openForm">+ Add Plan</button>
+      <UiButton @click="openForm">+ Add Plan</UiButton>
     </div>
 
     <!-- Create plan form -->
     <div v-if="showForm" class="learning__form" @keydown="onFormKeydown">
       <div class="learning__form-row">
+        <!-- Emoji input — bespoke: 52px, center-aligned, emoji font size -->
         <input
           v-model="formEmoji"
           class="learning__input learning__input--emoji"
           maxlength="2"
           placeholder="📚"
         />
-        <input
-          v-model="formTitle"
+        <UiInput
           ref="titleRef"
-          class="learning__input learning__input--grow"
+          v-model="formTitle"
           placeholder="What do you want to learn?"
-          maxlength="80"
+          :maxlength="80"
         />
       </div>
 
@@ -206,31 +206,29 @@ async function generateWithAI() {
 
       <!-- AI assist -->
       <div v-if="showAiInput" class="learning__ai-row">
-        <input
+        <UiInput
           v-model="aiPrompt"
-          class="learning__input learning__input--grow"
           placeholder="e.g. 'Learn Python in 8 weeks, 30 min/day'"
-          @keydown.enter.prevent="generateWithAI"
+          @enter="generateWithAI"
           @keydown.escape="showAiInput = false"
         />
-        <button
-          class="learning__btn learning__btn--ai"
-          :disabled="aiGenerating || !aiPrompt.trim()"
-          @click="generateWithAI"
-        >{{ aiGenerating ? '…' : 'Generate' }}</button>
-        <button class="learning__btn learning__btn--ghost" @click="showAiInput = false">✕</button>
+        <UiButton :disabled="aiGenerating || !aiPrompt.trim()" @click="generateWithAI">
+          {{ aiGenerating ? '…' : 'Generate' }}
+        </UiButton>
+        <UiIconButton name="X" aria-label="Close AI input" @click="showAiInput = false" />
       </div>
       <p v-if="aiError" class="learning__ai-error">{{ aiError }}</p>
 
       <div class="learning__form-actions">
-        <button class="learning__btn learning__btn--primary" @click="submitForm">Add Plan</button>
-        <button class="learning__btn learning__btn--ghost" @click="cancelForm">Cancel</button>
-        <button
+        <UiButton @click="submitForm">Add Plan</UiButton>
+        <UiButton variant="ghost" @click="cancelForm">Cancel</UiButton>
+        <UiButton
           v-if="!showAiInput"
-          class="learning__btn learning__btn--ai-toggle"
-          type="button"
+          variant="ghost"
+          size="sm"
+          class="learning__ai-toggle"
           @click="showAiInput = true; aiError = null"
-        >✦ Fill with AI</button>
+        >✦ Fill with AI</UiButton>
       </div>
     </div>
 
@@ -247,11 +245,9 @@ async function generateWithAI() {
           <span class="learning__today-emoji">{{ item.plan.coverEmoji }}</span>
           <span class="learning__today-name">{{ item.plan.title }}</span>
           <span class="learning__today-time">{{ item.plan.minutesPerSession }} min</span>
-          <button
-            v-if="!item.logged"
-            class="learning__today-btn"
-            @click="openLog(item.plan.id)"
-          >Log</button>
+          <UiButton v-if="!item.logged" variant="outline" size="sm" @click="openLog(item.plan.id)">
+            Log
+          </UiButton>
           <span v-else class="learning__today-check">✓</span>
         </div>
       </div>
@@ -270,10 +266,10 @@ async function generateWithAI() {
 
     <!-- Completed plans -->
     <div v-if="store.completedPlans.length > 0" class="learning__completed">
-      <button class="learning__completed-toggle" @click="showCompleted = !showCompleted">
+      <UiButton variant="ghost" size="sm" @click="showCompleted = !showCompleted">
         Completed ({{ store.completedPlans.length }})
         <span class="learning__completed-arrow">{{ showCompleted ? '▲' : '▼' }}</span>
-      </button>
+      </UiButton>
       <div v-if="showCompleted" class="learning__completed-list">
         <div
           v-for="plan in store.completedPlans"
@@ -294,10 +290,10 @@ async function generateWithAI() {
       <p class="learning__empty-sub">
         Pick something you've always wanted to master. Build the plan. Show up every day — the hours compound.
       </p>
-      <button class="learning__btn learning__btn--primary" @click="openForm">
+      <UiButton @click="openForm">
         <UiIcon name="Plus" :size="14" />
         Start a learning plan
-      </button>
+      </UiButton>
     </div>
 
     <!-- Session log modal -->
@@ -340,22 +336,6 @@ async function generateWithAI() {
   color: var(--color-text-muted);
   margin: 4px 0 0;
 }
-
-.learning__add-btn {
-  padding: 8px 18px;
-  background: var(--color-accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background var(--t-fast);
-  font-family: inherit;
-}
-
-.learning__add-btn:hover { background: var(--color-accent-hover); }
 
 /* ── Create form ─────────────────────────────────────────────────── */
 .learning__form {
@@ -412,84 +392,39 @@ async function generateWithAI() {
   margin: 0;
 }
 
-.learning__input {
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 9px 12px;
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  font-family: inherit;
-  transition: border-color var(--t-fast);
-}
-
-.learning__input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
+/* Emoji input — bespoke: 52px, center-aligned, emoji-size font */
 .learning__input--emoji {
   width: 52px;
   text-align: center;
   font-size: 20px;
   flex-shrink: 0;
-  padding: 9px 6px;
+  padding: 6px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color var(--t-fast);
 }
+.learning__input--emoji:focus { border-color: var(--color-accent); }
 
-.learning__input--grow { flex: 1; min-width: 0; }
-.learning__input--num { width: 76px; }
-
-/* ── Buttons ─────────────────────────────────────────────────────── */
-.learning__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
-  border-radius: var(--radius);
+/* Number inputs — bespoke: type=number with specific sizing */
+.learning__input--num {
+  width: 76px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
   font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--t-fast);
-  border: 1px solid transparent;
+  color: var(--color-text);
   font-family: inherit;
+  outline: none;
+  transition: border-color var(--t-fast);
 }
+.learning__input--num:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent); }
 
-.learning__btn--primary {
-  background: var(--color-accent);
-  color: #fff;
-  border-color: var(--color-accent);
-}
-
-.learning__btn--primary:hover { background: var(--color-accent-hover); }
-
-.learning__btn--ghost {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border-color: var(--color-border);
-}
-
-.learning__btn--ghost:hover { color: var(--color-text); }
-
-.learning__btn--ai {
-  background: var(--color-accent);
-  color: #fff;
-  border-color: var(--color-accent);
-  padding: 8px 14px;
-}
-
-.learning__btn--ai:hover:not(:disabled) { background: var(--color-accent-hover); }
-.learning__btn--ai:disabled { opacity: 0.55; cursor: not-allowed; }
-
-.learning__btn--ai-toggle {
-  background: transparent;
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  margin-left: auto;
-  font-size: 12px;
-  padding: 6px 12px;
-}
-
-.learning__btn--ai-toggle:hover { background: var(--color-accent-muted); }
+/* AI toggle button — needs margin-left: auto to push to right of actions row */
+.learning__ai-toggle { margin-left: auto; }
 
 /* ── Section label ───────────────────────────────────────────────── */
 .learning__section-label { margin-bottom: 10px; }
@@ -535,17 +470,7 @@ async function generateWithAI() {
   flex-shrink: 0;
 }
 
-.learning__today-btn {
-  padding: 4px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-accent);
-  background: transparent;
-  color: var(--color-accent);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--t-fast);
-  font-family: inherit;
+.learning__today-btn { /* shrink container used by UiButton */
   flex-shrink: 0;
 }
 
@@ -569,22 +494,7 @@ async function generateWithAI() {
 }
 
 /* ── Completed section ───────────────────────────────────────────── */
-.learning__completed-toggle {
-  background: none;
-  border: none;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: color var(--t-fast);
-  font-family: inherit;
-}
-
-.learning__completed-toggle:hover { color: var(--color-text-secondary); }
-.learning__completed-arrow { font-size: 10px; }
+.learning__completed-arrow { font-size: 10px; margin-left: 2px; }
 
 .learning__completed-list {
   margin-top: 10px;

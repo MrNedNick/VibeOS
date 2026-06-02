@@ -6,7 +6,8 @@ import ProgressRing from '../components/ProgressRing.vue'
 import SessionLogForm from '../components/SessionLogForm.vue'
 import type { LearningSession, ResourceType } from '../types'
 import { estimateTargetDate, todayStr, RESOURCE_META, RESOURCE_TYPES } from '../types'
-import { UiIcon, UiSectionLabel, UiProgressBar, UiStat } from '@/ui'
+import { UiIcon, UiSectionLabel, UiProgressBar, UiStat, UiButton, UiIconButton, UiInput, UiSelect } from '@/ui'
+import type { SelectOption } from '@/ui'
 import { useHabitsStore } from '@/modules/habits/stores/habits.store'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { useAiInsight } from '@/core/composables/useAiInsight'
@@ -96,6 +97,11 @@ function saveHabitLink() {
   store.updatePlanLink(planId.value, linkedHabitId.value || undefined)
 }
 
+const habitOptions = computed<SelectOption[]>(() => [
+  { value: '', label: '— none —' },
+  ...habitsStore.habits.map(h => ({ value: h.id, label: h.name })),
+])
+
 // ── Resources ────────────────────────────────────────────────────────
 const resources = computed(() => store.getPlanResources(planId.value))
 
@@ -128,9 +134,9 @@ function safeDomain(url: string): string {
 
     <!-- Navigation -->
     <div class="detail__nav">
-      <button class="detail__back" @click="router.push('/learning')">
+      <UiButton variant="ghost" size="sm" @click="router.push('/learning')">
         <UiIcon name="ArrowLeft" :size="14" :stroke-width="2" /> Learning
-      </button>
+      </UiButton>
     </div>
 
     <!-- Plan header -->
@@ -175,20 +181,14 @@ function safeDomain(url: string): string {
           {{ plan.minutesPerSession }} min planned
         </span>
       </div>
-      <button
-        v-if="!loggedToday"
-        class="detail__log-btn"
-        @click="showLog = true"
-      >
-        Log Session
-      </button>
+      <UiButton v-if="!loggedToday" @click="showLog = true">Log Session</UiButton>
     </div>
 
     <!-- AI analysis card -->
     <div v-if="aiAnalyzing || aiAnalysis" class="detail__ai-card">
       <div class="detail__ai-header">
         <span class="detail__ai-label">✦ AI Insight</span>
-        <button v-if="aiAnalysis" class="detail__ai-dismiss" @click="dismissAiAnalysis">×</button>
+        <UiIconButton v-if="aiAnalysis" name="X" aria-label="Dismiss AI insight" size="sm" @click="dismissAiAnalysis" />
       </div>
       <div v-if="aiAnalyzing" class="detail__ai-loading">
         <UiIcon name="Loader" :size="14" :stroke-width="2" class="detail__ai-spinner" />
@@ -232,30 +232,18 @@ function safeDomain(url: string): string {
     <div class="detail__resources">
       <div class="detail__resources-header">
         <UiSectionLabel class="detail__section-label">Resources</UiSectionLabel>
-        <button
-          class="detail__resources-add-btn"
-          @click="showAddResource = !showAddResource"
-        >
+        <UiButton variant="ghost" size="sm" @click="showAddResource = !showAddResource">
           <UiIcon :name="showAddResource ? 'X' : 'Plus'" :size="13" />
           {{ showAddResource ? 'Cancel' : 'Add resource' }}
-        </button>
+        </UiButton>
       </div>
 
       <!-- Add form -->
       <div v-if="showAddResource" class="detail__res-form">
-        <input
-          v-model="newResUrl"
-          class="detail__res-input"
-          placeholder="https://..."
-          @keydown.enter="submitResource"
-        />
-        <input
-          v-model="newResTitle"
-          class="detail__res-input"
-          placeholder="Title (optional)"
-          @keydown.enter="submitResource"
-        />
+        <UiInput v-model="newResUrl" placeholder="https://..." @enter="submitResource" />
+        <UiInput v-model="newResTitle" placeholder="Title (optional)" @enter="submitResource" />
         <div class="detail__res-form-row">
+          <!-- Resource type — bespoke: emoji icon selector, not a standard button -->
           <div class="detail__res-types">
             <button
               v-for="t in RESOURCE_TYPES"
@@ -266,11 +254,7 @@ function safeDomain(url: string): string {
               @click="newResType = t"
             >{{ RESOURCE_META[t].icon }}</button>
           </div>
-          <button
-            class="detail__res-submit"
-            :disabled="!newResUrl.trim()"
-            @click="submitResource"
-          >Add</button>
+          <UiButton size="sm" :disabled="!newResUrl.trim()" @click="submitResource">Add</UiButton>
         </div>
       </div>
 
@@ -301,11 +285,7 @@ function safeDomain(url: string): string {
           >
             <UiIcon :name="res.done ? 'CheckCircle2' : 'Circle'" :size="15" :stroke-width="1.75" />
           </button>
-          <button
-            class="detail__res-del"
-            title="Remove"
-            @click="store.deleteResource(planId, res.id)"
-          >×</button>
+          <UiIconButton name="X" aria-label="Remove resource" size="sm" @click="store.deleteResource(planId, res.id)" />
         </div>
       </div>
 
@@ -318,15 +298,10 @@ function safeDomain(url: string): string {
     <div class="detail__link-habit">
       <UiSectionLabel class="detail__section-label">Linked habit</UiSectionLabel>
       <div class="detail__link-habit-row">
-        <select v-model="linkedHabitId" class="detail__habit-select">
-          <option value="">— none —</option>
-          <option v-for="h in habitsStore.habits" :key="h.id" :value="h.id">{{ h.name }}</option>
-        </select>
-        <button
-          class="detail__habit-save"
-          :disabled="linkedHabitId === (plan.linkedHabitId ?? '')"
-          @click="saveHabitLink"
-        >Save</button>
+        <UiSelect v-model="linkedHabitId" :options="habitOptions" />
+        <UiButton size="sm" :disabled="linkedHabitId === (plan.linkedHabitId ?? '')" @click="saveHabitLink">
+          Save
+        </UiButton>
       </div>
       <p v-if="plan.linkedHabitId" class="detail__habit-hint">
         ✓ Logging a session will auto-check this habit
@@ -335,7 +310,7 @@ function safeDomain(url: string): string {
 
     <!-- Danger zone -->
     <div class="detail__danger">
-      <button class="detail__danger-btn" @click="askDelete">Delete plan</button>
+      <UiButton variant="danger" @click="askDelete">Delete plan</UiButton>
     </div>
 
     <!-- Session log modal -->

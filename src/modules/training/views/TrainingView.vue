@@ -5,8 +5,8 @@ import TrainingPlanCard from '../components/TrainingPlanCard.vue'
 import WorkoutLogForm from '../components/WorkoutLogForm.vue'
 import type { SportType, WorkoutLog } from '../types'
 import { SPORT_EMOJI, FEELING_EMOJI, todayStr } from '../types'
-import { UiIcon, UiSectionLabel, UiFilterChips } from '@/ui'
-import type { FilterChipOption } from '@/ui'
+import { UiIcon, UiSectionLabel, UiFilterChips, UiButton, UiIconButton, UiInput, UiSelect } from '@/ui'
+import type { FilterChipOption, SelectOption } from '@/ui'
 import { aiComplete } from '@/core/composables/useAI'
 
 const store = useTrainingStore()
@@ -17,17 +17,17 @@ const formTitle = ref('')
 const formEmoji = ref('💪')
 const formSport = ref<SportType>('strength')
 const formSessions = ref(3)
-const titleRef = ref<HTMLInputElement>()
+const titleRef = ref<InstanceType<typeof UiInput>>()
 
-const SPORT_OPTIONS: { val: SportType; label: string }[] = [
-  { val: 'strength', label: '💪 Strength' },
-  { val: 'running', label: '🏃 Running' },
-  { val: 'cycling', label: '🚴 Cycling' },
-  { val: 'swimming', label: '🏊 Swimming' },
-  { val: 'yoga', label: '🧘 Yoga' },
-  { val: 'hiit', label: '⚡ HIIT' },
-  { val: 'walking', label: '🚶 Walking' },
-  { val: 'other', label: '🏋️ Other' },
+const SPORT_OPTIONS: SelectOption[] = [
+  { value: 'strength', label: '💪 Strength' },
+  { value: 'running',  label: '🏃 Running' },
+  { value: 'cycling',  label: '🚴 Cycling' },
+  { value: 'swimming', label: '🏊 Swimming' },
+  { value: 'yoga',     label: '🧘 Yoga' },
+  { value: 'hiit',     label: '⚡ HIIT' },
+  { value: 'walking',  label: '🚶 Walking' },
+  { value: 'other',    label: '🏋️ Other' },
 ]
 
 const FREQ_OPTIONS: FilterChipOption[] = [
@@ -40,6 +40,11 @@ const FREQ_OPTIONS: FilterChipOption[] = [
 const formSessionsStr = computed({
   get: () => String(formSessions.value),
   set: (v: string) => { formSessions.value = Number(v) },
+})
+
+const formSportStr = computed({
+  get: () => formSport.value as string,
+  set: (v: string | number) => { formSport.value = String(v) as SportType },
 })
 
 function openForm() {
@@ -154,35 +159,31 @@ const todayLabel = computed(() =>
         <h1 class="training__title">Training</h1>
         <p class="training__date">{{ todayLabel }}</p>
       </div>
-      <button class="training__add-btn" @click="openForm">+ Add Plan</button>
+      <UiButton @click="openForm">+ Add Plan</UiButton>
     </div>
 
     <!-- Create plan form -->
     <div v-if="showForm" class="training__form" @keydown="onFormKeydown">
       <div class="training__form-row">
+        <!-- Emoji input — bespoke: 52px, center-aligned, emoji font size -->
         <input
           v-model="formEmoji"
-          class="training__input training__input--emoji"
+          class="training__input--emoji"
           maxlength="2"
           placeholder="💪"
         />
-        <input
-          v-model="formTitle"
+        <UiInput
           ref="titleRef"
-          class="training__input training__input--grow"
+          v-model="formTitle"
           placeholder="Plan name (e.g. Morning Strength)"
-          maxlength="80"
+          :maxlength="80"
         />
       </div>
 
       <div class="training__form-meta">
         <div class="training__form-field">
           <span class="training__form-label">Sport</span>
-          <select v-model="formSport" class="training__input training__input--select">
-            <option v-for="opt in SPORT_OPTIONS" :key="opt.val" :value="opt.val">
-              {{ opt.label }}
-            </option>
-          </select>
+          <UiSelect v-model="formSportStr" :options="SPORT_OPTIONS" />
         </div>
 
         <div class="training__form-field">
@@ -193,31 +194,29 @@ const todayLabel = computed(() =>
 
       <!-- AI assist -->
       <div v-if="showAiInput" class="training__ai-row">
-        <input
+        <UiInput
           v-model="aiPrompt"
-          class="training__input training__input--grow"
           placeholder="e.g. 'Run a 5K in 12 weeks, 3 days/week'"
-          @keydown.enter.prevent="generateWithAI"
+          @enter="generateWithAI"
           @keydown.escape="showAiInput = false"
         />
-        <button
-          class="training__btn training__btn--ai"
-          :disabled="aiGenerating || !aiPrompt.trim()"
-          @click="generateWithAI"
-        >{{ aiGenerating ? '…' : 'Generate' }}</button>
-        <button class="training__btn training__btn--ghost" @click="showAiInput = false">✕</button>
+        <UiButton :disabled="aiGenerating || !aiPrompt.trim()" @click="generateWithAI">
+          {{ aiGenerating ? '…' : 'Generate' }}
+        </UiButton>
+        <UiIconButton name="X" aria-label="Close AI input" @click="showAiInput = false" />
       </div>
       <p v-if="aiError" class="training__ai-error">{{ aiError }}</p>
 
       <div class="training__form-actions">
-        <button class="training__btn training__btn--primary" @click="submitForm">Add Plan</button>
-        <button class="training__btn training__btn--ghost" @click="cancelForm">Cancel</button>
-        <button
+        <UiButton @click="submitForm">Add Plan</UiButton>
+        <UiButton variant="ghost" @click="cancelForm">Cancel</UiButton>
+        <UiButton
           v-if="!showAiInput"
-          class="training__btn training__btn--ai-toggle"
-          type="button"
+          variant="ghost"
+          size="sm"
+          class="training__ai-toggle"
           @click="showAiInput = true; aiError = null"
-        >✦ Fill with AI</button>
+        >✦ Fill with AI</UiButton>
       </div>
     </div>
 
@@ -234,11 +233,9 @@ const todayLabel = computed(() =>
           <span class="training__today-emoji">{{ item.plan.coverEmoji }}</span>
           <span class="training__today-name">{{ item.plan.title }}</span>
           <span class="training__today-freq">{{ item.plan.sessionsPerWeek }}×/wk</span>
-          <button
-            v-if="!item.logged"
-            class="training__today-btn"
-            @click="openLog(item.plan.id)"
-          >Log</button>
+          <UiButton v-if="!item.logged" variant="outline" size="sm" @click="openLog(item.plan.id)">
+            Log
+          </UiButton>
           <span v-else class="training__today-check">✓</span>
         </div>
       </div>
@@ -286,10 +283,10 @@ const todayLabel = computed(() =>
       <p class="training__empty-sub">
         Every athlete started with a blank plan. Set up your routine, log every session, and watch the consistency compound.
       </p>
-      <button class="training__btn training__btn--primary" @click="openForm">
+      <UiButton @click="openForm">
         <UiIcon name="Plus" :size="14" />
         Create training plan
-      </button>
+      </UiButton>
     </div>
 
     <!-- Log modal -->
@@ -332,22 +329,6 @@ const todayLabel = computed(() =>
   margin: 4px 0 0;
 }
 
-.training__add-btn {
-  padding: 8px 18px;
-  background: var(--color-accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background var(--t-fast);
-  font-family: inherit;
-}
-
-.training__add-btn:hover { background: var(--color-accent-hover); }
-
 /* Form */
 .training__form {
   background: var(--color-surface);
@@ -389,47 +370,24 @@ const todayLabel = computed(() =>
 .training__ai-row { display: flex; gap: 8px; align-items: center; }
 .training__ai-error { font-size: var(--text-xs); color: var(--color-danger); margin: 0; }
 
-.training__input {
-  background: var(--color-bg);
+/* Emoji input — bespoke: 52px, center-aligned, emoji font size */
+.training__input--emoji {
+  width: 52px;
+  text-align: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  padding: 6px;
+  background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 9px 12px;
-  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
   color: var(--color-text);
-  font-family: inherit;
+  outline: none;
   transition: border-color var(--t-fast);
 }
+.training__input--emoji:focus { border-color: var(--color-accent); }
 
-.training__input:focus { outline: none; border-color: var(--color-accent); }
-.training__input--emoji { width: 52px; text-align: center; font-size: 20px; padding: 9px 6px; flex-shrink: 0; }
-.training__input--grow { flex: 1; min-width: 0; }
-.training__input--select { min-width: 160px; appearance: auto; }
-
-.training__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
-  border-radius: var(--radius);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all var(--t-fast);
-  font-family: inherit;
-}
-
-.training__btn--primary { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
-.training__btn--primary:hover { background: var(--color-accent-hover); }
-.training__btn--ghost { background: transparent; color: var(--color-text-secondary); border-color: var(--color-border); }
-.training__btn--ghost:hover { color: var(--color-text); }
-
-.training__btn--ai { background: var(--color-accent); color: #fff; border-color: var(--color-accent); padding: 8px 14px; }
-.training__btn--ai:hover:not(:disabled) { background: var(--color-accent-hover); }
-.training__btn--ai:disabled { opacity: 0.55; cursor: not-allowed; }
-
-.training__btn--ai-toggle { background: transparent; border-color: var(--color-accent); color: var(--color-accent); margin-left: auto; font-size: 12px; padding: 6px 12px; }
-.training__btn--ai-toggle:hover { background: var(--color-accent-muted); }
+/* AI toggle — push to right of actions row */
+.training__ai-toggle { margin-left: auto; }
 
 /* Section label */
 .training__section-label { margin-bottom: 10px; }
@@ -453,21 +411,6 @@ const todayLabel = computed(() =>
 .training__today-name { flex: 1; font-size: var(--text-sm); font-weight: 500; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .training__today-freq { font-size: var(--text-xs); color: var(--color-text-muted); flex-shrink: 0; }
 
-.training__today-btn {
-  padding: 4px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-accent);
-  background: transparent;
-  color: var(--color-accent);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--t-fast);
-  font-family: inherit;
-  flex-shrink: 0;
-}
-
-.training__today-btn:hover { background: var(--color-accent); color: #fff; }
 .training__today-check { font-size: var(--text-sm); color: var(--color-success); font-weight: 600; flex-shrink: 0; }
 
 /* Grid */

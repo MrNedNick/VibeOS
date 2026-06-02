@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { TrainingPlan } from '../types'
 import { useTrainingStore } from '../stores/training.store'
+import { UiButton } from '@/ui'
 
 const props = defineProps<{
   plan: TrainingPlan
@@ -43,6 +44,7 @@ const sessionCount = computed(() => store.getPlanLogs(props.plan.id).length)
     </div>
 
     <div class="tplan-card__footer">
+      <!-- Done state — bespoke: success-color outline not in UiButton variants -->
       <button
         v-if="loggedToday"
         class="tplan-card__action tplan-card__action--done"
@@ -50,13 +52,7 @@ const sessionCount = computed(() => store.getPlanLogs(props.plan.id).length)
       >
         ✓ Done today
       </button>
-      <button
-        v-else
-        class="tplan-card__action tplan-card__action--log"
-        @click.stop="emit('log', plan.id)"
-      >
-        Log Workout
-      </button>
+      <UiButton v-else size="sm" @click.stop="emit('log', plan.id)">Log Workout</UiButton>
     </div>
   </div>
 </template>
@@ -142,26 +138,18 @@ const sessionCount = computed(() => store.getPlanLogs(props.plan.id).length)
 
 .tplan-card__footer { display: flex; justify-content: flex-end; }
 
-.tplan-card__action {
+/* Done state — bespoke: success-color outline not in UiButton variants */
+.tplan-card__action--done {
   padding: 7px 16px;
   border-radius: var(--radius);
   font-size: var(--text-sm);
   font-weight: 500;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all var(--t-fast);
-  font-family: inherit;
-}
-
-.tplan-card__action--log { background: var(--color-accent); color: #fff; }
-.tplan-card__action--log:hover { background: var(--color-accent-hover); }
-
-.tplan-card__action--done {
+  cursor: default;
+  border: 1px solid var(--color-success);
   background: transparent;
   color: var(--color-success);
-  border-color: var(--color-success);
-  cursor: default;
   opacity: 0.75;
+  font-family: inherit;
 }
 
 @media (max-width: 767px) {
