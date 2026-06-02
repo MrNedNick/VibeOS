@@ -30,6 +30,34 @@ export default [
     },
   },
 
+  // ── S17 T14 — enforce @/ui in module views ────────────────────────────
+  // Raw <button>/<input>/<select>/<textarea> in src/modules/** should use
+  // the @/ui equivalents. Games and ui-kit showcase are explicitly excluded.
+  // Level: warn (not error) — remaining bespoke/structural elements from S17
+  // migrations are intentional exceptions; this prevents NEW raw elements.
+  {
+    files:   ['src/modules/**/*.vue'],
+    ignores: ['src/modules/games/**/*.vue', 'src/modules/ui-kit/**/*.vue'],
+    languageOptions: {
+      parser:        vueParser,
+      parserOptions: {
+        parser:      tsParser,
+        ecmaVersion: 'latest',
+        sourceType:  'module',
+        extraFileExtensions: ['.vue'],
+      },
+    },
+    plugins: { vue: vuePlugin },
+    rules: {
+      'vue/no-restricted-html-elements': ['warn',
+        { element: 'button',   message: 'Use <UiButton> or <UiIconButton> from @/ui' },
+        { element: 'input',    message: 'Use <UiInput> or <UiField> from @/ui' },
+        { element: 'select',   message: 'Use <UiSelect> from @/ui' },
+        { element: 'textarea', message: 'Use <UiTextarea> from @/ui' },
+      ],
+    },
+  },
+
   // ── Vue SFC files ─────────────────────────────────────────────────────
   {
     files: ['src/**/*.vue'],
