@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · **v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files.**
+> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · **v11 2026-06-02 S17 T15 sprint close (v1.3.0), S15 T4 god-component decomposition, S18 Phase 0 interaction tracking.**
 > ⚠️ **Keep this file current.** Mark sprint items done the moment they ship. Add Phase 4+ specs before the session that implements them. A roadmap that lags the code is useless.
 > See `docs/strategy.md` for product context · `docs/privacy-security.md` for auth plan.
 
@@ -26,7 +26,7 @@
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔄 active — T1/T2/T3/T5/T6 ✅; T4 hex cleanup: CalendarView ✅, WelcomeView folds into S11 |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | 🔄 active — T1 useSoftDeletable ✅ T2 useAiInsight ✅ T3 CSS migration ✅ T6 jsdom ✅ T7 docs ✅ T8 ESLint ✅; remaining: T4 god-components, T5 Learning/Training shared, T9 sprint close |
 | **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1 useSoftDeletable ✅ T2 training/learning stores ✅ T3 ui/commandPalette ✅ T4 UiButton/UiCard/UiFilterChips ✅; remaining: T5 god-components, T6 E2E, T7 QA, T8 coverage gate. **274 tests in 21 files** |
-| **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint enforcement (v1.2.10). T15 sprint-close docs remaining. |
+| **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
 | **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | 🔜 planned — see spec below |
 
 ---
@@ -968,11 +968,23 @@ Each task = one cluster: replace raw elements with `@/ui`, **delete the now-dead
 
 ### Phase 2 — Lock it in
 
-**T14 — Enforcement lint rule** — add `vue/no-restricted-html-elements` (eslint-plugin-vue) banning raw `<button> <input> <select> <textarea>` in `src/modules/**` (allowed in `src/ui/**` and the `/docs/ui-kit` showcase). Document `@/ui is mandatory` as a hard rule in `conventions.md`. Wire into the CI ESLint gate (synergy with S15 T8) so regressions can't merge.
+**T14 — Enforcement lint rule** ✅ (v1.2.10) — `vue/no-restricted-html-elements` added (eslint-plugin-vue), warns on raw `<button>/<input>/<select>/<textarea>` in `src/modules/**`, allowed in `src/ui/**` and games. `@/ui is mandatory` documented in `conventions.md`. Wired into CI ESLint gate.
 
-**T15 — Sprint close** — final audit re-run (the table above should drop to ~0 raw in scope), update `CLAUDE.md` + `conventions.md` `@/ui` reference with the new primitives, record final counts here, bump minor version.
+**T15 — Sprint close** ✅ (v1.3.0) — Final audit re-run (v1.3.0, 2026-06-02):
 
-**Payoff:** one edit to `src/ui/components/UiButton.vue` (or any token) restyles the entire app — the design-system promise actually holds.
+> **Post-migration audit (v1.3.0 — excludes games + ui-kit showcase):**
+> | Element | Baseline (v1.2.0) | Final (v1.3.0) | Remaining |
+> |---------|------------------|----------------|-----------|
+> | `<button>` | **277** | **99** | God-components (32) + bespoke structural (67) |
+> | `<input>` | **54** | **25** | Bespoke structural (inline editing, auth) |
+> | `<select>` | **28** | **5** | Bespoke in god-components |
+> | `<textarea>` | **9** | **5** | Chat/editor bespoke |
+>
+> **Remaining raw buttons breakdown:** god-components to be decomposed in S15 T4 (32); calendar day cells, weather/digest widgets, habit inline toggles, pak-cards = legitimate structural bespoke. ESLint warns on all of them so they stay visible.
+>
+> **New primitives shipped:** UiModal, UiIconButton, UiSelect, UiTextarea (v1.2.1). All in `@/ui`, showcased at `/docs/ui-kit/<key>`, 31 tests added.
+
+**Payoff:** one edit to `src/ui/components/UiButton.vue` (or any token) restyles the entire app — the design-system promise holds. ESLint warns on any regression.
 
 ---
 
