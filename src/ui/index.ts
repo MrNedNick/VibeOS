@@ -24,3 +24,6 @@ export { default as UiIconButton } from './components/UiIconButton.vue'
 export { default as UiSelect } from './components/UiSelect.vue'
 export type { SelectOption } from './components/UiSelect.vue'
 export { default as UiTextarea } from './components/UiTextarea.vue'
+
+// ── S18 — Product Analytics & Feedback ──────────────────────────────────
+export { default as UiFeedbackModal } from './components/UiFeedbackModal.vue'
