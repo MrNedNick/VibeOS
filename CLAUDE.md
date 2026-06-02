@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v1.3.0 — 2026-06-02**
+**Version: v1.4.0 — 2026-06-02**
 
 > **UI Kit now lives under Docs (v1.2.0):** the live component catalogue is no longer a hidden dev-only `/ui-kit` page. It's integrated into the Docs module as three sidebar sections — **Design Tokens**, **UI Components**, **UI Patterns** — at `/docs/ui-kit/<key>` (e.g. `/docs/ui-kit/button`). Visible in production. Showcase section components live in `src/modules/ui-kit/views/sections/` and are wired in via `src/modules/docs/data/docs-registry.ts` (`DocPage.component`). `DocsView` renders the live component when a page has `component`, else markdown. This is the single source of truth for every reusable `@/ui` component and all its states.
 
@@ -26,12 +26,12 @@
 | S12 — AI Depth | ✅ complete — Analytics report ✅ (v1.0.11), Habits insights + Notes summarise + Finance analysis ✅ (v1.1.0) |
 | S13 — Design Pass | 🔜 planned — module quality pass (requires user review session) |
 | S14 — Quick Wins | 🔄 active — T1 ✅ T2 ✅ T3 ✅ T5 ✅ T6 ✅; T4 hex cleanup: CalendarView ✅, WelcomeView folds into S11 |
-| S15 — Refactor & De-dup | 🔄 active — T1 useSoftDeletable ✅ T2 useAiInsight ✅ T3 CSS migration ✅ T6 jsdom ✅ T7 docs ✅ T8 ESLint ✅; remaining: T4 god-components, T5 Learning/Training shared, T9 sprint close |
+| S15 — Refactor & De-dup | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 Learning/Training deferred (diverged enough post-S17). |
 | S16 — Test Coverage | 🔄 active — T1 useSoftDeletable ✅ T2 training+learning stores ✅ T3 ui+commandPalette stores ✅ T4 UiButton+UiCard+UiFilterChips ✅; remaining: T5 god-component tests, T6 E2E, T7 QA pass, T8 coverage gate. **274 tests in 21 files** |
 | S17 — Component Unification | ✅ **complete** — Phase 0 (v1.2.1): UiModal/UiIconButton/UiSelect/UiTextarea; Phase 1 T6–T13 (v1.2.2–v1.2.6): all modules migrated; Phase 2 T14 (v1.2.10): ESLint enforcement; T15 sprint close (v1.3.0). |
 | S18 — Product Analytics & Feedback | 🔜 planned — behavioral tracking, NPS modal, Usage tab in Analytics, Privacy settings. See docs/roadmap.md |
 
-**Active next (2026-06-02): S11 (welcome + positioning) is the main user-facing sprint. S17 ✅ fully complete (v1.3.0). S15 T4 (god-components) + S16 T5–T8 (E2E, QA, coverage gate) are open fill-in work. S18 Phase 0 (interaction tracking) underway. S13 (design pass) requires a live user review session.**
+**Active next (2026-06-02): S11 (welcome + positioning) is the main user-facing sprint. S15 ✅ complete (v1.4.0). S17 ✅ complete (v1.3.0). S18 Phase 0 (interaction tracking) in progress. S16 T5–T8 (component tests, E2E, QA, coverage gate) still open. S13 (design pass) requires live user review.**
 
 > **AI provider note (v1.0.12):** Pollinations left only `openai-fast` (GPT-OSS 20B) on the anonymous tier. Default model is pinned to `openai-fast` in `src/core/composables/provider.ts` and Studio's free-model list trimmed to it.
 

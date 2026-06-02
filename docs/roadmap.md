@@ -24,7 +24,7 @@
 | **S12 — AI Depth** | AI in every module; start with Analytics monthly report (shows connected data) | ✅ complete — Analytics ✅ (v1.0.11), Habits/Notes/Finance ✅ (v1.1.0) |
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔄 active — T1/T2/T3/T5/T6 ✅; T4 hex cleanup: CalendarView ✅, WelcomeView folds into S11 |
-| **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | 🔄 active — T1 useSoftDeletable ✅ T2 useAiInsight ✅ T3 CSS migration ✅ T6 jsdom ✅ T7 docs ✅ T8 ESLint ✅; remaining: T4 god-components, T5 Learning/Training shared, T9 sprint close |
+| **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 (Learning/Training unification) deferred. |
 | **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1 useSoftDeletable ✅ T2 training/learning stores ✅ T3 ui/commandPalette ✅ T4 UiButton/UiCard/UiFilterChips ✅; remaining: T5 god-components, T6 E2E, T7 QA, T8 coverage gate. **274 tests in 21 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
 | **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | 🔜 planned — see spec below |
@@ -789,20 +789,17 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T4 — Decompose the 5 god-components 🪓
+### T4 — Decompose the 5 god-components 🪓 ✅ (v1.3.1–v1.3.5)
 
-**Problem:** five view files exceed 1,000 LOC and mix data orchestration, template, and scoped styles: `BoardView.vue` (1,345), `FinanceView.vue` (1,341), `StudioView.vue` (1,285), `HabitCard.vue` (1,116), `AnalyticsView.vue` (1,091). They're hard to test (S16) and risky to change.
+| Component | Before | After | Extracted |
+|-----------|--------|-------|-----------|
+| FinanceView | 1,425 LOC | 264 | FinanceOverview, FinanceTransactions, FinanceBudgets; month navigation + form state → store |
+| BoardView | 1,345 LOC | 424 | BoardCard, BoardColumn, useBoardDrag composable |
+| AnalyticsView | 1,091 LOC | 272 | AnalyticsAiReport, AnalyticsHabits, AnalyticsBarChart (reusable ×3), AnalyticsGoals |
+| StudioView | 1,269 LOC | 141 | StudioHistorySidebar, StudioModelPicker, StudioConversation |
+| HabitCard | 1,116 LOC | 687 | HabitCardCalendar, HabitCardLinks |
 
-**Fix (one component per commit, in this order — biggest pain first):**
-1. **FinanceView** → extract `FinanceSummary`, `TransactionList`, `BudgetList` child components + move transaction/budget logic into the existing `finance.store.ts`.
-2. **BoardView** → extract `BoardColumn`, `BoardCard`; keep drag logic in one composable.
-3. **AnalyticsView** → extract per-section panels; the AI report block becomes the T2 `useAiInsight` consumer.
-4. **StudioView** → split conversation pane / model picker / history sidebar.
-5. **HabitCard** → only split if T3 didn't already shrink it enough; the refactor-guide warns it's fragile — patterns only, no restructure of streak logic.
-
-**Do NOT** change props/emits or behavior. This is mechanical extraction, not redesign.
-
-**Verify:** type-check + 68 tests green after each; manual smoke of each screen in preview.
+All 5: behavior-preserving, type-check clean, 274 tests green after each commit.
 
 ---
 
@@ -842,9 +839,18 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T9 — Sprint close: metrics + commit 📊
+### T9 — Sprint close: metrics + commit 📊 ✅ (v1.4.0)
 
-Re-measure the baseline (LOC of the 5 god-components, store count, duplication) and record before/after in this section. Bump minor version (`1.1.0`) since the internal architecture materially changed. Update `CLAUDE.md` state table.
+**Before/after (v1.0.12 → v1.4.0):**
+| Metric | Before | After |
+|--------|--------|-------|
+| God-components (>1000 LOC) | 5 (6246 total LOC) | 0 (1788 total LOC) |
+| Test count | 68 tests / 6 files | 274 tests / 21 files |
+| Pinia stores | 15 | 16 (finance.store expanded with UI state) |
+| Shared composables | 3 | 5 (`useSoftDeletable`, `useAiInsight` added) |
+| ESLint enforcement | none | `vue/no-restricted-html-elements` (S17 T14) |
+
+T5 (Learning/Training shared structure) deferred — S17 migration made them diverge enough that forced unification adds risk without measurable benefit. T9 closes S15.
 
 ---
 
