@@ -133,6 +133,57 @@ These rules apply to all new and touched components:
 - **Surface levels.** Cards default to `surface-base` (no shadow), raised/interactive cards use `surface="raised"` or add `box-shadow: var(--shadow-1)` explicitly.
 - **`UiCard` usage:** `surface="raised"` for goal/plan/habit cards (shadow-1 base). `clickable` implies `hoverable` → shadow-2 on hover.
 
+## Interaction tracking (S18)
+
+VibeOS tracks behavioral usage data with semantic events — **not raw DOM clicks**. Everything stays in `localStorage` (via `useInteractionBus`). Two tools are available:
+
+### `useTrack()` composable
+
+Use inside `<script setup>` when the event fires from a function call:
+
+```ts
+import { useTrack } from '@/core/composables/useTrack'
+const { track } = useTrack()
+
+// Later, in a handler:
+function switchTab(tab: string) {
+  activeTab.value = tab
+  track('tab:switched', { tab })   // emits feature:used for the current module
+}
+```
+
+### `v-track` directive
+
+Use directly in template when no wrapper function is needed:
+
+```vue
+<UiButton v-track="'expense:exported'" @click="exportCsv">Export CSV</UiButton>
+```
+
+Or with context:
+```vue
+<button v-track="{ feature: 'sort:applied', context: { field: sortField } }" @click="sort()">Sort</button>
+```
+
+### What to track ✅
+
+- User-initiated actions: button clicks that do something meaningful (export, AI trigger, form submit, tab switch)
+- Navigation choices (month navigation, view mode switch)
+- External link clicks
+- Sign-in / demo mode activation
+
+### What NOT to track ❌
+
+- Every click — only clicks that answer "what did the user accomplish?"
+- Store mutations directly (store actions are not events)
+- Mouse moves, hovers, scroll events
+- Auto-triggered side effects (fetching, timers, computed reactions)
+- Navigation that `navigationTracker.ts` already handles automatically (`module:visited`, `module:time-spent`)
+
+### Event naming convention
+
+`noun:verb` in kebab-case. Examples: `expense:added`, `period:changed`, `ai:report-generated`, `tab:switched`, `link:external`, `auth:sign-in-attempted`.
+
 ## Comments
 
 - No comments explaining what code does (code is self-documenting).

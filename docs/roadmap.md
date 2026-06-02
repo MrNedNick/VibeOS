@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · **v11 2026-06-02 S17 T15 (v1.3.0) + S15 T4 god-components (v1.3.1–1.3.5) + S15 T9 close (v1.4.0) + S18 T1–T3 interaction tracking (v1.4.1–1.4.3).**
+> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · v11 2026-06-02 S17 T15 (v1.3.0) + S15 T4 god-components (v1.3.1–1.3.5) + S15 T9 close (v1.4.0) + S18 T1–T3 interaction tracking (v1.4.1–1.4.3) · **v12 2026-06-02 S18 T4–T10 (v1.4.4–1.4.7): 8 silent modules wired, feedback system, Usage tab, palette commands, Privacy & Data settings. S16 T5: 23 new component tests (297 total). useTrack/v-track documented.**
 > ⚠️ **Keep this file current.** Mark sprint items done the moment they ship. Add Phase 4+ specs before the session that implements them. A roadmap that lags the code is useless.
 > See `docs/strategy.md` for product context · `docs/privacy-security.md` for auth plan.
 
@@ -25,9 +25,9 @@
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔄 active — T1/T2/T3/T5/T6 ✅; T4 hex cleanup: CalendarView ✅, WelcomeView folds into S11 |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 (Learning/Training unification) deferred. |
-| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1 useSoftDeletable ✅ T2 training/learning stores ✅ T3 ui/commandPalette ✅ T4 UiButton/UiCard/UiFilterChips ✅; remaining: T5 god-components, T6 E2E, T7 QA, T8 coverage gate. **274 tests in 21 files** |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1 useSoftDeletable ✅ T2 training/learning stores ✅ T3 ui/commandPalette ✅ T4 UiButton/UiCard/UiFilterChips ✅ T5 analytics god-components ✅; remaining: T6 E2E, T7 QA, T8 coverage gate. **297 tests in 22 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
-| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | 🔄 active — T1 InteractionEvent+bus ✅ T2 navigation tracker ✅ T3 useTrack+vTrack ✅; remaining: T4 silent module wiring, T5–T12 feedback+analytics UI |
+| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | 🔄 active — T1–T3 interaction tracking ✅ T4 silent modules ✅ T5 UiFeedbackModal ✅ T6 useFeedback ✅ T7 feedback.store ✅ T8 Usage tab ✅ T9 palette commands ✅ T10 Privacy & Data settings ✅; remaining: T11 Supabase schema, T12 sprint close |
 
 ---
 
@@ -1042,9 +1042,11 @@ Each task = one cluster: replace raw elements with `@/ui`, **delete the now-dead
 
 **T3 — `useTrack` composable + `v-track` directive** ✅ (v1.4.3) — `src/core/composables/useTrack.ts` (reads module from route meta, emits `feature:used`) + `src/core/directives/vTrack.ts` (click listener, globally registered). Both supplement semantic store events.
 
-**T4 — Wire silent modules to event bus**
+**T4 — Wire silent modules to event bus** ✅ (v1.4.4)
 
-Add semantic `feature:used` events to the 9 currently-silent modules. Do NOT add noise — only meaningful user actions:
+Semantic `feature:used` events added to 8 modules: finance (tab:switched, expense:form-opened, expense:added, ai:spending-analysis), calendar (month:navigated, day:selected), settings (theme:changed, module:visibility-toggled, data:exported), about (link:external), analytics (period:changed, ai:report-generated), docs (page:navigated), welcome (cta:demo-entered, cta:sign-in-clicked), auth (auth:sign-in-attempted, auth:demo-activated).
+
+**T4 original spec (for reference):**
 - `finance`: expense added, budget set, AI analysis triggered
 - `calendar`: view switched (month/week/list), event clicked
 - `settings`: theme changed (already via ui:theme-switched), module visibility toggled, data exported
@@ -1058,7 +1060,7 @@ Add semantic `feature:used` events to the 9 currently-silent modules. Do NOT add
 
 ### Phase 1 — Feedback system (T5–T7)
 
-**T5 — `UiFeedbackModal` component**
+**T5 — `UiFeedbackModal` component** ✅ (v1.4.5)
 
 `src/ui/components/UiFeedbackModal.vue` — exported from `@/ui`, uses `UiModal` (from S17 T1):
 - Step 1: NPS score 0–10 with labeled anchors ("Not at all" / "Absolutely")
@@ -1068,7 +1070,7 @@ Add semantic `feature:used` events to the 9 currently-silent modules. Do NOT add
 - No network calls — just emits the result upward
 - Add showcase section `/docs/ui-kit/feedbackmodal`
 
-**T6 — `useFeedback` composable**
+**T6 — `useFeedback` composable** ✅ (v1.4.5)
 
 `src/core/composables/useFeedback.ts`:
 - `shouldPrompt()` — returns true when: ≥3 distinct active days, ≥5 platform events, not dismissed twice, last submission > 30 active-days ago
@@ -1077,7 +1079,7 @@ Add semantic `feature:used` events to the 9 currently-silent modules. Do NOT add
 - `openManually()` — bypasses trigger logic, used from Settings
 - Trigger check runs on `session:start` event, not on a timer
 
-**T7 — `feedback.store` + Supabase schema**
+**T7 — `feedback.store` + Supabase schema** ✅ (v1.4.5)
 
 `src/core/stores/feedback.store.ts` — Pinia store, localStorage key `platform:feedback`:
 ```ts
@@ -1092,7 +1094,9 @@ interface FeedbackEntry { id, score, comment?, timestamp, sessionId, appVersion 
 
 ### Phase 2 — Analytics dashboard: behavioral view (T8–T10)
 
-**T8 — "Usage" tab in AnalyticsView**
+**T8 — "Usage" tab in AnalyticsView** ✅ (v1.4.6)
+
+Data|Usage tab switcher added to AnalyticsView. `AnalyticsUsage.vue` component with module visit bar charts, feature top-10 bars, session stats (count/avg/longest), app streak (consecutive days opened). Supports `#usage` hash from command palette. Data from `useInteractionBus`.
 
 Add a second tab to the existing `AnalyticsView`: **Usage** (alongside the current data-stats view).
 Sections:
@@ -1103,16 +1107,20 @@ Sections:
 
 All data from `useInteractionBus.countByModule()` / `countByFeature()` — no extra stores.
 
-**T9 — Command palette: analytics commands**
+**T9 — Command palette: analytics commands** ✅ (v1.4.6)
 
-Add commands to `commandPalette.store`:
+3 commands added to CommandPalette: "View usage analytics" (→/analytics#usage), "Submit feedback" (opens UiFeedbackModal), "Clear analytics data" (confirm → interBus.clear()).
+
+**T9 original spec:**
 - "View usage analytics" → `/analytics#usage`
 - "Submit feedback" → opens `UiFeedbackModal`
 - "Clear analytics data" → confirmation → `useInteractionBus.clear()`
 
-**T10 — Settings: Privacy & Data section**
+**T10 — Settings: Privacy & Data section** ✅ (v1.4.6)
 
-New section in `SettingsView` — **Privacy & Data**:
+New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform:analytics:enabled), feedback history (last 5 entries with score/date/comment), "Submit feedback now" button, "Clear analytics events" button. UiFeedbackModal wired.
+
+**T10 original spec:**
 - "Usage analytics" toggle — opt out of interaction tracking (writes to `ui.store`, checked before every `track()` call)
 - Feedback history — list of past submissions with scores
 - "Submit feedback now" button — `useFeedback.openManually()`

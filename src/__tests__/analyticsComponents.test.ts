@@ -146,25 +146,25 @@ describe('AnalyticsGoals', () => {
 
   it('renders active goals when present', () => {
     const store = useGoalsStore()
-    store.createGoal({ title: 'Run 100km', category: 'health', emoji: '🏃', targetDate: '' })
+    store.createGoal({ title: 'Run 100km', category: 'health', coverEmoji: '🏃', targetDate: '', description: '' })
     const w = mount(AnalyticsGoals)
     expect(w.text()).toContain('Run 100km')
   })
 
   it('shows progress percentage for active goals', () => {
     const store = useGoalsStore()
-    store.createGoal({ title: 'Learn Vue', category: 'learning', emoji: '📚', targetDate: '' })
+    store.createGoal({ title: 'Learn Vue', category: 'skill', coverEmoji: '📚', targetDate: '', description: '' })
     const w = mount(AnalyticsGoals)
     expect(w.text()).toMatch(/\d+%/)
   })
 
   it('shows completed badge when completed goals exist', () => {
     const store = useGoalsStore()
-    store.createGoal({ title: 'Done goal', category: 'health', emoji: '✅', targetDate: '' })
+    store.createGoal({ title: 'Done goal', category: 'health', coverEmoji: '✅', targetDate: '', description: '' })
     const id = store.goals[0].id
     store.completeGoal(id)
     // Add an active goal so the section renders
-    store.createGoal({ title: 'Active goal', category: 'health', emoji: '🏃', targetDate: '' })
+    store.createGoal({ title: 'Active goal', category: 'health', coverEmoji: '🏃', targetDate: '', description: '' })
     const w = mount(AnalyticsGoals)
     expect(w.find('.goals-completed-badge').exists()).toBe(true)
   })

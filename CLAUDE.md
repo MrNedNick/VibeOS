@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v1.4.3 — 2026-06-02**
+**Version: v1.4.7 — 2026-06-02**
 
 > **UI Kit now lives under Docs (v1.2.0):** the live component catalogue is no longer a hidden dev-only `/ui-kit` page. It's integrated into the Docs module as three sidebar sections — **Design Tokens**, **UI Components**, **UI Patterns** — at `/docs/ui-kit/<key>` (e.g. `/docs/ui-kit/button`). Visible in production. Showcase section components live in `src/modules/ui-kit/views/sections/` and are wired in via `src/modules/docs/data/docs-registry.ts` (`DocPage.component`). `DocsView` renders the live component when a page has `component`, else markdown. This is the single source of truth for every reusable `@/ui` component and all its states.
 
@@ -27,11 +27,11 @@
 | S13 — Design Pass | 🔜 planned — module quality pass (requires user review session) |
 | S14 — Quick Wins | 🔄 active — T1 ✅ T2 ✅ T3 ✅ T5 ✅ T6 ✅; T4 hex cleanup: CalendarView ✅, WelcomeView folds into S11 |
 | S15 — Refactor & De-dup | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 Learning/Training deferred (diverged enough post-S17). |
-| S16 — Test Coverage | 🔄 active — T1 useSoftDeletable ✅ T2 training+learning stores ✅ T3 ui+commandPalette stores ✅ T4 UiButton+UiCard+UiFilterChips ✅; remaining: T5 god-component tests, T6 E2E, T7 QA pass, T8 coverage gate. **274 tests in 21 files** |
+| S16 — Test Coverage | 🔄 active — T1–T5 ✅; remaining: T6 E2E, T7 QA, T8 coverage gate. **297 tests in 22 files** |
 | S17 — Component Unification | ✅ **complete** — Phase 0 (v1.2.1): UiModal/UiIconButton/UiSelect/UiTextarea; Phase 1 T6–T13 (v1.2.2–v1.2.6): all modules migrated; Phase 2 T14 (v1.2.10): ESLint enforcement; T15 sprint close (v1.3.0). |
-| S18 — Product Analytics & Feedback | 🔄 active — T1 InteractionEvent+bus ✅ T2 nav tracker ✅ T3 useTrack+vTrack ✅ (v1.4.1–v1.4.3). Remaining: T4 module wiring, T5–T12 feedback+analytics UI. |
+| S18 — Product Analytics & Feedback | 🔄 active — T1–T10 ✅ (v1.4.1–v1.4.7): interaction types+bus, nav tracker, useTrack+vTrack, 8 silent modules wired, UiFeedbackModal, useFeedback, feedback.store, Usage tab in Analytics, palette commands, Privacy & Data settings. Remaining: T11 Supabase schema, T12 sprint close. |
 
-**Active next (2026-06-02): S11 (welcome + positioning) is the main user-facing sprint. S15 ✅ complete. S17 ✅ complete. S18 Phase 0 T1–T3 ✅ (v1.4.3) — T4 silent module wiring is next. S16 T5–T8 still open. S13 requires live review.**
+**Active next (2026-06-02): S11 (welcome + positioning) is the main user-facing sprint. S15 ✅ complete. S17 ✅ complete. S18 T1–T10 ✅ (v1.4.7) — remaining: T11 Supabase schema, T12 sprint close. S16 T6–T8 still open (T5 ✅ 297 tests in 22 files). S13 requires live review.**
 
 > **AI provider note (v1.0.12):** Pollinations left only `openai-fast` (GPT-OSS 20B) on the anonymous tier. Default model is pinned to `openai-fast` in `src/core/composables/provider.ts` and Studio's free-model list trimmed to it.
 
