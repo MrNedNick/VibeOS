@@ -28,6 +28,10 @@
 | **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T6 ✅ T8 ✅ (coverage gate); remaining: T7 QA pass. **369 tests in 27 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
 | **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** (T11 deferred to S3) — T1–T10 ✅ T12 ✅ (docs, tests, UiFeedbackModal in docs-registry). T11 Supabase → blocked on credentials, moves to S3. |
+| **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | 🔄 **active** (2026-06-03) — T10 (auth redirect fix) SHIP FIRST; T1–T9, T11 pending |
+| **S20 — Auth Excellence** | Auth flow bulletproof: callback route, central validation, security, E2E tests | 🔜 **HIGH PRIORITY** — after S19 T10 |
+| **S21 — Backend Data Architecture** | Supabase-first data layer, no layout shift, real-time, proper skeletons | 🔜 planned — after S20 complete + S3 credentials |
+| **S22 — UX Action Prominence** | FAB + primary CTAs in every module, standardised empty states | 🔜 planned |
 
 ---
 
@@ -1854,6 +1858,656 @@ These are the meaningful improvements to do next — not features for features' 
 | 2026-05-27 | Vibe-paks v1: Terminal Dark + Brutalist | Two distinct moods sufficient to demonstrate the system |
 | 2026-05-27 | Lucide icons replace unicode glyphs | System-wide visual coherence; includes life module icons |
 | 2026-05-27 | Currency demoted from module to Dashboard widget | Low daily-use value as standalone |
+
+---
+
+---
+
+## S19 — Mobile Excellence & Account Management 🔄 (active 2026-06-03)
+
+**Goal:** full account management accessible everywhere (header + mobile), mobile UX overhaul — pull-to-refresh, fixed toggles, proper day labels in habits, reliable navigation, and a clear path from demo to real account.
+
+**Version target:** v1.6.x (minor bump — significant user-facing features)
+
+**Origin:** live mobile testing session, 2026-06-03. All items observed on iPhone.
+
+---
+
+### T1 — Account panel + clickable user row (v1.6.0)
+
+**Scope:** `src/layouts/components/UserPanel.vue` (new), `AppHeader.vue`, `AppSidebar.vue`, `uiStore`
+**Complexity:** medium-high
+
+**Problem:**
+- No account management UI exists anywhere on mobile (sidebar footer hidden at ≤767px)
+- Desktop sidebar user row ("Nikita") is not clickable — no hover cursor, no action
+- Logout on mobile is completely inaccessible
+- No way to change display name, avatar, or password from within the app
+
+**Decision:** single `UserPanel.vue` modal (uses `UiModal`) openable from:
+1. A user avatar button added to header right slot (all breakpoints — desktop AND mobile)
+2. Clicking the sidebar user row (desktop)
+3. Tapping the User tab in mobile bottom nav (T6)
+
+**UserPanel sections:**
+- **Avatar** — initials chip (same style as sidebar), "change photo" label (no-op in demo/local, future Supabase)
+- **Profile** — display name (editable `UiInput`, saves to `auth.store._state`), email (read-only)
+- **Password** — only shown when `isSupabaseConfigured`; "Change password" button sends reset email
+- **Account type** — chip: "Demo mode" (amber) or "Free account" (accent)
+- **Demo CTA** — when `isDemoMode`: prominent "Create a free account →" button → navigates to `/register`
+- **Logout** — red-tinted `UiButton` variant="danger" at bottom
+
+**Implementation steps:**
+1. Add `userPanelOpen: boolean` to `uiStore` with `openUserPanel()` / `closeUserPanel()` actions
+2. Add `updateDisplayName(name: string)` action to `auth.store`
+3. Create `src/layouts/components/UserPanel.vue` — `UiModal` wrapping the panel content
+4. Mount `<UserPanel>` in `AppLayout.vue` alongside other overlays
+5. Add user avatar button to `AppHeader.vue` right slot — always visible, shows initials or `User` icon when guest
+6. Make sidebar user row a `<button>` with `@click="uiStore.openUserPanel()"` and proper cursor + hover state
+7. Remove standalone logout icon from sidebar footer (move logout into panel)
+
+**Styling rules:** no hardcoded hex, use `--color-accent-muted` for avatar bg, `UiModal` size="sm", panel max-width 360px.
+
+---
+
+### T2 — Fix About module icon confusion (v1.6.1)
+
+**Scope:** `src/core/registry/modules.ts` only
+**Complexity:** trivial (2-line change)
+
+**Problem:** About module uses `icon: 'User'` — the exact icon people expect for their own account/profile. When someone sees the User icon in the sidebar, they naturally think "my account" but it opens the developer bio page (Nikita Nedyalkov). This creates strong UX confusion.
+
+**Decision:** change About icon to `'Info'` (clean, universally understood as "about this app"). Keep About in the system section — it doubles as a portfolio/demo context page.
+
+**Change:** in `PLATFORM_MODULES`, entry `id: 'about'` → `icon: 'Info'`
+
+---
+
+### T3 — Pull-to-refresh on Dashboard mobile (v1.6.2)
+
+**Scope:** `src/core/composables/usePullToRefresh.ts` (new), `DashboardView.vue`
+**Complexity:** medium
+
+**Problem:** on mobile, if the dashboard shows stale data (habits not refreshing, etc.), there's no way to trigger a data refresh without navigating away and back. iOS users expect pull-to-refresh everywhere.
+
+**Decision:** implement native-feel pull-to-refresh using touch events on the main scroll container.
+
+**Implementation:**
+```ts
+// usePullToRefresh(scrollEl: Ref<HTMLElement | null>, onRefresh: () => void | Promise<void>)
+// - listens touchstart / touchmove / touchend on scrollEl
+// - only activates when scrollTop === 0 (at the top of the content)
+// - threshold: 72px pull distance
+// - shows a spinning UiIcon 'RefreshCw' indicator at the top during pull + refresh
+// - calls onRefresh(), awaits, then hides indicator with fade
+// - blocks scroll during pull animation (preventDefault on touchmove)
+// - cleanup on unmount
+```
+
+**Wire to DashboardView:** pass a ref to `.app-content` scroll container (hoisted from `AppLayout` via `provide`/`inject` or just grabbed via `document.querySelector`). On refresh: re-initialise all dashboard stores (habitsStore, tasksStore, etc. already reactive from localStorage — just touch reactive refs).
+
+**Visual:** pull indicator appears below mobile header, `opacity` + `translateY` transition, matches app theme.
+
+---
+
+### T4 — Fix settings toggles on mobile (v1.6.3)
+
+**Scope:** `src/modules/settings/views/SettingsView.vue` CSS
+**Complexity:** trivial
+
+**Problem:** global mobile CSS rule `button { min-height: 44px }` (tap target accessibility rule) inflates the `settings__vis-toggle` switch to 44px height, making it appear as a large circle/blob rather than the intended 42×24px pill shape.
+
+**Root cause:** `.settings__vis-toggle` has `height: 24px` but no `min-height: 0` override, so the global 44px minimum wins on mobile.
+
+**Fix:** add to `.settings__vis-toggle` CSS block:
+```css
+min-height: 0;
+min-width: 0;
+```
+Also check `.settings__vis-knob` — ensure it remains absolutely positioned at the correct offset.
+
+---
+
+### T5 — Habit heatmap: Mon top → Sun bottom (v1.6.4)
+
+**Scope:** `src/modules/habits/types/index.ts` — `generateHeatmapDates()`
+**Complexity:** medium
+
+**Problem:** `generateHeatmapDates` divides the last N×7 days into 7-day chunks starting from an arbitrary day of the week. The heatmap columns therefore don't align to ISO weeks. The user expects the vertical order: Monday row 1, Tuesday row 2 ... Sunday row 7 (standard GitHub-style heatmap).
+
+**Analysis of current code:**
+- Generates `weeks * 7` day strings oldest-to-newest
+- Slices into `[week0_days, week1_days, ...]` groups of 7 — no alignment to Mon
+- `HabitHeatmap.vue` renders: columns = weeks, rows = days within that week (top-to-bottom)
+- So current row 0 = whatever day of week `today - (weeks*7 - 1)` falls on
+
+**Fix approach:**
+1. Find the **Monday** of the week that contains `today - (weeks*7 - 1)` — this is the grid start
+2. Fill days from that Monday to today, padding future cells within the last week with `''`
+3. Slice into 7-day ISO columns: `[Mon,Tue,Wed,Thu,Fri,Sat,Sun]` per column
+4. `HabitHeatmap.vue` renders empty cells for `''` entries (transparent, no interaction)
+
+Also add day-of-week labels to the left of the heatmap: M, W, F (alternating, like GitHub) or full M T W T F S S — minimal, 10px text.
+
+---
+
+### T6 — Mobile bottom nav: add User tab (v1.6.5)
+
+**Scope:** `src/layouts/components/AppBottomTabs.vue`
+**Complexity:** low
+
+**Problem:** on mobile there's no way to access account management. The sidebar user row is hidden. The bottom nav has: Dashboard, Tasks, Habits, Notes, More — no user/account entry.
+
+**Decision:** restructure bottom tabs to: **Dashboard, Tasks, Habits, User, More**
+- Drop Notes from the primary 4 tabs (Notes is already accessible in the More sheet)
+- Add `User` tab: shows initials or `User` icon, tapping opens `UserPanel` via `uiStore.openUserPanel()`
+- Active state: tab is highlighted when `uiStore.userPanelOpen === true`
+
+**Rationale for dropping Notes over Habits:** Habits has daily engagement (check-ins). Notes is less time-critical on mobile and already in More. Dashboard + Tasks + Habits are the 3 most mobile-critical daily-use modules.
+
+---
+
+### T7 — Navigation reliability + bug investigation (v1.6.6)
+
+**Scope:** `src/layouts/AppLayout.vue`, `src/router/index.ts`, `src/layouts/components/AppErrorBoundary.vue`
+**Complexity:** medium (investigation-first)
+
+**Problem:** app occasionally "breaks" after multiple navigation actions on mobile — UI becomes unresponsive or blank. Intermittent — happens after several taps, not on first load.
+
+**Investigation checklist:**
+1. Check `AppErrorBoundary.vue` — does it catch and display errors, or silently swallow them?
+2. Check `<Transition name="page" mode="out-in">` — if leave-animation races with a new enter, `@after-leave` may fire out of sequence and set `isFullbleed` incorrectly
+3. Check router `scrollBehavior` — missing scroll reset can leave `overflow: hidden` state stuck
+4. Check `onUnmounted` cleanup in major views (DashboardView, HabitsView) — any uncleaned timeouts/intervals that touch reactive state after unmount?
+5. Check `AppBottomTabs` `showMore` — if route change fires while sheet is animating, could leave overlay stuck
+
+**Fixes based on findings:**
+- Add `scrollBehavior: () => ({ top: 0 })` to router if missing
+- Wrap `@after-leave` handler with `nextTick` guard
+- Ensure `AppErrorBoundary` renders a recovery UI (not a blank screen)
+- Add `key` prop to `<router-view>` if needed to force full remount on same-path navigation
+
+---
+
+### T8 — Demo-to-account conversion UX (v1.6.7)
+
+**Scope:** `AppHeader.vue`, `UserPanel.vue` (T1), `src/modules/auth/views/LoginView.vue`
+**Complexity:** low
+**Depends on:** T1 (UserPanel must exist first)
+
+**Problem:** in demo mode, the only path to creating a real account is the small amber "Demo" chip in the header. Users don't notice it, and clicking it goes to `/login` (not register). The conversion path is invisible.
+
+**Changes:**
+1. Demo chip → navigate to `/register` (not `/login`), update tooltip to "Create a free account to save your data"
+2. `UserPanel` in demo mode — show prominent `UiButton` variant="primary" "Create free account →" above the logout button; explain: "Your data is saved locally. Sign up to sync across devices."
+3. On `/login` page — add "Try demo" link below the form (already may exist; confirm it's there and visible)
+4. `AppHeader` demo chip label → change to "Try Free" (more action-oriented than just "Demo")
+
+---
+
+### T9 — Mobile search (command palette) improvement (v1.6.8)
+
+**Scope:** `src/layouts/components/CommandPalette.vue`, `AppHeader.vue`
+**Complexity:** low–medium
+
+**Problem:** on mobile, the command palette opens when tapping the search icon, but the keyboard input is desktop-focused (`⌘K` shortcut hint) and the layout may not respect the virtual keyboard pushing content up.
+
+**Investigation:** open command palette on mobile, check:
+- Input autofocuses (triggers keyboard)
+- Modal doesn't get obscured by keyboard
+- Results are scrollable below the input
+- Closing works (backdrop tap, Escape gesture)
+
+**Fixes:**
+- Ensure `<input autofocus>` in palette triggers keyboard on mobile
+- Add `env(safe-area-inset-bottom)` to palette bottom padding
+- Hide `⌘K` kbd shortcut on mobile (already partially done in header)
+- If palette max-height is fixed, switch to `max-height: 60dvh` on mobile so keyboard doesn't cut it off
+- Test with real keyboard on device
+
+---
+
+### T10 — 🚨 Auth redirect critical fix (v1.6.0-hotfix)
+
+**Scope:** `LoginView.vue`, `RegisterView.vue`, `auth.store.ts`
+**Complexity:** trivial (30-min fix) · **Priority: SHIP FIRST before any other S19 task**
+
+**Root cause (diagnosed):**
+After successful login/register, both views do:
+```js
+window.location.href = '/'
+```
+On GitHub Pages, the app lives at `https://mrnednick.github.io/VibeOS/` — `BASE_URL = '/VibeOS/'`. So `href = '/'` navigates to `https://mrnednick.github.io/` (GitHub user root), which is a 404 or unrelated page.
+
+**Fix in LoginView + RegisterView:**
+```js
+// Before (broken on GH Pages):
+window.location.href = '/'
+// After (works everywhere):
+window.location.replace(import.meta.env.BASE_URL)
+```
+
+**Also fix `auth.store.ts` — password reset redirectTo:**
+```js
+// Current (broken):
+redirectTo: `${window.location.origin}/auth/reset-password`
+// Fixed:
+redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}auth/callback`
+```
+Add an `/auth/callback` route in `authRoutes` — renders a tiny "Completing sign-in…" screen that just waits for Supabase `detectSessionInUrl` to process the token, then `router.replace('/')`. The Supabase client's `detectSessionInUrl: true` will auto-process the URL hash/query — the callback route just needs to exist so the SPA doesn't 404.
+
+**After fix: verify in prod** — deploy, login, confirm redirect lands on `/VibeOS/` correctly.
+
+---
+
+### T11 — Logout redirect fix (v1.6.1)
+
+**Scope:** `AppSidebar.vue`, future `UserPanel.vue` (T1)
+**Complexity:** trivial
+
+**Problem:** `logout()` → `router.push('/welcome')` in sidebar works on desktop, but:
+- On mobile, sidebar footer is hidden — logout is inaccessible (separate from T1/T6)
+- After clicking logout, if the current route is a protected route, the router guard redirects to `/welcome` anyway, but there's a flash of the protected page during the async auth check
+
+**Fix:**
+1. In `logout()` function everywhere: `await auth.logout()` then `await router.replace('/welcome')` (replace not push — no back button to protected page)
+2. Add `v-if="false"` to protected content during the logout in-flight state (use `auth.loading`)
+3. After T1 ships: logout lives in UserPanel, this fix applies there too
+
+---
+
+### Execution order
+
+```
+T10 (🚨 AUTH REDIRECT — SHIP IMMEDIATELY) →
+T11 (logout redirect fix) →
+T2 (trivial icon fix) →
+T4 (trivial toggle fix) →
+T1 (account panel — foundation for T6 and T8) →
+T6 (mobile nav User tab — needs T1 done) →
+T8 (demo CTA — needs T1 done) →
+T3 (pull-to-refresh — independent) →
+T5 (heatmap fix — independent) →
+T7 (navigation bug — independent investigation) →
+T9 (search — independent, last)
+```
+
+Each task gets its own commit + version bump. T1 is the biggest — allocate a full session for it.
+
+---
+
+## S20 — Auth Excellence 🔜 (HIGH PRIORITY — after S19 T10)
+
+**Goal:** authentication flow works perfectly, looks premium, is tested end-to-end, and is maximally secure. Login → app → logout → login again: zero friction, zero bugs.
+
+**Why highest priority:** auth is the first real interaction a user has after the welcome page. If it breaks or confuses, the whole product is dismissed. Currently: redirect is broken, validation is silent, there's no /auth/callback route, password reset links go to 404.
+
+**Version target:** v1.7.x
+
+---
+
+### T1 — Auth callback route + Supabase redirect URL (v1.7.0)
+
+**Scope:** `src/modules/auth/views/AuthCallbackView.vue` (new), `authRoutes`, Supabase Dashboard config
+**Complexity:** low
+
+**What's needed:**
+Supabase magic links (email confirmation, password reset, OAuth future) redirect to a URL. The SPA must have a route at that path so Vue Router handles it, and `detectSessionInUrl: true` can process the token in the URL hash.
+
+**Implementation:**
+1. Create `src/modules/auth/views/AuthCallbackView.vue`:
+   - Shows "Completing sign-in…" with a spinner (no layout, just centered text)
+   - On `onMounted`: Supabase JS detects the session automatically; watch `auth.isLoggedIn` for 3s; if resolved → `router.replace('/')`, if timeout → `router.replace('/login?error=callback-timeout')`
+2. Register route: `{ path: '/auth/callback', component: AuthCallbackView, meta: { auth: 'public' } }`  
+   — needs new `auth: 'public'` meta value to bypass both guest-only and required-auth guards
+3. Update router guard to pass on `auth === 'public'` routes
+4. In Supabase Dashboard: set Site URL = `https://mrnednick.github.io/VibeOS/` and add `https://mrnednick.github.io/VibeOS/auth/callback` to Redirect URLs allow-list
+
+---
+
+### T2 — Central validation system: `useFormValidation` + `UiInput` error state (v1.7.1)
+
+**Scope:** `src/core/composables/useFormValidation.ts` (new), `src/ui/components/UiInput.vue`, `src/core/i18n/`
+**Complexity:** medium
+
+**Problem:** currently the login button just disables when fields are invalid — no explanation. Users don't know why (needs 8 chars? wrong format? mismatch?). Industry standard: inline error messages per field, appearing on blur or on submit attempt.
+
+**Architecture decision:** validation lives in a composable, not in each view. Rules are pure functions. Errors are reactive and i18n-aware.
+
+**`useFormValidation.ts` API:**
+```ts
+const { fields, validate, reset, isValid } = useFormValidation({
+  email:    [rules.required, rules.email],
+  password: [rules.required, rules.minLength(8)],
+})
+// fields.email.value = ''
+// fields.email.error = computed → null or translated error string
+// validate() — runs all rules, marks touched, returns isValid
+```
+
+**Validation rules (EN + RU i18n keys):**
+- `required` → "Required" / "Обязательно"
+- `email` → "Invalid email" / "Неверный email"
+- `minLength(n)` → "Min. N characters" / "Мин. N символов"
+- `maxLength(n)` → "Too long (max N characters)" / "Слишком длинно"
+- `passwordMatch(ref)` → "Passwords don't match" / "Пароли не совпадают"
+- `noSpaces` → "No spaces allowed" / "Пробелы не допускаются"
+- `strongPassword` → "Include a number or symbol" / "Добавьте цифру или символ"
+
+**`UiInput` changes:**
+- Add `error?: boolean` prop → when true: red border + red focus ring
+- `UiField` already has error text slot — auth forms should use `UiField` + `UiInput error` together
+- **No changes to `UiInput` API otherwise** — keep it lean; `UiField` handles text display
+
+**Migration:** refactor `LoginView.vue` and `RegisterView.vue` to use `useFormValidation` + `UiField` wrappers. Show per-field errors on blur, show all errors on submit attempt.
+
+---
+
+### T3 — Auth security hardening (v1.7.2)
+
+**Scope:** `auth.store.ts`, `LoginView.vue`, `RegisterView.vue`, `supabase.ts`
+**Complexity:** low–medium
+
+**Security improvements:**
+1. **PKCE flow** — Supabase JS v2 uses PKCE by default for email auth — verify `flowType: 'pkce'` is not accidentally disabled
+2. **Token storage** — `persistSession: true` with `storageKey: 'platform:auth:supabase'` is correct; verify it uses `localStorage` (acceptable for SPA, no server-side rendering)
+3. **Auto sign-out on token expiry** — `autoRefreshToken: true` is set; add handler for `TOKEN_REFRESHED_FAILED` event → call `logout()` + notify user
+4. **Rate limiting feedback** — Supabase returns `429 Too Many Requests` on too many login attempts; catch this and show "Too many attempts — try in 60 seconds" message
+5. **Password strength indicator** — on the register form, show a 3-step strength bar (weak/ok/strong) as user types; purely visual, no blocking
+6. **Email trimming** — already done (`.trim()`) — confirm everywhere
+7. **Session expiry on logout** — `auth.logout()` already calls `sb.auth.signOut()` — verify it clears all localStorage keys, not just the Supabase one
+8. **Audit log entries** — existing `track()` calls cover sign-in-attempted; add `auth:sign-in-failed`, `auth:sign-out`, `auth:register-completed`
+
+---
+
+### T4 — Auth flow end-to-end test suite (v1.7.3)
+
+**Scope:** `e2e/auth.spec.ts` (new Playwright tests), manual QA checklist
+**Complexity:** medium
+
+**Test scenarios (Playwright E2E):**
+1. Happy path: register → confirm email (mock) → login → verify dashboard → logout → redirect to `/welcome`
+2. Login with wrong password → error shown inline, button stays active (not just disabled)
+3. Login with empty fields → submit → per-field errors shown
+4. Forgot password → email sent state → back to login
+5. Demo mode: click "Try demo" → dashboard loads → demo chip visible → logout works
+6. Direct URL to protected route while logged out → redirect to `/welcome`
+7. Direct URL to `/login` while logged in → redirect to `/`
+8. Auth callback URL (`/auth/callback`) → session detected → redirect to `/`
+
+**Manual QA checklist (run on real device + browser):**
+- [ ] Register on mobile Safari
+- [ ] Login on mobile Chrome
+- [ ] Password reset email received and link works
+- [ ] Demo mode → logout → redirect correct
+- [ ] Hard refresh while logged in → stays logged in
+- [ ] Open app in incognito → starts at `/welcome`
+- [ ] Login → close tab → reopen → still logged in
+
+---
+
+### T5 — Auth UX polish (v1.7.4)
+
+**Scope:** `LoginView.vue`, `RegisterView.vue`, shared auth styles
+**Complexity:** low
+
+**UX improvements:**
+1. **Loading states** — during `auth.loading`, show a spinner inside the submit button (not just "Signing in…" text) + disable all inputs (not just the button)
+2. **Success animation** — after login, brief ✓ checkmark in button before the redirect
+3. **Autofocus** — email field autofocuses on mount (already has `autofocus` attr? Verify)
+4. **Password visibility toggle** — eye icon inside password input (show/hide)
+5. **"Remember me" checkbox** — Supabase sessions persist by default (30 days); no checkbox needed, but explain this with a "Stays signed in on this device" note
+6. **Mobile keyboard** — ensure `type="email"` triggers email keyboard on iOS/Android, `type="password"` triggers secure keyboard
+7. **Hardcoded hex** — `LoginView` and `RegisterView` still have `fill="#4f8ef7"` on the logo SVG — replace with `var(--color-accent)` (or inline style)
+8. **Error color tokens** — `color: #ef4444` and `#22c55e` appear in both auth views — replace with `var(--color-danger)` and `var(--color-success)`
+
+---
+
+### Execution order
+
+```
+T1 (callback route + Supabase config) →
+T2 (validation system — foundation for T5) →
+T3 (security hardening — parallel with T2) →
+T4 (E2E tests — after T1+T2 complete) →
+T5 (UX polish — last, cosmetic)
+```
+
+---
+
+## S21 — Backend Data Architecture 🔜 (planned)
+
+**Goal:** all user data lives in Supabase as the source of truth. localStorage becomes a write-through cache for offline resilience. Every data operation goes through the backend with optimistic UI updates, proper loading states, and no visible layout shift on page load.
+
+**Prerequisite:** S3 (Supabase credentials + migrations) must be complete, and S20 (auth excellence) must be done first.
+
+**Version target:** v1.8.x (major user-visible feature — data survives device change, browser clear, etc.)
+
+---
+
+### T1 — Architecture: localStorage → Supabase-first data layer (v1.8.0)
+
+**Scope:** `src/core/composables/useStorage.ts`, all module stores, `src/core/composables/useCloudSync.ts`
+**Complexity:** high — affects every store
+
+**Current architecture (localStorage-first):**
+```
+write → localStorage → (optional) Supabase sync
+read  → localStorage (immediate) + Supabase pull (async, on login)
+```
+
+**Target architecture (Supabase-first with optimistic local cache):**
+```
+write → localStorage (optimistic, immediate UI update) → Supabase (async confirm)
+read  → localStorage (if populated) → Supabase (background refresh)
+```
+
+**Key principles:**
+- **Optimistic updates**: UI updates instantly from localStorage; Supabase write happens asynchronously; on error → rollback + notify
+- **No blocking reads**: page never waits for Supabase before rendering; shows skeleton → data appears
+- **Conflict resolution**: last-write-wins with `updated_at` timestamp; device with newer timestamp wins
+- **Offline queue**: writes while offline go to a `syncQueue` in localStorage; drain on reconnect
+- **Single sync composable**: all stores use `useBackendSync(key, supabaseTable)` instead of implementing their own
+
+**New `useBackendSync` composable:**
+```ts
+// Wraps a Pinia store's state with Supabase sync
+const sync = useBackendSync('habits', 'habits_table')
+sync.push(record)     // optimistic add → queue Supabase insert
+sync.update(id, patch) // optimistic update → queue Supabase upsert
+sync.remove(id)       // optimistic delete → queue Supabase delete
+sync.pull()           // fetch all from Supabase → merge into localStorage
+```
+
+---
+
+### T2 — Per-store loading states + skeleton system overhaul (v1.8.1)
+
+**Scope:** all module stores, Dashboard, Habits, Tasks, Goals, Notes views
+**Complexity:** medium
+
+**Problem:** currently pages load instantly from localStorage with no loading indication. When Supabase pull happens in the background, data can suddenly change/reorder, causing jarring layout shifts. On first load (empty localStorage, Supabase has data), pages show empty states briefly before data appears.
+
+**Solution:**
+1. **Loading flag per store**: each store gets `loading: boolean` and `initialized: boolean`
+2. **Skeleton on `!initialized`**: each module view shows skeleton layout until `initialized = true`
+3. **No layout shift**: skeletons must reserve exact same dimensions as loaded content
+   - Use `min-height` on card containers locked to `var(--card-min-h)` CSS variable
+   - Cards with variable content use `min-height: var(--card-min-h-fallback, 80px)`
+   - Grid layouts are declared before data arrives (fixed column template)
+4. **Dashboard skeletons**: each panel (Today, Goals, Habits, Achievements) shows its skeleton independently — panels don't wait for each other
+
+**Skeleton variants needed:**
+- `DashboardPanelSkeleton` — matches DashboardTodayPanel grid dimensions
+- `HabitCardSkeleton` — 80px height, matches HabitCard
+- `TaskRowSkeleton` — 48px height, matches task row
+- `GoalCardSkeleton` — matches GoalCard
+- `NotesListSkeleton` — matches notes list item
+
+**CSS rule for no layout shift:**
+```css
+/* Lock container height while loading so nothing jumps */
+.panel--loading {
+  min-height: var(--skeleton-panel-height);
+  contain: layout;
+}
+```
+
+---
+
+### T3 — Settings sync: persist settings to Supabase (v1.8.2)
+
+**Scope:** `SettingsView.vue`, `ui.store.ts`, new `settings` Supabase table
+**Complexity:** low
+
+**What syncs:**
+- Theme preference
+- Language (locale)
+- Module visibility toggles
+- Notification preferences
+
+**What stays local only:**
+- API keys (security — never send to server)
+- Analytics opt-out
+- Feedback history
+
+---
+
+### T4 — Real-time updates (v1.8.3)
+
+**Scope:** `src/core/composables/useRealtimeSync.ts` (new)
+**Complexity:** medium
+
+**Goal:** if the user has the app open on desktop and mobile simultaneously, data changes sync in real time (within ~1 second). Habits checked on phone appear on desktop without refresh.
+
+**Implementation:** Supabase Realtime subscriptions on the most-used tables (habits, tasks, goals). Each subscription updates the local Pinia store, triggering reactive UI updates.
+
+**Scope: habits + tasks only** for this task (highest frequency changes). Other tables can add subscriptions incrementally.
+
+---
+
+### T5 — Dashboard pull-to-refresh connects to backend (v1.8.4)
+
+**Scope:** `DashboardView.vue`, all panel stores
+**Complexity:** low
+**Depends on:** S19 T3 (pull-to-refresh gesture) + T1–T2 of this sprint
+
+When user pulls to refresh on Dashboard:
+1. Trigger `sync.pull()` on all dashboard-relevant stores (habits, tasks, goals)
+2. Show refresh spinner during pull
+3. Update `initialized` flag per store
+4. When all pulls resolve → hide spinner
+5. Animate new/changed data with subtle fade-in (not jarring replacement)
+
+---
+
+### Execution order
+
+```
+T1 (architecture — must come first, everything else depends on it) →
+T2 (skeleton system — parallel with T1 design work) →
+T3 (settings sync — smallest, good test of T1 infrastructure) →
+T4 (real-time — after T1 stable) →
+T5 (dashboard refresh — after T1+T2 complete)
+```
+
+---
+
+## S22 — UX Action Prominence 🔜 (planned)
+
+**Goal:** every module's primary action is immediately obvious. Users should never hunt for "where do I add something?" The main CTA is always large, clearly labeled, and placed exactly where the eye lands.
+
+**Version target:** v1.9.x
+
+**Industry standard being adopted:**
+- **Desktop:** module header has a primary `UiButton` (variant="primary") in the top-right
+- **Mobile:** FAB (floating action button) — fixed bottom-right, 56px circle, `+` icon with label
+- **Empty states:** large centered CTA with icon + explanation — not a small ghost button
+- **No primary action buried in dropdowns or menus**
+
+---
+
+### T1 — FAB component: `UiFab` in @/ui (v1.9.0)
+
+**Scope:** `src/ui/components/UiFab.vue` (new), `src/ui/index.ts`, docs-registry
+**Complexity:** low
+
+**`UiFab` API:**
+```vue
+<UiFab icon="Plus" label="Add note" @click="openModal" />
+```
+
+**Behaviour:**
+- Fixed bottom-right position at mobile breakpoint (≤767px): `right: 20px`, `bottom: calc(var(--tab-bar-height) + 20px)`
+- Hidden at desktop breakpoint (≥768px) — desktop uses inline header button
+- 56×56px circle, accent background, white `+` icon
+- Optional `label` shown as tooltip or pill on long-press
+- Respects `safe-area-inset-bottom`
+- Scales down slightly on press (`transform: scale(0.93)`)
+- Supports `v-track` directive
+
+---
+
+### T2 — Notes: prominent Add button (v1.9.1)
+
+**Scope:** `src/modules/notes/views/NotesView.vue`
+**Complexity:** low
+
+**Current:** "New note" button is a small ghost button in a toolbar — easy to miss.
+**Fix:**
+- Desktop: move "New note" to header right slot as `UiButton` variant="primary" with `+` icon
+- Mobile: add `<UiFab icon="Plus" label="New note" @click="createNote" />`
+- Empty state: show large centered `UiEmptyState` with prominent "Create your first note" CTA
+
+---
+
+### T3 — Tasks: prominent Add button (v1.9.2)
+
+**Scope:** `src/modules/task-manager/views/TasksView.vue` (or relevant component)
+**Complexity:** low — same pattern as T2
+
+---
+
+### T4 — Goals: prominent Add button (v1.9.3)
+
+**Scope:** `src/modules/goals/views/GoalsView.vue`
+**Complexity:** low
+
+---
+
+### T5 — Habits: prominent Add button (v1.9.4)
+
+**Scope:** `src/modules/habits/views/HabitsView.vue`
+**Complexity:** low
+
+---
+
+### T6 — Finance, Calendar, Board: prominent Add (v1.9.5)
+
+**Scope:** FinanceView, CalendarView, BoardView — one commit
+**Complexity:** low
+
+---
+
+### T7 — Empty state UX pass (v1.9.6)
+
+**Scope:** all module views that show empty states
+**Complexity:** medium
+
+Currently empty states vary widely — some show `UiEmptyState`, some show bespoke divs, some show nothing. Standardize:
+1. Every empty state uses `UiEmptyState` component
+2. Every `UiEmptyState` for a module has a primary action CTA: `<UiButton variant="primary">Add your first X</UiButton>`
+3. Empty Dashboard (no habits, no tasks, no goals) shows an onboarding checklist: "Get started → ✓ Add a habit, ✓ Add a task, ✓ Set a goal"
+
+---
+
+### Execution order
+
+```
+T1 (UiFab component — foundation) →
+T2–T6 (parallel — each module independently) →
+T7 (empty states — after primary buttons are established everywhere)
+```
 
 ---
 
