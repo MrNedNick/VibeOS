@@ -407,7 +407,11 @@ function colLabel(colId: BoardColumnId): string {
 }
 @media (max-width: 767px) {
   .board__workspace { flex-direction: column; overflow-y: auto; gap: 0; }
-  .board__header { flex-direction: column; align-items: flex-start; }
+  .board__header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .board__controls { flex-wrap: wrap; gap: 6px; }
+  /* Filter bar: horizontally scrollable on mobile */
+  .board__filter-bar { overflow-x: auto; flex-wrap: nowrap; gap: 8px; padding-bottom: 4px; }
+  .board__priority-chips { flex-shrink: 0; flex-wrap: nowrap; }
   .board__mobile-tabs { display: flex; gap: 4px; padding: 0 0 10px; flex-shrink: 0; }
   .board__mobile-tab {
     flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -420,5 +424,7 @@ function colLabel(colId: BoardColumnId): string {
   .board__mobile-tab-count { font-size: 11px; font-family: var(--font-mono); color: var(--color-text-muted); background: var(--color-surface-elevated); border: 1px solid var(--color-border); padding: 0 5px; border-radius: 99px; line-height: 1.6; }
   .board__columns { grid-template-columns: 1fr; flex: none; }
   .task-panel { width: 100%; align-self: auto; }
+  /* Modal form: 3-col → 1-col on mobile */
+  .modal__row { grid-template-columns: 1fr; }
 }
 </style>
