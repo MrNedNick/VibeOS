@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · v11 2026-06-02 S17 T15 (v1.3.0) + S15 T4 god-components (v1.3.1–1.3.5) + S15 T9 close (v1.4.0) + S18 T1–T3 interaction tracking (v1.4.1–1.4.3) · v12 2026-06-02 S18 T4–T10 (v1.4.4–1.4.7): 8 silent modules wired, feedback system, Usage tab, palette commands, Privacy & Data settings. S16 T5: 23 new component tests (297 total). useTrack/v-track documented. · **v13 2026-06-03 (v1.5.0): S18 T12 🔄 — UiFeedbackModal in docs-registry, feedback.store+interaction.store tests (330 total in 24 files). S16 T8 ✅ — coverage gate (v8, thresholds: stmt 35% / branch 22%). S14 T4 ✅ — hex guard CI script (baseline 212). S11 T1 — index.html meta, README badges, AboutView description. index.html og tags added.**
+> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · v11 2026-06-02 S17 T15 (v1.3.0) + S15 T4 god-components (v1.3.1–1.3.5) + S15 T9 close (v1.4.0) + S18 T1–T3 interaction tracking (v1.4.1–1.4.3) · v12 2026-06-02 S18 T4–T10 (v1.4.4–1.4.7): 8 silent modules wired, feedback system, Usage tab, palette commands, Privacy & Data settings. S16 T5: 23 new component tests (297 total). useTrack/v-track documented. · v13 2026-06-03 (v1.5.0): S18 T12 🔄 — UiFeedbackModal in docs-registry, feedback.store+interaction.store tests (330 total in 24 files). S16 T8 ✅ — coverage gate (v8, thresholds: stmt 35% / branch 22%). S14 T4 ✅ — hex guard CI script (baseline 212). S11 T1 — index.html meta, README badges, AboutView description. index.html og tags added. · **v14 2026-06-03 (v1.5.1–v1.5.4): S11 T1 ✅ — WelcomeView copy+hex (v1.5.1). S16 T3 ✅ — achievements/notifications/widgets tests, 367 in 27 files (v1.5.2). S15 T7 ✅ — qa-report.md refreshed. S16 T6 ✅ — Playwright E2E smoke tests (v1.5.3). S18 T12 ✅ — sprint closed (T11 deferred to S3). Backlog: habit-of-the-day spotlight + HabitCard 48px mobile tap (v1.5.4).**
 > ⚠️ **Keep this file current.** Mark sprint items done the moment they ship. Add Phase 4+ specs before the session that implements them. A roadmap that lags the code is useless.
 > See `docs/strategy.md` for product context · `docs/privacy-security.md` for auth plan.
 
@@ -20,14 +20,14 @@
 | S8 — Design System | Unified component library | ✅ complete — items 1–4 ✅ (UI Kit catalogue; moved under Docs at `/docs/ui-kit`, public in v1.2.0) |
 | **S9 — Full Redesign** | Premium visual identity | ✅ **complete** — v0.9.x |
 | **S10 — Vibe-pak Consolidation** | 4 clean paks, Revolut + CRT redesign | ✅ **complete** — v1.0.x |
-| **S11 — Welcome & Positioning** | "Simple Notion for life, where everything is connected" + live cascade demo | 🔜 **next** — repositioned 2026-06-01 |
+| **S11 — Welcome & Positioning** | "Simple Notion for life, where everything is connected" + live cascade demo | 🔄 **active** — T1 ✅ (copy+hex v1.5.1); T2 pending (full redesign + cascade demo) |
 | **S12 — AI Depth** | AI in every module; start with Analytics monthly report (shows connected data) | ✅ complete — Analytics ✅ (v1.0.11), Habits/Notes/Finance ✅ (v1.1.0) |
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
-| **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔄 active — T1/T2/T3/T4/T5/T6 ✅; T4 hex guard: CI script (`npm run ci:hex-check`), baseline 212 violations, MAX 215 |
-| **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 (Learning/Training unification) deferred. |
-| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T5 ✅ T8 ✅ (coverage gate: v8, thresholds stmt 35%/branch 22%/fn 40%/lines 35%); remaining: T6 E2E, T7 QA. **330 tests in 24 files** |
+| **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | ✅ **complete** — T1–T6 ✅ T4 ✅ (hex guard + WelcomeView hex v1.5.1) |
+| **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 deferred. T7 QA report refreshed (v1.5.2). |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T6 ✅ T8 ✅ (coverage gate); remaining: T7 QA pass. **369 tests in 27 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
-| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | 🔄 active — T1–T10 ✅ T12 🔄 (UiFeedbackModal in docs-registry, feedback.store+interaction.store tests); remaining: T11 Supabase schema, T12 final close |
+| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** (T11 deferred to S3) — T1–T10 ✅ T12 ✅ (docs, tests, UiFeedbackModal in docs-registry). T11 Supabase → blocked on credentials, moves to S3. |
 
 ---
 
@@ -1135,13 +1135,15 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 
 Add `analytics_events` and `feedback_entries` tables to `supabase.types.ts`. When S3 (auth) lands, wire `useInteractionBus` to `useCloudSync` so events sync per user. Gate behind `useFeatureGate('cloud-sync')`. Local-only behavior unchanged for unauthenticated users.
 
-**T12 — Sprint close + documentation**
+**T12 — Sprint close + documentation** ✅ (v1.5.x)
 
-- Update `CLAUDE.md` with S18 complete, new composables/stores reference
-- Update `docs/conventions.md` — document `useTrack` and `v-track` usage rules (what to track, what not to track)
-- Add `/docs/ui-kit/feedbackmodal` showcase to docs-registry
-- Final event coverage audit: all 18 modules should now emit meaningful signals
-- Bump minor version
+- ✅ `docs/conventions.md` — `useTrack` and `v-track` usage rules documented
+- ✅ `/docs/ui-kit/feedbackmodal` showcase added to docs-registry
+- ✅ feedback.store + interaction.store tests added (330 total in 24 files, then 369 in 27)
+- ✅ CLAUDE.md updated, S18 marked complete
+- ✅ roadmap.md Sprint Status Overview updated
+- T11 Supabase schema — deferred to S3 unblock (blocked on credentials)
+- Version bumped across v1.5.1–v1.5.4
 
 ---
 

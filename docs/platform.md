@@ -1,6 +1,6 @@
 # VibeOS — Platform Overview
 
-> Updated 2026-05-31. Reflects shipped state at v0.9.3.
+> Updated 2026-06-03. Reflects shipped state at v1.5.4.
 > ⚠️ **Keep this file current.** After every sprint or significant feature, update the version, state table, and module list in the same commit that ships the work. Stale docs break future AI sessions.
 
 
@@ -14,17 +14,18 @@ It also functions as a portfolio anchor: the "personal life OS" concept is more 
 
 | Field | Value |
 |-------|-------|
-| **Version** | 0.9.3 |
+| **Version** | 1.5.4 |
 | **Live URL** | https://mrnednick.github.io/VibeOS |
 | **GitHub** | https://github.com/MrNedNick/VibeOS |
 | **TypeScript** | ✅ Strict mode, 0 errors (enforced on every commit) |
-| **Tests** | ❌ Not yet (S7 — Vitest planned) |
+| **Tests** | ✅ 369 Vitest unit tests in 27 files + Playwright E2E smoke (5 scenarios) |
 | **Backend** | ⏸ Supabase code complete, awaiting user setup (see S3 status) |
 | **Storage** | ✅ localStorage-first, full offline operation |
-| **AI** | ✅ Free tier (Pollinations.ai, no key) + Claude API (user key) |
+| **AI** | ✅ Free tier (Pollinations.ai `openai-fast`, no key) + Claude API (user key) |
 | **Deployment** | ✅ GitHub Actions → GitHub Pages on every push to `main` |
-| **Design system** | ✅ S8 complete — unified @/ui components, tokens, skeletons, widget customization |
-| **Visual redesign** | ✅ S9 Phase 1–3 complete — Revolut/Linear aesthetic, shadow tokens, color-mix hovers |
+| **Design system** | ✅ S8+S17 complete — all modules on @/ui, ESLint enforcement |
+| **Visual redesign** | ✅ S9+S10 complete — Dark/Light/Brutalist/CRT Retro (4 paks) |
+| **Analytics** | ✅ S18 complete — interaction tracking, NPS feedback, Usage tab |
 
 ---
 
