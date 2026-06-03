@@ -1,47 +1,31 @@
 /**
- * useCloudSync — offline-first Supabase sync composable
+ * useCloudSync — Supabase-first sync via user_store JSONB table
  *
  * Strategy:
- *  - Primary source of truth: localStorage (via useStorage in each module store)
- *  - Cloud: Supabase (activated when VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY are set)
- *  - On login: pullAll() fetches all user rows and merges with local (latest updatedAt wins)
- *  - On mutation: pushRecord() upserts the changed row immediately
- *  - On delete: deleteRecord() removes the row from Supabase
+ *  - Primary source of truth: localStorage (optimistic, immediate UI)
+ *  - Cloud: user_store table — one row per localStorage key per user
+ *  - On login:   pullAll() fetches all user rows, merges (last-write-wins) into localStorage
+ *  - On mutation: useBackendSync debounces pushKey() → upserts to user_store
+ *  - Offline:    writes are queued; drainQueue() runs on reconnect
  *
- * When Supabase is not configured: all operations are no-ops — app works fully offline.
- *
- * Table ↔ localStorage key mapping:
- *   tasks            → platform:tasks
- *   habits           → platform:habits
- *   habit_logs       → platform:habits:logs
- *   goals            → platform:goals
- *   milestones       → platform:goals:milestones
- *   notes            → platform:notes
- *   learning_plans   → platform:learning:plans
- *   learning_sessions→ platform:learning:sessions
- *   training_plans   → platform:training:plans
- *   training_logs    → platform:training:logs
+ * When Supabase is not configured: all operations are no-ops.
  */
 
 import { ref, readonly } from 'vue'
 import { getSupabase, isSupabaseConfigured } from '@/core/services/supabase'
+import { storagGet, storageSet } from '@/core/utils/storage'
+import { useSyncBus } from './useSyncBus'
 
-// ── Types ─────────────────────────────────────────────────────────────────
+// ── Re-exported types (used by other modules) ──────────────────────────────
 export type SyncStatus = 'idle' | 'syncing' | 'error' | 'offline' | 'unconfigured'
 
-// Row expected by Supabase — must have at minimum: id, user_id, updated_at
 export type SyncRecord = Record<string, unknown> & {
   id: string
   user_id: string
   updated_at?: string
-  deletedAt?: number      // soft-delete tombstone (epoch ms)
+  deletedAt?: number
 }
 
-// ── Tombstone-aware merge ───────────────────────────────────────────────
-// A record's "effective" last-modified time is the latest of its update and
-// its deletion. So a delete (tombstone) competes with an edit on the same
-// timeline: whichever happened later wins. This makes deletes survive a merge
-// instead of silently reappearing because the row is just "missing" on one side.
 export interface MergeableRecord {
   id: string
   updated_at?: string
@@ -54,28 +38,17 @@ export function effectiveTs(r: MergeableRecord): number {
   return Math.max(updatedTs, deletedTs)
 }
 
-/**
- * Union local + remote by id. For each id, the record with the larger
- * effective timestamp wins (tombstone-aware). Local-only rows are kept.
- *
- *   delete > edit  → tombstone with a newer deletedAt beats an older edit (stays deleted)
- *   edit > delete  → an edit with a newer updated_at beats an older tombstone (resurrects)
- */
-export function mergeRecords<T extends MergeableRecord>(localItems: T[], remoteItems: T[]): T[] {
-  const map = new Map(localItems.map(i => [i.id, i]))
-  for (const remote of remoteItems) {
-    const local = map.get(remote.id)
-    if (!local || effectiveTs(remote) > effectiveTs(local)) {
-      map.set(remote.id, remote)
-    }
+export function mergeRecords<T extends MergeableRecord>(local: T[], remote: T[]): T[] {
+  const map = new Map(local.map(i => [i.id, i]))
+  for (const r of remote) {
+    const l = map.get(r.id)
+    if (!l || effectiveTs(r) > effectiveTs(l)) map.set(r.id, r)
   }
   return Array.from(map.values())
 }
 
-// ── Garbage collection ──────────────────────────────────────────────────
-// Storage keys holding arrays of tombstone-able records (the synced tables
-// plus finance expenses, which is local-only but still soft-deletes).
-export const TOMBSTONE_KEYS: string[] = [
+// ── Keys that are synced to user_store ────────────────────────────────────
+export const SYNC_KEYS: string[] = [
   'platform:task-manager:tasks',
   'platform:habits:habits',
   'platform:goals:goals',
@@ -84,97 +57,116 @@ export const TOMBSTONE_KEYS: string[] = [
   'platform:learning:sessions',
   'platform:training:plans',
   'platform:training:logs',
-  'platform:finance:expenses',
 ]
 
-/**
- * Physically drop tombstoned records older than `maxAgeDays`. Runs on app
- * start — keeps recent tombstones around long enough to win a merge, then
- * reclaims the space once every device has converged.
- */
+// Alias for backward compat (gcTombstones import in main.ts)
+export const TOMBSTONE_KEYS = SYNC_KEYS
+
 export function gcTombstones(maxAgeDays = 30): void {
   const cutoff = Date.now() - maxAgeDays * 86_400_000
-  for (const key of TOMBSTONE_KEYS) {
+  for (const key of SYNC_KEYS) {
     const raw = localStorage.getItem(key)
     if (!raw) continue
     try {
       const items = JSON.parse(raw) as MergeableRecord[]
       if (!Array.isArray(items)) continue
       const kept = items.filter(i => !i.deletedAt || i.deletedAt >= cutoff)
-      if (kept.length !== items.length) {
-        localStorage.setItem(key, JSON.stringify(kept))
-      }
-    } catch {
-      // malformed entry — leave it alone
-    }
+      if (kept.length !== items.length) localStorage.setItem(key, JSON.stringify(kept))
+    } catch { /* malformed — leave it */ }
   }
 }
 
-// ── Shared state (module-level, one instance across composable calls) ─────
+// ── Offline queue ─────────────────────────────────────────────────────────
+const QUEUE_KEY = 'platform:sync:queue'
+
+function _enqueue(key: string): void {
+  const q = storagGet<string[]>(QUEUE_KEY, [])
+  if (!q.includes(key)) { q.push(key); storageSet(QUEUE_KEY, q) }
+}
+
+function _dequeue(key: string): void {
+  storageSet(QUEUE_KEY, storagGet<string[]>(QUEUE_KEY, []).filter(k => k !== key))
+}
+
+// ── Shared reactive state ─────────────────────────────────────────────────
 const syncStatus = ref<SyncStatus>(isSupabaseConfigured ? 'idle' : 'unconfigured')
 const lastSyncAt = ref<string | null>(null)
 const syncError  = ref<string | null>(null)
 
-// ── Tables to pull on login ───────────────────────────────────────────────
-const PULL_TABLES: Array<{ table: string; storageKey: string }> = [
-  { table: 'tasks',             storageKey: 'platform:task-manager:tasks' },
-  { table: 'habits',            storageKey: 'platform:habits:habits' },
-  { table: 'habit_logs',        storageKey: 'platform:habits:logs' },
-  { table: 'goals',             storageKey: 'platform:goals:goals' },
-  { table: 'milestones',        storageKey: 'platform:goals:milestones' },
-  { table: 'notes',             storageKey: 'platform:notes:notes' },
-  { table: 'learning_plans',    storageKey: 'platform:learning:plans' },
-  { table: 'learning_sessions', storageKey: 'platform:learning:sessions' },
-  { table: 'training_plans',    storageKey: 'platform:training:plans' },
-  { table: 'training_logs',     storageKey: 'platform:training:logs' },
-]
-
-// ── Public composable ─────────────────────────────────────────────────────
+// ── Composable ────────────────────────────────────────────────────────────
 export function useCloudSync() {
 
-  /**
-   * Merge strategy: union local + remote by id, tombstone-aware latest-wins.
-   * See module-level `mergeRecords`.
-   */
-  function _merge<T extends MergeableRecord>(localItems: T[], remoteItems: T[]): T[] {
-    return mergeRecords(localItems, remoteItems)
+  async function pushKey(key: string, data: unknown): Promise<void> {
+    if (!isSupabaseConfigured) return
+    if (!navigator.onLine) { _enqueue(key); return }
+
+    try {
+      const sb = getSupabase()
+      const { data: { user } } = await sb.auth.getUser()
+      if (!user) { _enqueue(key); return }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (sb.from('user_store') as any).upsert(
+        { user_id: user.id, key, value: data },
+        { onConflict: 'user_id,key' },
+      )
+      if (error) { console.warn(`[sync] push failed ${key}:`, error.message); _enqueue(key) }
+      else _dequeue(key)
+    } catch { _enqueue(key) }
   }
 
-  /**
-   * Pull all user data from Supabase and merge with localStorage.
-   * Called after login. No-op when not configured.
-   */
+  async function drainQueue(): Promise<void> {
+    if (!isSupabaseConfigured || !navigator.onLine) return
+    const queue = storagGet<string[]>(QUEUE_KEY, [])
+    if (!queue.length) return
+
+    const sb = getSupabase()
+    const { data: { user } } = await sb.auth.getUser()
+    if (!user) return
+
+    for (const key of [...queue]) {
+      const value = storagGet<unknown>(key, null)
+      if (value === null) { _dequeue(key); continue }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (sb.from('user_store') as any).upsert(
+        { user_id: user.id, key, value },
+        { onConflict: 'user_id,key' },
+      )
+      if (!error) _dequeue(key)
+    }
+  }
+
   async function pullAll(): Promise<void> {
     if (!isSupabaseConfigured) return
-
     syncStatus.value = 'syncing'
     syncError.value  = null
 
     try {
       const sb = getSupabase()
+      const { data: { user } } = await sb.auth.getUser()
+      if (!user) { syncStatus.value = 'idle'; return }
 
-      for (const { table, storageKey } of PULL_TABLES) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (sb.from(table) as any)
-          .select('*')
-          .order('updated_at', { ascending: false })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (sb.from('user_store') as any)
+        .select('key, value')
+        .eq('user_id', user.id)
 
-        if (error) {
-          console.warn(`[sync] pull failed for ${table}:`, (error as { message: string }).message)
-          continue
+      if (error) throw error
+
+      if (data?.length) {
+        for (const row of data as { key: string; value: unknown }[]) {
+          if (!SYNC_KEYS.includes(row.key)) continue
+          const local  = storagGet<MergeableRecord[]>(row.key, [])
+          const remote = Array.isArray(row.value) ? (row.value as MergeableRecord[]) : []
+          if (remote.length) storageSet(row.key, mergeRecords(local, remote))
         }
-
-        if (!data?.length) continue
-
-        // Merge with existing local data
-        const rawLocal = localStorage.getItem(storageKey)
-        const localItems: SyncRecord[] = rawLocal ? JSON.parse(rawLocal) : []
-        const merged = _merge(localItems, data as SyncRecord[])
-        localStorage.setItem(storageKey, JSON.stringify(merged))
       }
 
       lastSyncAt.value = new Date().toISOString()
       syncStatus.value = 'idle'
+      useSyncBus().notifyPulled()
+      await drainQueue()
     } catch (err) {
       syncError.value  = err instanceof Error ? err.message : String(err)
       syncStatus.value = 'error'
@@ -182,81 +174,25 @@ export function useCloudSync() {
     }
   }
 
-  /**
-   * Upsert a single record to Supabase.
-   * Called after every local mutation. No-op when not configured.
-   */
-  async function pushRecord(
-    table: string,
-    record: SyncRecord,
-  ): Promise<void> {
-    if (!isSupabaseConfigured) return
-
-    try {
-      const sb = getSupabase()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (sb.from(table) as any).upsert(record, { onConflict: 'id' })
-
-      if (error) {
-        console.warn(`[sync] push failed for ${table}/${record.id}:`, (error as { message: string }).message)
-      }
-    } catch (err) {
-      console.warn('[sync] pushRecord error:', err)
-    }
-  }
-
-  /**
-   * Delete a record from Supabase.
-   * No-op when not configured.
-   */
-  async function deleteRecord(
-    table: string,
-    id: string,
-  ): Promise<void> {
-    if (!isSupabaseConfigured) return
-
-    try {
-      const sb = getSupabase()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (sb.from(table) as any).delete().eq('id', id)
-
-      if (error) {
-        console.warn(`[sync] delete failed for ${table}/${id}:`, (error as { message: string }).message)
-      }
-    } catch (err) {
-      console.warn('[sync] deleteRecord error:', err)
-    }
-  }
-
-  /**
-   * Push all local data to Supabase (first-time sync after connecting).
-   * Iterates every table's localStorage and upserts all rows.
-   */
   async function pushAll(userId: string): Promise<void> {
     if (!isSupabaseConfigured) return
-
     syncStatus.value = 'syncing'
     syncError.value  = null
 
     try {
       const sb = getSupabase()
+      const rows = SYNC_KEYS
+        .map(key => {
+          const value = storagGet<unknown>(key, null)
+          return value !== null ? { user_id: userId, key, value } : null
+        })
+        .filter(Boolean)
 
-      for (const { table, storageKey } of PULL_TABLES) {
-        const rawLocal = localStorage.getItem(storageKey)
-        if (!rawLocal) continue
-
-        const items: SyncRecord[] = JSON.parse(rawLocal)
-        if (!items.length) continue
-
-        // Stamp user_id on every row (in case it wasn't set locally)
-        const stamped = items.map(i => ({ ...i, user_id: userId }))
-
+      if (rows.length) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (sb.from(table) as any).upsert(stamped, { onConflict: 'id' })
-
-        if (error) {
-          console.warn(`[sync] pushAll failed for ${table}:`, (error as { message: string }).message)
-        }
+        const { error } = await (sb.from('user_store') as any)
+          .upsert(rows, { onConflict: 'user_id,key' })
+        if (error) throw error
       }
 
       lastSyncAt.value = new Date().toISOString()
@@ -268,6 +204,10 @@ export function useCloudSync() {
     }
   }
 
+  // Backward-compat stubs — stores now go through useBackendSync + pushKey
+  async function pushRecord(_table: string, _record: SyncRecord): Promise<void> {}
+  async function deleteRecord(_table: string, _id: string): Promise<void> {}
+
   return {
     isConfigured: isSupabaseConfigured,
     syncStatus: readonly(syncStatus),
@@ -275,7 +215,9 @@ export function useCloudSync() {
     syncError:   readonly(syncError),
     pullAll,
     pushAll,
+    pushKey,
     pushRecord,
     deleteRecord,
+    drainQueue,
   }
 }

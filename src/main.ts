@@ -4,13 +4,16 @@ import App from './App.vue'
 import router from './router'
 import { useUiStore } from './core/stores/ui.store'
 import { useAuthStore } from './core/stores/auth.store'
-import { gcTombstones } from './core/composables/useCloudSync'
+import { gcTombstones, useCloudSync } from './core/composables/useCloudSync'
 import { createNavigationTracker } from './core/plugins/navigationTracker'
 import { registerTrackDirective } from './core/directives/vTrack'
 import './assets/styles/main.css'
 
 // Reclaim space from soft-deleted records older than the merge window (S14 T3).
 gcTombstones()
+
+// Drain offline write queue when network reconnects.
+window.addEventListener('online', () => useCloudSync().drainQueue())
 
 const app = createApp(App)
 app.use(createPinia())

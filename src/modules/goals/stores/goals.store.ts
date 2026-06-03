@@ -1,16 +1,30 @@
 import { defineStore } from 'pinia'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
-import { storageKey } from '@/core/utils/storage'
+import { storageKey, storagGet } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
 import { useFeatureGate } from '@/core/composables/useFeatureGate'
+import { useBackendSync } from '@/core/composables/useBackendSync'
+import { useSyncBus } from '@/core/composables/useSyncBus'
+import { isSupabaseConfigured } from '@/core/services/supabase'
 import type { Goal, GoalMilestone } from '../types'
 import { calcProgress } from '../types'
 
+const GOALS_KEY = storageKey('goals', 'goals')
+
 export const useGoalsStore = defineStore('goals:goals', () => {
-  const { all: allGoals, items: goals, softDelete } = useSoftDeletable<Goal>(storageKey('goals', 'goals'))
+  const { all: allGoals, items: goals, softDelete } = useSoftDeletable<Goal>(GOALS_KEY)
   const events = useEventBus()
   const gate = useFeatureGate()
+
+  const initialized = ref(!isSupabaseConfigured || allGoals.value.length > 0)
+  const syncBus = useSyncBus()
+  watch(syncBus.pullSeq, () => {
+    allGoals.value = storagGet<Goal[]>(GOALS_KEY, [])
+    initialized.value = true
+  })
+  const backendSync = useBackendSync(GOALS_KEY)
+  watch(allGoals, v => backendSync.push(v), { deep: true })
 
   const activeGoals = computed(() =>
     goals.value
@@ -102,7 +116,7 @@ export const useGoalsStore = defineStore('goals:goals', () => {
   }
 
   return {
-    goals, activeGoals, completedGoals,
+    goals, initialized, activeGoals, completedGoals,
     createGoal, deleteGoal, completeGoal, updateNotes,
     addMilestone, toggleMilestone, deleteMilestone,
     getGoalById, getProgress,

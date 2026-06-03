@@ -8,7 +8,7 @@ import TaskProgress from '../components/TaskProgress.vue'
 import PomodoroPanel from '../components/PomodoroPanel.vue'
 import HabitHeatmap from '@/modules/habits/components/HabitHeatmap.vue'
 import { useLocale } from '@/core/i18n'
-import { UiButton, UiSectionLabel, UiFilterChips, UiIconButton, UiSelect, UiFab } from '@/ui'
+import { UiButton, UiSectionLabel, UiFilterChips, UiIconButton, UiSelect, UiFab, UiSkeleton } from '@/ui'
 import type { FilterChipOption, SelectOption } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useAiInsight } from '@/core/composables/useAiInsight'
@@ -254,8 +254,14 @@ function focusTaskInput() {
       </template>
     </div>
 
+    <!-- Skeleton: first load while Supabase pull is in progress -->
+    <div v-if="!store.initialized" class="tm-view__skeleton">
+      <UiSkeleton v-for="n in 4" :key="n" height="48px" rounded="md" style="margin-bottom: 6px" />
+    </div>
+
     <!-- List -->
     <TaskList
+      v-else
       :tasks="store.filteredTasks"
       :focused-id="focusedId"
       @toggle="store.toggleTask"

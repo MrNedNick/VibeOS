@@ -1,16 +1,28 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
-import { storageKey } from '@/core/utils/storage'
+import { storageKey, storagGet } from '@/core/utils/storage'
 import { generateId } from '@/core/utils/id'
 import { useEventBus } from '@/core/events'
 import { useFeatureGate } from '@/core/composables/useFeatureGate'
+import { useBackendSync } from '@/core/composables/useBackendSync'
+import { useSyncBus } from '@/core/composables/useSyncBus'
+import { isSupabaseConfigured } from '@/core/services/supabase'
 import type { Task, TaskFilter, TaskPriority, TaskCategory } from '../types'
 
 const STORAGE_KEY = storageKey('task-manager', 'tasks')
 
 export const useTasksStore = defineStore('task-manager:tasks', () => {
   const { all: allTasks, items: tasks, softDelete } = useSoftDeletable<Task>(STORAGE_KEY)
+
+  const initialized = ref(!isSupabaseConfigured || allTasks.value.length > 0)
+  const syncBus = useSyncBus()
+  watch(syncBus.pullSeq, () => {
+    allTasks.value = storagGet<Task[]>(STORAGE_KEY, [])
+    initialized.value = true
+  })
+  const backendSync = useBackendSync(STORAGE_KEY)
+  watch(allTasks, v => backendSync.push(v), { deep: true })
   const filter = ref<TaskFilter>('all')
   const categoryFilter = ref<TaskCategory | 'all'>('all')
   const events = useEventBus()
@@ -103,6 +115,7 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
 
   return {
     tasks,
+    initialized,
     filter,
     categoryFilter,
     filteredTasks,

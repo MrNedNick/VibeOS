@@ -8,7 +8,7 @@ import HabitCard from '../components/HabitCard.vue'
 import HabitEmojiPicker from '../components/HabitEmojiPicker.vue'
 import { HABIT_CATEGORIES, HABIT_CATEGORY_META, computeStreak, computeBestStreak, todayStr } from '../types'
 import type { HabitCategory } from '../types'
-import { UiButton, UiIconButton, UiSelect, UiProgressBar, UiFab } from '@/ui'
+import { UiButton, UiIconButton, UiSelect, UiProgressBar, UiFab, UiSkeleton } from '@/ui'
 import type { SelectOption } from '@/ui'
 import { useToast } from '@/core/composables/useToast'
 
@@ -343,8 +343,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       </button>
     </div>
 
+    <!-- Skeleton: first load while Supabase pull is in progress -->
+    <div v-if="!store.initialized" class="habits__skeleton">
+      <UiSkeleton v-for="n in 3" :key="n" height="80px" rounded="md" style="margin-bottom: 8px" />
+    </div>
+
     <!-- Habit cards -->
-    <div v-if="filteredHabits.length > 0" class="habits__grid">
+    <div v-else-if="filteredHabits.length > 0" class="habits__grid">
       <div
         v-for="habit in filteredHabits"
         :key="habit.id"
@@ -372,7 +377,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="!showForm" class="habits__empty">
+    <div v-else-if="!showForm && store.initialized" class="habits__empty">
       <div class="habits__empty-icon">📋</div>
       <p class="habits__empty-title">{{ i18n.t('habits.emptyTitle') }}</p>
       <p class="habits__empty-sub">{{ i18n.t('habits.emptySub') }}</p>

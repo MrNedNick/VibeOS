@@ -16,6 +16,8 @@ import { computed, ref } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { getSupabase, isSupabaseConfigured } from '@/core/services/supabase'
 import { useCloudSync } from '@/core/composables/useCloudSync'
+import { useRealtimeSync } from '@/core/composables/useRealtimeSync'
+import { useUiStore } from '@/core/stores/ui.store'
 import { seedDemoData } from '@/core/utils/demoSeed'
 
 // Resolves when init() finishes — router guard awaits this before checking isLoggedIn
@@ -102,8 +104,10 @@ export const useAuthStore = defineStore('core:auth', () => {
             provider: 'supabase',
             tier: (data.user.user_metadata?.tier as AuthUser['tier']) ?? 'free',
           })
-          // Pull cloud data → merge into localStorage so stores get fresh data on next init
+          // Pull cloud data → merge into localStorage, notify stores via syncBus
           await useCloudSync().pullAll()
+          useRealtimeSync().subscribe(data.user.id)
+          useUiStore().syncSettingsFromCloud()
         }
         return { error: null }
       } catch (err) {
@@ -167,6 +171,7 @@ export const useAuthStore = defineStore('core:auth', () => {
 
   // ── Logout ────────────────────────────────────────────────────────────────
   async function logout(): Promise<void> {
+    useRealtimeSync().unsubscribe()
     if (isSupabaseConfigured && _state.value.user?.provider === 'supabase') {
       try {
         const sb = getSupabase()
@@ -256,6 +261,9 @@ export const useAuthStore = defineStore('core:auth', () => {
             provider: 'supabase',
             tier: (session.user.user_metadata?.tier as AuthUser['tier']) ?? 'free',
           })
+          // Background pull to catch any changes from other devices; subscribe real-time
+          useCloudSync().pullAll().catch(console.warn)
+          useRealtimeSync().subscribe(session.user.id)
         } else {
           // No valid Supabase session — clear stale local state if it was supabase
           if (_state.value.user?.provider === 'supabase') {

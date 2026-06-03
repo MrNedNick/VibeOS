@@ -1,14 +1,28 @@
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
-import { storageKey } from '@/core/utils/storage'
+import { storageKey, storagGet } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
+import { useBackendSync } from '@/core/composables/useBackendSync'
+import { useSyncBus } from '@/core/composables/useSyncBus'
+import { isSupabaseConfigured } from '@/core/services/supabase'
 import { deriveTitle } from '../types'
 import type { Note, NoteType } from '../types'
 
+const NOTES_KEY = storageKey('notes', 'notes')
+
 export const useNotesStore = defineStore('notes:notes', () => {
-  const { all: allNotes, items: notes, softDelete } = useSoftDeletable<Note>(storageKey('notes', 'notes'))
+  const { all: allNotes, items: notes, softDelete } = useSoftDeletable<Note>(NOTES_KEY)
   const events = useEventBus()
+
+  const initialized = ref(!isSupabaseConfigured || allNotes.value.length > 0)
+  const syncBus = useSyncBus()
+  watch(syncBus.pullSeq, () => {
+    allNotes.value = storagGet<Note[]>(NOTES_KEY, [])
+    initialized.value = true
+  })
+  const backendSync = useBackendSync(NOTES_KEY)
+  watch(allNotes, v => backendSync.push(v), { deep: true })
 
   const sortedNotes = computed(() =>
     [...notes.value].sort((a, b) => {
@@ -93,5 +107,5 @@ export const useNotesStore = defineStore('notes:notes', () => {
     return notes.value.filter(n => n.linkedGoalId === goalId)
   }
 
-  return { notes, sortedNotes, createNote, openOrCreateToday, updateContent, deleteNote, togglePin, setNoteType, setNoteGoal, getNotesForGoal }
+  return { notes, initialized, sortedNotes, createNote, openOrCreateToday, updateContent, deleteNote, togglePin, setNoteType, setNoteGoal, getNotesForGoal }
 })
