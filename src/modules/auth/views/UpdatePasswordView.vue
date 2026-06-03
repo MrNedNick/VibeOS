@@ -3,9 +3,11 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon, UiButton, UiInput } from '@/ui'
+import { useToast } from '@/core/composables/useToast'
 
 const router = useRouter()
 const auth   = useAuthStore()
+const toast  = useToast()
 
 const APP_VERSION = __APP_VERSION__
 
@@ -35,6 +37,7 @@ async function submit() {
     serverError.value = result.error
   } else {
     success.value = true
+    toast.success('Password updated successfully!')
     setTimeout(() => router.replace('/'), 2000)
   }
 }

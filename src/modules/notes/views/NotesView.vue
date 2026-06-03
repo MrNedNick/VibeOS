@@ -11,6 +11,7 @@ import NotePreview from '../components/NotePreview.vue'
 import { UiIcon, UiButton, UiIconButton, UiFab } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { useAiInsight } from '@/core/composables/useAiInsight'
+import { useToast } from '@/core/composables/useToast'
 
 const {
   selectedId, mode, searchQuery, typeFilter,
@@ -19,6 +20,7 @@ const {
 } = useNotes()
 
 const { confirm } = useConfirm()
+const toast = useToast()
 
 async function deleteNote(id: string) {
   const ok = await confirm({
@@ -27,7 +29,10 @@ async function deleteNote(id: string) {
     danger:       true,
     confirmLabel: 'Delete note',
   })
-  if (ok) _deleteNote(id)
+  if (ok) {
+    _deleteNote(id)
+    toast.info('Note deleted')
+  }
 }
 
 const notesStore = useNotesStore()

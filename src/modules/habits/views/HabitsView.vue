@@ -10,6 +10,7 @@ import { HABIT_CATEGORIES, HABIT_CATEGORY_META, computeStreak, computeBestStreak
 import type { HabitCategory } from '../types'
 import { UiButton, UiIconButton, UiSelect, UiProgressBar, UiFab } from '@/ui'
 import type { SelectOption } from '@/ui'
+import { useToast } from '@/core/composables/useToast'
 
 const HABIT_TEMPLATES: { name: string; emoji: string; purpose: string; category: HabitCategory }[] = [
   { name: 'Exercise', emoji: '💪', purpose: 'Stay active and energized', category: 'health' },
@@ -22,6 +23,7 @@ const HABIT_TEMPLATES: { name: string; emoji: string; purpose: string; category:
 const store = useHabitsStore()
 const goalsStore = useGoalsStore()
 const i18n = useLocale()
+const toast = useToast()
 
 // ── Creation form ─────────────────────────────────────────────────────
 const showForm    = ref(false)
@@ -164,7 +166,14 @@ function submitForm() {
     const created = store.habits[store.habits.length - 1]
     if (created) store.updateHabitLink(created.id, { linkedGoalId: newGoalId.value })
   }
+  toast.success(`Habit "${newName.value}" created!`)
   showForm.value = false
+}
+
+function onDeleteHabit(id: string) {
+  const h = store.habits.find(x => x.id === id)
+  store.deleteHabit(id)
+  if (h) toast.info(`"${h.name}" removed`)
 }
 
 function cancelForm() { showForm.value = false }
@@ -356,7 +365,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           :done-today="store.isCompletedToday(habit.id)"
           class="habits__card-inner"
           @toggle="store.toggleToday"
-          @delete="store.deleteHabit"
+          @delete="onDeleteHabit"
           @update="store.updateHabit"
         />
       </div>

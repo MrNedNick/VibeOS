@@ -5,10 +5,12 @@ import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon, UiButton, UiInput } from '@/ui'
 import { useTrack } from '@/core/composables/useTrack'
 import { useFormValidation, required, email as emailValidator, minLength } from '@/core/composables/useFormValidation'
+import { useToast } from '@/core/composables/useToast'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { track } = useTrack()
+const toast = useToast()
 
 const APP_VERSION = __APP_VERSION__
 
@@ -71,6 +73,7 @@ async function submit() {
       serverError.value = result.error
     }
   } else {
+    toast.success('Welcome back!')
     reset()
     router.replace('/')
   }
@@ -90,6 +93,7 @@ async function sendReset() {
     resetError.value = result.error
   } else {
     resetSent.value = true
+    toast.success('Reset email sent! Check your inbox.')
   }
 }
 

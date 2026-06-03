@@ -30,3 +30,8 @@ export { default as UiFeedbackModal } from './components/UiFeedbackModal.vue'
 
 // ── S22 — UX Action Prominence ───────────────────────────────────────────
 export { default as UiFab } from './components/UiFab.vue'
+
+// ── S24 — Toast system ───────────────────────────────────────────────────
+export { default as UiToastContainer } from './components/UiToastContainer.vue'
+export { useToast } from '@/core/composables/useToast'
+export type { Toast, ToastType } from '@/core/composables/useToast'

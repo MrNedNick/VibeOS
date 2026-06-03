@@ -4,9 +4,11 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon, UiButton, UiInput } from '@/ui'
 import { useFormValidation, required, email as emailValidator, minLength, mustMatch } from '@/core/composables/useFormValidation'
+import { useToast } from '@/core/composables/useToast'
 
 const router = useRouter()
 const auth = useAuthStore()
+const toast = useToast()
 
 const APP_VERSION = __APP_VERSION__
 
@@ -75,11 +77,13 @@ async function submit() {
       serverError.value = result.error
     }
   } else if (auth.isLoggedIn) {
+    toast.success('Account created! Welcome to VibeOS.')
     reset()
     router.replace('/')
   } else {
     // Email confirmation required — show "check your email"
     confirmationPending.value = true
+    toast.info('Check your email to confirm your account.')
   }
 }
 

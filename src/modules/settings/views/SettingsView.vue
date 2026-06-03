@@ -14,11 +14,13 @@ import { useFeedback } from '@/core/composables/useFeedback'
 import { useFeedbackStore } from '@/core/stores/feedback.store'
 import { useInteractionBus } from '@/core/stores/interaction.store'
 import { useHabitNotifications } from '@/core/composables/useHabitNotifications'
+import { useToast } from '@/core/composables/useToast'
 import UiIcon from '@/ui/components/UiIcon.vue'
 
 const router  = useRouter()
 const uiStore = useUiStore()
 const auth    = useAuthStore()
+const toast   = useToast()
 const i18n    = useLocale()
 const { track } = useTrack()
 const feedback      = useFeedback()
@@ -62,6 +64,7 @@ async function saveName() {
   const result = await auth.updateDisplayName(trimmed)
   nameSaving.value = false
   if (result.error) { nameError.value = result.error; return }
+  toast.success('Display name updated!')
   editingName.value = false
 }
 
@@ -94,6 +97,7 @@ async function savePassword() {
   }
   const result = await auth.updatePassword(newPassword.value)
   if (result.error) { passwordError.value = result.error; return }
+  toast.success('Password updated!')
   passwordSuccess.value = true
   newPassword.value     = ''
   confirmPassword.value = ''
@@ -109,7 +113,8 @@ const canSavePassword = computed(() =>
 
 async function handleLogout() {
   await auth.logout()
-  router.replace('/welcome')
+  toast.info('You\'ve been signed out.')
+  router.replace('/welcome').catch(() => {})
 }
 
 function goRegister() {

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { UiConfirmDialog } from '@/ui'
+import { UiConfirmDialog, UiToastContainer } from '@/ui'
 </script>
 
 <template>
   <router-view />
-  <!-- Global confirm dialog — singleton, mounted once here -->
+  <!-- Global singletons — always present regardless of route -->
   <UiConfirmDialog />
+  <UiToastContainer />
 </template>
