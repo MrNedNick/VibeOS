@@ -650,7 +650,10 @@ onMounted(() => {
 
 /* ── Responsive — mobile: stack ─────────────────────────────── */
 @media (max-width: 767px) {
-  .calendar { gap: 14px; }
+  .calendar { gap: 10px; padding: 12px; }
+
+  .calendar__topbar { gap: 8px; }
+  .calendar__nav { gap: 8px; }
 
   .calendar__panels {
     flex-direction: column;
@@ -664,19 +667,22 @@ onMounted(() => {
 
   .calendar__detail {
     width: 100%;
-    max-height: 360px;
+    max-height: none; /* allow natural flow instead of fixed height */
+    overflow-y: visible;
   }
 
-  .calendar__month { font-size: 1rem; min-width: 130px; }
+  .calendar__month { font-size: 0.9375rem; min-width: 110px; }
+  .cal-btn { padding: 5px 10px; font-size: 0.75rem; }
+  .cal-btn--icon { padding: 5px 7px; }
 
   .cal-cell {
-    min-height: 44px;
-    padding: 5px 2px 3px;
+    min-height: 40px;
+    padding: 4px 2px 2px;
     aspect-ratio: auto;
   }
-  .cal-cell__day { font-size: 0.75rem; width: 22px; height: 22px; }
-  .cal-cell--today .cal-cell__day { width: 22px; height: 22px; }
+  .cal-cell__day { font-size: 0.75rem; width: 20px; height: 20px; }
+  .cal-cell--today .cal-cell__day { width: 20px; height: 20px; }
   .cal-dot { width: 4px; height: 4px; }
-  .cal-legend { gap: 10px; padding: 8px 12px; }
+  .cal-legend { gap: 8px; padding: 6px 10px; flex-wrap: wrap; }
 }
 </style>
