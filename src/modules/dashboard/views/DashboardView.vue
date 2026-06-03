@@ -62,6 +62,16 @@ const bestHabitStreak = computed(() => {
   return Math.max(...habitsStore.habits.map(h => computeStreak(h.completedDates)))
 })
 
+// ── Habit of the day spotlight ──────────────────────────────────
+const todayStr = computed(() => new Date().toISOString().split('T')[0])
+const spotlightHabit = computed(() => {
+  const unchecked = habitsStore.habits.filter(h => !h.completedDates.includes(todayStr.value))
+  if (!unchecked.length) return null
+  // Deterministic random per day (not truly random — avoids flicker)
+  const seed = new Date().getDate()
+  return unchecked[seed % unchecked.length]
+})
+
 const today = computed(() =>
   new Date().toLocaleDateString(i18n.localeCode, {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -199,6 +209,23 @@ const APP_VERSION = __APP_VERSION__
         <span v-if="trainingStore.todayItems.some(i => i.logged)" class="life-stat__done">{{ trainingStore.todayItems.filter(i => i.logged).length }} {{ i18n.t('dashboard.doneSuffix') }}</span>
       </div>
     </div>
+
+    <!-- Habit of the day spotlight ──────────────────────────────── -->
+    <Transition name="panel">
+      <div
+        v-if="spotlightHabit"
+        class="habit-spotlight"
+        @click="habitsStore.toggleToday(spotlightHabit!.id)"
+      >
+        <span class="habit-spotlight__emoji">{{ spotlightHabit.emoji }}</span>
+        <div class="habit-spotlight__info">
+          <span class="habit-spotlight__eyebrow">Habit of the day</span>
+          <span class="habit-spotlight__name">{{ spotlightHabit.name }}</span>
+          <span v-if="spotlightHabit.purpose" class="habit-spotlight__purpose">{{ spotlightHabit.purpose }}</span>
+        </div>
+        <span class="habit-spotlight__cta">Check off →</span>
+      </div>
+    </Transition>
 
     <!-- Widgets section ──────────────────────────────────────────────── -->
     <div class="dashboard__widgets-section">
@@ -533,6 +560,67 @@ const APP_VERSION = __APP_VERSION__
   border-radius: 0 99px 99px 0;
   transition: width 0.4s ease;
 }
+
+/* Habit of the day spotlight */
+.habit-spotlight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.habit-spotlight:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-1);
+}
+.habit-spotlight__emoji {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.habit-spotlight__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.habit-spotlight__eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+}
+.habit-spotlight__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.habit-spotlight__purpose {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.habit-spotlight__cta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+  opacity: 0.8;
+  transition: opacity var(--t-fast);
+}
+.habit-spotlight:hover .habit-spotlight__cta { opacity: 1; }
 
 /* Widgets section wrapper */
 .dashboard__widgets-section {

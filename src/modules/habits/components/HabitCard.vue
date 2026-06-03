@@ -638,11 +638,12 @@ const habitsStore = useHabitsStore()
   background: var(--color-accent-muted);
 }
 
-/* Mobile: always show delete on touch */
+/* Mobile: always show delete on touch + bump check target to 48px */
 @media (max-width: 767px) {
   .habit-card__delete   { opacity: 0.5; }
   .habit-card__past-btn { opacity: 0.6; }
   .habit-card__heatmap  { padding: 0 16px 14px; }
+  .habit-card__toggle   { width: 48px; height: 48px; }
 }
 
 @media (min-width: 900px) {
