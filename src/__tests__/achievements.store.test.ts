@@ -5,7 +5,8 @@ import { useEventBus } from '@/core/events'
 import type { PlatformEvent } from '@/core/events/types'
 
 function makeEvent(type: PlatformEvent['type']): PlatformEvent {
-  return { type, timestamp: Date.now() } as PlatformEvent
+  // Cast through unknown — tests only need the `type` field for condition checks
+  return { type, timestamp: new Date().toISOString() } as unknown as PlatformEvent
 }
 
 beforeEach(() => {
