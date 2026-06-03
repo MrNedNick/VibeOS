@@ -271,7 +271,12 @@ onMounted(() => store.fetchRates())
 }
 
 @media (max-width: 767px) {
-  .finance__header { gap: 10px; }
-  .finance__header-stats { gap: 10px; }
+  .finance { height: auto; overflow: visible; }
+  .finance__header { flex-direction: column; align-items: flex-start; gap: 10px; padding-bottom: 14px; }
+  .finance__title-group { width: 100%; flex-direction: row; align-items: center; justify-content: space-between; }
+  .finance__title { font-size: 22px; }
+  .finance__header-stats { width: 100%; justify-content: space-between; gap: 8px; }
+  .finance__header-stat-value { font-size: 17px; }
+  .finance__tabs { overflow-x: auto; white-space: nowrap; }
 }
 </style>
