@@ -41,6 +41,10 @@ const isFree    = computed(() => store.provider === 'free')
             Claude API
           </button>
         </div>
+        <UiButton variant="ghost" size="sm" :disabled="!store.messages.length" title="Export conversation as markdown" @click="store.exportConversation()">
+          <UiIcon name="Download" :size="14" />
+          Export
+        </UiButton>
         <UiButton variant="ghost" size="sm" :disabled="!store.messages.length" title="Start a new conversation" @click="store.newConversation()">
           <UiIcon name="SquarePen" :size="14" />
           New chat

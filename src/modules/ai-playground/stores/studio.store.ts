@@ -255,10 +255,27 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
     savedConversations.value = []
   }
 
+  function exportConversation(): void {
+    if (!messages.value.length) return
+    const lines: string[] = [`# Studio Conversation\n_Exported ${new Date().toLocaleString()}_\n`]
+    for (const m of messages.value) {
+      if (m.error) continue
+      const role = m.role === 'user' ? '**You**' : '**AI**'
+      lines.push(`## ${role}\n\n${m.content}\n`)
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown' })
+    const a    = document.createElement('a')
+    a.href     = URL.createObjectURL(blob)
+    a.download = `studio-${new Date().toISOString().slice(0, 10)}.md`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
   return {
     apiKey, model, freeModel, provider, system, includeContext,
     messages, loading, error,
     savedConversations,
     sendMessage, newConversation, loadConversation, deleteConversation, clearHistory,
+    exportConversation,
   }
 })
