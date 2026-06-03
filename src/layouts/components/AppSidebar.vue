@@ -15,9 +15,9 @@ const auth = useAuthStore()
 const i18n = useLocale()
 const { isVisible } = useModuleVisibility()
 
-function logout() {
-  auth.logout()
-  router.push('/welcome')
+async function logout() {
+  await auth.logout()
+  router.replace('/welcome')
 }
 
 // System modules are always shown; life/work respect user visibility prefs

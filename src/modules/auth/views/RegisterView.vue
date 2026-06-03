@@ -17,6 +17,8 @@ const error       = ref<string | null>(null)
 
 // "Check your email" state (when Supabase email confirmation is enabled)
 const confirmationPending = ref(false)
+const showPassword = ref(false)
+const showConfirm  = ref(false)
 
 const canSubmit = computed(() =>
   email.value.trim().length > 0 &&
@@ -50,7 +52,7 @@ async function submit() {
     error.value = result.error
   } else if (auth.isLoggedIn) {
     // Email confirmation disabled — full reload so stores reinitialize from synced localStorage
-    window.location.href = '/'
+    window.location.replace(import.meta.env.BASE_URL)
   } else {
     // Email confirmation required — show "check your email"
     confirmationPending.value = true
@@ -73,7 +75,7 @@ function onKeydown(e: KeyboardEvent) {
       <!-- Logo -->
       <div class="auth-logo" @click="router.push('/welcome')">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="#4f8ef7" />
+          <rect width="32" height="32" rx="8" fill="var(--color-accent)" />
           <path d="M10 23L14 9" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
           <path d="M18 23L22 9" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
         </svg>
@@ -133,23 +135,43 @@ function onKeydown(e: KeyboardEvent) {
           </div>
           <div class="auth-field">
             <label class="auth-label">Password <span class="auth-optional">(min. 8 chars)</span></label>
-            <UiInput
-              v-model="password"
-              type="password"
-              placeholder="Create a strong password"
-              autocomplete="new-password"
-              :disabled="auth.loading"
-            />
+            <div class="auth-input-wrap">
+              <UiInput
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="Create a strong password"
+                autocomplete="new-password"
+                :disabled="auth.loading"
+              />
+              <button
+                type="button"
+                class="auth-eye-btn"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                @click="showPassword = !showPassword"
+              >
+                <UiIcon :name="showPassword ? 'EyeOff' : 'Eye'" :size="15" />
+              </button>
+            </div>
           </div>
           <div class="auth-field">
             <label class="auth-label">Confirm password</label>
-            <UiInput
-              v-model="confirm"
-              type="password"
-              placeholder="Repeat password"
-              autocomplete="new-password"
-              :disabled="auth.loading"
-            />
+            <div class="auth-input-wrap">
+              <UiInput
+                v-model="confirm"
+                :type="showConfirm ? 'text' : 'password'"
+                placeholder="Repeat password"
+                autocomplete="new-password"
+                :disabled="auth.loading"
+              />
+              <button
+                type="button"
+                class="auth-eye-btn"
+                :aria-label="showConfirm ? 'Hide password' : 'Show password'"
+                @click="showConfirm = !showConfirm"
+              >
+                <UiIcon :name="showConfirm ? 'EyeOff' : 'Eye'" :size="15" />
+              </button>
+            </div>
           </div>
 
           <!-- Inline password match indicator -->
@@ -172,8 +194,8 @@ function onKeydown(e: KeyboardEvent) {
           </div>
 
           <UiButton :disabled="auth.loading || !canSubmit" @click="submit">
-            <span v-if="auth.loading">Creating account…</span>
-            <span v-else>Create account</span>
+            <UiIcon v-if="auth.loading" name="Loader2" :size="14" class="auth-spinner" />
+            <span>{{ auth.loading ? 'Creating account…' : 'Create account' }}</span>
           </UiButton>
         </div>
 
@@ -230,7 +252,7 @@ function onKeydown(e: KeyboardEvent) {
   letter-spacing: -0.02em;
   color: var(--color-text);
 }
-.auth-logo__text span { color: #4f8ef7; }
+.auth-logo__text span { color: var(--color-accent); }
 .auth-logo__ver {
   font-size: 11px;
   font-family: var(--font-mono);
@@ -274,8 +296,8 @@ function onKeydown(e: KeyboardEvent) {
   gap: 14px;
   font-size: 14px;
   color: var(--color-text-secondary);
-  background: color-mix(in srgb, #22c55e 8%, transparent);
-  border: 1px solid color-mix(in srgb, #22c55e 25%, transparent);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
   border-radius: var(--radius-sm);
   padding: 16px;
   line-height: 1.5;
@@ -328,17 +350,46 @@ function onKeydown(e: KeyboardEvent) {
   font-size: 12px;
   margin-top: -8px;
 }
-.auth-field-hint--error { color: #ef4444; }
-.auth-field-hint--ok    { color: #22c55e; }
+.auth-field-hint--error { color: var(--color-danger); }
+.auth-field-hint--ok    { color: var(--color-success); }
+
+.auth-input-wrap {
+  position: relative;
+}
+
+.auth-eye-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: var(--radius-xs);
+  transition: color var(--t-fast);
+}
+.auth-eye-btn:hover { color: var(--color-text); }
+
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+.auth-spinner {
+  animation: auth-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
 
 .auth-error {
   display: flex;
   align-items: flex-start;
   gap: 7px;
   font-size: 13px;
-  color: var(--color-error, #ef4444);
-  background: color-mix(in srgb, var(--color-error, #ef4444) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-error, #ef4444) 20%, transparent);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 20%, transparent);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   line-height: 1.4;

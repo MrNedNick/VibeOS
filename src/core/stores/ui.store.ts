@@ -13,6 +13,7 @@ export const useUiStore = defineStore('core:ui', () => {
   const sidebarOpen = ref<boolean>(storagGet<boolean>(SIDEBAR_KEY, true))
   // mobileSidebarOpen = drawer is open on mobile/tablet (not persisted)
   const mobileSidebarOpen = ref<boolean>(false)
+  const userPanelOpen = ref<boolean>(false)
 
   /** True for dark-background themes */
   const isDark = computed(() => theme.value === 'dark' || theme.value === 'crt')
@@ -48,6 +49,9 @@ export const useUiStore = defineStore('core:ui', () => {
   function closeMobileDrawer() { mobileSidebarOpen.value = false }
   function toggleMobileDrawer() { mobileSidebarOpen.value = !mobileSidebarOpen.value }
 
+  function openUserPanel()  { userPanelOpen.value = true }
+  function closeUserPanel() { userPanelOpen.value = false }
+
   function init() {
     // Migrate removed pak IDs to safe defaults
     const stored = storagGet<string>(THEME_KEY, '')
@@ -60,6 +64,7 @@ export const useUiStore = defineStore('core:ui', () => {
     theme, isDark,
     sidebarOpen, setSidebar, toggleSidebar,
     mobileSidebarOpen, openMobileDrawer, closeMobileDrawer, toggleMobileDrawer,
+    userPanelOpen, openUserPanel, closeUserPanel,
     setTheme, toggleTheme,
     init,
   }

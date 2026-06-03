@@ -778,6 +778,8 @@ function cancelImport() {
   position: relative;
   width: 42px;
   height: 24px;
+  min-height: 0;
+  min-width: 0;
   border-radius: 99px;
   background: var(--color-border);
   border: none;

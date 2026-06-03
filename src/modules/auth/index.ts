@@ -11,4 +11,9 @@ export const authRoutes: RouteRecordRaw[] = [
     component: () => import('./views/RegisterView.vue'),
     meta: { title: 'Create account', auth: 'guest' },
   },
+  {
+    path: '/auth/callback',
+    component: () => import('./views/AuthCallbackView.vue'),
+    meta: { title: 'Signing in…', auth: 'public' },
+  },
 ]

@@ -13,6 +13,7 @@ const dateSet = computed(() => new Set(props.completedDates))
 const grid = computed(() => generateHeatmapDates(WEEKS.value))
 
 function cellTitle(date: string): string {
+  if (!date) return ''
   const d = new Date(date + 'T00:00:00')
   const label = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
   return dateSet.value.has(date) ? `✓ ${label}` : label
@@ -27,13 +28,14 @@ function cellTitle(date: string): string {
       class="heatmap__week"
     >
       <div
-        v-for="date in week"
-        :key="date"
+        v-for="(date, di) in week"
+        :key="date || `empty-${wi}-${di}`"
         class="heatmap__cell"
         :class="{
-          'heatmap__cell--done': dateSet.has(date),
-          'heatmap__cell--today': date === today,
-          'heatmap__cell--future': date > today,
+          'heatmap__cell--empty':  !date,
+          'heatmap__cell--done':   !!date && dateSet.has(date),
+          'heatmap__cell--today':  date === today,
+          'heatmap__cell--future': !!date && date > today,
         }"
         :title="cellTitle(date)"
       />
@@ -84,5 +86,10 @@ function cellTitle(date: string): string {
 
 .heatmap__cell--future {
   opacity: 0.3;
+}
+
+.heatmap__cell--empty {
+  background: transparent;
+  pointer-events: none;
 }
 </style>

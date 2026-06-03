@@ -184,7 +184,7 @@ export const useAuthStore = defineStore('core:auth', () => {
     try {
       const sb = getSupabase()
       const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}auth/callback`,
       })
       return { error: error?.message ?? null }
     } catch (err) {

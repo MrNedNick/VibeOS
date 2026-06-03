@@ -35,7 +35,7 @@ export const PLATFORM_MODULES: ModuleMeta[] = [
   {
     id: 'about',
     label: 'About',
-    icon: 'User',
+    icon: 'Info',
     path: '/about',
     section: 'system',
     status: 'available',

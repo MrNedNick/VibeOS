@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, markRaw } from 'vue'
+import { usePullToRefresh } from '@/core/composables/usePullToRefresh'
 import { useRouter } from 'vue-router'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
@@ -144,10 +145,33 @@ const aggregatedShipped = computed<AggregatedShipped[]>(() => {
 
 const STATUS_ICON_NAMES: Record<string, string> = { good: 'Check', missing: 'X', planned: 'Clock3' }
 const APP_VERSION = __APP_VERSION__
+
+// ── Pull-to-refresh ────────────────────────────────────────────────────
+const dashboardRef = ref<HTMLElement | null>(null)
+async function handleRefresh() {
+  // Reload habit/task counters by forcing a reactive tick — stores are reactive
+  await new Promise(r => setTimeout(r, 600))
+}
+const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef, handleRefresh)
 </script>
 
 <template>
-  <div class="dashboard">
+  <div ref="dashboardRef" class="dashboard">
+
+    <!-- Pull-to-refresh indicator (mobile only) ─────────────────── -->
+    <div
+      v-if="isPulling || isRefreshing"
+      class="dashboard__ptr"
+      :style="{ height: `${pullDistance}px` }"
+    >
+      <UiIcon
+        name="RefreshCw"
+        :size="18"
+        class="dashboard__ptr-icon"
+        :class="{ 'dashboard__ptr-icon--spin': isRefreshing }"
+        :style="!isRefreshing ? { transform: `rotate(${(pullDistance / 72) * 180}deg)` } : {}"
+      />
+    </div>
 
     <!-- Header ──────────────────────────────────────────────────── -->
     <div class="dashboard__header">
@@ -413,6 +437,25 @@ const APP_VERSION = __APP_VERSION__
   flex-direction: column;
   gap: 20px;
   height: 100%;
+}
+
+/* Pull-to-refresh */
+.dashboard__ptr {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 6px;
+  overflow: hidden;
+  transition: height 120ms ease;
+}
+.dashboard__ptr-icon {
+  color: var(--color-accent);
+}
+@keyframes ptr-spin {
+  to { transform: rotate(360deg); }
+}
+.dashboard__ptr-icon--spin {
+  animation: ptr-spin 0.7s linear infinite;
 }
 
 /* Header */

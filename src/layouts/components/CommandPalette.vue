@@ -801,7 +801,10 @@ kbd {
 /* ── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .palette-backdrop { padding-top: 16px; align-items: flex-start; }
-  .palette          { max-height: 85vh; }
-  .palette__input   { font-size: 16px; }
+  .palette {
+    max-height: 60dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .palette__input { font-size: 16px; }
 }
 </style>

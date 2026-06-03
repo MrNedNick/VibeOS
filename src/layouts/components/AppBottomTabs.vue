@@ -5,10 +5,13 @@ import { PLATFORM_MODULES, type ModuleMeta } from '@/core/registry/modules'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 import { useModuleVisibility } from '@/core/composables/useModuleVisibility'
+import { useUiStore } from '@/core/stores/ui.store'
+import UserPanel from './UserPanel.vue'
 
-const route  = useRoute()
-const router = useRouter()
-const i18n   = useLocale()
+const route   = useRoute()
+const router  = useRouter()
+const i18n    = useLocale()
+const uiStore = useUiStore()
 const { isVisible } = useModuleVisibility()
 
 const showMore = ref(false)
@@ -18,7 +21,6 @@ const BOTTOM_TABS = [
   { id: 'dashboard',    icon: 'LayoutDashboard', path: '/',       labelKey: 'modules.dashboard'    },
   { id: 'task-manager', icon: 'CheckSquare',      path: '/tasks',  labelKey: 'modules.task-manager' },
   { id: 'habits',       icon: 'Flame',            path: '/habits', labelKey: 'modules.habits'       },
-  { id: 'notes',        icon: 'NotebookPen',      path: '/notes',  labelKey: 'modules.notes'        },
 ] as const
 
 /** Returns true when the route matches this tab's path */
@@ -27,7 +29,7 @@ function isTabActive(path: string): boolean {
   return route.path.startsWith(path)
 }
 
-/** "More" tab is active when the current route isn't one of the 4 main tabs */
+/** "More" tab is active when the current route isn't one of the 3 main tabs */
 const isMoreActive = computed(() => {
   const mainPaths = BOTTOM_TABS.map(t => t.path)
   if (route.path === '/') return false
@@ -108,6 +110,21 @@ watch(route, () => { showMore.value = false })
       <span v-if="isTabActive(tab.path)" class="bottom-nav__tab-pill" />
     </button>
 
+    <!-- User tab -->
+    <button
+      class="bottom-nav__tab"
+      :class="{ 'bottom-nav__tab--active': uiStore.userPanelOpen }"
+      role="tab"
+      :aria-label="'Account'"
+      @click="uiStore.openUserPanel()"
+    >
+      <span class="bottom-nav__tab-icon">
+        <UiIcon name="User" :size="22" :stroke-width="uiStore.userPanelOpen ? 2.1 : 1.6" />
+      </span>
+      <span class="bottom-nav__tab-label">Account</span>
+      <span v-if="uiStore.userPanelOpen" class="bottom-nav__tab-pill" />
+    </button>
+
     <!-- More tab -->
     <button
       class="bottom-nav__tab"
@@ -127,6 +144,9 @@ watch(route, () => { showMore.value = false })
       <span v-if="isMoreActive && !showMore" class="bottom-nav__tab-pill" />
     </button>
   </nav>
+
+  <!-- User panel modal -->
+  <UserPanel v-model:open="uiStore.userPanelOpen" />
 
   <!-- ── "More" bottom sheet ─────────────────────────────────────── -->
   <Teleport to="body">

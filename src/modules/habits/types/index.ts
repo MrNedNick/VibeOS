@@ -96,18 +96,24 @@ export function nextMilestone(streak: number): number | null {
 
 export function generateHeatmapDates(weeks: number): string[][] {
   const today = new Date()
-  const totalDays = weeks * 7
-  const days: string[] = []
+  const todayStr = today.toISOString().split('T')[0]
+  // ISO weekday offset: 0=Mon … 6=Sun
+  const todayDow = (today.getDay() + 6) % 7
 
-  for (let i = totalDays - 1; i >= 0; i--) {
-    const d = new Date(today)
-    d.setDate(today.getDate() - i)
-    days.push(d.toISOString().split('T')[0])
-  }
+  // Grid starts on the Monday that is (weeks-1) full weeks before this week's Monday
+  const gridStart = new Date(today)
+  gridStart.setDate(today.getDate() - todayDow - (weeks - 1) * 7)
 
   const grid: string[][] = []
   for (let w = 0; w < weeks; w++) {
-    grid.push(days.slice(w * 7, w * 7 + 7))
+    const week: string[] = []
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(gridStart)
+      day.setDate(gridStart.getDate() + w * 7 + d)
+      const ds = day.toISOString().split('T')[0]
+      week.push(ds > todayStr ? '' : ds)
+    }
+    grid.push(week)
   }
   return grid
 }

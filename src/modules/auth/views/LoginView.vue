@@ -21,6 +21,8 @@ const resetEmail = ref('')
 const resetSent  = ref(false)
 const resetError = ref<string | null>(null)
 
+const showPassword = ref(false)
+
 const canSubmit = computed(() => email.value.trim().length > 0 && password.value.length > 0)
 
 async function submit() {
@@ -32,7 +34,7 @@ async function submit() {
     error.value = result.error
   } else {
     // Full reload so all stores reinitialize from the freshly-synced localStorage
-    window.location.href = '/'
+    window.location.replace(import.meta.env.BASE_URL)
   }
 }
 
@@ -67,7 +69,7 @@ function onKeydown(e: KeyboardEvent) {
       <!-- Logo -->
       <div class="auth-logo" @click="router.push('/welcome')">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="#4f8ef7" />
+          <rect width="32" height="32" rx="8" fill="var(--color-accent)" />
           <path d="M10 23L14 9" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
           <path d="M18 23L22 9" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
         </svg>
@@ -151,13 +153,23 @@ function onKeydown(e: KeyboardEvent) {
                 Forgot password?
               </UiButton>
             </div>
-            <UiInput
-              v-model="password"
-              type="password"
-              placeholder="••••••••"
-              autocomplete="current-password"
-              :disabled="auth.loading"
-            />
+            <div class="auth-input-wrap">
+              <UiInput
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                :disabled="auth.loading"
+              />
+              <button
+                type="button"
+                class="auth-eye-btn"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                @click="showPassword = !showPassword"
+              >
+                <UiIcon :name="showPassword ? 'EyeOff' : 'Eye'" :size="15" />
+              </button>
+            </div>
           </div>
 
           <div v-if="error" class="auth-error">
@@ -166,8 +178,8 @@ function onKeydown(e: KeyboardEvent) {
           </div>
 
           <UiButton :disabled="auth.loading || !canSubmit" @click="submit">
-            <span v-if="auth.loading">Signing in…</span>
-            <span v-else>Sign in</span>
+            <UiIcon v-if="auth.loading" name="Loader2" :size="14" class="auth-spinner" />
+            <span>{{ auth.loading ? 'Signing in…' : 'Sign in' }}</span>
           </UiButton>
         </div>
 
@@ -225,7 +237,7 @@ function onKeydown(e: KeyboardEvent) {
   letter-spacing: -0.02em;
   color: var(--color-text);
 }
-.auth-logo__text span { color: #4f8ef7; }
+.auth-logo__text span { color: var(--color-accent); }
 .auth-logo__ver {
   font-size: 11px;
   font-family: var(--font-mono);
@@ -271,8 +283,8 @@ function onKeydown(e: KeyboardEvent) {
   gap: 9px;
   font-size: 14px;
   color: var(--color-text-secondary);
-  background: color-mix(in srgb, #22c55e 8%, transparent);
-  border: 1px solid color-mix(in srgb, #22c55e 25%, transparent);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
   border-radius: var(--radius-sm);
   padding: 12px 14px;
   line-height: 1.5;
@@ -320,14 +332,43 @@ function onKeydown(e: KeyboardEvent) {
 .auth-input:disabled { opacity: 0.5; cursor: not-allowed; }
 .auth-input::placeholder { color: var(--color-text-muted); }
 
+.auth-input-wrap {
+  position: relative;
+}
+
+.auth-eye-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: var(--radius-xs);
+  transition: color var(--t-fast);
+}
+.auth-eye-btn:hover { color: var(--color-text); }
+
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+.auth-spinner {
+  animation: auth-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
 .auth-error {
   display: flex;
   align-items: flex-start;
   gap: 7px;
   font-size: 13px;
-  color: var(--color-error, #ef4444);
-  background: color-mix(in srgb, var(--color-error, #ef4444) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-error, #ef4444) 20%, transparent);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 20%, transparent);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   line-height: 1.4;
