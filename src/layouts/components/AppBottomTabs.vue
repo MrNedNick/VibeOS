@@ -251,6 +251,8 @@ onUnmounted(() => { document.body.style.overflow = '' })
   min-width: 0;
   /* Override global mobile min-height */
   min-height: var(--tab-bar-height);
+  /* Prevent 300ms tap delay on mobile */
+  touch-action: manipulation;
 }
 
 .bottom-nav__tab--active {
@@ -299,7 +301,7 @@ onUnmounted(() => { document.body.style.overflow = '' })
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgba(0, 0, 0, 0.5);
+  background: color-mix(in srgb, black 50%, transparent);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;
@@ -316,7 +318,7 @@ onUnmounted(() => { document.body.style.overflow = '' })
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 -8px 40px color-mix(in srgb, black 40%, transparent);
   /* Safe area at bottom (sheet extends to bottom edge) */
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -441,8 +443,8 @@ onUnmounted(() => { document.body.style.overflow = '' })
 
 .more-item__badge--wip {
   color: var(--color-warning);
-  background: rgba(240, 160, 48, 0.08);
-  border-color: rgba(240, 160, 48, 0.25);
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 25%, transparent);
 }
 
 /* ── Sheet transition — spring slide-up ─────────────────────────────── */

@@ -200,7 +200,7 @@ function goHome() {
 @media (min-width: 1024px) {
   .sidebar:not(.sidebar--pinned):hover {
     width: var(--sidebar-width);
-    box-shadow: 6px 0 32px rgba(0, 0, 0, 0.35);
+    box-shadow: 6px 0 32px color-mix(in srgb, black 35%, transparent);
     transition: width 180ms var(--ease), box-shadow 180ms var(--ease);
   }
 }
@@ -394,7 +394,7 @@ function goHome() {
 
 .sidebar__soon--wip {
   color: var(--color-warning);
-  background: rgba(240, 160, 48, 0.1);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
 }
 
 /* ── Footer ──────────────────────────────────────────────────────── */

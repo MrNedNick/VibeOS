@@ -297,4 +297,15 @@ const trainingBars = computed((): BarItem[] =>
 
 @media (max-width: 900px) { .analytics__overview { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 500px) { .analytics__overview { grid-template-columns: 1fr 1fr; } }
+
+@media (max-width: 767px) {
+  .analytics { gap: 20px; padding: var(--content-padding); }
+  .analytics__title { font-size: 22px; }
+  .analytics__header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .analytics__header-right { width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+  .analytics__overview { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-card { padding: 12px; gap: 10px; }
+  .stat-card__value { font-size: 20px; }
+  .stat-card__icon { width: 30px; height: 30px; font-size: 14px; }
+}
 </style>

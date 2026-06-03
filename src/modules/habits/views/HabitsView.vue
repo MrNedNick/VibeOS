@@ -267,12 +267,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         class="habits__form-name"
         :placeholder="i18n.t('habits.namePlaceholder')"
         maxlength="60"
+        enterkeyhint="next"
       />
       <input
         v-model="newPurpose"
         class="habits__form-purpose"
         placeholder="Why? (optional)"
         maxlength="120"
+        enterkeyhint="done"
       />
       <!-- Category chips — bespoke: per-category color via --cat CSS var, toggle-to-deselect -->
       <div class="habits__form-cats">
@@ -700,13 +702,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   .habits__header { flex-direction: column; gap: 12px; }
   .habits__form {
     grid-template-columns: auto 1fr;
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto;
   }
-  .habits__form-emoji   { grid-row: 1; grid-column: 1; }
-  .habits__form-name    { grid-row: 1; grid-column: 2; }
-  .habits__form-purpose { grid-row: 2; grid-column: 1 / 3; }
-  .habits__form-cats    { grid-row: 3; grid-column: 1 / 3; }
+  .habits__form-emoji     { grid-row: 1; grid-column: 1; }
+  .habits__form-name      { grid-row: 1; grid-column: 2; }
+  .habits__form-purpose   { grid-row: 2; grid-column: 1 / 3; }
+  .habits__form-cats      { grid-row: 3; grid-column: 1 / 3; flex-wrap: wrap; gap: 6px; }
   .habits__form-goal-wrap { grid-row: 4; grid-column: 1 / 3; }
-  .habits__form-actions { grid-row: 1; grid-column: 3; display: none; }
+  .habits__form-actions   { grid-row: 5; grid-column: 1 / 3; display: flex; padding-top: 4px; }
 }
 </style>

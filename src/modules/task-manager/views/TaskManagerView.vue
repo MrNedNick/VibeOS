@@ -444,6 +444,6 @@ function focusTaskInput() {
 }
 
 @media (max-width: 767px) {
-  .tm-view__goal-wrap { max-width: 150px; }
+  .tm-view__goal-wrap { max-width: 100%; }
 }
 </style>

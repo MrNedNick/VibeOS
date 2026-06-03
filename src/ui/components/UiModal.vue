@@ -140,6 +140,19 @@ onUnmounted(() => { document.body.style.overflow = '' })
   flex-shrink: 0;
 }
 
+/* Mobile: reduce max-height to clear the fixed tab bar + safe area */
+@media (max-width: 767px) {
+  .ui-modal__container { padding: 12px; align-items: flex-end; }
+  .ui-modal__dialog {
+    max-height: calc(100dvh - var(--tab-bar-height, 64px) - env(safe-area-inset-bottom, 0px) - 20px);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .ui-modal__header { padding: 16px 20px 12px; }
+  .ui-modal__body   { padding: 16px 20px; }
+  .ui-modal__footer { padding: 12px 20px 16px; }
+}
+
 /* Transition */
 .ui-modal-enter-active { transition: opacity 150ms var(--ease); }
 .ui-modal-leave-active { transition: opacity 120ms var(--ease); }

@@ -289,5 +289,11 @@ const todayLabel = computed(() =>
   .goals { gap: 20px; }
   .goals__grid, .goals__completed-list { grid-template-columns: 1fr; }
   .goals__title { font-size: var(--text-2xl, 22px); }
+
+  .goals__form { padding: 16px; gap: 12px; }
+  .goals__form-row { flex-direction: row; gap: 8px; }
+  .goals__form-meta { flex-direction: column; gap: 10px; align-items: stretch; }
+  .goals__form-actions { flex-wrap: wrap; gap: 8px; }
+  .goals__form-actions > * { flex: 1; min-width: 120px; }
 }
 </style>

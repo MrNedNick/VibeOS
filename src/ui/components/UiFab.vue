@@ -45,6 +45,7 @@ defineEmits<{ click: [] }>()
   box-shadow: var(--shadow-3);
   transition: transform 80ms ease, box-shadow var(--t-fast);
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .ui-fab:hover:not(:disabled) {
