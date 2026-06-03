@@ -5,6 +5,7 @@ import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useLocale } from '@/core/i18n'
 import { useAiInsight } from '@/core/composables/useAiInsight'
 import HabitCard from '../components/HabitCard.vue'
+import HabitEmojiPicker from '../components/HabitEmojiPicker.vue'
 import { HABIT_CATEGORIES, HABIT_CATEGORY_META, computeStreak, computeBestStreak, todayStr } from '../types'
 import type { HabitCategory } from '../types'
 import { UiButton, UiIconButton, UiSelect, UiProgressBar } from '@/ui'
@@ -249,8 +250,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
     <!-- New habit form -->
     <div v-if="showForm" class="habits__form" @keydown="onFormKeydown">
-      <!-- Bespoke inputs: emoji (center-aligned, 44px) + name/purpose (borderless, inline) -->
-      <input v-model="newEmoji" class="habits__form-emoji" placeholder="⭐" maxlength="2" />
+      <!-- Emoji picker replaces text input -->
+      <HabitEmojiPicker v-model="newEmoji" class="habits__form-emoji" />
       <input
         v-model="newName"
         ref="nameInputRef"
@@ -476,18 +477,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .habits__form-goal-wrap { grid-row: 1; grid-column: 3; }
 .habits__form-actions { grid-row: 1; grid-column: 4; display: flex; gap: 6px; flex-shrink: 0; }
 
-/* Bespoke emoji input — 44px, center-aligned, emoji-size font */
-.habits__form-emoji {
-  width: 44px;
-  font-size: 22px;
-  text-align: center;
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 6px;
-  outline: none;
-  color: var(--color-text);
-}
+/* Emoji picker wrapper in form grid */
+.habits__form-emoji { display: flex; align-items: center; }
 
 /* Bespoke inline name + purpose inputs — borderless, integrated into form grid */
 .habits__form-name {
