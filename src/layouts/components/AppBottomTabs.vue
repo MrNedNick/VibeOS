@@ -34,7 +34,7 @@ const isMoreActive = computed(() => {
 
 function navigateTo(path: string) {
   showMore.value = false
-  router.push(path)
+  router.push(path).catch(() => {})
 }
 
 function toggleMore() {

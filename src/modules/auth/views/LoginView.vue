@@ -105,7 +105,7 @@ function onKeydown(e: KeyboardEvent) {
   <div class="auth-page">
     <div class="auth-card" @keydown="onKeydown">
       <!-- Logo -->
-      <div class="auth-logo" @click="router.push('/welcome')">
+      <div class="auth-logo" @click="router.push('/welcome').catch(() => {})">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
           <rect width="32" height="32" rx="8" fill="var(--color-accent)" />
           <path d="M10 23L14 9" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
@@ -241,7 +241,7 @@ function onKeydown(e: KeyboardEvent) {
 
         <p class="auth-footer-link">
           Don't have an account?
-          <UiButton variant="ghost" size="sm" @click="router.push('/register')">Create one</UiButton>
+          <UiButton variant="ghost" size="sm" @click="router.push('/register').catch(() => {})">Create one</UiButton>
         </p>
       </template>
     </div>

@@ -38,7 +38,7 @@ function isActive(mod: ModuleMeta): boolean {
 
 function navigate(mod: ModuleMeta) {
   if (mod.status !== 'available' && mod.status !== 'wip') return
-  router.push(mod.path)
+  router.push(mod.path).catch(() => {})
 }
 
 function modLabel(mod: ModuleMeta): string {
@@ -48,7 +48,7 @@ function modLabel(mod: ModuleMeta): string {
 }
 
 function goHome() {
-  router.push('/')
+  router.push('/').catch(() => {})
   uiStore.closeMobileDrawer()
 }
 </script>

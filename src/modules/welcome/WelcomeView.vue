@@ -92,6 +92,9 @@ const STATS = [
             Open VibeOS
             <UiIcon name="ArrowRight" :size="15" :stroke-width="2.2" />
           </UiButton>
+          <UiButton variant="ghost" @click="goToLogin">
+            Sign in
+          </UiButton>
           <a
             href="https://github.com/mrnednick/VibeOS"
             target="_blank"
@@ -126,7 +129,7 @@ const STATS = [
           :key="mod.title"
           class="welcome__card"
           :style="{ '--card-color': mod.color }"
-          @click="router.push('/')"
+          @click="router.push('/').catch(() => {})"
         >
           <div class="welcome__card-icon">
             <UiIcon :name="mod.icon" :size="18" :stroke-width="1.5" />

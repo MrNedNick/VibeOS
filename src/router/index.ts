@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, isNavigationFailure } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
 import NotFoundView from '@/modules/not-found/NotFoundView.vue'
@@ -20,6 +20,7 @@ import { analyticsRoutes } from '@/modules/analytics'
 import { calendarRoutes } from '@/modules/calendar'
 import { authRoutes } from '@/modules/auth'
 import { financeRoutes } from '@/modules/finance'
+import { useAuthStore } from '@/core/stores/auth.store'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -61,20 +62,30 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 }),
 })
 
+// ── Global navigation error handler ──────────────────────────────────────
+// Swallows expected failures (duplicated nav, cancelled guards, redirects)
+// so they never reach Vue's error boundary and freeze the UI.
+router.onError((err) => {
+  if (isNavigationFailure(err)) return
+  console.error('[router]', err)
+})
+
 // ── Navigation guard ─────────────────────────────────────────────────────
 router.beforeEach(async (to) => {
-  const needsAuth = to.matched.some(r => r.meta.auth === 'required')
+  const needsAuth  = to.matched.some(r => r.meta.auth === 'required')
   const isGuestOnly = to.matched.some(r => r.meta.auth === 'guest')
   if (!needsAuth && !isGuestOnly) return
 
-  const { useAuthStore } = await import('@/core/stores/auth.store')
+  // useAuthStore() is safe here: Pinia is installed before any navigation fires.
+  // Static import avoids a dynamic-import microtask on every navigation.
   const auth = useAuthStore()
 
   // Wait for Supabase session check to finish before deciding
   await auth.ready
 
   if (needsAuth && !auth.isLoggedIn) return '/welcome'
-  if (isGuestOnly && auth.isLoggedIn) return '/'
+  // Demo users can access /login and /register to create a real account
+  if (isGuestOnly && auth.isLoggedIn && !auth.isDemoMode) return '/'
 })
 
 export default router

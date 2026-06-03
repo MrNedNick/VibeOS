@@ -27,6 +27,13 @@ const moduleLabel = computed(() => {
   const translated = i18n.t(key)
   return translated === key ? currentModule.value.label : translated
 })
+
+// Demo users must log out before navigating to register;
+// otherwise the guard sees them as logged-in and redirects back.
+async function signUpFromDemo() {
+  await auth.logout()
+  router.push('/register').catch(() => {})
+}
 </script>
 
 <template>
@@ -79,7 +86,7 @@ const moduleLabel = computed(() => {
         v-if="auth.isDemoMode"
         class="header-demo-chip"
         title="You're using Demo mode — data is stored locally"
-        @click="router.push('/register')"
+        @click="signUpFromDemo"
       >
         <UiIcon name="FlaskConical" :size="12" :stroke-width="2" />
         Sign Up Free
