@@ -11,6 +11,11 @@ const router = useRouter()
 const { DOC_REGISTRY, currentSlug, currentPage, currentContent } = useDocs()
 const { track } = useTrack()
 
+function onMobileSelect(e: Event) {
+  const slug = (e.target as HTMLSelectElement).value
+  if (slug) router.push(`/docs/${slug}`)
+}
+
 // Anchor links for headings
 marked.use({
   gfm: true,
@@ -70,7 +75,19 @@ watch(currentSlug, (slug) => {
 
 <template>
   <div class="docs-layout">
-    <!-- Sidebar nav -->
+    <!-- Mobile nav dropdown -->
+    <div class="docs-layout__mobile-nav">
+      <select class="docs-layout__mobile-select" :value="currentSlug" @change="onMobileSelect">
+        <option value="">— Navigation —</option>
+        <optgroup v-for="section in DOC_REGISTRY" :key="section.id" :label="section.label">
+          <option v-for="page in section.pages" :key="page.slug" :value="page.slug">
+            {{ page.label }}
+          </option>
+        </optgroup>
+      </select>
+    </div>
+
+    <!-- Desktop sidebar nav -->
     <aside class="docs-layout__nav">
       <DocsSidebar :sections="DOC_REGISTRY" :active-slug="currentSlug" />
     </aside>
@@ -140,6 +157,42 @@ watch(currentSlug, (slug) => {
 
 .docs-layout__nav {
   padding-top: 4px;
+}
+
+/* Mobile nav dropdown — hidden on desktop */
+.docs-layout__mobile-nav { display: none; }
+.docs-layout__mobile-select {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+}
+.docs-layout__mobile-select:focus { border-color: var(--color-accent); }
+
+@media (max-width: 767px) {
+  .docs-layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 0;
+  }
+  .docs-layout__mobile-nav {
+    display: block;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .docs-layout__nav { display: none; }
+  .docs-layout__content { padding: 0 16px 24px; }
+  .docs-home__grid { grid-template-columns: 1fr; }
 }
 
 /* Home index */
