@@ -22,14 +22,18 @@
 | S8 — Design System | ✅ complete — @/ui ✅, tokens ✅, skeletons ✅, widgets ✅, UI Kit catalogue ✅ — moved under Docs at `/docs/ui-kit`, visible in prod (v1.2.0) |
 | S9 — Full Redesign | ✅ complete — Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅ |
 | S10 — Vibe-pak Consolidation | ✅ complete — T1 ✅ T2 ✅ T3 ✅ T4 ✅ T5 ✅ |
-| S11 — Welcome & Positioning | 🔄 **active** — T1 ✅ (copy+hex v1.5.1); T2 pending (full redesign + live cascade demo) |
-| S12 — AI Depth | ✅ complete — Analytics report ✅ (v1.0.11), Habits insights + Notes summarise + Finance analysis ✅ (v1.1.0) |
-| S13 — Design Pass | 🔜 planned — module quality pass (requires user review session) |
-| S14 — Quick Wins | ✅ **complete** — T1–T6 ✅ T4 ✅ (hex guard CI + WelcomeView hex cleanup v1.5.1) |
-| S15 — Refactor & De-dup | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 Learning/Training deferred. T7 QA report refreshed (v1.5.2). |
-| S16 — Test Coverage | 🔄 active — T1–T6 ✅ T8 ✅ (coverage gate); **367 tests in 27 files**. Remaining: T7 QA pass |
-| S17 — Component Unification | ✅ **complete** — Phase 0 (v1.2.1): UiModal/UiIconButton/UiSelect/UiTextarea; Phase 1 T6–T13 (v1.2.2–v1.2.6): all modules migrated; Phase 2 T14 (v1.2.10): ESLint enforcement; T15 sprint close (v1.3.0). |
-| S18 — Product Analytics & Feedback | ✅ **complete** (T11 deferred to S3 unblock) — T1–T10 ✅ T12 ✅ (docs, tests, UiFeedbackModal showcase). T11 Supabase schema blocked on credentials → moves to S3. |
+| S11 — Welcome & Positioning | 🔄 **active** — T1 ✅ (copy+hex v1.5.1); T2 pending (requires user review session) |
+| S12 — AI Depth | ✅ complete — Analytics ✅, Habits/Notes/Finance ✅ (v1.1.0) |
+| S13 — Design Pass | 🔜 planned — requires live user review session |
+| S14 — Quick Wins | ✅ **complete** — all tasks done (v1.5.5) |
+| S15 — Refactor & De-dup | ✅ **complete** — all tasks done (v1.4.0) |
+| S16 — Test Coverage | 🔄 active — T1–T6 ✅ T8 ✅ (coverage gate); **369 tests in 27 files**. T7 QA pass pending (live review) |
+| S17 — Component Unification | ✅ **complete** (v1.3.0) |
+| S18 — Product Analytics & Feedback | ✅ **complete** (v1.5.5, T11 deferred to S3) |
+| **S19 — Mobile Excellence & Account** | 🔄 **active** — T10 🚨 SHIP FIRST (auth redirect); T11, T1–T9 pending |
+| **S20 — Auth Excellence** | 🔜 **HIGH PRIORITY** — after S19 T10 ships |
+| **S21 — Backend Architecture** | 🔜 planned — Supabase-first, skeletons, real-time |
+| **S22 — UX Action Prominence** | 🔜 planned — FAB, primary CTAs, empty states |
 
 **Active sprints (2026-06-03):**
 - **S19 — Mobile Excellence & Account** 🔄: T10 (auth redirect bug) = SHIP FIRST — `window.location.href='/'` breaks on GH Pages; T11 (logout redirect); T1 (account panel + header user btn); T2 (About icon fix); T4 (settings toggle mobile); T5 (habit heatmap Mon-Sun); T6 (mobile bottom nav User tab); T3 (pull-to-refresh); T7 (nav bug); T8 (demo CTA); T9 (mobile search)
