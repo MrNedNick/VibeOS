@@ -853,9 +853,18 @@ const APP_VERSION = __APP_VERSION__
 .panel-enter-from   { opacity: 0; transform: translateX(6px); }
 .panel-leave-to     { opacity: 0; }
 
-/* Responsive — md: 2×2 life stats grid */
+/* Responsive — md: 2×2 life stats grid, compact workspace sidebar */
 @media (max-width: 1279px) {
   .dashboard__life-stats { grid-template-columns: repeat(2, 1fr); }
+  .dashboard__workspace  { grid-template-columns: 180px 1fr; gap: 16px; }
+  .mod-row               { font-size: 14px; padding: 7px 9px; gap: 8px; }
+}
+
+/* Responsive — tablet portrait: hide module sidebar, show 1-col */
+@media (max-width: 900px) {
+  .dashboard__workspace  { grid-template-columns: 1fr; }
+  .dashboard__module-list { display: none; }
+  .overview-panels       { grid-template-columns: 1fr; }
 }
 
 /* Responsive — sm (iPhone 17 Pro: 393px) */
@@ -900,5 +909,10 @@ const APP_VERSION = __APP_VERSION__
   .life-stat            { padding: 12px 12px; }
   .life-stat__value     { font-size: 16px; }
   .life-stat__label     { font-size: 11px; }
+
+  /* Compact habit spotlight on mobile */
+  .habit-spotlight      { padding: 10px 14px; gap: 10px; }
+  .habit-spotlight__emoji { font-size: 20px; }
+  .habit-spotlight__name  { font-size: 14px; }
 }
 </style>
