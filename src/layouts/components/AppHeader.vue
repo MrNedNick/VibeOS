@@ -89,7 +89,7 @@ async function signUpFromDemo() {
         @click="signUpFromDemo"
       >
         <UiIcon name="FlaskConical" :size="12" :stroke-width="2" />
-        Sign Up Free
+        <span class="header-demo-chip__text">Sign Up Free</span>
       </button>
 
       <!-- Search / command palette -->
@@ -372,6 +372,16 @@ async function signUpFromDemo() {
 
   /* Title stays centered via absolute positioning */
   .header-title__label { font-size: 15px; font-weight: 600; }
+
+  /* Demo chip: icon-only on mobile — text would overflow into the centered title */
+  .header-demo-chip__text { display: none; }
+  .header-demo-chip {
+    padding: 3px 7px;
+    gap: 0;
+    min-width: 28px;
+    min-height: 0;
+    justify-content: center;
+  }
 }
 
 /* ── User avatar button ─────────────────────────────────────────────── */

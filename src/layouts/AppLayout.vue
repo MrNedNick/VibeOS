@@ -17,6 +17,9 @@ const palette = useCommandPaletteStore()
 useHabitNotifications() // initialise polling for streak reminders
 const route = useRoute()
 
+// ── Content scroll container ──────────────────────────────────────────
+const contentEl = ref<HTMLElement | null>(null)
+
 // ── Fullbleed state ───────────────────────────────────────────────────
 // Only update in @after-leave: "out-in" guarantees old page fully exits before new one enters,
 // so this fires before the incoming component renders — no layout flash.
@@ -26,9 +29,12 @@ function onAfterLeave() {
   isFullbleed.value = !!route.meta.fullbleed
 }
 
-// ── Close mobile drawer on navigation ────────────────────────────────
+// ── Close mobile drawer + reset scroll on navigation ─────────────────
+// scrollBehavior in router resets window scroll, but content scrolls inside
+// the .app-content div — we need to reset it manually on every route change.
 watch(() => route.path, () => {
   uiStore.closeMobileDrawer()
+  contentEl.value?.scrollTo({ top: 0 })
 })
 
 // ── Command Palette + Escape ──────────────────────────────────────────
@@ -65,7 +71,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
     <div class="app-main">
       <AppHeader />
-      <main class="app-content" :class="{ 'app-content--fullbleed': isFullbleed }">
+      <main ref="contentEl" class="app-content" :class="{ 'app-content--fullbleed': isFullbleed }">
         <AppErrorBoundary>
           <router-view v-slot="{ Component }">
             <Transition name="page" mode="out-in" @after-leave="onAfterLeave">
@@ -126,11 +132,15 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   overflow: hidden;
 }
 
-/* ── Mobile content: clear bottom tab bar + safe area ─────────────── */
+/* ── Mobile content: clear bottom tab bar + FAB + safe area ───────── */
+/* FAB is 56px tall, positioned 20px above the tab bar — content must
+   clear both so the last list item is never hidden behind the button. */
 @media (max-width: 767px) {
   .app-content:not(.app-content--fullbleed) {
     padding-bottom: calc(
       var(--tab-bar-height) +
+      56px +
+      20px +
       env(safe-area-inset-bottom, 0px) +
       var(--content-padding)
     );
