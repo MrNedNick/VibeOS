@@ -405,7 +405,7 @@ function cancelImport() {
           <span class="settings__row-name">Sign out</span>
           <p class="settings__row-hint">End your current session on this device.</p>
         </div>
-        <UiButton variant="ghost" @click="handleLogout">
+        <UiButton variant="danger" @click="handleLogout">
           <UiIcon name="LogOut" :size="14" />
           Sign out
         </UiButton>

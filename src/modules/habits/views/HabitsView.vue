@@ -627,9 +627,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .habits__grid { display: flex; flex-direction: column; gap: 12px; }
 
 .habits__drag-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
+  position: relative;
   border-radius: var(--radius-lg);
   transition: opacity var(--t-fast), box-shadow var(--t-fast);
 }
@@ -637,20 +635,23 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .habits__drag-row--over { box-shadow: 0 -3px 0 var(--color-accent); border-radius: 0; }
 
 .habits__drag-handle {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: grab;
   color: var(--color-text-muted);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
-  padding: 22px 2px 0;
   opacity: 0;
   transition: opacity var(--t-fast);
   user-select: none;
-  flex-shrink: 0;
+  z-index: 1;
 }
-.habits__drag-row:hover .habits__drag-handle { opacity: 0.5; }
+.habits__drag-row:hover .habits__drag-handle { opacity: 0.4; }
 .habits__drag-handle:active { cursor: grabbing; opacity: 1; }
 
-.habits__card-inner { flex: 1; min-width: 0; }
+.habits__card-inner { display: block; width: 100%; }
 
 /* Empty state */
 .habits__empty {
