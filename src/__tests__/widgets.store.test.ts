@@ -86,6 +86,29 @@ describe('useWidgetsStore', () => {
     expect(orders).toEqual([0, 1, 2, 3])
   })
 
+  it('resetToDefaults() restores all widgets to visible even after toggling', () => {
+    const store = useWidgetsStore()
+    // Hide all widgets
+    for (const id of ALL_WIDGET_IDS) store.toggleWidget(id)
+    expect(store.configs.every(c => !c.visible)).toBe(true)
+
+    store.resetToDefaults()
+
+    expect(store.configs.every(c => c.visible)).toBe(true)
+  })
+
+  it('resetToDefaults() produces a fresh default order (0,1,2,3 matching ALL_WIDGET_IDS)', () => {
+    const store = useWidgetsStore()
+    store.reorder(ALL_WIDGET_IDS[0], ALL_WIDGET_IDS[3])
+    store.toggleWidget(ALL_WIDGET_IDS[1])
+
+    store.resetToDefaults()
+
+    const sorted = store.sortedConfigs
+    expect(sorted.map(c => c.id)).toEqual(ALL_WIDGET_IDS)
+    expect(sorted.map(c => c.visible)).toEqual(ALL_WIDGET_IDS.map(() => true))
+  })
+
   it('resetToDefaults() keeps the same number of widget configs', () => {
     const store = useWidgetsStore()
     store.resetToDefaults()

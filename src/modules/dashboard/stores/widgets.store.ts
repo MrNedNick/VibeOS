@@ -23,17 +23,14 @@ export const WIDGET_META: Record<WidgetId, { label: string; icon: string; descri
 // ── All widget IDs in default order ───────────────────────────────────
 export const ALL_WIDGET_IDS: WidgetId[] = ['github', 'weather', 'finance', 'digest']
 
-const DEFAULT_CONFIGS: WidgetConfig[] = ALL_WIDGET_IDS.map((id, i) => ({
-  id,
-  visible: true,
-  order:   i,
-}))
+const defaultConfigs = (): WidgetConfig[] =>
+  ALL_WIDGET_IDS.map((id, i) => ({ id, visible: true, order: i }))
 
 // ── Store ──────────────────────────────────────────────────────────────
 export const useWidgetsStore = defineStore('dashboard:widgets', () => {
   const configs = useStorage<WidgetConfig[]>(
     storageKey('dashboard', 'widgets'),
-    DEFAULT_CONFIGS,
+    defaultConfigs(),
   )
 
   // Ensure any new widget IDs added in the future get merged in
@@ -90,7 +87,7 @@ export const useWidgetsStore = defineStore('dashboard:widgets', () => {
   }
 
   function resetToDefaults() {
-    configs.value = DEFAULT_CONFIGS.map(c => ({ ...c }))
+    configs.value = defaultConfigs()
   }
 
   return {
