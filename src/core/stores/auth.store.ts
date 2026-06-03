@@ -16,6 +16,7 @@ import { computed, ref } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { getSupabase, isSupabaseConfigured } from '@/core/services/supabase'
 import { useCloudSync } from '@/core/composables/useCloudSync'
+import { seedDemoData } from '@/core/utils/demoSeed'
 
 // Resolves when init() finishes — router guard awaits this before checking isLoggedIn
 let _readyResolve!: () => void
@@ -74,6 +75,7 @@ export const useAuthStore = defineStore('core:auth', () => {
   // ── Demo login ────────────────────────────────────────────────────────────
   function loginDemo(): void {
     _setUser({ ...DEMO_USER })
+    seedDemoData()
   }
 
   // ── Email / password login ────────────────────────────────────────────────
@@ -234,8 +236,11 @@ export const useAuthStore = defineStore('core:auth', () => {
   // ── Init — restore session on app boot ────────────────────────────────────
   async function init(): Promise<void> {
     try {
-      // Demo mode: already restored from localStorage via useStorage — nothing to do
-      if (_state.value.user?.provider === 'demo') return
+      // Demo mode: already restored from localStorage via useStorage — seed data if needed
+      if (_state.value.user?.provider === 'demo') {
+        seedDemoData()
+        return
+      }
 
       // Supabase: check for existing session (from previous page load / refresh)
       if (isSupabaseConfigured) {

@@ -32,6 +32,8 @@
 | **S20 — Auth Excellence** | Auth flow bulletproof: callback route, central validation, security, E2E tests | 🔜 **HIGH PRIORITY** — after S19 T10 |
 | **S21 — Backend Data Architecture** | Supabase-first data layer, no layout shift, real-time, proper skeletons | 🔜 planned — after S20 complete + S3 credentials |
 | **S22 — UX Action Prominence** | FAB + primary CTAs in 8 modules, empty state audit, Dashboard onboarding | ✅ **complete** — v2.0.0 |
+| **S23 — Tetris Improvements** | Hold piece, line-clear flash animation, score history leaderboard | ✅ **complete** — v2.2.0 |
+| **S25 — Demo Mode Seeding** | Seed tasks/goals/habits/notes/finance/board on demo login for recruiters | ✅ **complete** — v2.2.0 |
 
 ---
 

@@ -7,8 +7,9 @@ import { UiIcon } from '@/ui'
 // ── Constants ────────────────────────────────────────────────────────────
 const COLS = 10
 const ROWS = 20
-const CELL = 30  // px per cell
+const CELL = 30
 const PREVIEW_CELLS = 4
+const FLASH_MS = 160
 
 // ── Tetrominoes ──────────────────────────────────────────────────────────
 type Piece = { shape: number[][]; color: string; name: string }
@@ -34,23 +35,37 @@ interface FallingPiece {
   rotation: number
 }
 
+interface ScoreRecord {
+  score: number
+  lines: number
+  level: number
+  date: string
+}
+
 // ── State ────────────────────────────────────────────────────────────────
-const bestScore = useStorage<number>('platform:games:tetris:best', 0)
-const events = useEventBus()
+const bestScore    = useStorage<number>('platform:games:tetris:best', 0)
+const scoreHistory = useStorage<ScoreRecord[]>('platform:games:tetris:history', [])
+const events       = useEventBus()
 
-const state       = ref<GameState>('idle')
-const board       = ref<Board>(emptyBoard())
-const falling     = ref<FallingPiece | null>(null)
-const nextPiece   = ref<Piece>(randomPiece())
-const score       = ref(0)
-const lines       = ref(0)
-const level       = ref(1)
-const ghostY      = ref(0)
-const canvasRef   = ref<HTMLCanvasElement>()
+const state      = ref<GameState>('idle')
+const board      = ref<Board>(emptyBoard())
+const falling    = ref<FallingPiece | null>(null)
+const nextPiece  = ref<Piece>(randomPiece())
+const heldPiece  = ref<Piece | null>(null)
+const canHold    = ref(true)
+const isFlashing = ref(false)
+const flashRows  = ref<Set<number>>(new Set())
+const score      = ref(0)
+const lines      = ref(0)
+const level      = ref(1)
+const ghostY     = ref(0)
+const canvasRef  = ref<HTMLCanvasElement>()
+const previewRef = ref<HTMLCanvasElement>()
+const holdRef    = ref<HTMLCanvasElement>()
 
-let rafId         = 0
-let lastTime      = 0
-let dropAcc       = 0
+let rafId    = 0
+let lastTime = 0
+let dropAcc  = 0
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 function emptyBoard(): Board {
@@ -100,9 +115,8 @@ function spawnPiece(): boolean {
   nextPiece.value = randomPiece()
   const shape = piece.shape
   const x = Math.floor((COLS - shape[0].length) / 2)
-  const y = 0
-  if (!fits(shape, x, y)) return false  // game over
-  falling.value = { piece, x, y, rotation: 0 }
+  if (!fits(shape, x, 0)) return false
+  falling.value = { piece, x, y: 0, rotation: 0 }
   ghostY.value = calcGhost()
   return true
 }
@@ -119,17 +133,30 @@ function lockPiece(): void {
       }
     }
   }
-  clearLines()
+
+  const clearedRows: number[] = []
+  for (let r = 0; r < ROWS; r++) {
+    if (board.value[r].every(c => c !== null)) clearedRows.push(r)
+  }
+
+  canHold.value = true
   falling.value = null
+
+  if (clearedRows.length) {
+    isFlashing.value = true
+    flashRows.value = new Set(clearedRows)
+    setTimeout(() => {
+      applyLineClear(clearedRows)
+      isFlashing.value = false
+      flashRows.value = new Set()
+      if (!spawnPiece()) endGame()
+    }, FLASH_MS)
+  } else {
+    if (!spawnPiece()) endGame()
+  }
 }
 
-function clearLines(): void {
-  const cleared: number[] = []
-  for (let r = 0; r < ROWS; r++) {
-    if (board.value[r].every(c => c !== null)) cleared.push(r)
-  }
-  if (!cleared.length) return
-
+function applyLineClear(cleared: number[]): void {
   const newBoard = board.value.filter((_, r) => !cleared.includes(r))
   while (newBoard.length < ROWS) newBoard.unshift(Array(COLS).fill(null))
   board.value = newBoard
@@ -162,7 +189,6 @@ function tryRotate(): void {
   if (!falling.value) return
   const newRot = (falling.value.rotation + 1) % 4
   const shape  = rotate(falling.value.piece.shape, newRot)
-  // Wall kick — try x offset +1/-1 if center fails
   for (const dx of [0, 1, -1, 2, -2]) {
     if (fits(shape, falling.value.x + dx, falling.value.y)) {
       falling.value.rotation = newRot
@@ -173,18 +199,39 @@ function tryRotate(): void {
   }
 }
 
+function holdPiece(): void {
+  if (!falling.value || !canHold.value || isFlashing.value) return
+  canHold.value = false
+  const currentP = falling.value.piece
+  let toSpawn: Piece
+
+  if (heldPiece.value) {
+    toSpawn = heldPiece.value
+  } else {
+    toSpawn = nextPiece.value
+    nextPiece.value = randomPiece()
+    drawPreview()
+  }
+
+  heldPiece.value = currentP
+  const shape = toSpawn.shape
+  const x = Math.floor((COLS - shape[0].length) / 2)
+  if (!fits(shape, x, 0)) { endGame(); return }
+  falling.value = { piece: toSpawn, x, y: 0, rotation: 0 }
+  ghostY.value = calcGhost()
+  dropAcc = 0
+}
+
 function hardDrop(): void {
-  if (!falling.value) return
+  if (!falling.value || isFlashing.value) return
   falling.value.y = ghostY.value
   lockPiece()
-  if (!spawnPiece()) endGame()
 }
 
 function softDrop(): void {
-  if (!falling.value) return
+  if (isFlashing.value || !falling.value) return
   if (!tryMove(0, 1)) {
     lockPiece()
-    if (!spawnPiece()) endGame()
   } else {
     score.value += 1
   }
@@ -195,27 +242,34 @@ function gameLoop(ts: number): void {
   if (state.value !== 'playing') return
   const dt = ts - lastTime
   lastTime = ts
-  dropAcc += dt
-  if (dropAcc >= dropInterval()) {
-    dropAcc = 0
-    softDrop()
+  if (!isFlashing.value) {
+    dropAcc += dt
+    if (dropAcc >= dropInterval()) {
+      dropAcc = 0
+      softDrop()
+    }
   }
   draw()
   rafId = requestAnimationFrame(gameLoop)
 }
 
 function startGame(): void {
-  board.value = emptyBoard()
-  score.value = 0
-  lines.value = 0
-  level.value = 1
+  board.value   = emptyBoard()
+  score.value   = 0
+  lines.value   = 0
+  level.value   = 1
+  heldPiece.value = null
+  canHold.value = true
+  isFlashing.value = false
+  flashRows.value = new Set()
   nextPiece.value = randomPiece()
-  falling.value = null
-  state.value = 'playing'
+  falling.value   = null
+  state.value     = 'playing'
   dropAcc = 0
   if (!spawnPiece()) return
   lastTime = performance.now()
   rafId = requestAnimationFrame(gameLoop)
+  drawHold()
 }
 
 function pauseGame(): void {
@@ -232,6 +286,18 @@ function pauseGame(): void {
 function endGame(): void {
   state.value = 'over'
   cancelAnimationFrame(rafId)
+  if (score.value > 0) {
+    const record: ScoreRecord = {
+      score: score.value,
+      lines: lines.value,
+      level: level.value,
+      date: new Date().toISOString(),
+    }
+    scoreHistory.value = [record, ...scoreHistory.value]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+    if (score.value > bestScore.value) bestScore.value = score.value
+  }
   events.emit({ type: 'games:tetris:gameover', score: score.value, timestamp: new Date().toISOString() } as never)
 }
 
@@ -243,11 +309,9 @@ function draw(): void {
   if (!canvas) return
   const ctx = canvas.getContext('2d')!
 
-  // Background
   ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-bg').trim() || '#0d0d0d'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-  // Grid lines
   ctx.strokeStyle = 'rgba(255,255,255,0.04)'
   ctx.lineWidth = 1
   for (let r = 0; r <= ROWS; r++) {
@@ -257,18 +321,20 @@ function draw(): void {
     ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, ROWS * CELL); ctx.stroke()
   }
 
-  // Locked cells
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const color = board.value[r][c]
-      if (color) drawCell(ctx, c, r, color)
+      if (!color) continue
+      if (flashRows.value.has(r)) {
+        drawCell(ctx, c, r, '#ffffff', 0.88)
+      } else {
+        drawCell(ctx, c, r, color)
+      }
     }
   }
 
   if (falling.value) {
     const shape = currentShape()
-
-    // Ghost
     const ghost = ghostY.value
     for (let r = 0; r < shape.length; r++) {
       for (let c = 0; c < shape[r].length; c++) {
@@ -276,8 +342,6 @@ function draw(): void {
         drawCell(ctx, falling.value.x + c, ghost + r, falling.value.piece.color, GHOST_ALPHA)
       }
     }
-
-    // Active piece
     for (let r = 0; r < shape.length; r++) {
       for (let c = 0; c < shape[r].length; c++) {
         if (!shape[r][c]) continue
@@ -292,40 +356,44 @@ function drawCell(ctx: CanvasRenderingContext2D, x: number, y: number, color: st
   ctx.globalAlpha = alpha
   ctx.fillStyle = color
   ctx.fillRect(x * CELL + pad, y * CELL + pad, CELL - pad * 2, CELL - pad * 2)
-
-  // Highlight top-left
   ctx.fillStyle = 'rgba(255,255,255,0.18)'
   ctx.fillRect(x * CELL + pad, y * CELL + pad, CELL - pad * 2, 3)
   ctx.fillRect(x * CELL + pad, y * CELL + pad, 3, CELL - pad * 2)
-
   ctx.globalAlpha = 1
 }
 
-// ── Preview canvas ─────────────────────────────────────────────────────────
-const previewRef = ref<HTMLCanvasElement>()
-
-function drawPreview(): void {
-  const canvas = previewRef.value
-  if (!canvas) return
+function drawMiniPiece(canvas: HTMLCanvasElement, piece: Piece | null, dim = false): void {
   const ctx = canvas.getContext('2d')!
   const sz = PREVIEW_CELLS * 24
   ctx.clearRect(0, 0, sz, sz)
-  const shape = nextPiece.value.shape
+  if (!piece) return
+  const shape = piece.shape
   const offX = Math.floor((PREVIEW_CELLS - shape[0].length) / 2)
   const offY = Math.floor((PREVIEW_CELLS - shape.length) / 2)
+  ctx.globalAlpha = dim ? 0.35 : 1
   for (let r = 0; r < shape.length; r++) {
     for (let c = 0; c < shape[r].length; c++) {
       if (!shape[r][c]) continue
-      ctx.fillStyle = nextPiece.value.color
+      ctx.fillStyle = piece.color
       ctx.fillRect((offX + c) * 24 + 1, (offY + r) * 24 + 1, 22, 22)
       ctx.fillStyle = 'rgba(255,255,255,0.18)'
       ctx.fillRect((offX + c) * 24 + 1, (offY + r) * 24 + 1, 22, 3)
       ctx.fillRect((offX + c) * 24 + 1, (offY + r) * 24 + 1, 3, 22)
     }
   }
+  ctx.globalAlpha = 1
+}
+
+function drawPreview(): void {
+  if (previewRef.value) drawMiniPiece(previewRef.value, nextPiece.value)
+}
+
+function drawHold(): void {
+  if (holdRef.value) drawMiniPiece(holdRef.value, heldPiece.value, !canHold.value)
 }
 
 watch(nextPiece, () => drawPreview(), { flush: 'post' })
+watch([heldPiece, canHold], () => drawHold(), { flush: 'post' })
 
 // ── Keyboard ──────────────────────────────────────────────────────────────
 function onKeydown(e: KeyboardEvent): void {
@@ -335,8 +403,11 @@ function onKeydown(e: KeyboardEvent): void {
     case 'ArrowRight': e.preventDefault(); tryMove(1, 0); break
     case 'ArrowDown':  e.preventDefault(); softDrop(); break
     case 'ArrowUp':
-    case 'x':          e.preventDefault(); tryRotate(); break
+    case 'x':
+    case 'X':          e.preventDefault(); tryRotate(); break
     case ' ':          e.preventDefault(); hardDrop(); break
+    case 'c':
+    case 'C':          e.preventDefault(); holdPiece(); break
     case 'p':
     case 'P':          pauseGame(); break
   }
@@ -366,6 +437,7 @@ function onTouchEnd(e: TouchEvent): void {
     else if (dx < -20) tryMove(-1, 0)
   } else {
     if (dy > 30) hardDrop()
+    else if (dy < -30) holdPiece()
   }
 }
 
@@ -373,6 +445,7 @@ function onTouchEnd(e: TouchEvent): void {
 onMounted(() => {
   window.addEventListener('keydown', onKeydown)
   drawPreview()
+  drawHold()
   draw()
 })
 
@@ -381,8 +454,12 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
 })
 
-// Score formatting
+// Helpers
 const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
 </script>
 
 <template>
@@ -392,7 +469,7 @@ const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
     <div class="tetris__header">
       <div>
         <h1 class="tetris__title">Tetris</h1>
-        <p class="tetris__sub">← → move · ↑ or X rotate · ↓ soft drop · Space hard drop · P pause</p>
+        <p class="tetris__sub">← → move · ↑/X rotate · ↓ soft drop · Space hard drop · C hold · P pause</p>
       </div>
       <div class="tetris__best-row">
         <span class="tetris__best-label">Best</span>
@@ -403,8 +480,17 @@ const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
     <!-- Game area -->
     <div class="tetris__arena">
 
-      <!-- Left: score / stats -->
+      <!-- Left: hold + stats -->
       <div class="tetris__side tetris__side--left">
+        <div class="tetris__panel-label">Hold</div>
+        <canvas
+          ref="holdRef"
+          class="tetris__mini-canvas"
+          :width="PREVIEW_CELLS * 24"
+          :height="PREVIEW_CELLS * 24"
+          :class="{ 'tetris__mini-canvas--dim': !canHold }"
+        />
+
         <div class="tetris__stat">
           <span class="tetris__stat-label">Score</span>
           <span class="tetris__stat-val tetris__stat-val--mono">{{ formattedScore }}</span>
@@ -459,7 +545,7 @@ const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
           <div class="tetris__overlay-content">
             <div class="tetris__overlay-title">Game over</div>
             <div class="tetris__overlay-score">{{ score }}</div>
-            <div v-if="score >= bestScore && score > 0" class="tetris__overlay-best">New best! 🎉</div>
+            <div v-if="score >= bestScore && score > 0" class="tetris__overlay-best">New best!</div>
             <button class="tetris__start-btn" @click="startGame">
               <UiIcon name="RotateCcw" :size="15" />
               Play again
@@ -468,12 +554,12 @@ const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
         </div>
       </div>
 
-      <!-- Right: next piece -->
+      <!-- Right: next piece + mobile controls -->
       <div class="tetris__side tetris__side--right">
-        <div class="tetris__next-label">Next</div>
+        <div class="tetris__panel-label">Next</div>
         <canvas
           ref="previewRef"
-          class="tetris__preview"
+          class="tetris__mini-canvas"
           :width="PREVIEW_CELLS * 24"
           :height="PREVIEW_CELLS * 24"
         />
@@ -504,6 +590,15 @@ const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
           Drop
         </button>
         <button
+          v-if="state === 'playing'"
+          class="tetris__ctrl-btn tetris__ctrl-hold-mobile"
+          @click="holdPiece"
+          :disabled="!canHold"
+        >
+          <UiIcon name="Bookmark" :size="15" />
+          Hold
+        </button>
+        <button
           v-if="state === 'playing' || state === 'paused'"
           class="tetris__pause-btn"
           @click="pauseGame"
@@ -511,6 +606,24 @@ const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
       </div>
 
     </div>
+
+    <!-- Score history -->
+    <div v-if="scoreHistory.length" class="tetris__history">
+      <div class="tetris__history-title">Top scores</div>
+      <div class="tetris__history-list">
+        <div
+          v-for="(rec, i) in scoreHistory"
+          :key="i"
+          class="tetris__history-row"
+          :class="{ 'tetris__history-row--top': i === 0 }"
+        >
+          <span class="tetris__history-rank">#{{ i + 1 }}</span>
+          <span class="tetris__history-score">{{ rec.score.toLocaleString() }}</span>
+          <span class="tetris__history-meta">Lv {{ rec.level }} · {{ rec.lines }}L · {{ formatDate(rec.date) }}</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -579,13 +692,33 @@ const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
 .tetris__side {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  min-width: 90px;
+  gap: 12px;
+  min-width: 100px;
   padding-top: 4px;
 }
 
 .tetris__side--left { align-items: flex-end; }
 .tetris__side--right { align-items: flex-start; }
+
+.tetris__panel-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+}
+
+.tetris__mini-canvas {
+  display: block;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  transition: opacity var(--t-fast);
+}
+
+.tetris__mini-canvas--dim {
+  opacity: 0.45;
+}
 
 .tetris__stat {
   display: flex;
@@ -623,28 +756,12 @@ const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
   background: var(--color-bg);
 }
 
-/* Next piece */
-.tetris__next-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--color-text-muted);
-}
-
-.tetris__preview {
-  display: block;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg);
-}
-
 /* Mobile controls */
 .tetris__mobile-ctrl {
   display: none;
   gap: 8px;
   align-items: center;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .tetris__ctrl-col {
@@ -668,8 +785,18 @@ const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
 }
 .tetris__ctrl-btn:hover { background: var(--color-border); }
 .tetris__ctrl-btn:active { background: var(--color-accent-muted); color: var(--color-accent); }
+.tetris__ctrl-btn:disabled { opacity: 0.4; cursor: default; }
 
 .tetris__ctrl-hard-drop {
+  display: none;
+  gap: 6px;
+  width: auto;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tetris__ctrl-hold-mobile {
   display: none;
   gap: 6px;
   width: auto;
@@ -753,13 +880,78 @@ const formattedScore = computed(() => score.value.toString().padStart(6, '0'))
 }
 .tetris__start-btn:hover { opacity: 0.88; }
 
+/* Score history */
+.tetris__history {
+  max-width: 420px;
+  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.tetris__history-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+
+.tetris__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tetris__history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.tetris__history-row--top {
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.tetris__history-rank {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.tetris__history-row--top .tetris__history-rank {
+  color: var(--color-accent);
+}
+
+.tetris__history-score {
+  font-size: 16px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  min-width: 80px;
+}
+
+.tetris__history-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
 /* Mobile / tablet */
 @media (max-width: 767px) {
   .tetris__sub { display: none; }
-  .tetris__arena { gap: 12px; }
-  .tetris__side--left { min-width: 60px; }
+  .tetris__arena { gap: 8px; }
+  .tetris__side { min-width: 68px; gap: 8px; }
   .tetris__mobile-ctrl { display: flex; }
   .tetris__ctrl-hard-drop { display: flex; }
-  .tetris__stat-val { font-size: 18px; }
+  .tetris__ctrl-hold-mobile { display: flex; }
+  .tetris__stat-val { font-size: 16px; }
+  .tetris__mini-canvas { width: 72px; height: 72px; }
+  .tetris__history { max-width: 100%; }
 }
 </style>
