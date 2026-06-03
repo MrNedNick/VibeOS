@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v1.5.4 — 2026-06-03**
+**Version: v1.5.15 — 2026-06-03**
 
 > **UI Kit now lives under Docs (v1.2.0):** the live component catalogue is no longer a hidden dev-only `/ui-kit` page. It's integrated into the Docs module as three sidebar sections — **Design Tokens**, **UI Components**, **UI Patterns** — at `/docs/ui-kit/<key>` (e.g. `/docs/ui-kit/button`). Visible in production. Showcase section components live in `src/modules/ui-kit/views/sections/` and are wired in via `src/modules/docs/data/docs-registry.ts` (`DocPage.component`). `DocsView` renders the live component when a page has `component`, else markdown. This is the single source of truth for every reusable `@/ui` component and all its states.
 
@@ -31,9 +31,21 @@
 | S17 — Component Unification | ✅ **complete** — Phase 0 (v1.2.1): UiModal/UiIconButton/UiSelect/UiTextarea; Phase 1 T6–T13 (v1.2.2–v1.2.6): all modules migrated; Phase 2 T14 (v1.2.10): ESLint enforcement; T15 sprint close (v1.3.0). |
 | S18 — Product Analytics & Feedback | ✅ **complete** (T11 deferred to S3 unblock) — T1–T10 ✅ T12 ✅ (docs, tests, UiFeedbackModal showcase). T11 Supabase schema blocked on credentials → moves to S3. |
 
-**Active next (2026-06-03): S11 T2 (full Welcome redesign + cascade demo) is the main user-facing task. S16 T7 QA pass pending (requires live review). S18 ✅ closed. S13 requires live review.**
+**Active next (2026-06-03): S11 T2 (full Welcome redesign + cascade demo) is the main user-facing task. S16 T7 QA pass pending (requires live review). S13 requires live review.**
 
-**New in v1.5.x (2026-06-03):**
+**New in v1.5.6–v1.5.15 (2026-06-03) — backlog + Phase 2 responsive batch:**
+- Studio: export conversation as markdown (Download button, v1.5.6)
+- Habits: push notifications at 21:00 for streak-at-risk — `useHabitNotifications`, toggle in Settings → Privacy & Data (v1.5.7)
+- Notes: hide type/goal selectors on mobile, overflow-scroll toolbar (v1.5.8)
+- Docs: mobile nav dropdown — select replaces left sidebar on sm (v1.5.9)
+- Dashboard: tablet module sidebar collapses at 900px, compact habit-spotlight on mobile (v1.5.10)
+- Board: scrollable filter bar on mobile, 1-col modal form (v1.5.11)
+- Habits: `HabitEmojiPicker` component replaces text input — 7 categories, search, 100+ emojis (v1.5.12)
+- Finance: compact stacked header + scrollable tabs on mobile (v1.5.13)
+- Calendar: compact cells, natural detail panel height on mobile (v1.5.14)
+- Learning + Training: AI form stacks vertically on mobile, today list scroll (v1.5.15)
+
+**Previous v1.5.x (2026-06-03):**
 - S16 T3: achievements + notifications + widgets store tests added (v1.5.2)
 - S16 T6: Playwright E2E smoke tests added (v1.5.3)
 - S15 T7: qa-report.md refreshed to v1.5.2 reality (v1.5.2)

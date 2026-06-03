@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · v11 2026-06-02 S17 T15 (v1.3.0) + S15 T4 god-components (v1.3.1–1.3.5) + S15 T9 close (v1.4.0) + S18 T1–T3 interaction tracking (v1.4.1–1.4.3) · v12 2026-06-02 S18 T4–T10 (v1.4.4–1.4.7): 8 silent modules wired, feedback system, Usage tab, palette commands, Privacy & Data settings. S16 T5: 23 new component tests (297 total). useTrack/v-track documented. · v13 2026-06-03 (v1.5.0): S18 T12 🔄 — UiFeedbackModal in docs-registry, feedback.store+interaction.store tests (330 total in 24 files). S16 T8 ✅ — coverage gate (v8, thresholds: stmt 35% / branch 22%). S14 T4 ✅ — hex guard CI script (baseline 212). S11 T1 — index.html meta, README badges, AboutView description. index.html og tags added. · **v14 2026-06-03 (v1.5.1–v1.5.4): S11 T1 ✅ — WelcomeView copy+hex (v1.5.1). S16 T3 ✅ — achievements/notifications/widgets tests, 367 in 27 files (v1.5.2). S15 T7 ✅ — qa-report.md refreshed. S16 T6 ✅ — Playwright E2E smoke tests (v1.5.3). S18 T12 ✅ — sprint closed (T11 deferred to S3). Backlog: habit-of-the-day spotlight + HabitCard 48px mobile tap (v1.5.4).**
+> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · v11 2026-06-02 S17 T15 (v1.3.0) + S15 T4 god-components (v1.3.1–1.3.5) + S15 T9 close (v1.4.0) + S18 T1–T3 interaction tracking (v1.4.1–1.4.3) · v12 2026-06-02 S18 T4–T10 (v1.4.4–1.4.7): 8 silent modules wired, feedback system, Usage tab, palette commands, Privacy & Data settings. S16 T5: 23 new component tests (297 total). useTrack/v-track documented. · v13 2026-06-03 (v1.5.0): S18 T12 🔄 — UiFeedbackModal in docs-registry, feedback.store+interaction.store tests (330 total in 24 files). S16 T8 ✅ — coverage gate (v8, thresholds: stmt 35% / branch 22%). S14 T4 ✅ — hex guard CI script (baseline 212). S11 T1 — index.html meta, README badges, AboutView description. index.html og tags added. · **v14 2026-06-03 (v1.5.1–v1.5.4): S11 T1 ✅ — WelcomeView copy+hex (v1.5.1). S16 T3 ✅ — achievements/notifications/widgets tests, 367 in 27 files (v1.5.2). S15 T7 ✅ — qa-report.md refreshed. S16 T6 ✅ — Playwright E2E smoke tests (v1.5.3). S18 T12 ✅ — sprint closed (T11 deferred to S3). Backlog: habit-of-the-day spotlight + HabitCard 48px mobile tap (v1.5.4).** · **v15 2026-06-03 (v1.5.6–v1.5.15): Backlog 10-task batch — Studio export conversation, habit push notifications (useHabitNotifications + Settings toggle), Phase 2 responsive for Notes/Docs/Dashboard/Board/Finance/Calendar/Learning/Training, HabitEmojiPicker component.**
 > ⚠️ **Keep this file current.** Mark sprint items done the moment they ship. Add Phase 4+ specs before the session that implements them. A roadmap that lags the code is useless.
 > See `docs/strategy.md` for product context · `docs/privacy-security.md` for auth plan.
 
@@ -1594,10 +1594,10 @@ Post-S3: production connects to Supabase. Demo account seeded.
 
 All major habit depth features are shipped. Remaining items:
 
-- **Push notifications** — browser Notifications API; end-of-day "⚠️ streak at risk" reminder (post-S8)
-- **"Habit of the day" spotlight** — random unchecked habit shown prominently in Dashboard
-- **Emoji picker** — richer emoji picker in habit creation (current: text input; target: grid or search)
-- **Mobile check-in tap target** — bump check button to 48px min for easier mobile tap
+- ✅ **Push notifications** — `useHabitNotifications` composable (v1.5.7); toggle in Settings → Privacy & Data
+- ✅ **"Habit of the day" spotlight** — shipped v1.5.4
+- ✅ **Emoji picker** — `HabitEmojiPicker` component (v1.5.12): 7 categories, search, 100+ emojis
+- ✅ **Mobile check-in tap target** — bumped to 48px (v1.5.4)
 
 ---
 
@@ -1676,15 +1676,19 @@ Extract VibeOS Habits module into a native iOS app:
 - **Timeline**: after Habits module reaches full depth in VibeOS (post-S5); standalone development starts S8+
 - See `docs/strategy.md § 10` for full description
 
-### Responsive design — Phase 2 (per-module)
-Phase 1 is complete (sidebar, layout, header).
-Remaining per-module responsive work:
-- **Dashboard** — stat cards 2×2 on tablet, 1-col on mobile; Today panel adapts
-- **Notes** — hide preview on mobile (edit-only), collapse note list
-- **Docs** — sidebar becomes top dropdown on mobile
-- **Kanban** — mobile card list view (no drag on touch)
-- **Habits/Goals/Learning/Training** — already responsive (card grids)
-All Phase 2 items are non-blocking; polish when each module is next touched.
+### Responsive design — Phase 2 (per-module) ✅ complete (v1.5.8–v1.5.15)
+Phase 1 is complete (sidebar, layout, header). Phase 2 shipped:
+- ✅ **Dashboard** — tablet sidebar collapses at 900px; compact habit-spotlight on mobile (v1.5.10)
+- ✅ **Notes** — type/goal selectors hidden on mobile, toolbar scrollable (v1.5.8)
+- ✅ **Docs** — sidebar replaced by native `<select>` dropdown on mobile (v1.5.9)
+- ✅ **Board** — scrollable filter bar, 1-col add-card modal on mobile (v1.5.11)
+- ✅ **Finance** — stacked compact header, scrollable tabs on mobile (v1.5.13)
+- ✅ **Calendar** — compact cells, natural detail panel height on mobile (v1.5.14)
+- ✅ **Learning + Training** — AI form stacks vertically, today list scrollable on mobile (v1.5.15)
+
+Remaining (low priority — already functional, just cosmetic polish):
+- **Goals** — detail view sections on very small screens
+- **Studio** — sidebar collapses fully on phone (currently 200px drawer)
 
 ### Snippets — removed (2026-05-29)
 **Removed.** Module deleted: low daily-use value in a life OS context; developer snippet workflow fits better in Notes (code blocks with highlighting). All routes, registry entries, i18n keys, and event types cleaned up.
@@ -1777,33 +1781,13 @@ Each game should persist `activeSkinId` + `unlockedSkins` in localStorage, match
 ### Studio — future improvements (TODO backlog)
 These are the meaningful improvements to do next — not features for features' sake:
 
-**Priority 1 — Chat history sidebar (Claude-style interface):**
-- Left sidebar with list of past conversations (like Claude.ai)
-- Each conversation has a title (auto-generated from first message or user-editable)
-- "New chat" creates a new conversation entry; old ones persist
-- Click any past conversation to restore the full message history
-- Conversation list sorted by last activity; shows model used + message count
-- Conversations stored in localStorage under `platform:studio:conversations`
-- Max 50 saved conversations; oldest auto-pruned
+**✅ Shipped (v1.5.x):**
+- ✅ Chat history sidebar — `StudioHistorySidebar`, `savedConversations`, loadConversation (already shipped earlier)
+- ✅ "Include my context" toggle — `buildProjectContext()` injects goals/tasks/habits/learning/training data (already shipped)
+- ✅ Markdown rendering — `marked` with code blocks, lists, headings (already shipped)
+- ✅ Export conversation — Download button → `.md` file with timestamp (v1.5.6)
 
-**Priority 2 — Project data access (AI as life OS assistant):**
-- "Include my context" toggle before sending — injects a structured summary of user's VibeOS data:
-  - Active goals (title, progress %, days remaining)
-  - Today's tasks (pending, completed)
-  - Habits today (checked vs not checked)
-  - Learning sessions this week (plan name, hours)
-  - Training sessions this week (plan name, workouts logged)
-- Context is appended as a system message, not visible in chat bubbles
-- User controls what data to include (toggle per category)
-- This enables queries like "what should I focus on today?" or "am I on track for my goals?" with real data
-
-**Priority 3 — Markdown rendering:**
-- Render AI responses as markdown (code blocks, lists, headings, bold) using `marked`
-- Currently `white-space: pre-wrap` only; code blocks look like plain text
-- Use `DOMPurify` for XSS safety if adding it as a dep, otherwise sanitize manually
-
-**Other improvements:**
-- Export conversation as markdown or plain text
+**Remaining:**
 - Free AI model descriptions tooltip (speed, quality, best-for)
 - **Additional free providers** (S6, user provides key):
   - **Gemini Flash** — Google AI Studio free tier; 60 req/min; no credit card for dev key
