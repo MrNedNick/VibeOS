@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · v11 2026-06-02 S17 T15 (v1.3.0) + S15 T4 god-components (v1.3.1–1.3.5) + S15 T9 close (v1.4.0) + S18 T1–T3 interaction tracking (v1.4.1–1.4.3) · **v12 2026-06-02 S18 T4–T10 (v1.4.4–1.4.7): 8 silent modules wired, feedback system, Usage tab, palette commands, Privacy & Data settings. S16 T5: 23 new component tests (297 total). useTrack/v-track documented.**
+> Re-planned v2 2026-05-27 · v3 2026-05-28 · v4–v7 2026-05-30 · v8 2026-05-31 S8 formalised · v9 2026-05-31 S9 Phase 3+4 · v10 2026-06-02 S17 complete, S15/S16 active, 274 tests in 21 files · v11 2026-06-02 S17 T15 (v1.3.0) + S15 T4 god-components (v1.3.1–1.3.5) + S15 T9 close (v1.4.0) + S18 T1–T3 interaction tracking (v1.4.1–1.4.3) · v12 2026-06-02 S18 T4–T10 (v1.4.4–1.4.7): 8 silent modules wired, feedback system, Usage tab, palette commands, Privacy & Data settings. S16 T5: 23 new component tests (297 total). useTrack/v-track documented. · **v13 2026-06-03 (v1.5.0): S18 T12 🔄 — UiFeedbackModal in docs-registry, feedback.store+interaction.store tests (330 total in 24 files). S16 T8 ✅ — coverage gate (v8, thresholds: stmt 35% / branch 22%). S14 T4 ✅ — hex guard CI script (baseline 212). S11 T1 — index.html meta, README badges, AboutView description. index.html og tags added.**
 > ⚠️ **Keep this file current.** Mark sprint items done the moment they ship. Add Phase 4+ specs before the session that implements them. A roadmap that lags the code is useless.
 > See `docs/strategy.md` for product context · `docs/privacy-security.md` for auth plan.
 
@@ -23,11 +23,11 @@
 | **S11 — Welcome & Positioning** | "Simple Notion for life, where everything is connected" + live cascade demo | 🔜 **next** — repositioned 2026-06-01 |
 | **S12 — AI Depth** | AI in every module; start with Analytics monthly report (shows connected data) | ✅ complete — Analytics ✅ (v1.0.11), Habits/Notes/Finance ✅ (v1.1.0) |
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
-| **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔄 active — T1/T2/T3/T5/T6 ✅; T4 hex cleanup: CalendarView ✅, WelcomeView folds into S11 |
+| **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | 🔄 active — T1/T2/T3/T4/T5/T6 ✅; T4 hex guard: CI script (`npm run ci:hex-check`), baseline 212 violations, MAX 215 |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 (Learning/Training unification) deferred. |
-| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1 useSoftDeletable ✅ T2 training/learning stores ✅ T3 ui/commandPalette ✅ T4 UiButton/UiCard/UiFilterChips ✅ T5 analytics god-components ✅; remaining: T6 E2E, T7 QA, T8 coverage gate. **297 tests in 22 files** |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T5 ✅ T8 ✅ (coverage gate: v8, thresholds stmt 35%/branch 22%/fn 40%/lines 35%); remaining: T6 E2E, T7 QA. **330 tests in 24 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
-| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | 🔄 active — T1–T3 interaction tracking ✅ T4 silent modules ✅ T5 UiFeedbackModal ✅ T6 useFeedback ✅ T7 feedback.store ✅ T8 Usage tab ✅ T9 palette commands ✅ T10 Privacy & Data settings ✅; remaining: T11 Supabase schema, T12 sprint close |
+| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | 🔄 active — T1–T10 ✅ T12 🔄 (UiFeedbackModal in docs-registry, feedback.store+interaction.store tests); remaining: T11 Supabase schema, T12 final close |
 
 ---
 

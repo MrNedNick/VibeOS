@@ -4,7 +4,7 @@
 
 Live → **https://mrnednick.github.io/VibeOS**
 
-![Bundle Size](https://img.shields.io/badge/initial_JS-46_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-128_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square)
+![Bundle Size](https://img.shields.io/badge/initial_JS-46_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-297_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square)
 
 ---
 
@@ -79,7 +79,7 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # production build → dist/
 npm run type-check # vue-tsc --noEmit
-npm test           # vitest run (128 tests, happy-dom)
+npm test           # vitest run (297 tests, happy-dom)
 ```
 
 ---
@@ -102,8 +102,10 @@ npm test           # vitest run (128 tests, happy-dom)
 | S12 — AI Depth | AI in every data module — Analytics report, Habits insights, Notes summarise, Finance analysis | ✅ complete |
 | S13 — Design Pass | Module-by-module quality pass | 🔜 planned |
 | S14 — Quick Wins | Lazy routes, soft-delete, AI provider seam | 🔄 active |
-| S15 — Refactor & De-dup | Extract shared composables, split god-components | 🔜 planned |
-| S16 — Test Coverage | Store/component tests, E2E, manual QA | 🔜 planned |
+| S15 — Refactor & De-dup | Extract shared composables, split god-components | ✅ complete |
+| S16 — Test Coverage | 297 tests in 22 files — stores, components, composables | 🔄 active |
+| S17 — Component Unification | All modules migrated to @/ui; ESLint enforcement | ✅ complete |
+| S18 — Product Analytics & Feedback | Interaction tracking, NPS modal, Usage tab, Privacy settings | 🔄 active |
 
 ---
 

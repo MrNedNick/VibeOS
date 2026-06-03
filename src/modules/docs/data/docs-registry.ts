@@ -29,6 +29,7 @@ import UiEmptyStateSection from '@/modules/ui-kit/views/sections/patterns/UiEmpt
 import UiConfirmDialogSection from '@/modules/ui-kit/views/sections/patterns/UiConfirmDialogSection.vue'
 import UiPlannedViewSection from '@/modules/ui-kit/views/sections/patterns/UiPlannedViewSection.vue'
 import UiModalSection from '@/modules/ui-kit/views/sections/patterns/UiModalSection.vue'
+import UiFeedbackModalSection from '@/modules/ui-kit/views/sections/patterns/UiFeedbackModalSection.vue'
 
 export interface DocPage {
   slug: string
@@ -188,7 +189,8 @@ export const DOC_REGISTRY: DocSection[] = [
       { slug: 'ui-kit/emptystate',    label: 'UiEmptyState',    labelRu: 'UiEmptyState',    component: UiEmptyStateSection,    description: 'Empty / zero-data state',     descriptionRu: 'Состояние без данных' },
       { slug: 'ui-kit/confirmdialog', label: 'UiConfirmDialog', labelRu: 'UiConfirmDialog', component: UiConfirmDialogSection, description: 'Confirmation modal',          descriptionRu: 'Модал подтверждения' },
       { slug: 'ui-kit/plannedview',   label: 'UiPlannedView',   labelRu: 'UiPlannedView',   component: UiPlannedViewSection,   description: 'Planned / coming-soon view',  descriptionRu: 'Экран «в планах»' },
-      { slug: 'ui-kit/modal',         label: 'UiModal',         labelRu: 'UiModal',         component: UiModalSection,         description: 'Base overlay / dialog primitive', descriptionRu: 'Базовый оверлей/диалог' },
+      { slug: 'ui-kit/modal',          label: 'UiModal',          labelRu: 'UiModal',          component: UiModalSection,          description: 'Base overlay / dialog primitive',  descriptionRu: 'Базовый оверлей/диалог' },
+      { slug: 'ui-kit/feedbackmodal', label: 'UiFeedbackModal', labelRu: 'UiFeedbackModal', component: UiFeedbackModalSection, description: '3-step NPS feedback modal',          descriptionRu: '3-шаговый NPS-модал обратной связи' },
     ],
   },
 ]

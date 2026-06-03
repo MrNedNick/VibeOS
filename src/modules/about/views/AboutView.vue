@@ -129,7 +129,7 @@ const STATS = computed(() => [
         <p class="about__bio">
           App developer with 6+ years building end-to-end digital products —
           from UI to backend architecture. Specialising in Vue 3, React, and TypeScript.
-          VibeOS is a personal life OS built to actually get used every day.
+          VibeOS is a simpler Notion for your life — habits, tasks, goals, learning in one place where everything is connected. Log one thing, and the rest updates on its own.
         </p>
         <p class="about__ethos">
           <span class="about__ethos-mark">✦</span>

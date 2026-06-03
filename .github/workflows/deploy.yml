@@ -33,6 +33,12 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      - name: Coverage gate
+        run: npm run test:coverage
+
+      - name: Hex guard (no new hardcoded colors)
+        run: npm run ci:hex-check
+
       - name: Lint (warnings allowed, errors block)
         run: npm run lint
 
