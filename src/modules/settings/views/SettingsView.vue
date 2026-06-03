@@ -11,6 +11,7 @@ import { useTrack } from '@/core/composables/useTrack'
 import { useFeedback } from '@/core/composables/useFeedback'
 import { useFeedbackStore } from '@/core/stores/feedback.store'
 import { useInteractionBus } from '@/core/stores/interaction.store'
+import { useHabitNotifications } from '@/core/composables/useHabitNotifications'
 
 const uiStore = useUiStore()
 const i18n    = useLocale()
@@ -18,6 +19,7 @@ const { track } = useTrack()
 const feedback      = useFeedback()
 const feedbackStore = useFeedbackStore()
 const interBus      = useInteractionBus()
+const habitNotifs   = useHabitNotifications()
 
 // Privacy & Data — analytics opt-out toggle
 const analyticsEnabled = useStorage<boolean>('platform:analytics:enabled', true)
@@ -363,6 +365,24 @@ function cancelImport() {
           :class="{ 'settings__vis-toggle--on': analyticsEnabled }"
           title="Toggle usage analytics"
           @click="analyticsEnabled = !analyticsEnabled"
+        >
+          <span class="settings__vis-knob" />
+        </button>
+      </div>
+
+      <!-- Habit streak notifications -->
+      <div class="settings__row">
+        <div class="settings__row-info">
+          <span class="settings__row-name">Habit streak reminders</span>
+          <p class="settings__row-hint">Browser notification at 21:00 when a habit with a streak ≥ 2 isn't done yet.
+            <template v-if="habitNotifs.permission.value === 'denied'"> (Notifications blocked in browser — allow them first.)</template>
+          </p>
+        </div>
+        <button
+          class="settings__vis-toggle"
+          :class="{ 'settings__vis-toggle--on': habitNotifs.enabled.value }"
+          title="Toggle habit notifications"
+          @click="habitNotifs.enabled.value ? habitNotifs.disable() : habitNotifs.enable()"
         >
           <span class="settings__vis-knob" />
         </button>

@@ -10,9 +10,11 @@ import AppBottomTabs from './components/AppBottomTabs.vue'
 import AchievementToast from '@/core/components/AchievementToast.vue'
 import { useUiStore } from '@/core/stores/ui.store'
 import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
+import { useHabitNotifications } from '@/core/composables/useHabitNotifications'
 
 const uiStore = useUiStore()
 const palette = useCommandPaletteStore()
+useHabitNotifications() // initialise polling for streak reminders
 const route = useRoute()
 
 // ── Fullbleed state ───────────────────────────────────────────────────
