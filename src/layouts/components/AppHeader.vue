@@ -111,10 +111,10 @@ const moduleLabel = computed(() => {
       <button
         v-if="auth.isLoggedIn"
         class="header-avatar"
-        :class="{ 'header-avatar--demo': auth.isDemoMode }"
-        title="Account"
-        aria-label="Open account panel"
-        @click="uiStore.openUserPanel"
+        :class="{ 'header-avatar--demo': auth.isDemoMode, 'header-avatar--active': route.path.startsWith('/settings') }"
+        title="Settings & Account"
+        aria-label="Open settings"
+        @click="router.push('/settings')"
       >
         <UiIcon v-if="auth.isDemoMode" name="FlaskConical" :size="14" :stroke-width="2" />
         <span v-else class="header-avatar__letter">
@@ -384,7 +384,8 @@ const moduleLabel = computed(() => {
   min-width: 0;
   transition: background var(--t-fast), box-shadow var(--t-fast);
 }
-.header-avatar:hover {
+.header-avatar:hover,
+.header-avatar--active {
   background: color-mix(in srgb, var(--color-accent) 20%, transparent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 30%, transparent);
 }

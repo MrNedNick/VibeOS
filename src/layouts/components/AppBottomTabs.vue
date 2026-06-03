@@ -5,13 +5,9 @@ import { PLATFORM_MODULES, type ModuleMeta } from '@/core/registry/modules'
 import { useLocale } from '@/core/i18n'
 import { UiIcon } from '@/ui'
 import { useModuleVisibility } from '@/core/composables/useModuleVisibility'
-import { useUiStore } from '@/core/stores/ui.store'
-import UserPanel from './UserPanel.vue'
-
 const route   = useRoute()
 const router  = useRouter()
 const i18n    = useLocale()
-const uiStore = useUiStore()
 const { isVisible } = useModuleVisibility()
 
 const showMore = ref(false)
@@ -29,10 +25,10 @@ function isTabActive(path: string): boolean {
   return route.path.startsWith(path)
 }
 
-/** "More" tab is active when the current route isn't one of the 3 main tabs */
+/** "More" tab is active when the current route isn't one of the 3 main tabs or Account */
 const isMoreActive = computed(() => {
   const mainPaths = BOTTOM_TABS.map(t => t.path)
-  if (route.path === '/') return false
+  if (route.path === '/' || route.path.startsWith('/settings')) return false
   return !mainPaths.some(p => p !== '/' && route.path.startsWith(p))
 })
 
@@ -116,19 +112,19 @@ onUnmounted(() => { document.body.style.overflow = '' })
       <span v-if="isTabActive(tab.path)" class="bottom-nav__tab-pill" />
     </button>
 
-    <!-- User tab -->
+    <!-- Account tab → navigates to /settings -->
     <button
       class="bottom-nav__tab"
-      :class="{ 'bottom-nav__tab--active': uiStore.userPanelOpen }"
+      :class="{ 'bottom-nav__tab--active': isTabActive('/settings') }"
       role="tab"
-      :aria-label="'Account'"
-      @click="uiStore.openUserPanel()"
+      :aria-label="'Settings & Account'"
+      @click="navigateTo('/settings')"
     >
       <span class="bottom-nav__tab-icon">
-        <UiIcon name="User" :size="22" :stroke-width="uiStore.userPanelOpen ? 2.1 : 1.6" />
+        <UiIcon name="User" :size="22" :stroke-width="isTabActive('/settings') ? 2.1 : 1.6" />
       </span>
       <span class="bottom-nav__tab-label">Account</span>
-      <span v-if="uiStore.userPanelOpen" class="bottom-nav__tab-pill" />
+      <span v-if="isTabActive('/settings')" class="bottom-nav__tab-pill" />
     </button>
 
     <!-- More tab -->
@@ -150,9 +146,6 @@ onUnmounted(() => { document.body.style.overflow = '' })
       <span v-if="isMoreActive && !showMore" class="bottom-nav__tab-pill" />
     </button>
   </nav>
-
-  <!-- User panel modal -->
-  <UserPanel v-model:open="uiStore.userPanelOpen" />
 
   <!-- ── "More" bottom sheet ─────────────────────────────────────── -->
   <Teleport to="body">

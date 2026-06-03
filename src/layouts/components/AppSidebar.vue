@@ -114,12 +114,13 @@ function goHome() {
     <!-- Footer: user + pin/collapse -->
     <div class="sidebar__footer">
 
-      <!-- User row (only when logged in) — click opens UserPanel -->
+      <!-- User row (only when logged in) — navigates to Settings -->
       <button
         v-if="auth.isLoggedIn"
         class="sidebar__user"
-        title="Account"
-        @click="uiStore.openUserPanel"
+        :class="{ 'sidebar__user--active': route.path.startsWith('/settings') }"
+        title="Settings & Account"
+        @click="router.push('/settings')"
       >
         <!-- Avatar initials -->
         <div class="sidebar__user-avatar" :class="{ 'sidebar__user-avatar--demo': auth.isDemoMode }">
@@ -136,7 +137,7 @@ function goHome() {
           </span>
         </div>
         <!-- Chevron hint -->
-        <UiIcon name="ChevronUp" :size="13" :stroke-width="2" class="sidebar__user-chevron" />
+        <UiIcon name="ChevronRight" :size="13" :stroke-width="2" class="sidebar__user-chevron" />
       </button>
 
       <!-- Sign in prompt (guest) -->
@@ -423,8 +424,13 @@ function goHome() {
   font-family: inherit;
   transition: background var(--t-fast);
 }
-.sidebar__user:hover {
-  background: var(--color-surface-elevated);
+.sidebar__user:hover,
+.sidebar__user--active {
+  background: var(--color-accent-muted);
+}
+.sidebar__user--active .sidebar__user-name,
+.sidebar__user--active .sidebar__user-email {
+  color: var(--color-accent);
 }
 
 .sidebar__user-avatar {

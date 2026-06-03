@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { UiButton, UiInput, UiFeedbackModal } from '@/ui'
 import { useUiStore } from '@/core/stores/ui.store'
 import type { Theme } from '@/core/stores/ui.store'
+import { useAuthStore } from '@/core/stores/auth.store'
 import { useLocale } from '@/core/i18n'
 import { useStorage } from '@/core/composables/useStorage'
 import { useModuleVisibility } from '@/core/composables/useModuleVisibility'
@@ -12,8 +14,11 @@ import { useFeedback } from '@/core/composables/useFeedback'
 import { useFeedbackStore } from '@/core/stores/feedback.store'
 import { useInteractionBus } from '@/core/stores/interaction.store'
 import { useHabitNotifications } from '@/core/composables/useHabitNotifications'
+import UiIcon from '@/ui/components/UiIcon.vue'
 
+const router  = useRouter()
 const uiStore = useUiStore()
+const auth    = useAuthStore()
 const i18n    = useLocale()
 const { track } = useTrack()
 const feedback      = useFeedback()
@@ -32,46 +37,106 @@ function clearAnalyticsData(): void {
   track('data:analytics-cleared')
 }
 
+// ── Profile: display name edit ────────────────────────────────────
+const editingName = ref(false)
+const nameValue   = ref('')
+const nameError   = ref<string | null>(null)
+const nameSaving  = ref(false)
+
+function startEditName() {
+  nameValue.value  = auth.user?.displayName ?? ''
+  nameError.value  = null
+  editingName.value = true
+}
+
+function cancelEditName() {
+  editingName.value = false
+  nameError.value   = null
+}
+
+async function saveName() {
+  const trimmed = nameValue.value.trim()
+  if (!trimmed) { nameError.value = 'Name cannot be empty.'; return }
+  nameSaving.value = true
+  nameError.value  = null
+  const result = await auth.updateDisplayName(trimmed)
+  nameSaving.value = false
+  if (result.error) { nameError.value = result.error; return }
+  editingName.value = false
+}
+
+// ── Security: change password ─────────────────────────────────────
+const showPasswordForm = ref(false)
+const newPassword      = ref('')
+const confirmPassword  = ref('')
+const passwordError    = ref<string | null>(null)
+const passwordSuccess  = ref(false)
+const showNewPwd       = ref(false)
+const showConfirmPwd   = ref(false)
+
+function togglePasswordForm() {
+  showPasswordForm.value = !showPasswordForm.value
+  passwordError.value   = null
+  passwordSuccess.value = false
+  newPassword.value     = ''
+  confirmPassword.value = ''
+}
+
+async function savePassword() {
+  passwordError.value = null
+  if (newPassword.value.length < 8) {
+    passwordError.value = 'Password must be at least 8 characters.'
+    return
+  }
+  if (newPassword.value !== confirmPassword.value) {
+    passwordError.value = "Passwords don't match."
+    return
+  }
+  const result = await auth.updatePassword(newPassword.value)
+  if (result.error) { passwordError.value = result.error; return }
+  passwordSuccess.value = true
+  newPassword.value     = ''
+  confirmPassword.value = ''
+  setTimeout(() => {
+    showPasswordForm.value = false
+    passwordSuccess.value  = false
+  }, 2000)
+}
+
+const canSavePassword = computed(() =>
+  newPassword.value.length >= 8 && confirmPassword.value.length >= 8,
+)
+
+async function handleLogout() {
+  await auth.logout()
+  router.replace('/welcome')
+}
+
+function goRegister() {
+  router.push('/register')
+}
+
 // ── Vibe-paks ─────────────────────────────────────────────────────
 interface VibePak {
   id: Theme
   nameKey: string
-  swatches: string[]   // [bg, accent, text]
-  label: string        // short descriptor
+  swatches: string[]
+  label: string
 }
 
 const VIBE_PAKS: VibePak[] = [
-  {
-    id:      'dark',
-    nameKey: 'settings.themeDark',
-    swatches: ['#0b0f1a', '#5c7cfa', '#f0f0f4'],
-    label:   'Navy',
-  },
-  {
-    id:      'light',
-    nameKey: 'settings.themeLight',
-    swatches: ['#eef1f7', '#2563eb', '#0d1117'],
-    label:   'Frosted',
-  },
-  {
-    id:      'brutalist',
-    nameKey: 'settings.themeBrutalist',
-    swatches: ['#f0ede8', '#000000', '#000000'],
-    label:   'Stark',
-  },
-  {
-    id:      'crt',
-    nameKey: 'settings.themeCrt',
-    swatches: ['#091209', '#52c46a', '#a8d8a8'],
-    label:   'Terminal',
-  },
+  { id: 'dark',      nameKey: 'settings.themeDark',      swatches: ['#0b0f1a', '#5c7cfa', '#f0f0f4'], label: 'Navy'     },
+  { id: 'light',     nameKey: 'settings.themeLight',     swatches: ['#eef1f7', '#2563eb', '#0d1117'], label: 'Frosted'  },
+  { id: 'brutalist', nameKey: 'settings.themeBrutalist', swatches: ['#f0ede8', '#000000', '#000000'], label: 'Stark'    },
+  { id: 'crt',       nameKey: 'settings.themeCrt',       swatches: ['#091209', '#52c46a', '#a8d8a8'], label: 'Terminal' },
 ]
 
 // ── Module visibility ─────────────────────────────────────────────
 const { isVisible, toggleModule } = useModuleVisibility()
-
-// Only life + work modules can be toggled (system modules are always visible)
 const toggleableModules = PLATFORM_MODULES.filter(m => m.section !== 'system')
+const modulesOpen = ref(false)
+
+const activeModulesCount = computed(() => toggleableModules.filter(m => isVisible(m.id)).length)
 
 // ── API keys ──────────────────────────────────────────────────────
 const anthropicKey  = useStorage<string>('platform:studio:apikey', '')
@@ -129,7 +194,7 @@ function triggerImport() {
 function onFileChange(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
-  ;(e.target as HTMLInputElement).value = ''    // reset so same file can re-trigger
+  ;(e.target as HTMLInputElement).value = ''
   const reader = new FileReader()
   reader.onload = (ev) => {
     try {
@@ -162,17 +227,188 @@ function cancelImport() {
   importConfirm.value = false
   importPayload.value = null
 }
-
 </script>
 
 <template>
   <div class="settings">
     <div class="settings__header">
-      <h1 class="settings__title">{{ i18n.t('settings.title') }}</h1>
-      <p class="settings__desc">{{ i18n.t('settings.desc') }}</p>
+      <h1 class="settings__title">Settings</h1>
+      <p class="settings__desc">Manage your profile, appearance, and data.</p>
     </div>
 
-    <!-- ── Appearance ──────────────────────────────────── -->
+    <!-- ── Profile ───────────────────────────────────────── -->
+    <section class="settings__section">
+      <h2 class="settings__section-title">Profile</h2>
+
+      <div class="profile-identity">
+        <!-- Avatar -->
+        <div
+          class="profile-avatar"
+          :class="{ 'profile-avatar--demo': auth.isDemoMode }"
+        >
+          <UiIcon v-if="auth.isDemoMode" name="FlaskConical" :size="22" :stroke-width="2" />
+          <span v-else class="profile-avatar__letter">
+            {{ (auth.user?.displayName ?? auth.user?.email ?? '?')[0].toUpperCase() }}
+          </span>
+        </div>
+
+        <!-- Name + email block -->
+        <div class="profile-info">
+          <!-- Edit mode -->
+          <template v-if="editingName">
+            <div class="profile-name-edit">
+              <UiInput
+                v-model="nameValue"
+                placeholder="Display name"
+                :disabled="nameSaving"
+                :error="!!nameError"
+                @keydown.enter="saveName"
+                @keydown.esc="cancelEditName"
+              />
+              <div class="profile-name-edit__actions">
+                <UiButton size="sm" :disabled="nameSaving" @click="saveName">
+                  <UiIcon v-if="nameSaving" name="Loader2" :size="13" class="spin" />
+                  <span v-else>Save</span>
+                </UiButton>
+                <UiButton size="sm" variant="ghost" :disabled="nameSaving" @click="cancelEditName">
+                  Cancel
+                </UiButton>
+              </div>
+              <span v-if="nameError" class="profile-field-error">
+                <UiIcon name="AlertCircle" :size="12" />{{ nameError }}
+              </span>
+            </div>
+          </template>
+
+          <!-- Display mode -->
+          <template v-else>
+            <div class="profile-name-row">
+              <p class="profile-name">
+                {{ auth.isDemoMode ? 'Demo mode' : (auth.user?.displayName ?? 'User') }}
+              </p>
+              <button
+                v-if="!auth.isDemoMode"
+                class="profile-edit-btn"
+                title="Edit display name"
+                @click="startEditName"
+              >
+                <UiIcon name="Pencil" :size="13" />
+                <span>Edit</span>
+              </button>
+            </div>
+            <p class="profile-email">{{ auth.user?.email }}</p>
+          </template>
+        </div>
+      </div>
+
+      <!-- Demo CTA -->
+      <div v-if="auth.isDemoMode" class="profile-demo-cta">
+        <p class="profile-demo-text">
+          You're exploring in demo mode. Create a free account to save your data.
+        </p>
+        <UiButton @click="goRegister">
+          <UiIcon name="UserPlus" :size="14" />
+          Create free account
+        </UiButton>
+      </div>
+    </section>
+
+    <!-- ── Security ──────────────────────────────────────── -->
+    <section v-if="!auth.isDemoMode" class="settings__section">
+      <h2 class="settings__section-title">Security</h2>
+
+      <!-- Change password accordion row -->
+      <div class="settings__row">
+        <div>
+          <span class="settings__row-name">Password</span>
+          <p class="settings__row-hint">Update your account password.</p>
+        </div>
+        <UiButton variant="ghost" size="sm" @click="togglePasswordForm">
+          <UiIcon :name="showPasswordForm ? 'ChevronUp' : 'KeyRound'" :size="14" />
+          {{ showPasswordForm ? 'Cancel' : 'Change' }}
+        </UiButton>
+      </div>
+
+      <!-- Password form -->
+      <Transition name="expand">
+        <div v-if="showPasswordForm" class="security-pwd-form">
+          <template v-if="passwordSuccess">
+            <div class="security-pwd-success">
+              <UiIcon name="CheckCircle2" :size="15" />
+              Password updated successfully.
+            </div>
+          </template>
+          <template v-else>
+            <div class="security-pwd-field">
+              <label class="security-pwd-label">New password</label>
+              <div class="security-pwd-wrap">
+                <UiInput
+                  v-model="newPassword"
+                  :type="showNewPwd ? 'text' : 'password'"
+                  placeholder="Min. 8 characters"
+                  autocomplete="new-password"
+                  :disabled="auth.loading"
+                />
+                <button
+                  type="button"
+                  class="security-eye-btn"
+                  :aria-label="showNewPwd ? 'Hide' : 'Show'"
+                  @click="showNewPwd = !showNewPwd"
+                >
+                  <UiIcon :name="showNewPwd ? 'EyeOff' : 'Eye'" :size="14" />
+                </button>
+              </div>
+            </div>
+            <div class="security-pwd-field">
+              <label class="security-pwd-label">Confirm password</label>
+              <div class="security-pwd-wrap">
+                <UiInput
+                  v-model="confirmPassword"
+                  :type="showConfirmPwd ? 'text' : 'password'"
+                  placeholder="Repeat password"
+                  autocomplete="new-password"
+                  :disabled="auth.loading"
+                  @keydown.enter="savePassword"
+                />
+                <button
+                  type="button"
+                  class="security-eye-btn"
+                  :aria-label="showConfirmPwd ? 'Hide' : 'Show'"
+                  @click="showConfirmPwd = !showConfirmPwd"
+                >
+                  <UiIcon :name="showConfirmPwd ? 'EyeOff' : 'Eye'" :size="14" />
+                </button>
+              </div>
+            </div>
+            <div v-if="passwordError" class="profile-field-error">
+              <UiIcon name="AlertCircle" :size="12" />{{ passwordError }}
+            </div>
+            <UiButton
+              size="sm"
+              :disabled="auth.loading || !canSavePassword"
+              @click="savePassword"
+            >
+              <UiIcon v-if="auth.loading" name="Loader2" :size="13" class="spin" />
+              <span>{{ auth.loading ? 'Saving…' : 'Update password' }}</span>
+            </UiButton>
+          </template>
+        </div>
+      </Transition>
+
+      <!-- Sign out -->
+      <div class="settings__row settings__row--danger">
+        <div>
+          <span class="settings__row-name">Sign out</span>
+          <p class="settings__row-hint">End your current session on this device.</p>
+        </div>
+        <UiButton variant="ghost" @click="handleLogout">
+          <UiIcon name="LogOut" :size="14" />
+          Sign out
+        </UiButton>
+      </div>
+    </section>
+
+    <!-- ── Appearance ──────────────────────────────────────── -->
     <section class="settings__section">
       <h2 class="settings__section-title">{{ i18n.t('settings.sectionAppearance') }}</h2>
 
@@ -224,37 +460,47 @@ function cancelImport() {
 
     <!-- ── Modules ───────────────────────────────────────── -->
     <section class="settings__section">
-      <h2 class="settings__section-title">Modules</h2>
+      <button class="settings__section-accordion" @click="modulesOpen = !modulesOpen">
+        <h2 class="settings__section-title">Modules</h2>
+        <span class="settings__section-count">{{ activeModulesCount }} / {{ toggleableModules.length }} active</span>
+        <UiIcon
+          :name="modulesOpen ? 'ChevronUp' : 'ChevronDown'"
+          :size="15"
+          class="settings__section-chevron"
+        />
+      </button>
 
-      <p class="settings__row-hint" style="margin: 0 0 4px;">
-        Toggle modules on or off in the sidebar. System modules are always shown.
-      </p>
-
-      <div
-        v-for="mod in toggleableModules"
-        :key="mod.id"
-        class="settings__row settings__module-row"
-      >
-        <div class="settings__module-info">
-          <span class="settings__row-name">{{ mod.label }}</span>
-          <p class="settings__row-hint">{{ mod.description }}</p>
+      <Transition name="expand">
+        <div v-if="modulesOpen" class="settings__modules-list">
+          <p class="settings__row-hint" style="margin: 0 0 6px;">
+            Toggle modules on or off in the sidebar. System modules are always shown.
+          </p>
+          <div
+            v-for="mod in toggleableModules"
+            :key="mod.id"
+            class="settings__row settings__module-row"
+          >
+            <div class="settings__module-info">
+              <span class="settings__row-name">{{ mod.label }}</span>
+              <p class="settings__row-hint">{{ mod.description }}</p>
+            </div>
+            <button
+              class="settings__vis-toggle"
+              :class="{ 'settings__vis-toggle--on': isVisible(mod.id) }"
+              :title="isVisible(mod.id) ? 'Click to hide' : 'Click to show'"
+              @click="toggleModule(mod.id); track('module:visibility-toggled', { module: mod.id, nowVisible: !isVisible(mod.id) })"
+            >
+              <span class="settings__vis-knob" />
+            </button>
+          </div>
         </div>
-        <button
-          class="settings__vis-toggle"
-          :class="{ 'settings__vis-toggle--on': isVisible(mod.id) }"
-          :title="isVisible(mod.id) ? 'Click to hide' : 'Click to show'"
-          @click="toggleModule(mod.id); track('module:visibility-toggled', { module: mod.id, nowVisible: !isVisible(mod.id) })"
-        >
-          <span class="settings__vis-knob" />
-        </button>
-      </div>
+      </Transition>
     </section>
 
     <!-- ── API Keys ──────────────────────────────────────── -->
     <section class="settings__section">
       <h2 class="settings__section-title">{{ i18n.t('settings.sectionApiKeys') }}</h2>
 
-      <!-- Anthropic -->
       <div class="settings__row settings__row--col">
         <div>
           <span class="settings__row-name">{{ i18n.t('settings.anthropicKeyLabel') }}</span>
@@ -276,14 +522,12 @@ function cancelImport() {
           </span>
         </div>
       </div>
-
     </section>
 
     <!-- ── Data ────────────────────────────────────────── -->
     <section class="settings__section">
       <h2 class="settings__section-title">{{ i18n.t('settings.sectionData') }}</h2>
 
-      <!-- Export -->
       <div class="settings__row">
         <div>
           <span class="settings__row-name">{{ i18n.t('settings.exportLabel') }}</span>
@@ -294,7 +538,6 @@ function cancelImport() {
         </UiButton>
       </div>
 
-      <!-- Import -->
       <div class="settings__row">
         <div>
           <span class="settings__row-name">{{ i18n.t('settings.importLabel') }}</span>
@@ -325,7 +568,6 @@ function cancelImport() {
         </div>
       </div>
 
-      <!-- Clear -->
       <div class="settings__row settings__row--danger">
         <div>
           <span class="settings__row-name">{{ i18n.t('settings.clearLabel') }}</span>
@@ -354,7 +596,6 @@ function cancelImport() {
     <section class="settings__section">
       <h2 class="settings__section-title">Privacy & Data</h2>
 
-      <!-- Analytics opt-out -->
       <div class="settings__row">
         <div class="settings__row-info">
           <span class="settings__row-name">Usage analytics</span>
@@ -370,7 +611,6 @@ function cancelImport() {
         </button>
       </div>
 
-      <!-- Habit streak notifications -->
       <div class="settings__row">
         <div class="settings__row-info">
           <span class="settings__row-name">Habit streak reminders</span>
@@ -388,7 +628,6 @@ function cancelImport() {
         </button>
       </div>
 
-      <!-- Feedback history -->
       <div class="settings__row settings__row--col">
         <div>
           <span class="settings__row-name">Feedback history</span>
@@ -412,7 +651,6 @@ function cancelImport() {
         <p v-else class="pv-feedback-empty">No feedback submitted yet.</p>
       </div>
 
-      <!-- Submit feedback -->
       <div class="settings__row">
         <div class="settings__row-info">
           <span class="settings__row-name">Submit feedback now</span>
@@ -423,7 +661,6 @@ function cancelImport() {
         </UiButton>
       </div>
 
-      <!-- Clear analytics data -->
       <div class="settings__row">
         <div class="settings__row-info">
           <span class="settings__row-name">Clear analytics data</span>
@@ -433,15 +670,6 @@ function cancelImport() {
           Clear events
         </UiButton>
       </div>
-    </section>
-
-    <!-- ── Account ─────────────────────────────────────── -->
-    <section class="settings__section settings__section--soon">
-      <h2 class="settings__section-title">
-        {{ i18n.t('settings.sectionAccount') }}
-        <span class="settings__soon-badge">{{ i18n.t('settings.comingSoon') }}</span>
-      </h2>
-      <p class="settings__soon-desc">{{ i18n.t('settings.accountDesc') }}</p>
     </section>
   </div>
 
@@ -475,7 +703,7 @@ function cancelImport() {
   font-size: 15px;
   color: var(--color-text-muted);
   margin: 6px 0 0;
-  line-height: 1.6;
+  line-height: var(--leading-relaxed);
 }
 
 /* Section */
@@ -489,8 +717,6 @@ function cancelImport() {
   gap: 14px;
 }
 
-.settings__section--soon { opacity: 0.55; }
-
 .settings__section-title {
   font-size: 13px;
   font-weight: 700;
@@ -503,23 +729,45 @@ function cancelImport() {
   gap: 10px;
 }
 
-.settings__soon-badge {
+/* Accordion header for Modules */
+.settings__section-accordion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  margin: -2px 0;
+}
+
+.settings__section-count {
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--color-text-muted);
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 99px;
+  white-space: nowrap;
 }
 
-.settings__soon-desc {
-  font-size: 14px;
+.settings__section-chevron {
+  margin-left: auto;
   color: var(--color-text-muted);
-  margin: 0;
-  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.settings__modules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 4px;
+  border-top: 1px solid var(--color-border);
+  margin-top: -4px;
 }
 
 /* Row */
@@ -549,7 +797,7 @@ function cancelImport() {
   line-height: 1.4;
 }
 
-/* Toggle (theme/lang) */
+/* Toggle */
 .settings__toggle {
   display: flex;
   gap: 2px;
@@ -579,24 +827,6 @@ function cancelImport() {
   cursor: default;
 }
 
-/* Action buttons */
-.settings__action-btn {
-  padding: 7px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-  transition: background var(--t-fast), color var(--t-fast);
-}
-.settings__action-btn:hover {
-  background: var(--color-accent-muted);
-  color: var(--color-accent);
-  border-color: var(--color-accent-muted);
-}
-
 .settings__import-actions {
   display: flex;
   align-items: center;
@@ -604,9 +834,7 @@ function cancelImport() {
   flex-shrink: 0;
 }
 
-.settings__file-input {
-  display: none;
-}
+.settings__file-input { display: none; }
 
 .settings__clear-actions {
   display: flex;
@@ -621,31 +849,6 @@ function cancelImport() {
   font-weight: 500;
 }
 
-.settings__danger-btn {
-  padding: 7px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 25%, transparent);
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-  transition: background var(--t-fast);
-}
-.settings__danger-btn:hover,
-.settings__danger-btn--confirm {
-  background: color-mix(in srgb, var(--color-danger) 16%, transparent);
-}
-
-.settings__cancel-btn {
-  padding: 7px 12px;
-  font-size: 13px;
-  color: var(--color-text-muted);
-  border-radius: var(--radius-sm);
-  transition: color var(--t-fast), background var(--t-fast);
-}
-.settings__cancel-btn:hover { color: var(--color-text); background: var(--color-surface-elevated); }
-
 /* API Key rows */
 .settings__row--col { flex-direction: column; align-items: flex-start; gap: 10px; }
 
@@ -657,38 +860,6 @@ function cancelImport() {
   flex-wrap: wrap;
 }
 
-.settings__key-input {
-  flex: 1;
-  min-width: 200px;
-  padding: 7px 12px;
-  font-size: 13px;
-  font-family: var(--font-mono);
-  color: var(--color-text);
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  outline: none;
-  transition: border-color var(--t-fast);
-}
-.settings__key-input:focus { border-color: var(--color-accent); }
-.settings__key-input::placeholder { color: var(--color-text-muted); }
-
-.settings__key-toggle {
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-  transition: background var(--t-fast), color var(--t-fast);
-}
-.settings__key-toggle:hover {
-  background: var(--color-border);
-  color: var(--color-text);
-}
-
 .settings__key-status {
   font-size: 12px;
   font-family: var(--font-mono);
@@ -697,7 +868,7 @@ function cancelImport() {
 }
 .settings__key-status--set { color: var(--color-success); }
 
-/* ── Vibe-pak picker ─────────────────────────────────────────── */
+/* Vibe-pak picker */
 .pak-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -767,11 +938,8 @@ function cancelImport() {
   color: var(--color-accent);
 }
 
-/* ── Module visibility toggles ────────────────────────────────── */
-.settings__module-row {
-  min-height: 48px;
-}
-
+/* Module visibility toggles */
+.settings__module-row { min-height: 48px; }
 .settings__module-info { flex: 1; min-width: 0; }
 
 .settings__vis-toggle {
@@ -787,10 +955,7 @@ function cancelImport() {
   transition: background var(--t-fast);
   flex-shrink: 0;
 }
-
-.settings__vis-toggle--on {
-  background: var(--color-accent);
-}
+.settings__vis-toggle--on { background: var(--color-accent); }
 
 .settings__vis-knob {
   position: absolute;
@@ -804,19 +969,193 @@ function cancelImport() {
   transition: transform var(--t-fast);
   display: block;
 }
+.settings__vis-toggle--on .settings__vis-knob { transform: translateX(18px); }
 
-.settings__vis-toggle--on .settings__vis-knob {
-  transform: translateX(18px);
+/* ── Profile section ────────────────────────────────────────────── */
+.profile-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
 }
 
-@media (max-width: 767px) {
-  .settings { max-width: 100%; }
-  .settings__section { padding: 16px 16px; }
-  .settings__row { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .settings__module-row { flex-direction: row; align-items: center; }
-  .settings__clear-actions { flex-wrap: wrap; }
-  .settings__key-input { min-width: 0; }
-  .pak-grid { grid-template-columns: repeat(2, 1fr); }
+.profile-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--color-accent-muted);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-avatar--demo {
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+  color: var(--color-warning);
+}
+
+.profile-avatar__letter {
+  font-size: 22px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.profile-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.profile-email {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 4px 0 0;
+}
+
+.profile-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.profile-edit-btn:hover {
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.profile-name-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-name-edit__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.profile-field-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-danger);
+}
+
+.profile-demo-cta {
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-demo-text {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+/* ── Security section ───────────────────────────────────────────── */
+.security-pwd-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.security-pwd-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.security-pwd-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.security-pwd-wrap {
+  position: relative;
+}
+
+.security-eye-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: var(--radius-xs);
+  transition: color var(--t-fast);
+}
+.security-eye-btn:hover { color: var(--color-text); }
+
+.security-pwd-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-success);
+  padding: 4px 0;
+}
+
+/* Expand transition */
+.expand-enter-active,
+.expand-leave-active {
+  transition: opacity 160ms var(--ease), transform 160ms var(--ease);
+  transform-origin: top;
+}
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  transform: scaleY(0.94);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
 }
 
 /* Privacy & Data */
@@ -829,4 +1168,14 @@ function cancelImport() {
 .pv-feedback-date { font-size: 11px; color: var(--color-text-muted); }
 .pv-feedback-comment { font-size: 12px; color: var(--color-text-secondary); font-style: italic; }
 .pv-feedback-empty { font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0; }
+
+@media (max-width: 767px) {
+  .settings { max-width: 100%; }
+  .settings__section { padding: 16px 16px; }
+  .settings__row { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .settings__module-row { flex-direction: row; align-items: center; }
+  .settings__clear-actions { flex-wrap: wrap; }
+  .pak-grid { grid-template-columns: repeat(2, 1fr); }
+  .profile-name { font-size: 16px; }
+}
 </style>
