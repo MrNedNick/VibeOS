@@ -5,7 +5,7 @@ import TrainingPlanCard from '../components/TrainingPlanCard.vue'
 import WorkoutLogForm from '../components/WorkoutLogForm.vue'
 import type { SportType, WorkoutLog } from '../types'
 import { SPORT_EMOJI, FEELING_EMOJI, todayStr } from '../types'
-import { UiIcon, UiSectionLabel, UiFilterChips, UiButton, UiIconButton, UiInput, UiSelect } from '@/ui'
+import { UiIcon, UiSectionLabel, UiFilterChips, UiButton, UiIconButton, UiInput, UiSelect, UiFab } from '@/ui'
 import type { FilterChipOption, SelectOption } from '@/ui'
 import { aiComplete } from '@/core/composables/useAI'
 
@@ -297,6 +297,7 @@ const todayLabel = computed(() =>
       @cancel="loggingPlanId = null"
     />
 
+    <UiFab label="New plan" icon="Dumbbell" @click="openForm" />
   </div>
 </template>
 

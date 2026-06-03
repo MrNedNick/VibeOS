@@ -8,7 +8,7 @@ import HabitCard from '../components/HabitCard.vue'
 import HabitEmojiPicker from '../components/HabitEmojiPicker.vue'
 import { HABIT_CATEGORIES, HABIT_CATEGORY_META, computeStreak, computeBestStreak, todayStr } from '../types'
 import type { HabitCategory } from '../types'
-import { UiButton, UiIconButton, UiSelect, UiProgressBar } from '@/ui'
+import { UiButton, UiIconButton, UiSelect, UiProgressBar, UiFab } from '@/ui'
 import type { SelectOption } from '@/ui'
 
 const HABIT_TEMPLATES: { name: string; emoji: string; purpose: string; category: HabitCategory }[] = [
@@ -384,6 +384,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         </div>
       </div>
     </div>
+    <UiFab label="New habit" icon="CheckSquare" @click="openForm" />
   </div>
 </template>
 

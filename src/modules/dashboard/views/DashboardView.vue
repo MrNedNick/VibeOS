@@ -146,6 +146,19 @@ const aggregatedShipped = computed<AggregatedShipped[]>(() => {
 const STATUS_ICON_NAMES: Record<string, string> = { good: 'Check', missing: 'X', planned: 'Clock3' }
 const APP_VERSION = __APP_VERSION__
 
+// ── Onboarding checklist ───────────────────────────────────────────────
+const onboardingItems = computed(() => [
+  { icon: 'CheckSquare', label: 'Add your first habit',   route: '/habits',   done: habitsStore.habits.length > 0 },
+  { icon: 'Target',      label: 'Create a goal',          route: '/goals',    done: goalsStore.activeGoals.length > 0 },
+  { icon: 'ListTodo',    label: 'Add a task',             route: '/tasks',    done: tasksStore.totalCount > 0 },
+  { icon: 'BookOpen',    label: 'Start a learning plan',  route: '/learning', done: learningStore.activePlans.length > 0 },
+])
+
+// Show checklist only while at least one item is unchecked AND none have ever had data
+const showOnboarding = computed(() =>
+  onboardingItems.value.some(item => !item.done)
+)
+
 // ── Pull-to-refresh ────────────────────────────────────────────────────
 const dashboardRef = ref<HTMLElement | null>(null)
 async function handleRefresh() {
@@ -233,6 +246,30 @@ const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef,
         <span v-if="trainingStore.todayItems.some(i => i.logged)" class="life-stat__done">{{ trainingStore.todayItems.filter(i => i.logged).length }} {{ i18n.t('dashboard.doneSuffix') }}</span>
       </div>
     </div>
+
+    <!-- Onboarding checklist (shown while any key module is empty) ─── -->
+    <Transition name="panel">
+      <div v-if="showOnboarding" class="dashboard__onboarding">
+        <p class="dashboard__onboarding-title">Get started with VibeOS</p>
+        <div class="dashboard__onboarding-list">
+          <button
+            v-for="item in onboardingItems"
+            :key="item.route"
+            class="dashboard__onboarding-item"
+            :class="{ 'dashboard__onboarding-item--done': item.done }"
+            @click="router.push(item.route)"
+          >
+            <span class="dashboard__onboarding-check">
+              <UiIcon v-if="item.done" name="CheckCircle2" :size="18" :stroke-width="1.75" />
+              <UiIcon v-else name="Circle" :size="18" :stroke-width="1.5" />
+            </span>
+            <UiIcon :name="item.icon" :size="15" :stroke-width="1.75" class="dashboard__onboarding-icon" />
+            <span class="dashboard__onboarding-label">{{ item.label }}</span>
+            <UiIcon v-if="!item.done" name="ArrowRight" :size="14" :stroke-width="1.5" class="dashboard__onboarding-arrow" />
+          </button>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Habit of the day spotlight ──────────────────────────────── -->
     <Transition name="panel">
@@ -957,5 +994,81 @@ const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef,
   .habit-spotlight      { padding: 10px 14px; gap: 10px; }
   .habit-spotlight__emoji { font-size: 20px; }
   .habit-spotlight__name  { font-size: 14px; }
+}
+
+/* ── Onboarding checklist ──────────────────────────────────────────── */
+.dashboard__onboarding {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-1);
+}
+
+.dashboard__onboarding-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 12px;
+}
+
+.dashboard__onboarding-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dashboard__onboarding-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--t-fast);
+  text-align: left;
+  width: 100%;
+  color: var(--color-text);
+}
+
+.dashboard__onboarding-item:hover:not(.dashboard__onboarding-item--done) {
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.dashboard__onboarding-item--done {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.dashboard__onboarding-check {
+  color: var(--color-accent);
+  flex-shrink: 0;
+  display: flex;
+}
+
+.dashboard__onboarding-item--done .dashboard__onboarding-check {
+  color: var(--color-success, #22c55e);
+}
+
+.dashboard__onboarding-icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.dashboard__onboarding-label {
+  font-size: var(--text-sm);
+  flex: 1;
+  line-height: var(--leading-base);
+}
+
+.dashboard__onboarding-item--done .dashboard__onboarding-label {
+  text-decoration: line-through;
+}
+
+.dashboard__onboarding-arrow {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
 }
 </style>

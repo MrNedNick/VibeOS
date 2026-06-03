@@ -31,7 +31,7 @@
 | **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | 🔄 **active** (2026-06-03) — T10 (auth redirect fix) SHIP FIRST; T1–T9, T11 pending |
 | **S20 — Auth Excellence** | Auth flow bulletproof: callback route, central validation, security, E2E tests | 🔜 **HIGH PRIORITY** — after S19 T10 |
 | **S21 — Backend Data Architecture** | Supabase-first data layer, no layout shift, real-time, proper skeletons | 🔜 planned — after S20 complete + S3 credentials |
-| **S22 — UX Action Prominence** | FAB + primary CTAs in every module, standardised empty states | 🔜 planned |
+| **S22 — UX Action Prominence** | FAB + primary CTAs in 8 modules, empty state audit, Dashboard onboarding | ✅ **complete** — v2.0.0 |
 
 ---
 
@@ -2417,97 +2417,207 @@ T5 (dashboard refresh — after T1+T2 complete)
 
 **Goal:** every module's primary action is immediately obvious. Users should never hunt for "where do I add something?" The main CTA is always large, clearly labeled, and placed exactly where the eye lands.
 
-**Version target:** v1.9.x
+**Version target:** v2.0.0 ✅
 
 **Industry standard being adopted:**
 - **Desktop:** module header has a primary `UiButton` (variant="primary") in the top-right
-- **Mobile:** FAB (floating action button) — fixed bottom-right, 56px circle, `+` icon with label
+- **Mobile:** FAB (floating action button) — fixed bottom-right, 56px circle, `+` icon
 - **Empty states:** large centered CTA with icon + explanation — not a small ghost button
 - **No primary action buried in dropdowns or menus**
 
+**Modules that get FAB + header CTA:** Tasks, Goals, Habits, Notes, Learning, Training, Finance, Board (8 total)
+**Modules that are read-only (no FAB needed):** Dashboard, Calendar, Analytics, Docs, Studio, About, Settings
+
+**Execution order:**
+```
+T1 (UiFab foundation) → T2–T9 (each module independently, any order) → T10 (empty states + Dashboard onboarding — last)
+```
+
 ---
 
-### T1 — FAB component: `UiFab` in @/ui (v1.9.0)
+### T1 — `UiFab` component in @/ui
 
-**Scope:** `src/ui/components/UiFab.vue` (new), `src/ui/index.ts`, docs-registry
-**Complexity:** low
+**Scope:** `src/ui/components/UiFab.vue` (new), `src/ui/index.ts`, docs-registry entry
+**Complexity:** low — single file, no store changes
 
-**`UiFab` API:**
+**API:**
 ```vue
-<UiFab icon="Plus" label="Add note" @click="openModal" />
+<UiFab icon="Plus" label="New note" @click="openForm" />
 ```
 
 **Behaviour:**
-- Fixed bottom-right position at mobile breakpoint (≤767px): `right: 20px`, `bottom: calc(var(--tab-bar-height) + 20px)`
-- Hidden at desktop breakpoint (≥768px) — desktop uses inline header button
-- 56×56px circle, accent background, white `+` icon
-- Optional `label` shown as tooltip or pill on long-press
-- Respects `safe-area-inset-bottom`
-- Scales down slightly on press (`transform: scale(0.93)`)
-- Supports `v-track` directive
+- `position: fixed`, `right: 20px`, `bottom: calc(var(--tab-bar-height, 64px) + 20px)` — clears the bottom tab bar
+- Visible **only on mobile** (≤767px via CSS `@media`); `display: none` at ≥768px — desktop uses inline header button
+- 56×56px circle, `background: var(--color-accent)`, white icon via `<UiIcon>`
+- `label` prop: shown as visually-hidden `aria-label` only (no pill on mobile to avoid overlap)
+- `safe-area-inset-bottom` support: `padding-bottom: env(safe-area-inset-bottom)`
+- Press state: `transform: scale(0.93)`, `transition: transform 80ms`
+- `v-track` attribute supported (pass as HTML attr, `inheritAttrs: false`)
+- `disabled` prop: 50% opacity, pointer-events none
+- Showcase added to `/docs/ui-kit/fab`
+- 5 `@vue/test-utils` tests: renders, emits click, hidden when disabled, aria-label set, hidden at desktop via CSS class
+
+**Verify:** check in HabitsView (as first consumer after T5) at `sm` breakpoint — appears above bottom tabs, doesn't overlap content.
 
 ---
 
-### T2 — Notes: prominent Add button (v1.9.1)
+### T2 — Tasks: FAB + header CTA
 
-**Scope:** `src/modules/notes/views/NotesView.vue`
+**Scope:** `src/modules/task-manager/views/TaskManagerView.vue`
 **Complexity:** low
 
-**Current:** "New note" button is a small ghost button in a toolbar — easy to miss.
+**Current:** "Add task" input is an inline text field at top of list — invisible if user doesn't scroll, especially on mobile.
+
 **Fix:**
-- Desktop: move "New note" to header right slot as `UiButton` variant="primary" with `+` icon
-- Mobile: add `<UiFab icon="Plus" label="New note" @click="createNote" />`
-- Empty state: show large centered `UiEmptyState` with prominent "Create your first note" CTA
+- **Desktop (≥768px):** add `<UiButton variant="primary" size="sm">` with `Plus` icon + "New task" label in the view header right side. Clicking focuses the existing inline add-input (no new modal needed — just scroll to + focus it).
+- **Mobile (≤767px):** `<UiFab icon="Plus" label="New task" @click="focusAddInput" />` — scrolls to + focuses the inline input.
+- **Empty state:** replace any bespoke empty div with `<UiEmptyState>` + primary CTA "Add your first task".
+
+**Verify:** `lg` — header button appears, click focuses input. `sm` — FAB appears above tab bar, tap scrolls + focuses input.
 
 ---
 
-### T3 — Tasks: prominent Add button (v1.9.2)
-
-**Scope:** `src/modules/task-manager/views/TasksView.vue` (or relevant component)
-**Complexity:** low — same pattern as T2
-
----
-
-### T4 — Goals: prominent Add button (v1.9.3)
+### T3 — Goals: FAB + header CTA
 
 **Scope:** `src/modules/goals/views/GoalsView.vue`
 **Complexity:** low
 
+**Current:** "New goal" button exists but is styled as secondary/ghost — visually subordinate.
+
+**Fix:**
+- **Desktop:** upgrade existing "New goal" button to `UiButton variant="primary"` with `Plus` icon in header.
+- **Mobile:** `<UiFab icon="Plus" label="New goal" @click="openGoalForm" />` — opens the existing goal creation form/modal.
+- **Empty state:** `<UiEmptyState icon="Target" title="No goals yet" description="Set your first goal and track progress toward it.">` + primary "New goal" CTA button.
+
+**Verify:** `lg` — primary button visible in header. `sm` — FAB visible, tapping opens form. Empty state shows on fresh data.
+
 ---
 
-### T5 — Habits: prominent Add button (v1.9.4)
+### T4 — Habits: FAB + header CTA
 
 **Scope:** `src/modules/habits/views/HabitsView.vue`
 **Complexity:** low
 
+**Current:** "Add habit" button is present but secondary-styled; hard to find on mobile.
+
+**Fix:**
+- **Desktop:** upgrade to `UiButton variant="primary"` with `Plus` icon, "New habit" label, in header right slot.
+- **Mobile:** `<UiFab icon="Plus" label="New habit" @click="openHabitForm" />`.
+- **Empty state:** `<UiEmptyState icon="CheckSquare" title="No habits yet" description="Build consistency — track a habit every day.">` + "New habit" primary CTA. Keep the 5 quick-start template chips below the CTA (they're a good onboarding hook).
+
+**Verify:** `lg` — primary button in header. `sm` — FAB visible. Empty state with templates below CTA.
+
 ---
 
-### T6 — Finance, Calendar, Board: prominent Add (v1.9.5)
+### T5 — Notes: FAB + header CTA
 
-**Scope:** FinanceView, CalendarView, BoardView — one commit
+**Scope:** `src/modules/notes/views/NotesView.vue`
 **Complexity:** low
 
+**Current:** "New note" is a small icon button in the sidebar toolbar — invisible on mobile when sidebar is hidden.
+
+**Fix:**
+- **Desktop:** add `<UiButton variant="primary">` with `Plus` icon + "New note" label at top of the notes sidebar (above the list), or in the view header if sidebar is collapsed.
+- **Mobile:** `<UiFab icon="Plus" label="New note" @click="createAndOpenNote" />` — creates a new note and immediately opens it for editing.
+- **Empty state (no notes):** `<UiEmptyState icon="FileText" title="No notes yet" description="Capture ideas, plans, and daily journals.">` + "New note" primary CTA.
+
+**Note:** on mobile the note list and editor are separate "screens" (only one shows at a time). FAB is shown on the list screen only; hidden when editor is open.
+
+**Verify:** `lg` — button visible in sidebar header. `sm` — list screen shows FAB, editor screen hides it.
+
 ---
 
-### T7 — Empty state UX pass (v1.9.6)
+### T6 — Learning: FAB + header CTA
 
-**Scope:** all module views that show empty states
+**Scope:** `src/modules/learning/views/LearningView.vue`
+**Complexity:** low
+
+**Current:** "New plan" button is a secondary ghost button in the header.
+
+**Fix:**
+- **Desktop:** upgrade to `UiButton variant="primary"` with `Plus` icon, "New plan" label.
+- **Mobile:** `<UiFab icon="Plus" label="New plan" @click="openPlanForm" />`.
+- **Empty state:** `<UiEmptyState icon="BookOpen" title="No learning plans" description="Create a plan and track hours toward mastery.">` + "New plan" primary CTA + "✦ Fill with AI" secondary link below it.
+
+**Verify:** `lg` — primary button in header. `sm` — FAB above tab bar. Empty state shows both CTAs.
+
+---
+
+### T7 — Training: FAB + header CTA
+
+**Scope:** `src/modules/training/views/TrainingView.vue`
+**Complexity:** low — mirrors T6 exactly
+
+**Fix:**
+- **Desktop:** upgrade existing "New plan" to `UiButton variant="primary"` with `Plus` icon.
+- **Mobile:** `<UiFab icon="Plus" label="New plan" @click="openPlanForm" />`.
+- **Empty state:** `<UiEmptyState icon="Dumbbell" title="No training plans" description="Pick a sport and start tracking sessions.">` + "New plan" primary CTA + "✦ Fill with AI" secondary.
+
+**Verify:** same as T6.
+
+---
+
+### T8 — Finance: FAB + header CTA
+
+**Scope:** `src/modules/finance/views/FinanceView.vue` + `src/modules/finance/components/FinanceTransactions.vue`
+**Complexity:** low-medium — Finance has tabs (Overview / Transactions / Budgets); the FAB should appear on Transactions tab only
+
+**Fix:**
+- **Desktop:** "Add expense" button as `UiButton variant="primary"` with `Plus` icon in the FinanceView header (always visible, not tab-conditional — it's the universal action).
+- **Mobile:** `<UiFab icon="Plus" label="Add expense" @click="openExpenseForm" />` — shown on all tabs (tapping always adds an expense, which is the only creation action in Finance).
+- **Empty state (Transactions, no expenses this month):** `<UiEmptyState icon="CreditCard" title="No expenses this month" description="Track your first expense to see your spending summary.">` + "Add expense" primary CTA.
+
+**Verify:** `lg` — primary button in header. `sm` — FAB visible on all tabs. Empty Transactions tab shows empty state.
+
+---
+
+### T9 — Board: FAB + header CTA
+
+**Scope:** `src/modules/kanban/views/BoardView.vue`
+**Complexity:** low-medium — Board has columns; "New card" should add to the first column by default
+
+**Fix:**
+- **Desktop:** `<UiButton variant="primary">` with `Plus` icon + "New card" in the BoardView header. Clicking opens the add-card modal (already exists) with column defaulting to first column.
+- **Mobile:** `<UiFab icon="Plus" label="New card" @click="openCardModal" />` — same modal, same default.
+- **Empty state (board has no cards at all):** `<UiEmptyState icon="Layout" title="Board is empty" description="Add your first card to get started.">` + "New card" primary CTA.
+
+**Verify:** `lg` — primary button visible. `sm` — FAB visible. Empty board shows empty state instead of just empty columns.
+
+---
+
+### T10 — UiEmptyState audit + Dashboard onboarding checklist
+
+**Scope:** all module views (audit pass) + `src/modules/dashboard/views/DashboardView.vue`
 **Complexity:** medium
 
-Currently empty states vary widely — some show `UiEmptyState`, some show bespoke divs, some show nothing. Standardize:
-1. Every empty state uses `UiEmptyState` component
-2. Every `UiEmptyState` for a module has a primary action CTA: `<UiButton variant="primary">Add your first X</UiButton>`
-3. Empty Dashboard (no habits, no tasks, no goals) shows an onboarding checklist: "Get started → ✓ Add a habit, ✓ Add a task, ✓ Set a goal"
+**Part A — Empty state audit (all modules):**
+Scan all 8 action modules (Tasks, Goals, Habits, Notes, Learning, Training, Finance, Board) plus Calendar and Analytics. For each:
+1. Confirm `<UiEmptyState>` is used (not a bespoke `<div class="empty">`)
+2. Confirm it has an `icon`, `title`, `description`, and a primary `<UiButton>` CTA in the default slot
+3. Fix any that are missing one or more of these — small copy/icon tweaks only, no design changes
 
----
-
-### Execution order
+**Part B — Dashboard onboarding checklist:**
+When the user has zero data across all stores (no tasks, no habits, no goals, no learning plans, no training plans), show an onboarding checklist card on the Dashboard instead of the empty life-stats strip:
 
 ```
-T1 (UiFab component — foundation) →
-T2–T6 (parallel — each module independently) →
-T7 (empty states — after primary buttons are established everywhere)
+┌───────────────────────────────────────────┐
+│  Get started with VibeOS                  │
+│                                           │
+│  ○  Add your first habit     → Habits     │
+│  ○  Create a goal            → Goals      │
+│  ○  Add a task               → Tasks      │
+│  ○  Start a learning plan    → Learning   │
+│                                           │
+│  Each item links to the relevant module.  │
+└───────────────────────────────────────────┘
 ```
+
+- Each checklist item: check mark (✓, accent color) when store has ≥1 item, circle (○, muted) when empty
+- Clicking any item navigates to that module
+- Card disappears entirely when all 4 items are checked (user has data in all modules)
+- Uses `UiCard surface="raised"` + standard tokens — no hardcoded styles
+
+**Verify:** clear all localStorage, open Dashboard → checklist card visible. Add one habit → that row turns checked. Add all 4 → card disappears, life-stats strip shows normally.
 
 ---
 

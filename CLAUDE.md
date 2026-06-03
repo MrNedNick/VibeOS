@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v1.5.16 — 2026-06-03**
+**Version: v2.0.0 — 2026-06-03**
 
 > **UI Kit now lives under Docs (v1.2.0):** the live component catalogue is no longer a hidden dev-only `/ui-kit` page. It's integrated into the Docs module as three sidebar sections — **Design Tokens**, **UI Components**, **UI Patterns** — at `/docs/ui-kit/<key>` (e.g. `/docs/ui-kit/button`). Visible in production. Showcase section components live in `src/modules/ui-kit/views/sections/` and are wired in via `src/modules/docs/data/docs-registry.ts` (`DocPage.component`). `DocsView` renders the live component when a page has `component`, else markdown. This is the single source of truth for every reusable `@/ui` component and all its states.
 
@@ -30,18 +30,28 @@
 | S16 — Test Coverage | 🔄 active — T1–T6 ✅ T8 ✅ (coverage gate); **369 tests in 27 files**. T7 QA pass pending (live review) |
 | S17 — Component Unification | ✅ **complete** (v1.3.0) |
 | S18 — Product Analytics & Feedback | ✅ **complete** (v1.5.5, T11 deferred to S3) |
-| **S19 — Mobile Excellence & Account** | 🔄 **active** — T10 🚨 SHIP FIRST (auth redirect); T11, T1–T9 pending |
-| **S20 — Auth Excellence** | 🔜 **HIGH PRIORITY** — after S19 T10 ships |
+| **S19 — Mobile Excellence & Account** | ✅ **complete** (v1.9.1) |
+| **S20 — Auth Excellence** | ✅ **complete** — 34 E2E tests (v1.9.1) |
 | **S21 — Backend Architecture** | 🔜 planned — Supabase-first, skeletons, real-time |
-| **S22 — UX Action Prominence** | 🔜 planned — FAB, primary CTAs, empty states |
+| **S22 — UX Action Prominence** | ✅ **complete** — UiFab + 8 modules + Dashboard onboarding (v2.0.0) |
 
 **Active sprints (2026-06-03):**
-- **S19 — Mobile Excellence & Account** 🔄: T10 (auth redirect bug) = SHIP FIRST — `window.location.href='/'` breaks on GH Pages; T11 (logout redirect); T1 (account panel + header user btn); T2 (About icon fix); T4 (settings toggle mobile); T5 (habit heatmap Mon-Sun); T6 (mobile bottom nav User tab); T3 (pull-to-refresh); T7 (nav bug); T8 (demo CTA); T9 (mobile search)
-- **S20 — Auth Excellence** 🔜 HIGH PRIORITY: T1 (callback route); T2 (central validation + UiInput error state); T3 (security hardening); T4 (E2E test suite); T5 (UX polish)
-- **S21 — Backend Architecture** 🔜: Supabase-first data, skeletons, real-time
-- **S22 — UX Action Prominence** 🔜: FAB, primary CTAs, empty states
+- **S21 — Backend Architecture** 🔜: Supabase-first data, skeletons, real-time (blocked on Supabase credentials)
 - **S11 T2** 🔜: Welcome page redesign + cascade demo (requires user review session)
 - **S16 T7** 🔜: QA pass (requires live review)
+- **S13 — Design Pass** 🔜: requires live review session
+
+**New in v2.0.0 (2026-06-03) — S22 UX Action Prominence:**
+- `UiFab` component in `@/ui` — 56px FAB, mobile-only (≤767px), fixed bottom-right above tab bar, showcase at `/docs/ui-kit/fab`
+- Tasks: primary "**+ New task**" button in header + FAB
+- Goals: FAB with Target icon
+- Habits: FAB with CheckSquare icon
+- Notes: FAB visible only on list screen (hidden when editor is open on mobile)
+- Learning: FAB with BookOpen icon
+- Training: FAB with Dumbbell icon
+- Finance: FAB with CreditCard icon
+- Board: primary "**+ New card**" button in header + FAB with Layout icon
+- Dashboard: onboarding checklist card — shows unchecked items with navigation, disappears when all 4 modules have data
 
 **New in v1.5.6–v1.5.15 (2026-06-03) — backlog + Phase 2 responsive batch:**
 - Studio: export conversation as markdown (Download button, v1.5.6)

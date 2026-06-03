@@ -8,7 +8,7 @@ import TaskProgress from '../components/TaskProgress.vue'
 import PomodoroPanel from '../components/PomodoroPanel.vue'
 import HabitHeatmap from '@/modules/habits/components/HabitHeatmap.vue'
 import { useLocale } from '@/core/i18n'
-import { UiButton, UiSectionLabel, UiFilterChips, UiIconButton, UiSelect } from '@/ui'
+import { UiButton, UiSectionLabel, UiFilterChips, UiIconButton, UiSelect, UiFab } from '@/ui'
 import type { FilterChipOption, SelectOption } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useAiInsight } from '@/core/composables/useAiInsight'
@@ -101,6 +101,10 @@ function onKeydown(e: KeyboardEvent) {
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+
+function focusTaskInput() {
+  document.querySelector<HTMLInputElement>('.ui-input__field')?.focus()
+}
 </script>
 
 <template>
@@ -119,6 +123,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         </p>
       </div>
       <div class="tm-view__actions">
+        <UiButton
+          size="sm"
+          @click="focusTaskInput"
+        >+ New task</UiButton>
         <UiButton
           variant="ghost"
           size="sm"
@@ -256,6 +264,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       @set-due-date="store.setDueDate"
       @focus="focusedId = $event"
     />
+
+    <UiFab label="New task" @click="focusTaskInput" />
   </div>
 </template>
 

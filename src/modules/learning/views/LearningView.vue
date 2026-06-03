@@ -5,7 +5,7 @@ import LearningPlanCard from '../components/LearningPlanCard.vue'
 import SessionLogForm from '../components/SessionLogForm.vue'
 import type { LearningCategory, LearningSession } from '../types'
 import { todayStr } from '../types'
-import { UiIcon, UiSectionLabel, UiFilterChips, UiButton, UiIconButton, UiInput } from '@/ui'
+import { UiIcon, UiSectionLabel, UiFilterChips, UiButton, UiIconButton, UiInput, UiFab } from '@/ui'
 import type { FilterChipOption } from '@/ui'
 import { aiComplete } from '@/core/composables/useAI'
 
@@ -304,6 +304,7 @@ async function generateWithAI() {
       @cancel="loggingPlanId = null"
     />
 
+    <UiFab label="New plan" icon="BookOpen" @click="openForm" />
   </div>
 </template>
 

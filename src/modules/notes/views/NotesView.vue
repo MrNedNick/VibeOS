@@ -8,7 +8,7 @@ import type { NoteType } from '../types'
 import NoteList from '../components/NoteList.vue'
 import NoteEditor from '../components/NoteEditor.vue'
 import NotePreview from '../components/NotePreview.vue'
-import { UiIcon, UiButton, UiIconButton } from '@/ui'
+import { UiIcon, UiButton, UiIconButton, UiFab } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { useAiInsight } from '@/core/composables/useAiInsight'
 
@@ -310,6 +310,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       </div>
 
     </div>
+
+    <!-- FAB: only on list screen (not when editor is open on mobile) -->
+    <UiFab v-if="!mobileShowEditor" label="New note" icon="FileText" @click="newNoteOnMobile" />
   </div>
 </template>
 

@@ -27,3 +27,6 @@ export { default as UiTextarea } from './components/UiTextarea.vue'
 
 // ── S18 — Product Analytics & Feedback ──────────────────────────────────
 export { default as UiFeedbackModal } from './components/UiFeedbackModal.vue'
+
+// ── S22 — UX Action Prominence ───────────────────────────────────────────
+export { default as UiFab } from './components/UiFab.vue'

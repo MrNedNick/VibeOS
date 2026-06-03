@@ -24,6 +24,8 @@ import UiFilterChipsSection from '@/modules/ui-kit/views/sections/components/UiF
 import UiIconButtonSection from '@/modules/ui-kit/views/sections/components/UiIconButtonSection.vue'
 import UiSelectSection from '@/modules/ui-kit/views/sections/components/UiSelectSection.vue'
 import UiTextareaSection from '@/modules/ui-kit/views/sections/components/UiTextareaSection.vue'
+// S22 — UX Action Prominence
+import UiFabSection from '@/modules/ui-kit/views/sections/components/UiFabSection.vue'
 // Patterns
 import UiEmptyStateSection from '@/modules/ui-kit/views/sections/patterns/UiEmptyStateSection.vue'
 import UiConfirmDialogSection from '@/modules/ui-kit/views/sections/patterns/UiConfirmDialogSection.vue'
@@ -179,6 +181,7 @@ export const DOC_REGISTRY: DocSection[] = [
       { slug: 'ui-kit/iconbutton',   label: 'UiIconButton',   labelRu: 'UiIconButton',   component: UiIconButtonSection,   description: 'Icon-only action button',       descriptionRu: 'Кнопка только с иконкой' },
       { slug: 'ui-kit/select',       label: 'UiSelect',       labelRu: 'UiSelect',       component: UiSelectSection,       description: 'Token-styled native select',    descriptionRu: 'Нативный select в токенах' },
       { slug: 'ui-kit/textarea',     label: 'UiTextarea',     labelRu: 'UiTextarea',     component: UiTextareaSection,     description: 'Multi-line text input',         descriptionRu: 'Многострочное поле ввода' },
+      { slug: 'ui-kit/fab',          label: 'UiFab',          labelRu: 'UiFab',          component: UiFabSection,          description: 'Mobile floating action button', descriptionRu: 'Мобильная кнопка действия' },
     ],
   },
   {

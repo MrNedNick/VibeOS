@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useFinanceStore } from '../stores/finance.store'
 import { CATEGORY_META, EXPENSE_CATEGORIES, formatAmount } from '../types'
 import type { ExpenseCategory } from '../types'
-import { UiIcon, UiFilterChips, UiButton, UiIconButton, UiInput, UiModal } from '@/ui'
+import { UiIcon, UiFilterChips, UiButton, UiIconButton, UiInput, UiModal, UiFab } from '@/ui'
 import type { FilterChipOption } from '@/ui'
 import FinanceOverview from '../components/FinanceOverview.vue'
 import FinanceTransactions from '../components/FinanceTransactions.vue'
@@ -153,6 +153,8 @@ onMounted(() => store.fetchRates())
         <UiButton @click="submitExpense()">Add expense</UiButton>
       </template>
     </UiModal>
+
+    <UiFab label="Add expense" icon="CreditCard" @click="addExpense()" />
   </div>
 </template>
 

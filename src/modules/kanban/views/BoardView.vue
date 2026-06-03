@@ -9,7 +9,7 @@ import TimelineGrid from '../components/TimelineGrid.vue'
 import BoardColumn from '../components/BoardColumn.vue'
 import { useBoardDrag } from '../composables/useBoardDrag'
 import { useConfirm } from '@/core/composables/useConfirm'
-import { UiButton, UiIconButton, UiInput, UiSelect, UiTextarea, UiModal } from '@/ui'
+import { UiButton, UiIconButton, UiInput, UiSelect, UiTextarea, UiModal, UiFab } from '@/ui'
 import type { SelectOption } from '@/ui'
 
 const store      = useBoardStore()
@@ -129,6 +129,7 @@ function colLabel(colId: BoardColumnId): string {
         <p class="board__meta">{{ totalCards }} {{ i18n.t('kanban.totalCards') }}</p>
       </div>
       <div class="board__controls">
+        <UiButton size="sm" @click="startAdd('backlog')">+ New card</UiButton>
         <div class="board__view-toggle">
           <button class="board__view-btn" :class="{ 'board__view-btn--active': store.viewMode === 'kanban' }" @click="store.viewMode = 'kanban'">{{ i18n.t('kanban.viewKanban') }}</button>
           <button class="board__view-btn" :class="{ 'board__view-btn--active': store.viewMode === 'timeline' }" @click="store.viewMode = 'timeline'">{{ i18n.t('kanban.viewTimeline') }}</button>
@@ -242,6 +243,7 @@ function colLabel(colId: BoardColumnId): string {
       </template>
     </UiModal>
 
+    <UiFab label="New card" icon="Layout" @click="startAdd('backlog')" />
   </div>
 </template>
 

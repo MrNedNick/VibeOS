@@ -4,7 +4,7 @@ import { useGoalsStore } from '../stores/goals.store'
 import GoalCard from '../components/GoalCard.vue'
 import type { GoalCategory } from '../types'
 import { CATEGORY_EMOJI, CATEGORY_LABEL } from '../types'
-import { UiIcon, UiFilterChips, UiButton, UiInput, UiSelect, UiField } from '@/ui'
+import { UiIcon, UiFilterChips, UiButton, UiInput, UiSelect, UiField, UiFab } from '@/ui'
 import type { FilterChipOption, SelectOption } from '@/ui'
 
 const store = useGoalsStore()
@@ -192,6 +192,7 @@ const todayLabel = computed(() =>
       </UiButton>
     </div>
 
+    <UiFab label="New goal" icon="Target" @click="openForm" />
   </div>
 </template>
 
