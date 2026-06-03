@@ -31,7 +31,8 @@ async function submit() {
   if (result.error) {
     error.value = result.error
   } else {
-    router.replace('/')
+    // Full reload so all stores reinitialize from the freshly-synced localStorage
+    window.location.href = '/'
   }
 }
 

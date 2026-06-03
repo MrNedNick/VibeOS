@@ -4,6 +4,7 @@ import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
 import { storageKey } from '@/core/utils/storage'
 import { generateId } from '@/core/utils/id'
 import { useEventBus } from '@/core/events'
+import { useFeatureGate } from '@/core/composables/useFeatureGate'
 import type { Task, TaskFilter, TaskPriority, TaskCategory } from '../types'
 
 const STORAGE_KEY = storageKey('task-manager', 'tasks')
@@ -13,6 +14,7 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
   const filter = ref<TaskFilter>('all')
   const categoryFilter = ref<TaskCategory | 'all'>('all')
   const events = useEventBus()
+  const gate = useFeatureGate()
 
   const filteredTasks = computed<Task[]>(() => {
     const today = new Date().toISOString().slice(0, 10)
@@ -51,6 +53,7 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
     const id = generateId()
     allTasks.value.push({ id, text: text.trim(), done: false, priority, dueDate, category, linkedGoalId, createdAt: Date.now() })
     events.emit({ type: 'task:created', taskId: id, label: text.trim(), timestamp: new Date().toISOString() })
+    gate.nudgeWrite()
   }
 
   function setDueDate(id: string, date: string | undefined) {

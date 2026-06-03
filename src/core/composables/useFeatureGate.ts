@@ -13,6 +13,11 @@
 
 import { computed } from 'vue'
 import { useAuthStore } from '@/core/stores/auth.store'
+import { isSupabaseConfigured } from '@/core/services/supabase'
+
+// Show nudge at most once per 5 minutes to avoid spam
+let _lastNudgeAt = 0
+const NUDGE_COOLDOWN = 5 * 60 * 1000
 
 // ── Feature catalogue ──────────────────────────────────────────────────
 type Feature =
@@ -58,9 +63,25 @@ export function useFeatureGate() {
     return allowed
   }
 
+  // Show "sign up to save" toast when demo user creates data and Supabase is available
+  function nudgeWrite(): void {
+    if (!auth.isDemoMode || !isSupabaseConfigured) return
+    const now = Date.now()
+    if (now - _lastNudgeAt < NUDGE_COOLDOWN) return
+    _lastNudgeAt = now
+
+    import('@/core/stores/notifications.store').then(({ useNotificationsStore }) => {
+      useNotificationsStore().push('info', 'Sign up to keep your data across devices', 6000, {
+        label: 'Create account',
+        fn: () => { window.location.href = '/register' },
+      })
+    })
+  }
+
   return {
     currentTier,
     can,
     require,
+    nudgeWrite,
   }
 }

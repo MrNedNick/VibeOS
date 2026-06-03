@@ -25,13 +25,14 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/welcome',
     component: WelcomeView,
-    meta: { title: 'Welcome' },
+    meta: { title: 'Welcome', auth: 'guest' },
   },
   // Auth pages — full-page, outside AppLayout
   ...authRoutes,
   {
     path: '/',
     component: AppLayout,
+    meta: { auth: 'required' },
     children: [
       ...dashboardRoutes,
       ...taskManagerRoutes,
@@ -61,17 +62,19 @@ const router = createRouter({
 })
 
 // ── Navigation guard ─────────────────────────────────────────────────────
-// Lazy import auth store to avoid circular dep during router init
 router.beforeEach(async (to) => {
-  // Routes with meta.auth = 'guest' redirect logged-in users to dashboard
-  if (to.meta.auth === 'guest') {
-    const { useAuthStore } = await import('@/core/stores/auth.store')
-    const auth = useAuthStore()
-    if (auth.isLoggedIn) return '/'
-  }
+  const needsAuth = to.matched.some(r => r.meta.auth === 'required')
+  const isGuestOnly = to.matched.some(r => r.meta.auth === 'guest')
+  if (!needsAuth && !isGuestOnly) return
 
-  // Protected routes — currently not enforced (app is local-first open access).
-  // When Supabase is live, add meta.auth = 'required' to protected routes here.
+  const { useAuthStore } = await import('@/core/stores/auth.store')
+  const auth = useAuthStore()
+
+  // Wait for Supabase session check to finish before deciding
+  await auth.ready
+
+  if (needsAuth && !auth.isLoggedIn) return '/welcome'
+  if (isGuestOnly && auth.isLoggedIn) return '/'
 })
 
 export default router

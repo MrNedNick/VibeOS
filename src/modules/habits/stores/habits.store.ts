@@ -3,12 +3,14 @@ import { ref } from 'vue'
 import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
 import { storageKey } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
+import { useFeatureGate } from '@/core/composables/useFeatureGate'
 import { todayStr, computeStreak, STREAK_MILESTONES } from '../types'
 import type { Habit, HabitCategory } from '../types'
 
 export const useHabitsStore = defineStore('habits:habits', () => {
   const { all: allHabits, items: habits, softDelete } = useSoftDeletable<Habit>(storageKey('habits', 'habits'))
   const events = useEventBus()
+  const gate = useFeatureGate()
 
   // Milestone celebration state — watched by HabitsView to show banner
   const milestoneHabit = ref<{ name: string; emoji: string; streak: number } | null>(null)
@@ -25,6 +27,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
       createdAt: new Date().toISOString(),
       completedDates: [],
     })
+    gate.nudgeWrite()
   }
 
   function toggleToday(id: string): void {

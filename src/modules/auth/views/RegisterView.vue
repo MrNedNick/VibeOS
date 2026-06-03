@@ -49,8 +49,8 @@ async function submit() {
   if (result.error) {
     error.value = result.error
   } else if (auth.isLoggedIn) {
-    // Email confirmation disabled — user is logged in immediately
-    router.replace('/')
+    // Email confirmation disabled — full reload so stores reinitialize from synced localStorage
+    window.location.href = '/'
   } else {
     // Email confirmation required — show "check your email"
     confirmationPending.value = true

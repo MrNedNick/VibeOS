@@ -15,6 +15,11 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { getSupabase, isSupabaseConfigured } from '@/core/services/supabase'
+import { useCloudSync } from '@/core/composables/useCloudSync'
+
+// Resolves when init() finishes — router guard awaits this before checking isLoggedIn
+let _readyResolve!: () => void
+const _readyPromise = new Promise<void>(resolve => { _readyResolve = resolve })
 
 // ── Types ─────────────────────────────────────────────────────────────────
 export type AuthProvider = 'supabase' | 'demo' | null
@@ -95,6 +100,8 @@ export const useAuthStore = defineStore('core:auth', () => {
             provider: 'supabase',
             tier: (data.user.user_metadata?.tier as AuthUser['tier']) ?? 'free',
           })
+          // Pull cloud data → merge into localStorage so stores get fresh data on next init
+          await useCloudSync().pullAll()
         }
         return { error: null }
       } catch (err) {
@@ -140,6 +147,10 @@ export const useAuthStore = defineStore('core:auth', () => {
           provider: 'supabase',
           tier: 'free',
         })
+        // Push any local data to the new account, then pull to confirm
+        const sync = useCloudSync()
+        await sync.pushAll(data.user.id)
+        await sync.pullAll()
         return { error: null }
       }
 
@@ -183,12 +194,12 @@ export const useAuthStore = defineStore('core:auth', () => {
 
   // ── Init — restore session on app boot ────────────────────────────────────
   async function init(): Promise<void> {
-    // Demo mode: already restored from localStorage via useStorage — nothing to do
-    if (_state.value.user?.provider === 'demo') return
+    try {
+      // Demo mode: already restored from localStorage via useStorage — nothing to do
+      if (_state.value.user?.provider === 'demo') return
 
-    // Supabase: check for existing session (from previous page load / refresh)
-    if (isSupabaseConfigured) {
-      try {
+      // Supabase: check for existing session (from previous page load / refresh)
+      if (isSupabaseConfigured) {
         const sb = getSupabase()
         const { data: { session } } = await sb.auth.getSession()
 
@@ -223,9 +234,12 @@ export const useAuthStore = defineStore('core:auth', () => {
             _setUser(null)
           }
         })
-      } catch (err) {
-        console.warn('[auth] init error:', err)
       }
+    } catch (err) {
+      console.warn('[auth] init error:', err)
+    } finally {
+      // Always resolve — router guard awaits this regardless of success/failure
+      _readyResolve()
     }
   }
 
@@ -237,6 +251,8 @@ export const useAuthStore = defineStore('core:auth', () => {
     tier,
     loading,
     isSupabaseConfigured,
+    // Resolves when init() finishes — await before checking isLoggedIn in guards
+    ready: _readyPromise,
     // Actions
     login,
     loginDemo,

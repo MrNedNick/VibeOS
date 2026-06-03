@@ -3,12 +3,14 @@ import { computed } from 'vue'
 import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
 import { storageKey } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
+import { useFeatureGate } from '@/core/composables/useFeatureGate'
 import type { Goal, GoalMilestone } from '../types'
 import { calcProgress } from '../types'
 
 export const useGoalsStore = defineStore('goals:goals', () => {
   const { all: allGoals, items: goals, softDelete } = useSoftDeletable<Goal>(storageKey('goals', 'goals'))
   const events = useEventBus()
+  const gate = useFeatureGate()
 
   const activeGoals = computed(() =>
     goals.value
@@ -33,6 +35,7 @@ export const useGoalsStore = defineStore('goals:goals', () => {
     }
     allGoals.value.push(goal)
     events.emit({ type: 'goal:created', goalId: id, title: data.title, timestamp: new Date().toISOString() })
+    gate.nudgeWrite()
     return goal
   }
 
