@@ -593,8 +593,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     padding: 0 12px;
     gap: 4px;
   }
-  .notes-toolbar__stats  { display: none; }
-  .notes-toolbar__action { display: none; }
-  .notes-toolbar__mode   { font-size: 13px; padding: 4px 8px; }
+  .notes-toolbar__stats    { display: none; }
+  .notes-toolbar__action   { display: none; }
+  .notes-toolbar__mode     { font-size: 13px; padding: 4px 8px; }
+  /* Hide non-essential toolbar items on mobile to prevent overflow */
+  .notes-type-select,
+  .notes-goal-select       { display: none; }
+  /* AI buttons only visible when there's room */
+  .notes-toolbar__right    { gap: 2px; overflow-x: auto; flex-shrink: 1; min-width: 0; }
 }
 </style>
