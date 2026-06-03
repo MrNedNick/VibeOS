@@ -464,9 +464,11 @@ const todayLabel = computed(() =>
 .training__empty-sub { font-size: var(--text-sm); color: var(--color-text-muted); margin: 0 0 10px; max-width: 340px; }
 
 @media (max-width: 767px) {
-  .training { gap: 20px; }
+  .training { gap: 16px; }
   .training__grid { grid-template-columns: 1fr; }
-  .training__form-meta { gap: 14px; }
+  .training__form-meta { gap: 12px; }
+  .training__form-row { flex-direction: column; align-items: stretch; }
   .training__title { font-size: var(--text-2xl, 22px); }
+  .training__today-list { overflow-x: auto; }
 }
 </style>

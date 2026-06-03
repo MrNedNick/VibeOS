@@ -540,16 +540,11 @@ async function generateWithAI() {
 
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 767px) {
-  .learning { gap: 20px; }
-
-  .learning__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .learning__form-meta {
-    gap: 14px;
-  }
-
+  .learning { gap: 16px; }
+  .learning__grid { grid-template-columns: 1fr; }
+  .learning__form-meta { gap: 12px; }
+  .learning__form-row { flex-direction: column; align-items: stretch; }
   .learning__title { font-size: var(--text-2xl, 22px); }
+  .learning__today-list { overflow-x: auto; }
 }
 </style>
