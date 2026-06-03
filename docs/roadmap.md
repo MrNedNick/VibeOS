@@ -30,7 +30,7 @@
 | **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** (T11 deferred to S3) — T1–T10 ✅ T12 ✅ (docs, tests, UiFeedbackModal in docs-registry). T11 Supabase → blocked on credentials, moves to S3. |
 | **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | 🔄 **active** (2026-06-03) — T10 (auth redirect fix) SHIP FIRST; T1–T9, T11 pending |
 | **S20 — Auth Excellence** | Auth flow bulletproof: callback route, central validation, security, E2E tests | 🔜 **HIGH PRIORITY** — after S19 T10 |
-| **S21 — Backend Data Architecture** | Supabase-first data layer, no layout shift, real-time, proper skeletons | 🔜 planned — after S20 complete + S3 credentials |
+| **S21 — Backend Data Architecture** | Supabase-first data layer, no layout shift, real-time, proper skeletons | ✅ complete — v2.2.1 |
 | **S22 — UX Action Prominence** | FAB + primary CTAs in 8 modules, empty state audit, Dashboard onboarding | ✅ **complete** — v2.0.0 |
 | **S23 — Tetris Improvements** | Hold piece, line-clear flash animation, score history leaderboard | ✅ **complete** — v2.2.0 |
 | **S25 — Demo Mode Seeding** | Seed tasks/goals/habits/notes/finance/board on demo login for recruiters | ✅ **complete** — v2.2.0 |
@@ -2277,13 +2277,19 @@ T5 (UX polish — last, cosmetic)
 
 ---
 
-## S21 — Backend Data Architecture 🔜 (planned)
+## S21 — Backend Data Architecture ✅ complete (v2.2.1)
 
 **Goal:** all user data lives in Supabase as the source of truth. localStorage becomes a write-through cache for offline resilience. Every data operation goes through the backend with optimistic UI updates, proper loading states, and no visible layout shift on page load.
 
-**Prerequisite:** S3 (Supabase credentials + migrations) must be complete, and S20 (auth excellence) must be done first.
+**T1 ✅** — `user_store` JSONB KV table (migration 002). `useCloudSync` rewrites pullAll/pushAll to use it. `useBackendSync` debounces per-store mutations → Supabase (800ms). Offline queue (`platform:sync:queue`) drains on reconnect.
 
-**Version target:** v1.8.x (major user-visible feature — data survives device change, browser clear, etc.)
+**T2 ✅** — `initialized` flag in habits/tasks/goals/notes stores. `useSyncBus` notifies stores to re-read after pullAll. Skeleton screens in HabitsView + TaskManagerView for first-load with empty localStorage.
+
+**T3 ✅** — Settings sync: `setTheme()` pushes to `user_settings.theme`; `syncSettingsFromCloud()` called after login.
+
+**T4 ✅** — `useRealtimeSync` — Supabase Realtime subscription on `user_store` filtered by `user_id`. Wired into auth.store login/init/logout. Cross-device/tab real-time sync for all data.
+
+**T5** — Dashboard pull-to-refresh → deferred (pull-to-refresh gesture not yet implemented).
 
 ---
 
