@@ -18,14 +18,9 @@ useHabitNotifications() // initialise polling for streak reminders
 const route = useRoute()
 
 // ── Fullbleed state ───────────────────────────────────────────────────
+// Only update in @after-leave: "out-in" guarantees old page fully exits before new one enters,
+// so this fires before the incoming component renders — no layout flash.
 const isFullbleed = ref(!!route.meta.fullbleed)
-
-watch(
-  () => route.meta.fullbleed,
-  (newVal) => {
-    if (newVal) isFullbleed.value = true
-  }
-)
 
 function onAfterLeave() {
   isFullbleed.value = !!route.meta.fullbleed

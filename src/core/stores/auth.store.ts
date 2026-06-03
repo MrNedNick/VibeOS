@@ -176,6 +176,45 @@ export const useAuthStore = defineStore('core:auth', () => {
     _setUser(null)
   }
 
+  // ── Update display name ───────────────────────────────────────────────────
+  async function updateDisplayName(name: string): Promise<{ error: string | null }> {
+    if (isDemoMode.value) return { error: 'Not available in demo mode.' }
+    if (!isSupabaseConfigured) return { error: 'Not configured.' }
+
+    loading.value = true
+    try {
+      const sb = getSupabase()
+      const { data, error } = await sb.auth.updateUser({ data: { display_name: name } })
+      if (error) return { error: error.message }
+      if (data.user && _state.value.user) {
+        _state.value = { ..._state.value, user: { ..._state.value.user, displayName: name } }
+      }
+      return { error: null }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Update failed' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // ── Update password ────────────────────────────────────────────────────────
+  async function updatePassword(newPassword: string): Promise<{ error: string | null }> {
+    if (isDemoMode.value) return { error: 'Not available in demo mode.' }
+    if (!isSupabaseConfigured) return { error: 'Not configured.' }
+
+    loading.value = true
+    try {
+      const sb = getSupabase()
+      const { error } = await sb.auth.updateUser({ password: newPassword })
+      if (error) return { error: error.message }
+      return { error: null }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Update failed' }
+    } finally {
+      loading.value = false
+    }
+  }
+
   // ── Password reset ────────────────────────────────────────────────────────
   async function sendPasswordReset(email: string): Promise<{ error: string | null }> {
     if (!isSupabaseConfigured) {
@@ -260,6 +299,8 @@ export const useAuthStore = defineStore('core:auth', () => {
     register,
     logout,
     sendPasswordReset,
+    updateDisplayName,
+    updatePassword,
     init,
   }
 })

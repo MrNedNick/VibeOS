@@ -1,13 +1,85 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
-import { UiModal, UiIcon, UiButton } from '@/ui'
+import { UiModal, UiIcon, UiButton, UiInput } from '@/ui'
 
 const router = useRouter()
 const auth   = useAuthStore()
 
 const open = defineModel<boolean>('open', { required: true })
 
+// ── Display name edit ─────────────────────────────────────────────────
+const editingName  = ref(false)
+const nameValue    = ref('')
+const nameError    = ref<string | null>(null)
+const nameSaving   = ref(false)
+
+function startEditName() {
+  nameValue.value = auth.user?.displayName ?? ''
+  nameError.value = null
+  editingName.value = true
+}
+
+function cancelEditName() {
+  editingName.value = false
+  nameError.value = null
+}
+
+async function saveName() {
+  const trimmed = nameValue.value.trim()
+  if (!trimmed) { nameError.value = 'Name cannot be empty.'; return }
+  nameSaving.value = true
+  nameError.value = null
+  const result = await auth.updateDisplayName(trimmed)
+  nameSaving.value = false
+  if (result.error) { nameError.value = result.error; return }
+  editingName.value = false
+}
+
+// ── Change password ───────────────────────────────────────────────────
+const showPasswordForm = ref(false)
+const newPassword      = ref('')
+const confirmPassword  = ref('')
+const passwordError    = ref<string | null>(null)
+const passwordSuccess  = ref(false)
+const showNewPwd       = ref(false)
+const showConfirmPwd   = ref(false)
+
+function togglePasswordForm() {
+  showPasswordForm.value = !showPasswordForm.value
+  passwordError.value = null
+  passwordSuccess.value = false
+  newPassword.value = ''
+  confirmPassword.value = ''
+}
+
+async function savePassword() {
+  passwordError.value = null
+  if (newPassword.value.length < 8) {
+    passwordError.value = 'Password must be at least 8 characters.'
+    return
+  }
+  if (newPassword.value !== confirmPassword.value) {
+    passwordError.value = "Passwords don't match."
+    return
+  }
+  const result = await auth.updatePassword(newPassword.value)
+  if (result.error) { passwordError.value = result.error; return }
+  passwordSuccess.value = true
+  newPassword.value = ''
+  confirmPassword.value = ''
+  setTimeout(() => {
+    showPasswordForm.value = false
+    passwordSuccess.value = false
+  }, 2000)
+}
+
+const canSavePassword = computed(() =>
+  newPassword.value.length >= 8 && confirmPassword.value.length >= 8,
+)
+
+// ── Logout ────────────────────────────────────────────────────────────
 async function handleLogout() {
   open.value = false
   await auth.logout()
@@ -24,7 +96,7 @@ function goRegister() {
   <UiModal v-model:open="open" size="sm">
     <div class="user-panel">
 
-      <!-- Avatar + name -->
+      <!-- Avatar + name / edit -->
       <div class="user-panel__identity">
         <div
           class="user-panel__avatar"
@@ -37,10 +109,50 @@ function goRegister() {
         </div>
 
         <div class="user-panel__name-block">
-          <p class="user-panel__name">
-            {{ auth.isDemoMode ? 'Demo mode' : (auth.user?.displayName ?? 'User') }}
-          </p>
-          <p class="user-panel__email">{{ auth.user?.email }}</p>
+          <!-- Edit mode -->
+          <template v-if="editingName">
+            <div class="user-panel__name-edit">
+              <UiInput
+                v-model="nameValue"
+                placeholder="Display name"
+                :disabled="nameSaving"
+                :error="!!nameError"
+                class="user-panel__name-input"
+                @keydown.enter="saveName"
+                @keydown.esc="cancelEditName"
+              />
+              <div class="user-panel__name-edit-actions">
+                <UiButton size="sm" :disabled="nameSaving" @click="saveName">
+                  <UiIcon v-if="nameSaving" name="Loader2" :size="12" class="panel-spinner" />
+                  <span v-else>Save</span>
+                </UiButton>
+                <UiButton size="sm" variant="ghost" :disabled="nameSaving" @click="cancelEditName">
+                  Cancel
+                </UiButton>
+              </div>
+              <span v-if="nameError" class="user-panel__field-error">
+                <UiIcon name="AlertCircle" :size="11" />{{ nameError }}
+              </span>
+            </div>
+          </template>
+
+          <!-- Display mode -->
+          <template v-else>
+            <div class="user-panel__name-row">
+              <p class="user-panel__name">
+                {{ auth.isDemoMode ? 'Demo mode' : (auth.user?.displayName ?? 'User') }}
+              </p>
+              <button
+                v-if="!auth.isDemoMode"
+                class="user-panel__edit-btn"
+                title="Edit display name"
+                @click="startEditName"
+              >
+                <UiIcon name="Pencil" :size="12" />
+              </button>
+            </div>
+            <p class="user-panel__email">{{ auth.user?.email }}</p>
+          </template>
         </div>
       </div>
 
@@ -64,6 +176,83 @@ function goRegister() {
             <UiIcon name="Settings2" :size="16" :stroke-width="1.75" />
             <span>Settings</span>
           </button>
+
+          <!-- Change password -->
+          <button class="user-panel__action" @click="togglePasswordForm">
+            <UiIcon name="KeyRound" :size="16" :stroke-width="1.75" />
+            <span>Change password</span>
+            <UiIcon
+              :name="showPasswordForm ? 'ChevronUp' : 'ChevronDown'"
+              :size="13"
+              class="user-panel__action-chevron"
+            />
+          </button>
+
+          <!-- Password form -->
+          <Transition name="panel-expand">
+            <div v-if="showPasswordForm" class="user-panel__password-form">
+              <template v-if="passwordSuccess">
+                <div class="user-panel__pwd-success">
+                  <UiIcon name="CheckCircle2" :size="14" />
+                  Password updated successfully.
+                </div>
+              </template>
+              <template v-else>
+                <div class="user-panel__pwd-field">
+                  <label class="user-panel__pwd-label">New password</label>
+                  <div class="user-panel__pwd-wrap">
+                    <UiInput
+                      v-model="newPassword"
+                      :type="showNewPwd ? 'text' : 'password'"
+                      placeholder="Min. 8 characters"
+                      autocomplete="new-password"
+                      :disabled="auth.loading"
+                    />
+                    <button
+                      type="button"
+                      class="user-panel__eye-btn"
+                      :aria-label="showNewPwd ? 'Hide' : 'Show'"
+                      @click="showNewPwd = !showNewPwd"
+                    >
+                      <UiIcon :name="showNewPwd ? 'EyeOff' : 'Eye'" :size="13" />
+                    </button>
+                  </div>
+                </div>
+                <div class="user-panel__pwd-field">
+                  <label class="user-panel__pwd-label">Confirm password</label>
+                  <div class="user-panel__pwd-wrap">
+                    <UiInput
+                      v-model="confirmPassword"
+                      :type="showConfirmPwd ? 'text' : 'password'"
+                      placeholder="Repeat password"
+                      autocomplete="new-password"
+                      :disabled="auth.loading"
+                      @keydown.enter="savePassword"
+                    />
+                    <button
+                      type="button"
+                      class="user-panel__eye-btn"
+                      :aria-label="showConfirmPwd ? 'Hide' : 'Show'"
+                      @click="showConfirmPwd = !showConfirmPwd"
+                    >
+                      <UiIcon :name="showConfirmPwd ? 'EyeOff' : 'Eye'" :size="13" />
+                    </button>
+                  </div>
+                </div>
+                <div v-if="passwordError" class="user-panel__field-error">
+                  <UiIcon name="AlertCircle" :size="11" />{{ passwordError }}
+                </div>
+                <UiButton
+                  size="sm"
+                  :disabled="auth.loading || !canSavePassword"
+                  @click="savePassword"
+                >
+                  <UiIcon v-if="auth.loading" name="Loader2" :size="12" class="panel-spinner" />
+                  <span>{{ auth.loading ? 'Saving…' : 'Update password' }}</span>
+                </UiButton>
+              </template>
+            </div>
+          </Transition>
         </div>
       </template>
 
@@ -88,7 +277,7 @@ function goRegister() {
 
 .user-panel__identity {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 }
 
@@ -118,7 +307,14 @@ function goRegister() {
 }
 
 .user-panel__name-block {
+  flex: 1;
   min-width: 0;
+}
+
+.user-panel__name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .user-panel__name {
@@ -138,6 +334,42 @@ function goRegister() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.user-panel__edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.user-panel__edit-btn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-elevated);
+}
+
+.user-panel__name-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-panel__name-edit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.user-panel__field-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-danger);
 }
 
 .user-panel__demo-cta {
@@ -183,6 +415,84 @@ function goRegister() {
 .user-panel__action:hover {
   background: var(--color-surface-elevated);
   color: var(--color-text);
+}
+
+.user-panel__action-chevron {
+  margin-left: auto;
+}
+
+/* Password form */
+.user-panel__password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  margin: 0 -4px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.user-panel__pwd-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.user-panel__pwd-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.user-panel__pwd-wrap {
+  position: relative;
+}
+
+.user-panel__eye-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: var(--radius-xs);
+  transition: color var(--t-fast);
+}
+.user-panel__eye-btn:hover { color: var(--color-text); }
+
+.user-panel__pwd-success {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--color-success);
+  padding: 4px 0;
+}
+
+/* Expand transition */
+.panel-expand-enter-active,
+.panel-expand-leave-active {
+  transition: opacity 160ms var(--ease), transform 160ms var(--ease);
+  transform-origin: top;
+}
+.panel-expand-enter-from,
+.panel-expand-leave-to {
+  opacity: 0;
+  transform: scaleY(0.92);
+}
+
+@keyframes panel-spin {
+  to { transform: rotate(360deg); }
+}
+.panel-spinner {
+  animation: panel-spin 0.8s linear infinite;
+  flex-shrink: 0;
 }
 
 .user-panel__divider {

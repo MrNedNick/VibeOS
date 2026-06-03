@@ -16,4 +16,9 @@ export const authRoutes: RouteRecordRaw[] = [
     component: () => import('./views/AuthCallbackView.vue'),
     meta: { title: 'Signing in…', auth: 'public' },
   },
+  {
+    path: '/auth/update-password',
+    component: () => import('./views/UpdatePasswordView.vue'),
+    meta: { title: 'Set new password', auth: 'public' },
+  },
 ]

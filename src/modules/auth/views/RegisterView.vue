@@ -246,12 +246,14 @@ function onKeydown(e: KeyboardEvent) {
 
 <style scoped>
 .auth-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--color-bg);
   padding: 24px;
+  padding-top: calc(24px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 }
 
 .auth-card {
@@ -493,6 +495,14 @@ function onKeydown(e: KeyboardEvent) {
 .auth-text-btn:hover { opacity: 0.8; }
 
 @media (max-width: 480px) {
-  .auth-card { padding: 28px 20px; gap: 16px; }
+  .auth-page {
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+  .auth-card {
+    padding: 28px 20px;
+    gap: 16px;
+    margin: auto;
+  }
 }
 </style>

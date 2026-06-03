@@ -309,6 +309,15 @@ const moduleLabel = computed(() => {
   opacity: 0.8;
 }
 
+/* ── User avatar mobile override ───────────────────────────────────── */
+@media (max-width: 767px) {
+  .header-avatar {
+    width: 34px;
+    height: 34px;
+    touch-action: manipulation;
+  }
+}
+
 /* ── Mobile overrides (≤ 767px) ─────────────────────────────────────── */
 @media (max-width: 767px) {
   .app-header {

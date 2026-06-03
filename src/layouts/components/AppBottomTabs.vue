@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PLATFORM_MODULES, type ModuleMeta } from '@/core/registry/modules'
 import { useLocale } from '@/core/i18n'
@@ -88,6 +88,12 @@ function navigateMod(mod: ModuleMeta) {
 
 // Close drawer on any route change (back button, swipe, programmatic nav)
 watch(route, () => { showMore.value = false })
+
+// Lock body scroll when More drawer is open
+watch(showMore, (open) => {
+  document.body.style.overflow = open ? 'hidden' : ''
+})
+onUnmounted(() => { document.body.style.overflow = '' })
 </script>
 
 <template>
