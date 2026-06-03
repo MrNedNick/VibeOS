@@ -6,10 +6,11 @@ interface Props {
   maxlength?: number
   disabled?: boolean
   autofocus?: boolean
+  error?: boolean
 }
 
 const model = defineModel<string>({ required: true })
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits<{ enter: [] }>()
 
@@ -22,6 +23,7 @@ defineExpose({ focus: () => inputRef.value?.focus() })
     ref="inputRef"
     v-model="model"
     class="ui-input"
+    :class="{ 'ui-input--error': props.error }"
     v-bind="$attrs"
     :placeholder="placeholder"
     :maxlength="maxlength"
@@ -57,4 +59,12 @@ defineExpose({ focus: () => inputRef.value?.focus() })
 }
 
 .ui-input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.ui-input--error {
+  border-color: var(--color-danger);
+}
+.ui-input--error:focus {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 18%, transparent);
+}
 </style>

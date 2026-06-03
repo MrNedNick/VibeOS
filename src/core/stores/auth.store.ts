@@ -230,7 +230,8 @@ export const useAuthStore = defineStore('core:auth', () => {
               provider: 'supabase',
               tier: (newSession.user.user_metadata?.tier as AuthUser['tier']) ?? 'free',
             })
-          } else if (_event === 'SIGNED_OUT') {
+          } else if (_event === 'SIGNED_OUT' || _event === 'TOKEN_REFRESHED') {
+            // TOKEN_REFRESHED with no session = refresh failed → force logout
             _setUser(null)
           }
         })

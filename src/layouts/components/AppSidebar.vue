@@ -15,11 +15,6 @@ const auth = useAuthStore()
 const i18n = useLocale()
 const { isVisible } = useModuleVisibility()
 
-async function logout() {
-  await auth.logout()
-  router.replace('/welcome')
-}
-
 // System modules are always shown; life/work respect user visibility prefs
 const systemModules = computed(() => PLATFORM_MODULES.filter(m => m.section === 'system'))
 const lifeModules   = computed(() => PLATFORM_MODULES.filter(m => m.section === 'life'   && isVisible(m.id)))
@@ -119,8 +114,13 @@ function goHome() {
     <!-- Footer: user + pin/collapse -->
     <div class="sidebar__footer">
 
-      <!-- User row (only when logged in) -->
-      <div v-if="auth.isLoggedIn" class="sidebar__user">
+      <!-- User row (only when logged in) — click opens UserPanel -->
+      <button
+        v-if="auth.isLoggedIn"
+        class="sidebar__user"
+        title="Account"
+        @click="uiStore.openUserPanel"
+      >
         <!-- Avatar initials -->
         <div class="sidebar__user-avatar" :class="{ 'sidebar__user-avatar--demo': auth.isDemoMode }">
           <UiIcon v-if="auth.isDemoMode" name="FlaskConical" :size="13" :stroke-width="2" />
@@ -135,15 +135,9 @@ function goHome() {
             {{ auth.user?.email }}
           </span>
         </div>
-        <!-- Logout -->
-        <button
-          class="sidebar__user-logout"
-          title="Sign out"
-          @click="logout"
-        >
-          <UiIcon name="LogOut" :size="14" :stroke-width="1.75" />
-        </button>
-      </div>
+        <!-- Chevron hint -->
+        <UiIcon name="ChevronUp" :size="13" :stroke-width="2" class="sidebar__user-chevron" />
+      </button>
 
       <!-- Sign in prompt (guest) -->
       <button
@@ -421,6 +415,16 @@ function goHome() {
   border-radius: var(--radius-sm);
   overflow: hidden;
   white-space: nowrap;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--t-fast);
+}
+.sidebar__user:hover {
+  background: var(--color-surface-elevated);
 }
 
 .sidebar__user-avatar {
@@ -473,27 +477,12 @@ function goHome() {
   white-space: nowrap;
 }
 
-.sidebar__user-logout {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-xs);
-  color: var(--color-text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: background var(--t-fast), color var(--t-fast);
+.sidebar__user-chevron {
   flex-shrink: 0;
+  color: var(--color-text-muted);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 120ms ease, background var(--t-fast), color var(--t-fast);
-}
-
-.sidebar__user-logout:hover {
-  background: var(--color-surface-elevated);
-  color: var(--color-text);
+  transition: opacity 120ms ease;
 }
 
 /* Sign in button (guest) */
@@ -578,7 +567,7 @@ function goHome() {
 .sidebar--pinned .sidebar__soon,
 .sidebar--pinned .sidebar__pin-label,
 .sidebar--pinned .sidebar__user-info,
-.sidebar--pinned .sidebar__user-logout {
+.sidebar--pinned .sidebar__user-chevron {
   opacity: 1;
   pointer-events: auto;
 }
@@ -589,7 +578,7 @@ function goHome() {
 .sidebar--drawer-open .sidebar__label,
 .sidebar--drawer-open .sidebar__soon,
 .sidebar--drawer-open .sidebar__user-info,
-.sidebar--drawer-open .sidebar__user-logout {
+.sidebar--drawer-open .sidebar__user-chevron {
   opacity: 1;
   pointer-events: auto;
 }
@@ -602,7 +591,7 @@ function goHome() {
   .sidebar:not(.sidebar--pinned):hover .sidebar__soon,
   .sidebar:not(.sidebar--pinned):hover .sidebar__pin-label,
   .sidebar:not(.sidebar--pinned):hover .sidebar__user-info,
-  .sidebar:not(.sidebar--pinned):hover .sidebar__user-logout {
+  .sidebar:not(.sidebar--pinned):hover .sidebar__user-chevron {
     opacity: 1;
     pointer-events: auto;
     transition: opacity 140ms ease 60ms;

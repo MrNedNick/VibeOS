@@ -79,10 +79,10 @@ const moduleLabel = computed(() => {
         v-if="auth.isDemoMode"
         class="header-demo-chip"
         title="You're using Demo mode — data is stored locally"
-        @click="router.push('/login')"
+        @click="router.push('/register')"
       >
         <UiIcon name="FlaskConical" :size="12" :stroke-width="2" />
-        Demo
+        Sign Up Free
       </button>
 
       <!-- Search / command palette -->
@@ -105,6 +105,21 @@ const moduleLabel = computed(() => {
         @click="i18n.toggleLocale"
       >
         <span class="header-locale-label">{{ i18n.t('header.langToggle') }}</span>
+      </button>
+
+      <!-- User avatar button (authenticated only) -->
+      <button
+        v-if="auth.isLoggedIn"
+        class="header-avatar"
+        :class="{ 'header-avatar--demo': auth.isDemoMode }"
+        title="Account"
+        aria-label="Open account panel"
+        @click="uiStore.openUserPanel"
+      >
+        <UiIcon v-if="auth.isDemoMode" name="FlaskConical" :size="14" :stroke-width="2" />
+        <span v-else class="header-avatar__letter">
+          {{ (auth.user?.displayName ?? auth.user?.email ?? '?')[0].toUpperCase() }}
+        </span>
       </button>
 
       <!-- Theme toggle -->
@@ -341,6 +356,42 @@ const moduleLabel = computed(() => {
 
   /* Title stays centered via absolute positioning */
   .header-title__label { font-size: 15px; font-weight: 600; }
+}
+
+/* ── User avatar button ─────────────────────────────────────────────── */
+.header-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--color-accent-muted);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  min-height: 0;
+  min-width: 0;
+  transition: background var(--t-fast), box-shadow var(--t-fast);
+}
+.header-avatar:hover {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+.header-avatar--demo {
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 40%, transparent);
+  color: var(--color-warning);
+}
+.header-avatar--demo:hover {
+  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+}
+.header-avatar__letter {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1;
 }
 
 </style>

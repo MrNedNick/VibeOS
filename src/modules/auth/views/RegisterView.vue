@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon, UiButton, UiInput } from '@/ui'
+import { useFormValidation, required, email as emailValidator, minLength, mustMatch } from '@/core/composables/useFormValidation'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -13,34 +14,52 @@ const displayName = ref('')
 const email       = ref('')
 const password    = ref('')
 const confirm     = ref('')
-const error       = ref<string | null>(null)
+const serverError = ref<string | null>(null)
 
 // "Check your email" state (when Supabase email confirmation is enabled)
 const confirmationPending = ref(false)
 const showPassword = ref(false)
 const showConfirm  = ref(false)
 
+// Rate limit state
+const rateLimitCooldown = ref(0)
+let rateLimitTimer: ReturnType<typeof setInterval> | null = null
+
+const { errors, touched, onBlur, validate, reset } = useFormValidation(
+  {
+    email:    [required('Email is required'), emailValidator()],
+    password: [required('Password is required'), minLength(8)],
+    confirm:  [required('Please confirm your password'), mustMatch(password, "Passwords don't match")],
+  },
+  { email, password, confirm },
+)
+
 const canSubmit = computed(() =>
+  rateLimitCooldown.value === 0 &&
   email.value.trim().length > 0 &&
   password.value.length >= 8 &&
   password.value === confirm.value,
 )
 
-async function submit() {
-  error.value = null
+function isRateLimit(msg: string): boolean {
+  return /429|rate.?limit|too many/i.test(msg)
+}
 
-  if (!email.value.trim() || !password.value) {
-    error.value = 'Email and password are required.'
-    return
-  }
-  if (password.value !== confirm.value) {
-    error.value = 'Passwords do not match.'
-    return
-  }
-  if (password.value.length < 8) {
-    error.value = 'Password must be at least 8 characters.'
-    return
-  }
+function startCooldown(seconds = 30) {
+  rateLimitCooldown.value = seconds
+  if (rateLimitTimer) clearInterval(rateLimitTimer)
+  rateLimitTimer = setInterval(() => {
+    rateLimitCooldown.value--
+    if (rateLimitCooldown.value <= 0) {
+      clearInterval(rateLimitTimer!)
+      rateLimitTimer = null
+    }
+  }, 1000)
+}
+
+async function submit() {
+  if (!validate()) return
+  serverError.value = null
 
   const result = await auth.register(
     email.value.trim(),
@@ -49,10 +68,15 @@ async function submit() {
   )
 
   if (result.error) {
-    error.value = result.error
+    if (isRateLimit(result.error)) {
+      startCooldown(30)
+      serverError.value = 'Too many attempts. Please wait a moment and try again.'
+    } else {
+      serverError.value = result.error
+    }
   } else if (auth.isLoggedIn) {
-    // Email confirmation disabled — full reload so stores reinitialize from synced localStorage
-    window.location.replace(import.meta.env.BASE_URL)
+    reset()
+    router.replace('/')
   } else {
     // Email confirmation required — show "check your email"
     confirmationPending.value = true
@@ -131,7 +155,12 @@ function onKeydown(e: KeyboardEvent) {
               placeholder="you@example.com"
               autocomplete="email"
               :disabled="auth.loading"
+              :error="touched.email && !!errors.email"
+              @blur="onBlur('email')"
             />
+            <span v-if="touched.email && errors.email" class="auth-field-hint auth-field-hint--error">
+              <UiIcon name="AlertCircle" :size="11" />{{ errors.email }}
+            </span>
           </div>
           <div class="auth-field">
             <label class="auth-label">Password <span class="auth-optional">(min. 8 chars)</span></label>
@@ -142,6 +171,8 @@ function onKeydown(e: KeyboardEvent) {
                 placeholder="Create a strong password"
                 autocomplete="new-password"
                 :disabled="auth.loading"
+                :error="touched.password && !!errors.password"
+                @blur="onBlur('password')"
               />
               <button
                 type="button"
@@ -152,6 +183,9 @@ function onKeydown(e: KeyboardEvent) {
                 <UiIcon :name="showPassword ? 'EyeOff' : 'Eye'" :size="15" />
               </button>
             </div>
+            <span v-if="touched.password && errors.password" class="auth-field-hint auth-field-hint--error">
+              <UiIcon name="AlertCircle" :size="11" />{{ errors.password }}
+            </span>
           </div>
           <div class="auth-field">
             <label class="auth-label">Confirm password</label>
@@ -162,6 +196,8 @@ function onKeydown(e: KeyboardEvent) {
                 placeholder="Repeat password"
                 autocomplete="new-password"
                 :disabled="auth.loading"
+                :error="touched.confirm && !!errors.confirm"
+                @blur="onBlur('confirm')"
               />
               <button
                 type="button"
@@ -172,30 +208,23 @@ function onKeydown(e: KeyboardEvent) {
                 <UiIcon :name="showConfirm ? 'EyeOff' : 'Eye'" :size="15" />
               </button>
             </div>
+            <span v-if="touched.confirm && errors.confirm" class="auth-field-hint auth-field-hint--error">
+              <UiIcon name="AlertCircle" :size="11" />{{ errors.confirm }}
+            </span>
+            <span v-else-if="touched.confirm && confirm.length > 0" class="auth-field-hint auth-field-hint--ok">
+              <UiIcon name="Check" :size="11" /> Passwords match
+            </span>
           </div>
 
-          <!-- Inline password match indicator -->
-          <div
-            v-if="confirm.length > 0 && password !== confirm"
-            class="auth-field-hint auth-field-hint--error"
-          >
-            <UiIcon name="X" :size="12" /> Passwords don't match
-          </div>
-          <div
-            v-else-if="confirm.length > 0 && password === confirm"
-            class="auth-field-hint auth-field-hint--ok"
-          >
-            <UiIcon name="Check" :size="12" /> Passwords match
-          </div>
-
-          <div v-if="error" class="auth-error">
+          <div v-if="serverError" class="auth-error">
             <UiIcon name="AlertCircle" :size="14" />
-            {{ error }}
+            {{ serverError }}
           </div>
 
           <UiButton :disabled="auth.loading || !canSubmit" @click="submit">
             <UiIcon v-if="auth.loading" name="Loader2" :size="14" class="auth-spinner" />
-            <span>{{ auth.loading ? 'Creating account…' : 'Create account' }}</span>
+            <span v-if="rateLimitCooldown > 0">Try again in {{ rateLimitCooldown }}s</span>
+            <span v-else>{{ auth.loading ? 'Creating account…' : 'Create account' }}</span>
           </UiButton>
         </div>
 
