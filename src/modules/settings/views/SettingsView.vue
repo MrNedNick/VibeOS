@@ -310,6 +310,10 @@ function cancelImport() {
           <UiIcon name="UserPlus" :size="14" />
           Create free account
         </UiButton>
+        <UiButton variant="ghost" @click="handleLogout">
+          <UiIcon name="LogOut" :size="14" />
+          Exit demo
+        </UiButton>
       </div>
     </section>
 
