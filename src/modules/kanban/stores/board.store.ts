@@ -1,15 +1,25 @@
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useStorage } from '@/core/composables/useStorage'
-import { storageKey } from '@/core/utils/storage'
+import { storageKey, storagGet } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
+import { useBackendSync } from '@/core/composables/useBackendSync'
+import { useSyncBus } from '@/core/composables/useSyncBus'
 import { classifyDueDate } from '../types'
 import type { BoardCard, BoardColumnId, CardPriority, SwimlaneRowId } from '../types'
 
+const CARDS_KEY = storageKey('kanban', 'cards')
+
 export const useBoardStore = defineStore('kanban:board', () => {
-  const cards    = useStorage<BoardCard[]>(storageKey('kanban', 'cards'), [])
+  const cards    = useStorage<BoardCard[]>(CARDS_KEY, [])
   const viewMode = useStorage<'kanban' | 'timeline'>('platform:kanban:viewMode', 'kanban')
   const events   = useEventBus()
+
+  // ── Backend sync ──────────────────────────────────────────────────
+  const syncBus   = useSyncBus()
+  const syncCards = useBackendSync(CARDS_KEY)
+  watch(syncBus.pullSeq, () => { cards.value = storagGet<BoardCard[]>(CARDS_KEY, []) })
+  watch(cards, v => syncCards.push(v), { deep: true })
 
   // ── Queries ─────────────────────────────────────────────────────
 

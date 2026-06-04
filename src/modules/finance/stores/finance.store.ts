@@ -1,14 +1,31 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
-import { storageKey } from '@/core/utils/storage'
+import { storageKey, storagGet } from '@/core/utils/storage'
+import { useBackendSync } from '@/core/composables/useBackendSync'
+import { useSyncBus } from '@/core/composables/useSyncBus'
 import type { Expense, CategoryBudget, ExpenseCategory } from '../types'
 import { isCurrentMonth, EXPENSE_CATEGORIES, CATEGORY_META, currentMonthKey } from '../types'
 
+const EXPENSES_KEY = storageKey('finance', 'expenses')
+const BUDGETS_KEY  = storageKey('finance', 'budgets')
+
 export const useFinanceStore = defineStore('finance:main', () => {
-  const { all: allExpenses, items: expenses, softDelete: softDeleteExpense } = useSoftDeletable<Expense>(storageKey('finance', 'expenses'))
-  const budgets     = useStorage<CategoryBudget[]>(storageKey('finance', 'budgets'), [])
+  const { all: allExpenses, items: expenses, softDelete: softDeleteExpense } = useSoftDeletable<Expense>(EXPENSES_KEY)
+  const budgets     = useStorage<CategoryBudget[]>(BUDGETS_KEY, [])
+
+  // ── Backend sync (mirrors habits/goals pattern) ───────────────────
+  const syncBus       = useSyncBus()
+  const syncExpenses  = useBackendSync(EXPENSES_KEY)
+  const syncBudgets   = useBackendSync(BUDGETS_KEY)
+
+  watch(syncBus.pullSeq, () => {
+    allExpenses.value = storagGet<Expense[]>(EXPENSES_KEY, [])
+    budgets.value     = storagGet<CategoryBudget[]>(BUDGETS_KEY, [])
+  })
+  watch(allExpenses, v => syncExpenses.push(v), { deep: true })
+  watch(budgets,     v => syncBudgets.push(v),  { deep: true })
   const currency    = useStorage<string>(storageKey('finance', 'currency'), '€')
   /** Base currency code (e.g. 'EUR') — all amounts stored in this currency */
   const baseCurrency    = useStorage<string>(storageKey('finance', 'baseCurrency'), 'EUR')

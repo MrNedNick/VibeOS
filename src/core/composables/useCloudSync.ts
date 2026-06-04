@@ -57,6 +57,9 @@ export const SYNC_KEYS: string[] = [
   'platform:learning:sessions',
   'platform:training:plans',
   'platform:training:logs',
+  'platform:finance:expenses',
+  'platform:finance:budgets',
+  'platform:kanban:cards',
 ]
 
 // Alias for backward compat (gcTombstones import in main.ts)

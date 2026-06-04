@@ -124,6 +124,7 @@ async function signUpFromDemo() {
         @click="router.push('/settings')"
       >
         <UiIcon v-if="auth.isDemoMode" name="FlaskConical" :size="14" :stroke-width="2" />
+        <img v-else-if="auth.user?.avatarUrl" :src="auth.user.avatarUrl" class="header-avatar__img" alt="avatar" />
         <span v-else class="header-avatar__letter">{{ auth.initials }}</span>
       </button>
 
@@ -417,6 +418,13 @@ async function signUpFromDemo() {
   font-weight: 800;
   text-transform: uppercase;
   line-height: 1;
+}
+
+.header-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
 }
 
 </style>

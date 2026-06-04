@@ -240,6 +240,91 @@ export const useAuthStore = defineStore('core:auth', () => {
     }
   }
 
+  // ── Avatar upload ─────────────────────────────────────────────────────────
+  async function resizeImage(file: File, maxPx: number): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      const blobUrl = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(blobUrl)
+        const ratio = Math.min(maxPx / img.width, maxPx / img.height, 1)
+        const w = Math.round(img.width * ratio)
+        const h = Math.round(img.height * ratio)
+        const canvas = document.createElement('canvas')
+        canvas.width = w; canvas.height = h
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, w, h)
+        canvas.toBlob(
+          blob => (blob ? resolve(blob) : reject(new Error('Resize failed'))),
+          'image/jpeg', 0.88,
+        )
+      }
+      img.onerror = () => { URL.revokeObjectURL(blobUrl); reject(new Error('Image load failed')) }
+      img.src = blobUrl
+    })
+  }
+
+  async function updateAvatar(file: File): Promise<{ error: string | null; url?: string }> {
+    if (isDemoMode.value) return { error: 'Not available in demo mode.' }
+    if (!isSupabaseConfigured) return { error: 'Not configured.' }
+    const u = _state.value.user
+    if (!u) return { error: 'Not logged in.' }
+
+    loading.value = true
+    try {
+      const sb = getSupabase()
+
+      // Resize to max 256×256 before upload
+      const blob = await resizeImage(file, 256)
+      const path = `${u.id}/avatar.jpg`
+
+      // Ensure bucket exists (silently ignore if already there)
+      await sb.storage.createBucket('avatars', { public: true }).catch(() => {})
+
+      const { error: upErr } = await sb.storage.from('avatars').upload(path, blob, {
+        upsert: true,
+        contentType: 'image/jpeg',
+      })
+      if (upErr) return { error: upErr.message }
+
+      // Cache-bust by appending timestamp
+      const { data } = sb.storage.from('avatars').getPublicUrl(path)
+      const avatarUrl = `${data.publicUrl}?v=${Date.now()}`
+
+      const { error: metaErr } = await sb.auth.updateUser({ data: { avatar_url: avatarUrl } })
+      if (metaErr) return { error: metaErr.message }
+
+      if (_state.value.user) {
+        _state.value = { ..._state.value, user: { ..._state.value.user, avatarUrl } }
+      }
+      return { error: null, url: avatarUrl }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Upload failed' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // ── Email change (sends confirmation to both addresses) ────────────────────
+  async function requestEmailChange(newEmail: string): Promise<{ error: string | null }> {
+    if (isDemoMode.value) return { error: 'Not available in demo mode.' }
+    if (!isSupabaseConfigured) return { error: 'Not configured.' }
+    loading.value = true
+    try {
+      const sb = getSupabase()
+      const { error } = await sb.auth.updateUser(
+        { email: newEmail },
+        { emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}auth/callback` },
+      )
+      if (error) return { error: error.message }
+      return { error: null }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Update failed' }
+    } finally {
+      loading.value = false
+    }
+  }
+
   // ── Password reset ────────────────────────────────────────────────────────
   async function sendPasswordReset(email: string): Promise<{ error: string | null }> {
     if (!isSupabaseConfigured) {
@@ -332,6 +417,8 @@ export const useAuthStore = defineStore('core:auth', () => {
     register,
     logout,
     sendPasswordReset,
+    requestEmailChange,
+    updateAvatar,
     updateDisplayName,
     updatePassword,
     init,

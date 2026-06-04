@@ -41,6 +41,29 @@ function clearAnalyticsData(): void {
   track('data:analytics-cleared')
 }
 
+// ── Avatar upload ─────────────────────────────────────────────────
+const avatarInputRef  = ref<HTMLInputElement>()
+const avatarUploading = ref(false)
+const avatarError     = ref<string | null>(null)
+
+function triggerAvatarPick() {
+  if (auth.isDemoMode) return
+  avatarInputRef.value?.click()
+}
+
+async function onAvatarFileChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  ;(e.target as HTMLInputElement).value = ''
+  if (!file) return
+  if (!file.type.startsWith('image/')) { avatarError.value = 'Please select an image file.'; return }
+  avatarUploading.value = true
+  avatarError.value     = null
+  const result = await auth.updateAvatar(file)
+  avatarUploading.value = false
+  if (result.error) { avatarError.value = result.error; return }
+  toast.success('Profile picture updated!')
+}
+
 // ── Profile: first/last name edit ─────────────────────────────────
 const editingName  = ref(false)
 const firstName    = ref('')
@@ -117,6 +140,40 @@ async function savePassword() {
 const canSavePassword = computed(() =>
   newPassword.value.length >= 8 && confirmPassword.value.length >= 8,
 )
+
+// ── Email change ──────────────────────────────────────────────────
+const showEmailForm     = ref(false)
+const newEmailValue     = ref('')
+const emailChangeError  = ref<string | null>(null)
+const emailChangePending = ref(false)
+const emailChangeSaving  = ref(false)
+
+function openEmailForm() {
+  showEmailForm.value     = true
+  newEmailValue.value     = ''
+  emailChangeError.value  = null
+  emailChangePending.value = false
+}
+
+function closeEmailForm() {
+  showEmailForm.value     = false
+  emailChangePending.value = false
+}
+
+async function submitEmailChange() {
+  const email = newEmailValue.value.trim()
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    emailChangeError.value = 'Enter a valid email address.'
+    return
+  }
+  emailChangeSaving.value = true
+  emailChangeError.value  = null
+  const result = await auth.requestEmailChange(email)
+  emailChangeSaving.value = false
+  if (result.error) { emailChangeError.value = result.error; return }
+  emailChangePending.value = true
+  toast.success('Confirmation emails sent!')
+}
 
 async function handleLogout() {
   await auth.logout()
@@ -282,13 +339,38 @@ function cancelImport() {
 
       <div class="profile-identity">
         <!-- Avatar -->
-        <div
+        <!-- Avatar: clickable to upload (non-demo only) -->
+        <button
           class="profile-avatar"
-          :class="{ 'profile-avatar--demo': auth.isDemoMode }"
+          :class="{ 'profile-avatar--demo': auth.isDemoMode, 'profile-avatar--uploading': avatarUploading }"
+          :title="auth.isDemoMode ? undefined : 'Change profile picture'"
+          :disabled="auth.isDemoMode"
+          @click="triggerAvatarPick"
         >
           <UiIcon v-if="auth.isDemoMode" name="FlaskConical" :size="22" :stroke-width="2" />
+          <UiIcon v-else-if="avatarUploading" name="Loader2" :size="18" class="spin" />
+          <img
+            v-else-if="auth.user?.avatarUrl"
+            :src="auth.user.avatarUrl"
+            class="profile-avatar__img"
+            alt="Avatar"
+          />
           <span v-else class="profile-avatar__letter">{{ auth.initials }}</span>
-        </div>
+          <!-- Camera icon overlay on hover -->
+          <span v-if="!auth.isDemoMode && !avatarUploading" class="profile-avatar__overlay">
+            <UiIcon name="Camera" :size="14" />
+          </span>
+        </button>
+        <input
+          ref="avatarInputRef"
+          type="file"
+          accept="image/*"
+          class="sr-only"
+          @change="onAvatarFileChange"
+        />
+        <span v-if="avatarError" class="profile-field-error" style="align-self:center">
+          <UiIcon name="AlertCircle" :size="12" />{{ avatarError }}
+        </span>
 
         <!-- Name + email block -->
         <div class="profile-info">
@@ -456,6 +538,58 @@ function cancelImport() {
           <UiIcon name="LogOut" :size="14" />
           Sign out
         </UiButton>
+      </div>
+    </section>
+
+    <!-- ── Email ──────────────────────────────────────────── -->
+    <section v-if="!auth.isDemoMode" class="settings__section">
+      <h2 class="settings__section-title">Email address</h2>
+
+      <!-- Show current + open form -->
+      <div v-if="!showEmailForm" class="settings__row">
+        <div>
+          <span class="settings__row-name">{{ auth.user?.email }}</span>
+          <p class="settings__row-hint">Your sign-in email address.</p>
+        </div>
+        <UiButton variant="outline" size="sm" @click="openEmailForm">Change email</UiButton>
+      </div>
+
+      <!-- Email change form -->
+      <div v-else class="email-change">
+        <template v-if="!emailChangePending">
+          <p class="email-change__desc">
+            Enter your new email. Supabase will send a confirmation link to <strong>both</strong> your current and new address — the change takes effect when you confirm both.
+          </p>
+          <UiInput
+            v-model="newEmailValue"
+            type="email"
+            placeholder="new@email.com"
+            :disabled="emailChangeSaving"
+            :error="!!emailChangeError"
+            @keydown.enter="submitEmailChange"
+            @keydown.esc="closeEmailForm"
+          />
+          <span v-if="emailChangeError" class="profile-field-error">
+            <UiIcon name="AlertCircle" :size="12" />{{ emailChangeError }}
+          </span>
+          <div class="email-change__actions">
+            <UiButton :disabled="emailChangeSaving" @click="submitEmailChange">
+              <UiIcon v-if="emailChangeSaving" name="Loader2" :size="13" class="spin" />
+              <span v-else>Send confirmation</span>
+            </UiButton>
+            <UiButton variant="ghost" :disabled="emailChangeSaving" @click="closeEmailForm">Cancel</UiButton>
+          </div>
+        </template>
+        <template v-else>
+          <div class="email-change__pending">
+            <UiIcon name="MailCheck" :size="24" class="email-change__pending-icon" />
+            <div>
+              <p class="email-change__pending-title">Check your inboxes</p>
+              <p class="email-change__pending-desc">Confirmation emails sent to your current and new address. Click both links to complete the change.</p>
+            </div>
+          </div>
+          <UiButton variant="ghost" size="sm" @click="closeEmailForm">Done</UiButton>
+        </template>
       </div>
     </section>
 
@@ -1061,6 +1195,42 @@ function cancelImport() {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--t-fast);
+}
+.profile-avatar:not(.profile-avatar--demo):hover {
+  border-color: var(--color-accent);
+}
+.profile-avatar:not(.profile-avatar--demo):hover .profile-avatar__overlay {
+  opacity: 1;
+}
+
+.profile-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar__overlay {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-bg) 55%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--t-fast);
+  color: var(--color-text);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
 }
 
 .profile-avatar--demo {
@@ -1246,6 +1416,51 @@ function cancelImport() {
 .pv-feedback-date { font-size: 11px; color: var(--color-text-muted); }
 .pv-feedback-comment { font-size: 12px; color: var(--color-text-secondary); font-style: italic; }
 .pv-feedback-empty { font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0; }
+
+/* ── Email change section ───────────────────────────────────────── */
+.email-change {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.email-change__desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+.email-change__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.email-change__pending {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.email-change__pending-icon { color: var(--color-success); flex-shrink: 0; margin-top: 2px; }
+
+.email-change__pending-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 4px;
+}
+
+.email-change__pending-desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
 
 @media (max-width: 767px) {
   .settings { max-width: 100%; }
