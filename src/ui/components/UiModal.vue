@@ -140,11 +140,15 @@ onUnmounted(() => { document.body.style.overflow = '' })
   flex-shrink: 0;
 }
 
-/* Mobile: reduce max-height to clear the fixed tab bar + safe area */
+/* Mobile: bottom-sheet style, clears the fixed tab bar */
 @media (max-width: 767px) {
-  .ui-modal__container { padding: 12px; align-items: flex-end; }
+  .ui-modal__backdrop {
+    align-items: flex-end;
+    padding: 16px 0 calc(var(--tab-bar-height, 64px) + env(safe-area-inset-bottom, 0px));
+  }
   .ui-modal__dialog {
-    max-height: calc(100dvh - var(--tab-bar-height, 64px) - env(safe-area-inset-bottom, 0px) - 20px);
+    width: 100%;
+    max-height: calc(100dvh - var(--tab-bar-height, 64px) - env(safe-area-inset-bottom, 0px) - 16px);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }

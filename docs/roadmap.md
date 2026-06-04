@@ -34,6 +34,7 @@
 | **S22 — UX Action Prominence** | FAB + primary CTAs in 8 modules, empty state audit, Dashboard onboarding | ✅ **complete** — v2.0.0 |
 | **S23 — Tetris Improvements** | Hold piece, line-clear flash animation, score history leaderboard | ✅ **complete** — v2.2.0 |
 | **S25 — Demo Mode Seeding** | Seed tasks/goals/habits/notes/finance/board on demo login for recruiters | ✅ **complete** — v2.2.0 |
+| **S26 — Mobile QA & Fixes** | Full mobile regression pass — layout, touch targets, modals, iOS keyboard, Android nav | ✅ **complete** — v2.2.4 |
 
 ---
 
@@ -2643,3 +2644,33 @@ When the user has zero data across all stores (no tasks, no habits, no goals, no
 | Analytics: standalone module or dashboard tab? | ✅ Shipped as standalone module | Dashboard has summary strip; Analytics module has full detail |
 | Snippets module: keep or remove? | Open | Low daily-use value in a life OS context; already built and stable; keep until there's a clear reason to remove |
 | Studio: Anthropic-only or multi-provider? | ✅ Decided | Free AI (Pollinations.ai) = default, no key; Claude API = secondary tab; other providers (Gemini, Groq, OpenRouter) planned for S6 with user key |
+
+---
+
+## S26 — Mobile QA & Fixes ✅ (closed 2026-06-04, v2.2.4)
+
+**Goal:** Full mobile regression pass — fix layout issues discovered during S25 demo mode QA, ensure every module works correctly on iOS and Android.
+
+### What shipped
+
+| Fix | File(s) | Detail |
+|-----|---------|--------|
+| Scroll reset on navigation | `AppLayout.vue` | `scrollTop = 0` on route change |
+| FAB padding-bottom clearance | `AppLayout.vue` | `app-content` pads past FAB + tab bar |
+| Demo chip mobile overflow | `AppHeader.vue` | Chip truncates gracefully on small viewports |
+| Habits form Save/Cancel hidden | `HabitsView.vue` | Button row stays visible on mobile |
+| UiModal bottom-sheet (T2) | `UiModal.vue` | `align-items: center` → `flex-end`; correct class fix (`.ui-modal__container` → `.ui-modal__backdrop`); `padding-bottom` clears tab bar |
+| Analytics mobile breakpoint | `AnalyticsView.vue` | Missing `@media (max-width: 767px)` block added |
+| Goals form mobile overflow | `GoalsView.vue` | Form fields no longer clip on narrow screens |
+| touch-action on tabs + FAB | `AppBottomTabs.vue`, `UiFab.vue` | `touch-action: manipulation` — no 300ms tap delay |
+| 100vh → 100dvh | `WelcomeView.vue`, `AuthCallback.vue` | Correct height on iOS Safari with browser chrome |
+| TaskManager goal selector width | `TaskManager.vue` | Selector no longer overflows on mobile |
+| S9 rgba() → color-mix() | Nav components | Replaced legacy rgba() alpha with color-mix() |
+| enterkeyhint on habit inputs | `HabitsView.vue` | `enterkeyhint="done"` on iOS keyboard |
+| SettingsView fragment root fix | `SettingsView.vue` | Fragment root broke sidebar nav (critical desktop bug) |
+| About page flags removed | `AboutView.vue` | Cleaned up debug/feature flags |
+| Studio iOS keyboard (T8) | `ai-playground/index.ts` | `meta: { fullbleed: true }` — input stays above keyboard |
+| Android back closes More drawer (T9) | `AppBottomTabs.vue` | `pushState` on open + `popstate` listener closes drawer |
+| Finance modal clears tab bar (T13) | `UiModal.vue` | Bottom-sheet positioning fix (part of T2) |
+| Learning/Training form audit (T15) | `LearningView.vue`, `TrainingView.vue` | Code-audited: `flex-wrap: wrap` correct, buttons always visible |
+| Board mobile tab touch target (T16) | `BoardView.vue` | `min-height: 44px` on `.board__mobile-tab` |

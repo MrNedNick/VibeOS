@@ -417,7 +417,7 @@ function colLabel(colId: BoardColumnId): string {
   .board__mobile-tabs { display: flex; gap: 4px; padding: 0 0 10px; flex-shrink: 0; }
   .board__mobile-tab {
     flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 8px 10px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+    padding: 8px 10px; min-height: 44px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
     color: var(--color-text-muted); background: var(--color-surface); border: 1px solid var(--color-border);
     transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast); cursor: pointer;
   }

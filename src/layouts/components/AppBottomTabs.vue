@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PLATFORM_MODULES, type ModuleMeta } from '@/core/registry/modules'
 import { useLocale } from '@/core/i18n'
@@ -85,11 +85,22 @@ function navigateMod(mod: ModuleMeta) {
 // Close drawer on any route change (back button, swipe, programmatic nav)
 watch(route, () => { showMore.value = false })
 
-// Lock body scroll when More drawer is open
+// Lock body scroll when More drawer is open; push history so Android back closes drawer
 watch(showMore, (open) => {
   document.body.style.overflow = open ? 'hidden' : ''
+  if (open) history.pushState(null, '')
 })
-onUnmounted(() => { document.body.style.overflow = '' })
+
+// Android back button: intercept popstate to close drawer instead of navigating
+function onPopstate() {
+  if (showMore.value) showMore.value = false
+}
+
+onMounted(() => window.addEventListener('popstate', onPopstate))
+onUnmounted(() => {
+  window.removeEventListener('popstate', onPopstate)
+  document.body.style.overflow = ''
+})
 </script>
 
 <template>

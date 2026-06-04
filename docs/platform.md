@@ -1,6 +1,6 @@
 # VibeOS — Platform Overview
 
-> Updated 2026-06-03. Reflects shipped state at v1.5.4.
+> Updated 2026-06-04. Reflects shipped state at v2.2.4.
 > ⚠️ **Keep this file current.** After every sprint or significant feature, update the version, state table, and module list in the same commit that ships the work. Stale docs break future AI sessions.
 
 
@@ -14,7 +14,7 @@ It also functions as a portfolio anchor: the "personal life OS" concept is more 
 
 | Field | Value |
 |-------|-------|
-| **Version** | 1.5.4 |
+| **Version** | 2.2.4 |
 | **Live URL** | https://mrnednick.github.io/VibeOS |
 | **GitHub** | https://github.com/MrNedNick/VibeOS |
 | **TypeScript** | ✅ Strict mode, 0 errors (enforced on every commit) |
