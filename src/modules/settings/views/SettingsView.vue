@@ -41,15 +41,18 @@ function clearAnalyticsData(): void {
   track('data:analytics-cleared')
 }
 
-// ── Profile: display name edit ────────────────────────────────────
-const editingName = ref(false)
-const nameValue   = ref('')
-const nameError   = ref<string | null>(null)
-const nameSaving  = ref(false)
+// ── Profile: first/last name edit ─────────────────────────────────
+const editingName  = ref(false)
+const firstName    = ref('')
+const lastName     = ref('')
+const nameError    = ref<string | null>(null)
+const nameSaving   = ref(false)
 
 function startEditName() {
-  nameValue.value  = auth.user?.displayName ?? ''
-  nameError.value  = null
+  const parts = (auth.user?.displayName ?? '').trim().split(/\s+/).filter(Boolean)
+  firstName.value   = parts[0] ?? ''
+  lastName.value    = parts.slice(1).join(' ')
+  nameError.value   = null
   editingName.value = true
 }
 
@@ -59,14 +62,16 @@ function cancelEditName() {
 }
 
 async function saveName() {
-  const trimmed = nameValue.value.trim()
-  if (!trimmed) { nameError.value = 'Name cannot be empty.'; return }
+  const first = firstName.value.trim()
+  const last  = lastName.value.trim()
+  if (!first) { nameError.value = 'First name is required.'; return }
+  const fullName = last ? `${first} ${last}` : first
   nameSaving.value = true
   nameError.value  = null
-  const result = await auth.updateDisplayName(trimmed)
+  const result = await auth.updateDisplayName(fullName)
   nameSaving.value = false
   if (result.error) { nameError.value = result.error; return }
-  toast.success('Display name updated!')
+  toast.success('Profile name updated!')
   editingName.value = false
 }
 
@@ -282,9 +287,7 @@ function cancelImport() {
           :class="{ 'profile-avatar--demo': auth.isDemoMode }"
         >
           <UiIcon v-if="auth.isDemoMode" name="FlaskConical" :size="22" :stroke-width="2" />
-          <span v-else class="profile-avatar__letter">
-            {{ (auth.user?.displayName ?? auth.user?.email ?? '?')[0].toUpperCase() }}
-          </span>
+          <span v-else class="profile-avatar__letter">{{ auth.initials }}</span>
         </div>
 
         <!-- Name + email block -->
@@ -292,14 +295,23 @@ function cancelImport() {
           <!-- Edit mode -->
           <template v-if="editingName">
             <div class="profile-name-edit">
-              <UiInput
-                v-model="nameValue"
-                placeholder="Display name"
-                :disabled="nameSaving"
-                :error="!!nameError"
-                @keydown.enter="saveName"
-                @keydown.esc="cancelEditName"
-              />
+              <div class="profile-name-edit__fields">
+                <UiInput
+                  v-model="firstName"
+                  placeholder="First name"
+                  :disabled="nameSaving"
+                  :error="!!nameError"
+                  @keydown.enter="saveName"
+                  @keydown.esc="cancelEditName"
+                />
+                <UiInput
+                  v-model="lastName"
+                  placeholder="Last name"
+                  :disabled="nameSaving"
+                  @keydown.enter="saveName"
+                  @keydown.esc="cancelEditName"
+                />
+              </div>
               <div class="profile-name-edit__actions">
                 <UiButton size="sm" :disabled="nameSaving" @click="saveName">
                   <UiIcon v-if="nameSaving" name="Loader2" :size="13" class="spin" />
@@ -1112,6 +1124,12 @@ function cancelImport() {
 .profile-name-edit {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.profile-name-edit__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 

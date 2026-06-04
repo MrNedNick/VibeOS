@@ -278,7 +278,7 @@ const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef,
       <div
         v-if="spotlightHabit"
         class="habit-spotlight"
-        @click="habitsStore.toggleToday(spotlightHabit!.id)"
+        @click="router.push('/habits')"
       >
         <span class="habit-spotlight__emoji">{{ spotlightHabit.emoji }}</span>
         <div class="habit-spotlight__info">
@@ -286,7 +286,13 @@ const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef,
           <span class="habit-spotlight__name">{{ spotlightHabit.name }}</span>
           <span v-if="spotlightHabit.purpose" class="habit-spotlight__purpose">{{ spotlightHabit.purpose }}</span>
         </div>
-        <span class="habit-spotlight__cta">Check off →</span>
+        <button
+          class="habit-spotlight__check-btn"
+          :class="{ 'habit-spotlight__check-btn--done': spotlightHabit.completedDates.includes(new Date().toISOString().split('T')[0]) }"
+          @click.stop="habitsStore.toggleToday(spotlightHabit!.id)"
+        >
+          {{ spotlightHabit.completedDates.includes(new Date().toISOString().split('T')[0]) ? '✓ Done' : 'Check off' }}
+        </button>
       </div>
     </Transition>
 
@@ -694,16 +700,27 @@ const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef,
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.habit-spotlight__cta {
-  font-size: 13px;
-  font-weight: 600;
+.habit-spotlight__check-btn {
+  font-size: 12px;
+  font-weight: 700;
   color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
   white-space: nowrap;
   flex-shrink: 0;
-  opacity: 0.8;
-  transition: opacity var(--t-fast);
+  cursor: pointer;
+  transition: background var(--t-fast), opacity var(--t-fast);
 }
-.habit-spotlight:hover .habit-spotlight__cta { opacity: 1; }
+.habit-spotlight__check-btn:hover {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+.habit-spotlight__check-btn--done {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
+}
 
 /* Widgets section wrapper */
 .dashboard__widgets-section {
@@ -931,9 +948,9 @@ const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef,
 }
 
 /* Panel transition */
-.panel-enter-active { transition: opacity 140ms var(--ease), transform 140ms var(--ease); }
+.panel-enter-active { transition: opacity 140ms var(--ease); }
 .panel-leave-active { transition: opacity 100ms var(--ease); }
-.panel-enter-from   { opacity: 0; transform: translateX(6px); }
+.panel-enter-from   { opacity: 0; }
 .panel-leave-to     { opacity: 0; }
 
 /* Responsive — md: 2×2 life stats grid, compact workspace sidebar */

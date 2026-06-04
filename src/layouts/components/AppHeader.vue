@@ -124,9 +124,7 @@ async function signUpFromDemo() {
         @click="router.push('/settings')"
       >
         <UiIcon v-if="auth.isDemoMode" name="FlaskConical" :size="14" :stroke-width="2" />
-        <span v-else class="header-avatar__letter">
-          {{ (auth.user?.displayName ?? auth.user?.email ?? '?')[0].toUpperCase() }}
-        </span>
+        <span v-else class="header-avatar__letter">{{ auth.initials }}</span>
       </button>
 
       <!-- Theme toggle -->

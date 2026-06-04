@@ -73,6 +73,17 @@ export const useAuthStore = defineStore('core:auth', () => {
     return !!email && _adminEmails.includes(email)
   })
 
+  const initials = computed(() => {
+    const name = _state.value.user?.displayName
+    if (!name) {
+      const e = _state.value.user?.email ?? ''
+      return e[0]?.toUpperCase() ?? '?'
+    }
+    const parts = name.trim().split(/\s+/).filter(Boolean)
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    return (parts[0]?.[0] ?? '?').toUpperCase()
+  })
+
   // ── Helpers ──────────────────────────────────────────────────────────────
   function _setUser(u: AuthUser | null): void {
     _state.value = {
@@ -309,6 +320,7 @@ export const useAuthStore = defineStore('core:auth', () => {
     isLoggedIn,
     isDemoMode,
     isAdmin,
+    initials,
     tier,
     loading,
     isSupabaseConfigured,
