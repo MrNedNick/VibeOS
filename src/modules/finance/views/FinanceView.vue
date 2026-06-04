@@ -9,9 +9,11 @@ import FinanceOverview from '../components/FinanceOverview.vue'
 import FinanceTransactions from '../components/FinanceTransactions.vue'
 import FinanceBudgets from '../components/FinanceBudgets.vue'
 import { useTrack } from '@/core/composables/useTrack'
+import { useToast } from '@/core/composables/useToast'
 
 const store = useFinanceStore()
 const { track } = useTrack()
+const toast = useToast()
 
 type Tab = 'overview' | 'transactions' | 'budgets'
 const activeTab = ref<Tab>('overview')
@@ -35,7 +37,10 @@ function addExpense(): void {
 function submitExpense(): void {
   const had_error = !!store.formError
   store.submitExpense()
-  if (!had_error && !store.formError) track('expense:added')
+  if (!had_error && !store.formError) {
+    track('expense:added')
+    toast.success('Expense added')
+  }
 }
 
 onMounted(() => store.fetchRates())

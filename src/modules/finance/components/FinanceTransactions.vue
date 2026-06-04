@@ -3,9 +3,11 @@ import { useFinanceStore } from '../stores/finance.store'
 import { CATEGORY_META, formatAmount } from '../types'
 import { UiButton, UiIconButton, UiIcon } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
+import { useToast } from '@/core/composables/useToast'
 
 const store = useFinanceStore()
 const { confirm } = useConfirm()
+const toast = useToast()
 
 async function deleteExpense(id: string): Promise<void> {
   const ok = await confirm({
@@ -14,7 +16,7 @@ async function deleteExpense(id: string): Promise<void> {
     danger:       true,
     confirmLabel: 'Delete',
   })
-  if (ok) store.deleteExpense(id)
+  if (ok) { store.deleteExpense(id); toast.info('Transaction deleted') }
 }
 </script>
 

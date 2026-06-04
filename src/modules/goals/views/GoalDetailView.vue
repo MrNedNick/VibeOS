@@ -9,7 +9,10 @@ import MilestoneList from '../components/MilestoneList.vue'
 import { calcProgress, daysUntil, CATEGORY_LABEL } from '../types'
 import { UiIcon, UiSectionLabel, UiProgressBar, UiButton, UiIconButton, UiInput, UiTextarea } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
+import { useToast } from '@/core/composables/useToast'
 import { aiComplete } from '@/core/composables/useAI'
+
+const toast = useToast()
 
 const route = useRoute()
 const router = useRouter()
@@ -85,7 +88,7 @@ async function askComplete() {
     body:         'This will archive the goal. You can view it in Completed.',
     confirmLabel: 'Complete goal',
   })
-  if (ok) store.completeGoal(goalId.value)
+  if (ok) { store.completeGoal(goalId.value); toast.success('Goal completed! 🎉') }
 }
 
 async function askDelete() {
@@ -96,8 +99,10 @@ async function askDelete() {
     confirmLabel: 'Delete goal',
   })
   if (ok) {
+    const title = goal.value?.title
     store.deleteGoal(goalId.value)
     router.replace('/goals')
+    toast.info(`Goal "${title}" deleted`)
   }
 }
 

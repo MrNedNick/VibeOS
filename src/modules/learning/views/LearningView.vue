@@ -8,8 +8,10 @@ import { todayStr } from '../types'
 import { UiIcon, UiSectionLabel, UiFilterChips, UiButton, UiIconButton, UiInput, UiFab } from '@/ui'
 import type { FilterChipOption } from '@/ui'
 import { aiComplete } from '@/core/composables/useAI'
+import { useToast } from '@/core/composables/useToast'
 
 const store = useLearningStore()
+const toast = useToast()
 
 // ── Create plan form ─────────────────────────────────────────────────
 const showForm = ref(false)
@@ -68,6 +70,7 @@ function openLog(planId: string) {
 function submitLog(data: Omit<LearningSession, 'id'>) {
   store.logSession(data)
   loggingPlanId.value = null
+  toast.success('Session logged! Keep it up 📚')
 }
 
 // ── Active plans with today-logged status ────────────────────────────

@@ -202,6 +202,7 @@ function exportData() {
   a.click()
   URL.revokeObjectURL(url)
   track('data:exported', { format: 'json' })
+  toast.success('Data exported successfully')
 }
 
 function startClear() {
@@ -723,7 +724,7 @@ function cancelImport() {
     <!-- Feedback modal — must stay inside the single root element so Transition can animate -->
     <UiFeedbackModal
       v-model:open="feedback.isOpen.value"
-      @submitted="(score, comment) => feedback.markSubmitted(score, comment)"
+      @submitted="(score, comment) => { feedback.markSubmitted(score, comment); toast.success('Feedback received — thank you! 🙏') }"
       @dismissed="feedback.markDismissed()"
     />
   </div>

@@ -8,8 +8,10 @@ import { SPORT_EMOJI, FEELING_EMOJI, todayStr } from '../types'
 import { UiIcon, UiSectionLabel, UiFilterChips, UiButton, UiIconButton, UiInput, UiSelect, UiFab } from '@/ui'
 import type { FilterChipOption, SelectOption } from '@/ui'
 import { aiComplete } from '@/core/composables/useAI'
+import { useToast } from '@/core/composables/useToast'
 
 const store = useTrainingStore()
+const toast = useToast()
 
 // ── Create plan form ─────────────────────────────────────────────────
 const showForm = ref(false)
@@ -91,6 +93,7 @@ function openLog(planId: string) {
 function submitLog(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {
   store.logWorkout(data)
   loggingPlanId.value = null
+  toast.success('Workout logged! Great work 💪')
 }
 
 // ── Plans with today status ──────────────────────────────────────────
