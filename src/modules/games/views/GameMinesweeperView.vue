@@ -220,6 +220,29 @@ function checkWin(): void {
   }
 }
 
+// ── Long-press for mobile flag toggle ─────────────────────────────────
+let _longPressTimer: ReturnType<typeof setTimeout> | null = null
+let _longPressPos: { r: number; c: number } | null = null
+
+function onCellTouchStart(r: number, c: number): void {
+  _longPressPos = { r, c }
+  _longPressTimer = setTimeout(() => {
+    if (_longPressPos?.r === r && _longPressPos?.c === c) {
+      toggleFlag(r, c)
+    }
+    _longPressPos = null
+  }, 500)
+}
+
+function onCellTouchEnd(): void {
+  if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null }
+}
+
+function onCellTouchMove(): void {
+  if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null }
+  _longPressPos = null
+}
+
 // ── Display helpers ────────────────────────────────────────────────────
 const minesLeft = computed(() => MINES - flagCount.value)
 
@@ -288,7 +311,7 @@ onUnmounted(() => {
         <h1 class="game__title">Minesweeper</h1>
         <p class="game__hint">
           <span v-if="gameState === 'idle'">Click any cell to start</span>
-          <span v-else-if="gameState === 'playing'">Left click: reveal · Right click: flag</span>
+          <span v-else-if="gameState === 'playing'">Tap: reveal · Long-press / Right-click: flag</span>
           <span v-else-if="gameState === 'won'">You win! 🎉</span>
           <span v-else>Boom! Hit a mine.</span>
         </p>
@@ -316,6 +339,9 @@ onUnmounted(() => {
             @click="reveal(r, c)"
             @click.right.prevent="toggleFlag(r, c)"
             @contextmenu.prevent="toggleFlag(r, c)"
+            @touchstart.passive="onCellTouchStart(r, c)"
+            @touchend.passive="onCellTouchEnd()"
+            @touchmove.passive="onCellTouchMove()"
           >{{ cellLabel(cell) }}</button>
         </div>
       </div>

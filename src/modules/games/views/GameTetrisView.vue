@@ -990,13 +990,25 @@ function formatDate(iso: string): string {
 /* Mobile / tablet */
 @media (max-width: 767px) {
   .tetris__sub { display: none; }
-  .tetris__arena { gap: 8px; }
-  .tetris__side { min-width: 68px; gap: 8px; }
+  .tetris__arena { gap: 6px; }
+  .tetris__side { min-width: 56px; gap: 6px; }
   .tetris__mobile-ctrl { display: flex; }
   .tetris__ctrl-hard-drop { display: flex; }
   .tetris__ctrl-hold-mobile { display: flex; }
-  .tetris__stat-val { font-size: 16px; }
-  .tetris__mini-canvas { width: 72px; height: 72px; }
+  .tetris__stat-val { font-size: 14px; }
+  .tetris__mini-canvas { width: 56px; height: 56px; }
   .tetris__history { max-width: 100%; }
+  /* Scale canvas down to fit narrow screens */
+  .tetris__canvas { width: 200px; height: 400px; }
+  .tetris__board-wrap { flex-shrink: 1; }
+}
+
+@media (max-width: 400px) {
+  .tetris__arena { gap: 4px; }
+  .tetris__side { min-width: 48px; }
+  .tetris__canvas { width: 170px; height: 340px; }
+  .tetris__mini-canvas { width: 48px; height: 48px; }
+  .tetris__stat-label { font-size: 9px; }
+  .tetris__stat-val { font-size: 13px; }
 }
 </style>
