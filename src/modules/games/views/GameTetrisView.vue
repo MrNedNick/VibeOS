@@ -33,8 +33,73 @@ const PIECES: Piece[] = [
   { name: 'L', color: '#f97316', shape: [[0,0,1],[1,1,1]] },
 ]
 
-// ── Types ────────────────────────────────────────────────────────────────
-type Board = (string | null)[][]
+// ── Skins ─────────────────────────────────────────────────────────────────
+type PieceName = 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L'
+
+interface TetrisSkin {
+  id: string
+  name: string
+  unlock: number // best-score threshold (0 = always unlocked)
+  colors: Record<PieceName, string>
+  bg?: string // canvas background override (default: CSS --color-bg)
+}
+
+const SKINS: TetrisSkin[] = [
+  {
+    id: 'classic', name: 'Classic', unlock: 0,
+    colors: { I: '#06b6d4', O: '#eab308', T: '#a855f7', S: '#22c55e', Z: '#ef4444', J: '#4f8ef7', L: '#f97316' },
+  },
+  {
+    id: 'pastel', name: 'Pastel', unlock: 800,
+    colors: { I: '#67e8f9', O: '#fde68a', T: '#d8b4fe', S: '#86efac', Z: '#fca5a5', J: '#93c5fd', L: '#fed7aa' },
+  },
+  {
+    id: 'fire', name: 'Dark Fire', unlock: 3000,
+    colors: { I: '#f97316', O: '#fbbf24', T: '#ef4444', S: '#dc2626', Z: '#b45309', J: '#f59e0b', L: '#fb923c' },
+    bg: '#0d0400',
+  },
+  {
+    id: 'matrix', name: 'Matrix', unlock: 6000,
+    colors: { I: '#00ff41', O: '#00cc34', T: '#00ff88', S: '#22c55e', Z: '#4ade80', J: '#00b32e', L: '#86efac' },
+    bg: '#000a00',
+  },
+  {
+    id: 'gold', name: 'Gold', unlock: 10000,
+    colors: { I: '#fbbf24', O: '#f59e0b', T: '#d97706', S: '#b45309', Z: '#92400e', J: '#fcd34d', L: '#fde68a' },
+    bg: '#0a0800',
+  },
+]
+
+const unlockedSkins  = useStorage<string[]>('platform:games:tetris:unlocked', ['classic'])
+const activeSkinId   = useStorage<string>('platform:games:tetris:skin', 'classic')
+const newSkinUnlocks = ref<string[]>([])
+
+const activeSkin   = computed(() => SKINS.find(s => s.id === activeSkinId.value) ?? SKINS[0])
+const skinsDisplay = computed(() => SKINS.map(s => ({
+  ...s,
+  unlocked: unlockedSkins.value.includes(s.id),
+  active:   activeSkinId.value === s.id,
+})))
+
+function pieceColor(name: PieceName): string {
+  return activeSkin.value.colors[name] ?? '#888'
+}
+
+function checkSkinUnlocks(): void {
+  const best = bestScore.value
+  const newUnlocks: string[] = []
+  for (const skin of SKINS) {
+    if (skin.unlock > 0 && best >= skin.unlock && !unlockedSkins.value.includes(skin.id)) {
+      unlockedSkins.value = [...unlockedSkins.value, skin.id]
+      newUnlocks.push(skin.id)
+    }
+  }
+  if (newUnlocks.length) newSkinUnlocks.value = newUnlocks
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────
+// Board stores piece name (PieceName) or null
+type Board = (PieceName | null)[][]
 type GameState = 'idle' | 'playing' | 'paused' | 'over'
 
 interface FallingPiece {
@@ -139,7 +204,7 @@ function lockPiece(): void {
       if (!shape[r][c]) continue
       const nr = falling.value.y + r
       if (nr >= 0 && nr < ROWS) {
-        board.value[nr][falling.value.x + c] = falling.value.piece.color
+        board.value[nr][falling.value.x + c] = falling.value.piece.name as PieceName
       }
     }
   }
@@ -308,6 +373,7 @@ function endGame(): void {
       .sort((a, b) => b.score - a.score)
       .slice(0, 5)
     if (score.value > bestScore.value) bestScore.value = score.value
+    checkSkinUnlocks()
   }
   events.emit({ type: 'games:tetris:gameover', score: score.value, timestamp: new Date().toISOString() } as never)
 }
@@ -320,7 +386,9 @@ function draw(): void {
   if (!canvas) return
   const ctx = canvas.getContext('2d')!
 
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-bg').trim() || '#0d0d0d'
+  const cssBg = getComputedStyle(document.documentElement).getPropertyValue('--color-bg').trim() || '#0d0d0d'
+  const bgColor = activeSkin.value.bg ?? cssBg
+  ctx.fillStyle = bgColor
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   ctx.strokeStyle = 'rgba(255,255,255,0.04)'
@@ -334,12 +402,12 @@ function draw(): void {
 
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      const color = board.value[r][c]
-      if (!color) continue
+      const name = board.value[r][c]
+      if (!name) continue
       if (flashRows.value.has(r)) {
         drawCell(ctx, c, r, '#ffffff', 0.88)
       } else {
-        drawCell(ctx, c, r, color)
+        drawCell(ctx, c, r, pieceColor(name as PieceName))
       }
     }
   }
@@ -347,16 +415,17 @@ function draw(): void {
   if (falling.value) {
     const shape = currentShape()
     const ghost = ghostY.value
+    const pColor = pieceColor(falling.value.piece.name as PieceName)
     for (let r = 0; r < shape.length; r++) {
       for (let c = 0; c < shape[r].length; c++) {
         if (!shape[r][c]) continue
-        drawCell(ctx, falling.value.x + c, ghost + r, falling.value.piece.color, GHOST_ALPHA)
+        drawCell(ctx, falling.value.x + c, ghost + r, pColor, GHOST_ALPHA)
       }
     }
     for (let r = 0; r < shape.length; r++) {
       for (let c = 0; c < shape[r].length; c++) {
         if (!shape[r][c]) continue
-        drawCell(ctx, falling.value.x + c, falling.value.y + r, falling.value.piece.color)
+        drawCell(ctx, falling.value.x + c, falling.value.y + r, pColor)
       }
     }
   }
@@ -381,11 +450,12 @@ function drawMiniPiece(canvas: HTMLCanvasElement, piece: Piece | null, dim = fal
   const shape = piece.shape
   const offX = Math.floor((PREVIEW_CELLS - shape[0].length) / 2)
   const offY = Math.floor((PREVIEW_CELLS - shape.length) / 2)
+  const pColor = pieceColor(piece.name as PieceName)
   ctx.globalAlpha = dim ? 0.35 : 1
   for (let r = 0; r < shape.length; r++) {
     for (let c = 0; c < shape[r].length; c++) {
       if (!shape[r][c]) continue
-      ctx.fillStyle = piece.color
+      ctx.fillStyle = pColor
       ctx.fillRect((offX + c) * 24 + 1, (offY + r) * 24 + 1, 22, 22)
       ctx.fillStyle = 'rgba(255,255,255,0.18)'
       ctx.fillRect((offX + c) * 24 + 1, (offY + r) * 24 + 1, 22, 3)
@@ -635,6 +705,42 @@ function formatDate(iso: string): string {
           <span class="tetris__history-meta">Lv {{ rec.level }} · {{ rec.lines }}L · {{ formatDate(rec.date) }}</span>
         </div>
       </div>
+    </div>
+
+    <!-- New skin unlock notification -->
+    <div v-if="newSkinUnlocks.length" class="tetris__skin-unlocked">
+      🎨 New skin{{ newSkinUnlocks.length > 1 ? 's' : '' }} unlocked:
+      <strong>{{ newSkinUnlocks.map(id => SKINS.find(s => s.id === id)?.name ?? id).join(', ') }}</strong>
+      <button class="tetris__skin-unlocked-close" @click="newSkinUnlocks = []">×</button>
+    </div>
+
+    <!-- Skin selector -->
+    <div class="tetris__skins">
+      <span class="tetris__skins-label">Skins</span>
+      <button
+        v-for="skin in skinsDisplay"
+        :key="skin.id"
+        class="tetris__skin-btn"
+        :class="{
+          'tetris__skin-btn--active':   skin.active,
+          'tetris__skin-btn--locked':   !skin.unlocked,
+        }"
+        :title="skin.unlocked ? skin.name : `${skin.name} — reach ${skin.unlock.toLocaleString()} pts`"
+        :disabled="!skin.unlocked"
+        @click="if (skin.unlocked) activeSkinId = skin.id"
+      >
+        <span class="tetris__skin-swatches">
+          <span
+            v-for="(color, idx) in Object.values(skin.colors).slice(0, 4)"
+            :key="idx"
+            class="tetris__skin-swatch"
+            :style="{ background: color, opacity: skin.unlocked ? '1' : '0.35' }"
+          />
+        </span>
+        <span class="tetris__skin-name">{{ skin.unlocked ? skin.name : '🔒' }}</span>
+        <span v-if="skin.unlocked && skin.unlock > 0" class="tetris__skin-req">{{ skin.unlock.toLocaleString() }}+</span>
+        <span v-else-if="!skin.unlocked" class="tetris__skin-req">{{ skin.unlock.toLocaleString() }} pts</span>
+      </button>
     </div>
 
   </div>
@@ -1010,5 +1116,86 @@ function formatDate(iso: string): string {
   .tetris__mini-canvas { width: 48px; height: 48px; }
   .tetris__stat-label { font-size: 9px; }
   .tetris__stat-val { font-size: 13px; }
+}
+
+/* Skins */
+.tetris__skin-unlocked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--color-text);
+}
+.tetris__skin-unlocked-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.tetris__skins {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.tetris__skins-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.tetris__skin-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-border);
+  background: var(--color-surface-1);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  min-width: 70px;
+}
+.tetris__skin-btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+}
+.tetris__skin-btn--active {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+.tetris__skin-btn--locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.tetris__skin-swatches {
+  display: flex;
+  gap: 3px;
+}
+.tetris__skin-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.tetris__skin-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.tetris__skin-req {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
 }
 </style>
