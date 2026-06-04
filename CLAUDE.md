@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v2.2.4 — 2026-06-04**
+**Version: v2.3.0 — 2026-06-04**
 
 > **UI Kit now lives under Docs (v1.2.0):** the live component catalogue is no longer a hidden dev-only `/ui-kit` page. It's integrated into the Docs module as three sidebar sections — **Design Tokens**, **UI Components**, **UI Patterns** — at `/docs/ui-kit/<key>` (e.g. `/docs/ui-kit/button`). Visible in production. Showcase section components live in `src/modules/ui-kit/views/sections/` and are wired in via `src/modules/docs/data/docs-registry.ts` (`DocPage.component`). `DocsView` renders the live component when a page has `component`, else markdown. This is the single source of truth for every reusable `@/ui` component and all its states.
 
@@ -37,6 +37,7 @@
 | **S23 — Tetris Improvements** | ✅ **complete** — hold piece (C key / swipe-up), line-clear flash, score history top-5 (v2.2.0) |
 | **S25 — Demo Mode Seeding** | ✅ **complete** — realistic data seeded on demo login: tasks, goals, habits, notes, finance, board (v2.2.0) |
 | **S26 — Mobile QA & Fixes** | ✅ **complete** — keyboard/layout fixes, scroll reset, FAB clearance, modal bottom-sheet, Android back button, touch targets, 100dvh migration, S9 color fixes (v2.2.4) |
+| **Studio providers** | ✅ **complete** — Groq (Llama3/Mixtral) + Gemini Flash + OpenRouter added (v2.3.0) |
 
 **Active sprints (2026-06-04):**
 - **S21 — Backend Architecture** 🔜: Supabase-first data, skeletons, real-time (blocked on Supabase credentials)

@@ -2,7 +2,7 @@
 import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { marked } from 'marked'
 import { useStudioStore } from '../stores/studio.store'
-import { STUDIO_MODELS, FREE_MODELS } from '../types'
+import { STUDIO_MODELS, FREE_MODELS, GROQ_MODELS, GEMINI_MODELS } from '../types'
 import { UiIcon, UiButton } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
@@ -26,9 +26,41 @@ const messagesEl  = ref<HTMLElement | null>(null)
 const inputEl     = ref<HTMLTextAreaElement | null>(null)
 const copiedId    = ref<string | null>(null)
 
+const activeKey = computed(() => {
+  switch (store.provider) {
+    case 'groq':       return store.groqApiKey
+    case 'gemini':     return store.geminiApiKey
+    case 'openrouter': return store.openrouterApiKey
+    case 'anthropic':  return store.apiKey
+    default:           return ''
+  }
+})
+
 const canSend = computed(() =>
-  !store.loading && !!inputText.value.trim() && (isFree.value || !!store.apiKey.trim()),
+  !store.loading && !!inputText.value.trim() && (isFree.value || !!activeKey.value.trim()),
 )
+
+const emptyTitle = computed(() => {
+  switch (store.provider) {
+    case 'free':        return 'Free AI — no account needed'
+    case 'anthropic':   return 'Claude API'
+    case 'groq':        return 'Groq — Fast Llama3 & Mixtral'
+    case 'gemini':      return 'Gemini Flash'
+    case 'openrouter':  return 'OpenRouter — Multi-model'
+    default:            return 'AI Studio'
+  }
+})
+
+const emptySub = computed(() => {
+  switch (store.provider) {
+    case 'free':        return 'Powered by Pollinations.ai · Llama 3, Mistral, GPT-4o mini'
+    case 'anthropic':   return 'Enter your Anthropic API key above to start chatting'
+    case 'groq':        return 'Fast inference · Get a free key at console.groq.com'
+    case 'gemini':      return 'Google Gemini · Get a free key at aistudio.google.com'
+    case 'openrouter':  return 'Route to 100+ models · Get a key at openrouter.ai'
+    default:            return ''
+  }
+})
 
 const QUICK_PROMPTS = [
   'Help me plan my day effectively',
@@ -128,16 +160,34 @@ function fmtDuration(ms?: number): string {
 function modelLabel(modelId?: string): string {
   if (!modelId) return ''
   if (modelId.startsWith('free:')) { const id = modelId.slice(5); return FREE_MODELS.find(m => m.id === id)?.label ?? id }
-  return STUDIO_MODELS.find(m => m.id === modelId)?.label ?? modelId
+  return (
+    STUDIO_MODELS.find(m => m.id === modelId)?.label ??
+    GROQ_MODELS.find(m => m.id === modelId)?.label ??
+    GEMINI_MODELS.find(m => m.id === modelId)?.label ??
+    modelId
+  )
 }
 function modelColor(modelId?: string): string {
   if (!modelId) return 'var(--color-text-muted)'
   if (modelId.startsWith('free:')) { const id = modelId.slice(5); return FREE_MODELS.find(m => m.id === id)?.color ?? '#10b981' }
-  return STUDIO_MODELS.find(m => m.id === modelId)?.color ?? 'var(--color-accent)'
+  return (
+    STUDIO_MODELS.find(m => m.id === modelId)?.color ??
+    GROQ_MODELS.find(m => m.id === modelId)?.color ??
+    GEMINI_MODELS.find(m => m.id === modelId)?.color ??
+    'var(--color-accent)'
+  )
+}
+function providerKeyName(): string {
+  switch (store.provider) {
+    case 'groq':       return 'Groq'
+    case 'gemini':     return 'Gemini'
+    case 'openrouter': return 'OpenRouter'
+    default:           return 'Claude'
+  }
 }
 function errorText(raw: string): string {
-  if (raw === 'no_key') return 'Claude API key required — add it in the settings bar above'
-  if (raw === 'cors')   return 'Network error — free AI service may be temporarily unavailable. Try again.'
+  if (raw === 'no_key') return `${providerKeyName()} API key required — add it in the settings bar above`
+  if (raw === 'cors')   return 'Network error — AI service may be temporarily unavailable. Try again.'
   return raw
 }
 
@@ -149,21 +199,18 @@ onMounted(() => inputEl.value?.focus())
   <div ref="messagesEl" class="sc-messages">
     <div v-if="!store.messages.length" class="sc-empty">
       <div class="sc-empty-icon"><UiIcon name="Sparkles" :size="30" /></div>
-      <p class="sc-empty-title">{{ isFree ? 'Free AI — no account needed' : 'Claude API' }}</p>
-      <p class="sc-empty-sub">
-        <template v-if="isFree">Powered by Pollinations.ai · Llama 3, Mistral, GPT-4o mini</template>
-        <template v-else>Enter your Anthropic API key above to start chatting</template>
-      </p>
-      <div v-if="isFree || store.apiKey" class="sc-quick">
+      <p class="sc-empty-title">{{ emptyTitle }}</p>
+      <p class="sc-empty-sub">{{ emptySub }}</p>
+      <div v-if="isFree || activeKey" class="sc-quick">
         <p class="sc-quick-label">Try asking:</p>
         <button v-for="q in QUICK_PROMPTS" :key="q" class="sc-quick-btn" @click="useQuickPrompt(q)">
           <UiIcon name="ArrowRight" :size="12" class="sc-quick-arrow" />
           {{ q }}
         </button>
       </div>
-      <div v-if="!isFree && !store.apiKey" class="sc-no-key">
+      <div v-if="!isFree && !activeKey" class="sc-no-key">
         <UiIcon name="AlertCircle" :size="14" />
-        Add your Claude API key in the bar above to start chatting.
+        Add your {{ providerKeyName() }} API key in the bar above to start chatting.
       </div>
     </div>
 

@@ -1794,12 +1794,14 @@ These are the meaningful improvements to do next — not features for features' 
 - ✅ Markdown rendering — `marked` with code blocks, lists, headings (already shipped)
 - ✅ Export conversation — Download button → `.md` file with timestamp (v1.5.6)
 
+**Shipped (v2.3.0):**
+- ✅ **Groq** — Llama 3.1 8B Instant / Llama 3.3 70B / Mixtral 8x7B; 3-chip model picker; `gsk_…` key
+- ✅ **Gemini Flash** — Gemini 2.0 Flash / 1.5 Flash; `AIzaSy…` key; systemInstruction supported
+- ✅ **OpenRouter** — free-text model input (e.g. `meta-llama/llama-3.1-8b-instruct:free`); `sk-or-v1-…` key
+- ✅ All tabs: per-provider empty state title/subtitle; `canSend` checks the correct key per provider
+
 **Remaining:**
 - Free AI model descriptions tooltip (speed, quality, best-for)
-- **Additional free providers** (S6, user provides key):
-  - **Gemini Flash** — Google AI Studio free tier; 60 req/min; no credit card for dev key
-  - **GroqCloud** — 30 req/min on Llama3/Mixtral; very fast inference
-  - **OpenRouter** — routes to multiple free models; single key
 - **AI planning actions** (S6) — "Plan my week", "Review my goals", "Suggest a workout" — pre-built prompt templates that inject context automatically
 - Token count display for long conversations
 

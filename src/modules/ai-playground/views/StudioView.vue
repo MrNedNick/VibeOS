@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useStudioStore } from '../stores/studio.store'
 import { UiIcon, UiButton, UiIconButton } from '@/ui'
 import StudioHistorySidebar from '../components/StudioHistorySidebar.vue'
@@ -8,7 +8,14 @@ import StudioConversation from '../components/StudioConversation.vue'
 
 const store     = useStudioStore()
 const showSidebar = ref(window.innerWidth > 767)
-const isFree    = computed(() => store.provider === 'free')
+
+const TABS = [
+  { id: 'free',        label: 'Free AI',     badge: 'no key', icon: 'Sparkles' },
+  { id: 'anthropic',   label: 'Claude',      badge: null,     icon: 'Key' },
+  { id: 'groq',        label: 'Groq',        badge: null,     icon: 'Zap' },
+  { id: 'gemini',      label: 'Gemini',      badge: null,     icon: 'Star' },
+  { id: 'openrouter',  label: 'OpenRouter',  badge: null,     icon: 'Globe' },
+] as const
 </script>
 
 <template>
@@ -31,23 +38,25 @@ const isFree    = computed(() => store.provider === 'free')
           @click="showSidebar = !showSidebar"
         />
         <div class="studio__tabs">
-          <button class="studio__tab" :class="{ 'studio__tab--active': isFree }" @click="store.provider = 'free'">
-            <UiIcon name="Sparkles" :size="13" />
-            Free AI
-            <span class="studio__tab-badge">no key</span>
-          </button>
-          <button class="studio__tab" :class="{ 'studio__tab--active': !isFree }" @click="store.provider = 'anthropic'">
-            <UiIcon name="Key" :size="13" />
-            Claude API
+          <button
+            v-for="tab in TABS"
+            :key="tab.id"
+            class="studio__tab"
+            :class="{ 'studio__tab--active': store.provider === tab.id }"
+            @click="store.provider = tab.id"
+          >
+            <UiIcon :name="tab.icon" :size="13" />
+            <span class="studio__tab-label">{{ tab.label }}</span>
+            <span v-if="tab.badge" class="studio__tab-badge">{{ tab.badge }}</span>
           </button>
         </div>
         <UiButton variant="ghost" size="sm" :disabled="!store.messages.length" title="Export conversation as markdown" @click="store.exportConversation()">
           <UiIcon name="Download" :size="14" />
-          Export
+          <span class="studio__btn-label">Export</span>
         </UiButton>
         <UiButton variant="ghost" size="sm" :disabled="!store.messages.length" title="Start a new conversation" @click="store.newConversation()">
           <UiIcon name="SquarePen" :size="14" />
-          New chat
+          <span class="studio__btn-label">New chat</span>
         </UiButton>
       </div>
 
@@ -99,7 +108,10 @@ const isFree    = computed(() => store.provider === 'free')
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
   background: var(--color-surface);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.studio__topbar::-webkit-scrollbar { display: none; }
 
 .studio__tabs {
   display: flex;
@@ -108,15 +120,15 @@ const isFree    = computed(() => store.provider === 'free')
   border-radius: var(--radius-sm);
   overflow: hidden;
   flex: 1;
-  max-width: 260px;
+  min-width: 0;
 }
 .studio__tab {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 5px 10px;
+  gap: 4px;
+  padding: 5px 8px;
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text-muted);
@@ -125,6 +137,8 @@ const isFree    = computed(() => store.provider === 'free')
   border: none;
   cursor: pointer;
   font-family: inherit;
+  white-space: nowrap;
+  min-width: 0;
 }
 .studio__tab:hover:not(.studio__tab--active) { background: var(--color-surface-elevated); color: var(--color-text); }
 .studio__tab--active { background: var(--color-accent); color: #fff; }
@@ -136,10 +150,14 @@ const isFree    = computed(() => store.provider === 'free')
   font-weight: 600;
   white-space: nowrap;
 }
+.studio__tab-label { min-width: 0; }
 .studio__sidebar-toggle--active { color: var(--color-accent); }
+.studio__btn-label { white-space: nowrap; }
 
 @media (max-width: 767px) {
   .studio--with-sidebar { flex-direction: column; }
   .studio--sidebar-open .studio__sidebar { width: 100%; max-height: 200px; border-right: none; border-bottom: 1px solid var(--color-border); }
+  .studio__tab-label { display: none; }
+  .studio__btn-label { display: none; }
 }
 </style>

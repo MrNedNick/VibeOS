@@ -1,33 +1,95 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useStudioStore } from '../stores/studio.store'
-import { STUDIO_MODELS, FREE_MODELS } from '../types'
+import { STUDIO_MODELS, FREE_MODELS, GROQ_MODELS, GEMINI_MODELS } from '../types'
 import { UiIcon, UiButton, UiIconButton, UiInput } from '@/ui'
 
 const store = useStudioStore()
 const showKey    = ref(false)
 const showSystem = ref(false)
-const isFree     = computed(() => store.provider === 'free')
+
+// Which key field to show per provider
+const keyProvider = computed(() => {
+  switch (store.provider) {
+    case 'anthropic':  return { ref: store.apiKey,           key: 'apiKey',           placeholder: 'sk-ant-…',         label: 'Anthropic key' }
+    case 'groq':       return { ref: store.groqApiKey,       key: 'groqApiKey',       placeholder: 'gsk_…',            label: 'Groq key' }
+    case 'gemini':     return { ref: store.geminiApiKey,     key: 'geminiApiKey',     placeholder: 'AIzaSy…',          label: 'Gemini key' }
+    case 'openrouter': return { ref: store.openrouterApiKey, key: 'openrouterApiKey', placeholder: 'sk-or-v1-…',       label: 'OpenRouter key' }
+    default:           return null
+  }
+})
 </script>
 
 <template>
   <!-- Settings bar -->
   <div class="sp-bar">
+    <!-- Model chips -->
     <div class="sp-model-row">
-      <template v-if="isFree">
-        <button v-for="m in FREE_MODELS" :key="m.id" class="sp-chip" :class="{ 'sp-chip--active': store.freeModel === m.id }" :style="store.freeModel === m.id ? { '--chip-color': m.color } : {}" :title="m.desc" @click="store.freeModel = m.id">{{ m.label }}</button>
+      <template v-if="store.provider === 'free'">
+        <button
+          v-for="m in FREE_MODELS" :key="m.id"
+          class="sp-chip" :class="{ 'sp-chip--active': store.freeModel === m.id }"
+          :style="store.freeModel === m.id ? { '--chip-color': m.color } : {}"
+          :title="m.desc"
+          @click="store.freeModel = m.id"
+        >{{ m.label }}</button>
       </template>
-      <template v-else>
-        <button v-for="m in STUDIO_MODELS" :key="m.id" class="sp-chip" :class="{ 'sp-chip--active': store.model === m.id }" :style="store.model === m.id ? { '--chip-color': m.color } : {}" :title="m.desc" @click="store.model = m.id">{{ m.label }}</button>
+      <template v-else-if="store.provider === 'anthropic'">
+        <button
+          v-for="m in STUDIO_MODELS" :key="m.id"
+          class="sp-chip" :class="{ 'sp-chip--active': store.model === m.id }"
+          :style="store.model === m.id ? { '--chip-color': m.color } : {}"
+          :title="m.desc"
+          @click="store.model = m.id"
+        >{{ m.label }}</button>
+      </template>
+      <template v-else-if="store.provider === 'groq'">
+        <button
+          v-for="m in GROQ_MODELS" :key="m.id"
+          class="sp-chip" :class="{ 'sp-chip--active': store.groqModel === m.id }"
+          :style="store.groqModel === m.id ? { '--chip-color': m.color } : {}"
+          :title="m.desc"
+          @click="store.groqModel = m.id"
+        >{{ m.label }}</button>
+      </template>
+      <template v-else-if="store.provider === 'gemini'">
+        <button
+          v-for="m in GEMINI_MODELS" :key="m.id"
+          class="sp-chip" :class="{ 'sp-chip--active': store.geminiModel === m.id }"
+          :style="store.geminiModel === m.id ? { '--chip-color': m.color } : {}"
+          :title="m.desc"
+          @click="store.geminiModel = m.id"
+        >{{ m.label }}</button>
+      </template>
+      <!-- OpenRouter: free-text model input -->
+      <template v-else-if="store.provider === 'openrouter'">
+        <UiInput
+          v-model="store.openrouterModel"
+          placeholder="e.g. meta-llama/llama-3.1-8b-instruct:free"
+          class="sp-or-model-input"
+        />
       </template>
     </div>
 
-    <div v-if="!isFree" class="sp-key-row">
+    <!-- API key row (all non-free providers) -->
+    <div v-if="keyProvider" class="sp-key-row">
       <div class="sp-key-wrap">
-        <UiInput v-model="store.apiKey" :type="showKey ? 'text' : 'password'" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" />
-        <UiIconButton :name="showKey ? 'EyeOff' : 'Eye'" :aria-label="showKey ? 'Hide key' : 'Show key'" size="sm" @click="showKey = !showKey" />
+        <UiInput
+          :model-value="keyProvider.ref"
+          :type="showKey ? 'text' : 'password'"
+          :placeholder="keyProvider.placeholder"
+          autocomplete="off"
+          spellcheck="false"
+          @update:model-value="(v) => { (store as any)[keyProvider!.key] = v }"
+        />
+        <UiIconButton
+          :name="showKey ? 'EyeOff' : 'Eye'"
+          :aria-label="showKey ? 'Hide key' : 'Show key'"
+          size="sm"
+          @click="showKey = !showKey"
+        />
       </div>
-      <span v-if="store.apiKey" class="sp-key-ok">● key set</span>
+      <span v-if="keyProvider.ref" class="sp-key-ok">● key set</span>
     </div>
 
     <UiButton variant="ghost" size="sm" @click="showSystem = !showSystem">
@@ -64,7 +126,7 @@ const isFree     = computed(() => store.provider === 'free')
   flex-wrap: wrap;
   background: var(--color-surface);
 }
-.sp-model-row { display: flex; gap: 5px; flex-wrap: wrap; }
+.sp-model-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
 .sp-chip {
   padding: 4px 11px;
   font-size: 12px; font-weight: 500; font-family: inherit;
@@ -81,6 +143,7 @@ const isFree     = computed(() => store.provider === 'free')
   color: var(--chip-color, var(--color-accent));
   background: color-mix(in srgb, var(--chip-color, var(--color-accent)) 10%, transparent);
 }
+.sp-or-model-input { width: 260px; font-size: 12px; }
 .sp-key-row { display: flex; align-items: center; gap: 6px; }
 .sp-key-wrap { display: flex; align-items: center; }
 .sp-key-ok { font-size: 11px; color: var(--color-success); white-space: nowrap; }

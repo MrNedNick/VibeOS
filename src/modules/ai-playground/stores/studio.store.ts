@@ -2,10 +2,16 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useStorage } from '@/core/composables/useStorage'
 import { useEventBus } from '@/core/events'
-import type { StudioModel, FreeModel, StudioProvider, AnthropicResponse, AnthropicError } from '../types'
+import type {
+  StudioModel, FreeModel, GroqModel, GeminiModel, StudioProvider,
+  AnthropicResponse, AnthropicError, OpenAIResponse, GeminiResponse,
+} from '../types'
 
 const ANTHROPIC_API    = 'https://api.anthropic.com/v1/messages'
 const FREE_API         = 'https://text.pollinations.ai/'
+const GROQ_API         = 'https://api.groq.com/openai/v1/chat/completions'
+const GEMINI_BASE      = 'https://generativelanguage.googleapis.com/v1beta/models'
+const OPENROUTER_API   = 'https://openrouter.ai/api/v1/chat/completions'
 const MAX_CONVERSATIONS = 50
 
 export interface ConvMessage {
@@ -28,13 +34,22 @@ export interface SavedConversation {
 }
 
 export const useStudioStore = defineStore('ai-playground:studio', () => {
-  const apiKey         = useStorage<string>('platform:studio:apikey', '')
-  const model          = useStorage<StudioModel>('platform:studio:model', 'claude-sonnet-4-6')
-  const freeModel      = useStorage<FreeModel>('platform:studio:freeModel', 'openai-fast')
+  const apiKey             = useStorage<string>('platform:studio:apikey', '')
+  const groqApiKey         = useStorage<string>('platform:studio:apikey:groq', '')
+  const geminiApiKey       = useStorage<string>('platform:studio:apikey:gemini', '')
+  const openrouterApiKey   = useStorage<string>('platform:studio:apikey:openrouter', '')
+
+  const model              = useStorage<StudioModel>('platform:studio:model', 'claude-sonnet-4-6')
+  const freeModel          = useStorage<FreeModel>('platform:studio:freeModel', 'openai-fast')
+  const groqModel          = useStorage<GroqModel>('platform:studio:groqModel', 'llama-3.1-8b-instant')
+  const geminiModel        = useStorage<GeminiModel>('platform:studio:geminiModel', 'gemini-2.0-flash')
+  const openrouterModel    = useStorage<string>('platform:studio:openrouterModel', 'meta-llama/llama-3.1-8b-instruct:free')
+
   // Coerce a stale persisted value (mistral/llama) — those lost anonymous
   // access in 2026-06 and would now return a "migrate" notice, not a reply.
   if (freeModel.value !== 'openai-fast') freeModel.value = 'openai-fast'
-  const provider       = useStorage<StudioProvider>('platform:studio:provider', 'free') // default: free
+
+  const provider       = useStorage<StudioProvider>('platform:studio:provider', 'free')
   const system         = useStorage<string>('platform:studio:system', '')
   const includeContext = useStorage<boolean>('platform:studio:includeContext', false)
 
@@ -46,7 +61,6 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
 
   const events = useEventBus()
 
-  // ── Auto-generate title from first user message ─────────────────
   function autoTitle(msgs: ConvMessage[]): string {
     const first = msgs.find(m => m.role === 'user' && !m.error)
     if (!first) return 'Conversation'
@@ -54,10 +68,9 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
     return text.length > 45 ? text.slice(0, 45) + '…' : text
   }
 
-  // ── Save current conversation to history ────────────────────────
   function saveCurrentConversation(): void {
     const validMsgs = messages.value.filter(m => !m.error)
-    if (validMsgs.length < 2) return  // need at least user + assistant
+    if (validMsgs.length < 2) return
     const ts = new Date().toISOString()
     const conv: SavedConversation = {
       id:        crypto.randomUUID(),
@@ -70,14 +83,12 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
     savedConversations.value = [conv, ...savedConversations.value].slice(0, MAX_CONVERSATIONS)
   }
 
-  /** Build clean API history — excludes error messages and user messages that preceded an error */
   function buildHistory(): { role: 'user' | 'assistant'; content: string }[] {
     const result: { role: 'user' | 'assistant'; content: string }[] = []
     const msgs = messages.value
     for (let i = 0; i < msgs.length; i++) {
       const m = msgs[i]
       if (m.error) continue
-      // Skip user messages immediately followed by an error (failed exchanges)
       if (m.role === 'user' && i + 1 < msgs.length && msgs[i + 1].error) continue
       result.push({ role: m.role, content: m.content })
     }
@@ -98,20 +109,22 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
     loading.value = true
     const startedAt = Date.now()
     try {
-      if (provider.value === 'free') {
-        await runFree(startedAt, projectContext)
-      } else {
-        await runAnthropic(startedAt, projectContext)
+      switch (provider.value) {
+        case 'free':        await runFree(startedAt, projectContext); break
+        case 'groq':        await runGroq(startedAt, projectContext); break
+        case 'gemini':      await runGemini(startedAt, projectContext); break
+        case 'openrouter':  await runOpenRouter(startedAt, projectContext); break
+        default:            await runAnthropic(startedAt, projectContext)
       }
     } finally {
       loading.value = false
     }
   }
 
+  // ── Anthropic ──────────────────────────────────────────────────────
   async function runAnthropic(startedAt: number, projectContext?: string): Promise<void> {
     if (!apiKey.value.trim()) { pushError('no_key'); return }
 
-    // Build effective system prompt (project context + user's system prompt)
     const systemParts: string[] = []
     if (projectContext) systemParts.push(projectContext)
     if (system.value.trim()) systemParts.push(system.value.trim())
@@ -162,11 +175,10 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
     }
   }
 
+  // ── Pollinations free ─────────────────────────────────────────────
   async function runFree(startedAt: number, projectContext?: string): Promise<void> {
-    // Build OpenAI-style messages array for Pollinations
     const apiMessages: { role: string; content: string }[] = []
 
-    // System message = project context + user's custom system prompt
     const systemParts: string[] = []
     if (projectContext) systemParts.push(projectContext)
     if (system.value.trim()) systemParts.push(system.value.trim())
@@ -191,7 +203,6 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
       })
       if (!res.ok) { pushError(`HTTP ${res.status}`); return }
 
-      // ✅ Pollinations POST /  returns plain text — NOT JSON
       const text = await res.text()
       if (!text.trim()) { pushError('Empty response from free AI'); return }
 
@@ -208,6 +219,141 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
         type: 'studio:run',
         model: `free:${freeModel.value}` as StudioModel,
         inputTokens: 0, outputTokens: 0, timestamp: ts,
+      })
+    } catch (e) {
+      pushError(networkError(e))
+    }
+  }
+
+  // ── Groq (OpenAI-compatible) ──────────────────────────────────────
+  async function runGroq(startedAt: number, projectContext?: string): Promise<void> {
+    if (!groqApiKey.value.trim()) { pushError('no_key'); return }
+    await runOpenAICompatible(GROQ_API, groqApiKey.value, groqModel.value, startedAt, projectContext)
+  }
+
+  // ── OpenRouter (OpenAI-compatible) ────────────────────────────────
+  async function runOpenRouter(startedAt: number, projectContext?: string): Promise<void> {
+    if (!openrouterApiKey.value.trim()) { pushError('no_key'); return }
+    await runOpenAICompatible(
+      OPENROUTER_API, openrouterApiKey.value, openrouterModel.value, startedAt, projectContext,
+      { 'HTTP-Referer': 'https://mrnednick.github.io/VibeOS', 'X-Title': 'VibeOS Studio' },
+    )
+  }
+
+  async function runOpenAICompatible(
+    endpoint: string,
+    key: string,
+    modelId: string,
+    startedAt: number,
+    projectContext?: string,
+    extraHeaders?: Record<string, string>,
+  ): Promise<void> {
+    const apiMessages: { role: string; content: string }[] = []
+
+    const systemParts: string[] = []
+    if (projectContext) systemParts.push(projectContext)
+    if (system.value.trim()) systemParts.push(system.value.trim())
+    if (systemParts.length) apiMessages.push({ role: 'system', content: systemParts.join('\n\n') })
+    for (const m of buildHistory()) apiMessages.push(m)
+
+    try {
+      const res = await fetch(endpoint, {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${key.trim()}`,
+          ...extraHeaders,
+        },
+        body: JSON.stringify({ model: modelId, messages: apiMessages, max_tokens: 2048 }),
+      })
+      if (!res.ok) {
+        const errBody = await res.text().catch(() => '')
+        pushError(`HTTP ${res.status}${errBody ? ': ' + errBody.slice(0, 120) : ''}`)
+        return
+      }
+      const data = await res.json() as OpenAIResponse
+      const text = data.choices?.[0]?.message?.content ?? ''
+      if (!text) { pushError('Empty response'); return }
+
+      const ts = new Date().toISOString()
+      messages.value.push({
+        id:        crypto.randomUUID(),
+        role:      'assistant',
+        content:   text,
+        timestamp: ts,
+        model:     modelId,
+        durationMs: Date.now() - startedAt,
+      })
+      events.emit({
+        type: 'studio:run', model: modelId as StudioModel,
+        inputTokens:  data.usage?.prompt_tokens ?? 0,
+        outputTokens: data.usage?.completion_tokens ?? 0,
+        timestamp: ts,
+      })
+    } catch (e) {
+      pushError(networkError(e))
+    }
+  }
+
+  // ── Gemini ────────────────────────────────────────────────────────
+  async function runGemini(startedAt: number, projectContext?: string): Promise<void> {
+    if (!geminiApiKey.value.trim()) { pushError('no_key'); return }
+
+    // Build Gemini contents array — system prompt goes first as user/model turn pair
+    const contents: { role: string; parts: { text: string }[] }[] = []
+
+    const systemParts: string[] = []
+    if (projectContext) systemParts.push(projectContext)
+    if (system.value.trim()) systemParts.push(system.value.trim())
+    if (systemParts.length) {
+      // Gemini uses systemInstruction field instead of a message
+    }
+
+    for (const m of buildHistory()) {
+      contents.push({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      })
+    }
+
+    const body: Record<string, unknown> = {
+      contents,
+      generationConfig: { maxOutputTokens: 2048 },
+    }
+    if (systemParts.length) {
+      body.systemInstruction = { parts: [{ text: systemParts.join('\n\n') }] }
+    }
+
+    try {
+      const endpoint = `${GEMINI_BASE}/${geminiModel.value}:generateContent?key=${geminiApiKey.value.trim()}`
+      const res = await fetch(endpoint, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) {
+        const errBody = await res.text().catch(() => '')
+        pushError(`HTTP ${res.status}${errBody ? ': ' + errBody.slice(0, 120) : ''}`)
+        return
+      }
+      const data = await res.json() as GeminiResponse
+      const text = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('') ?? ''
+      if (!text) { pushError('Empty response from Gemini'); return }
+
+      const ts = new Date().toISOString()
+      messages.value.push({
+        id:        crypto.randomUUID(),
+        role:      'assistant',
+        content:   text,
+        timestamp: ts,
+        model:     geminiModel.value,
+        durationMs: Date.now() - startedAt,
+      })
+      events.emit({
+        type: 'studio:run', model: geminiModel.value as StudioModel,
+        inputTokens:  data.usageMetadata?.promptTokenCount ?? 0,
+        outputTokens: data.usageMetadata?.candidatesTokenCount ?? 0,
+        timestamp: ts,
       })
     } catch (e) {
       pushError(networkError(e))
@@ -241,7 +387,7 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
   function loadConversation(id: string): void {
     const conv = savedConversations.value.find(c => c.id === id)
     if (!conv) return
-    saveCurrentConversation()  // save current before switching
+    saveCurrentConversation()
     messages.value = [...conv.messages]
     provider.value = conv.provider
     error.value    = null
@@ -272,7 +418,9 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
   }
 
   return {
-    apiKey, model, freeModel, provider, system, includeContext,
+    apiKey, groqApiKey, geminiApiKey, openrouterApiKey,
+    model, freeModel, groqModel, geminiModel, openrouterModel,
+    provider, system, includeContext,
     messages, loading, error,
     savedConversations,
     sendMessage, newConversation, loadConversation, deleteConversation, clearHistory,
