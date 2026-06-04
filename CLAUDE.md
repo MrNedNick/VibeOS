@@ -6,12 +6,14 @@
 
 ## Current state
 
-**Version: v2.6.0 — 2026-06-04**
+**Version: v2.7.0 — 2026-06-04**
+
+> **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
 | Sprint | Status |
 |--------|--------|
 | S1–S10 | ✅ complete |
-| S11 — Welcome & Positioning | 🔄 T1 ✅; T2 pending (live review) |
+| S11 — Welcome & Positioning | ✅ **complete** — T1 ✅; T2 ✅ welcome redesign + live cascade demo + new logo (v2.7.0) |
 | S12 — AI Depth | ✅ complete (v1.1.0) |
 | S13 — Design Pass | 🔜 requires live review session |
 | S14 — Quick Wins | ✅ complete (v1.5.5) |
@@ -29,9 +31,16 @@
 | Studio providers | ✅ complete — Groq + Gemini Flash + OpenRouter (v2.3.0) |
 | **S27 — Profile & UX Polish** | ✅ **complete** — see v2.4–v2.6 below |
 
-**No active sprints. Next session starts from live review (S13) or new feature requests.**
+**No active sprints. Next session starts from live review (S13 / S16 T7) or new feature requests.**
 
 ---
+
+## New in v2.7.0 (2026-06-04) — Welcome redesign + new logo (S11 T2)
+
+- **New brand mark**: replaced the old `//` slashes glyph with a "connected nodes" mark — two input nodes cascade into one node below (the product story: *log one thing → everything updates*; also reads as a "V"). `public/favicon.svg` uses an indigo→violet gradient; in-app logos (sidebar, header-area, auth views, About, welcome nav) use the theme-adaptive `var(--color-accent)` version so it still recolors per vibe-pak.
+- **WelcomeView full rewrite** (`src/modules/welcome/WelcomeView.vue`): 2-column hero with a ⭐ **live interactive cascade demo** — clicking the seeded "Morning run" habit toggles it done, bumps the streak 11→12, and advances the linked "Run a half-marathon" goal ring 60%→68% with a green "+8%" delta. Fully self-contained (no real stores touched). Below: proof strip (16/0/100%/∞), 3 pillars (Connected / Light / AI), 12-module grid (uniform accent-tinted icons — minimalist, no per-module hex), **4 vibe-pak preview cards** (Dark/Light/Brutalist/CRT — accurate signature colors), final privacy CTA, footer.
+- **S9 hex cleanup**: removed the old hardcoded `#4f8ef7` logo + the per-module `color` hex array. All welcome colors now run on tokens; the only literal hex left is the 4 pak swatch classes (intrinsically each pak's signature colors — documented inline).
+- Verified live at `lg` + `sm`, Dark + Light themes, cascade interaction works, type-check clean.
 
 ## New in v2.6.0 (2026-06-04) — Avatar, Email Change, Finance/Board Sync
 

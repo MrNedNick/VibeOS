@@ -111,9 +111,11 @@ function onKeydown(e: KeyboardEvent) {
       <!-- Logo -->
       <div class="auth-logo" @click="router.push('/welcome').catch(() => {})">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="var(--color-accent)" />
-          <path d="M10 23L14 9" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
-          <path d="M18 23L22 9" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
+          <rect width="32" height="32" rx="9" fill="var(--color-accent)" />
+          <path d="M10.5 11.2 16 20.4M21.5 11.2 16 20.4" stroke="white" stroke-width="1.9" stroke-linecap="round" opacity="0.5"/>
+          <circle cx="10.5" cy="10.5" r="2.3" fill="white"/>
+          <circle cx="21.5" cy="10.5" r="2.3" fill="white"/>
+          <circle cx="16" cy="21" r="3" fill="white"/>
         </svg>
         <span class="auth-logo__text">Vibe<span>OS</span></span>
         <span class="auth-logo__ver">v{{ APP_VERSION }}</span>

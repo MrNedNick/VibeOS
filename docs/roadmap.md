@@ -12,7 +12,7 @@
 |--------|------|--------|
 | S1 — Identity | Life OS first impression | ✅ complete |
 | S2 — Command Center | Dashboard as daily command center | ✅ complete |
-| S3 — Backend + Auth | Real product, private data | ⏸ paused — code done, awaiting Supabase credentials |
+| S3 — Backend + Auth | Real product, private data | ✅ **LIVE** — Supabase credentials connected 2026-06-04; auth + sync + real-time running against the live project |
 | S4 — Core Life Modules | Goals + task unification | ✅ complete |
 | S5 — Life Depth | Learning + Training + Analytics | ✅ complete |
 | S6 — AI Integration | AI as planning layer | ✅ complete — 9 features |
@@ -20,7 +20,7 @@
 | S8 — Design System | Unified component library | ✅ complete — items 1–4 ✅ (UI Kit catalogue; moved under Docs at `/docs/ui-kit`, public in v1.2.0) |
 | **S9 — Full Redesign** | Premium visual identity | ✅ **complete** — v0.9.x |
 | **S10 — Vibe-pak Consolidation** | 4 clean paks, Revolut + CRT redesign | ✅ **complete** — v1.0.x |
-| **S11 — Welcome & Positioning** | "Simple Notion for life, where everything is connected" + live cascade demo | 🔄 **active** — T1 ✅ (copy+hex v1.5.1); T2 pending (full redesign + cascade demo) |
+| **S11 — Welcome & Positioning** | "Simple Notion for life, where everything is connected" + live cascade demo | ✅ **complete** — T1 ✅ (copy+hex v1.5.1); T2 ✅ (full redesign + live cascade demo + new logo, v2.7.0) |
 | **S12 — AI Depth** | AI in every module; start with Analytics monthly report (shows connected data) | ✅ complete — Analytics ✅ (v1.0.11), Habits/Notes/Finance ✅ (v1.1.0) |
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | ✅ **complete** — T1–T6 ✅ T4 ✅ (hex guard + WelcomeView hex v1.5.1) |
@@ -503,7 +503,11 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 ---
 
-### T2 — Welcome page premium redesign
+### T2 — Welcome page premium redesign ✅ (v2.7.0)
+
+**Done:** full `WelcomeView.vue` rewrite. 2-column hero with a **live interactive cascade demo** (seeded, self-contained: click the "Morning run" habit → done + streak 11→12 + linked half-marathon goal ring 60→68% + green "+8%" delta + pulsing "auto-linked" connector). Sections: proof strip (16/0/100%/∞) → 3 pillars (Connected / Light / AI) → 12-module grid (uniform accent-tinted icons, minimalist, no per-module hex) → **4 vibe-pak preview cards** (Dark/Light/Brutalist/CRT, accurate signature colors) → privacy final CTA → footer. New brand mark shipped (connected-nodes cascade, replaces `//` glyph) across favicon + sidebar + auth + About + welcome. Removed terminal preview, old pillars, hardcoded `#4f8ef7` + module color array. Verified live `lg`+`sm`, Dark+Light, type-check clean.
+
+**Original spec ↓**
 
 **Scope:** `src/modules/welcome/WelcomeView.vue` — full redesign  
 **Complexity:** high — design-heavy, multi-section landing page
