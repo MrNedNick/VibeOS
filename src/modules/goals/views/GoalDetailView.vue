@@ -563,7 +563,19 @@ function onTaskKeydown(e: KeyboardEvent) {
 }
 
 @media (max-width: 767px) {
-  .gdetail__title { font-size: var(--text-2xl, 22px); }
-  .gdetail__pct { font-size: var(--text-lg); }
+  .gdetail              { gap: 20px; }
+  .gdetail__title       { font-size: var(--text-2xl, 22px); }
+  .gdetail__pct         { font-size: var(--text-lg); }
+  .gdetail__emoji       { font-size: 32px; }
+
+  /* Compact sections on mobile */
+  .gdetail__tasks,
+  .gdetail__notes-section { padding: 12px 14px; }
+
+  /* Action buttons stack on narrow screens */
+  .gdetail__actions     { flex-wrap: wrap; }
+
+  /* Danger zone gets less top spacing */
+  .gdetail__danger      { padding-top: 4px; }
 }
 </style>

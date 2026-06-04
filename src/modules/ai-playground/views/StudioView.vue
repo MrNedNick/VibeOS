@@ -7,7 +7,7 @@ import StudioModelPicker from '../components/StudioModelPicker.vue'
 import StudioConversation from '../components/StudioConversation.vue'
 
 const store     = useStudioStore()
-const showSidebar = ref(true)
+const showSidebar = ref(window.innerWidth > 767)
 const isFree    = computed(() => store.provider === 'free')
 </script>
 
