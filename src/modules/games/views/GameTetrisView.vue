@@ -2,7 +2,16 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { useEventBus } from '@/core/events'
+import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon } from '@/ui'
+
+const auth = useAuthStore()
+
+const playerName = computed(() => {
+  const name = auth.user?.displayName
+  if (!name) return null
+  return name.split(' ')[0] || name
+})
 
 // ── Constants ────────────────────────────────────────────────────────────
 const COLS = 10
@@ -40,6 +49,7 @@ interface ScoreRecord {
   lines: number
   level: number
   date: string
+  player?: string
 }
 
 // ── State ────────────────────────────────────────────────────────────────
@@ -292,6 +302,7 @@ function endGame(): void {
       lines: lines.value,
       level: level.value,
       date: new Date().toISOString(),
+      player: playerName.value ?? undefined,
     }
     scoreHistory.value = [record, ...scoreHistory.value]
       .sort((a, b) => b.score - a.score)
@@ -473,7 +484,8 @@ function formatDate(iso: string): string {
       </div>
       <div class="tetris__best-row">
         <span class="tetris__best-label">Best</span>
-        <span class="tetris__best-val">{{ bestScore }}</span>
+        <span class="tetris__best-val">{{ bestScore.toLocaleString() }}</span>
+        <span v-if="playerName" class="tetris__best-player">{{ playerName }}</span>
       </div>
     </div>
 
@@ -482,7 +494,7 @@ function formatDate(iso: string): string {
 
       <!-- Left: hold + stats -->
       <div class="tetris__side tetris__side--left">
-        <div class="tetris__panel-label">Hold</div>
+        <div class="tetris__panel-label" title="Hold a piece for later — press C or swipe up (one per turn)">Hold <span class="tetris__panel-hint">C</span></div>
         <canvas
           ref="holdRef"
           class="tetris__mini-canvas"
@@ -618,6 +630,7 @@ function formatDate(iso: string): string {
           :class="{ 'tetris__history-row--top': i === 0 }"
         >
           <span class="tetris__history-rank">#{{ i + 1 }}</span>
+          <span v-if="rec.player" class="tetris__history-player">{{ rec.player }}</span>
           <span class="tetris__history-score">{{ rec.score.toLocaleString() }}</span>
           <span class="tetris__history-meta">Lv {{ rec.level }} · {{ rec.lines }}L · {{ formatDate(rec.date) }}</span>
         </div>
@@ -680,6 +693,12 @@ function formatDate(iso: string): string {
   color: var(--color-accent);
 }
 
+.tetris__best-player {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
 /* Arena */
 .tetris__arena {
   display: flex;
@@ -706,6 +725,25 @@ function formatDate(iso: string): string {
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--color-text-muted);
+  cursor: default;
+}
+
+.tetris__panel-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 1px 4px;
+  color: var(--color-text-muted);
+  vertical-align: middle;
+  margin-left: 4px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .tetris__mini-canvas {
@@ -926,6 +964,13 @@ function formatDate(iso: string): string {
 
 .tetris__history-row--top .tetris__history-rank {
   color: var(--color-accent);
+}
+
+.tetris__history-player {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  min-width: 48px;
 }
 
 .tetris__history-score {

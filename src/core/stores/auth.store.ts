@@ -66,6 +66,13 @@ export const useAuthStore = defineStore('core:auth', () => {
   const isDemoMode = computed(() => _state.value.user?.provider === 'demo')
   const tier       = computed(() => _state.value.user?.tier ?? 'free')
 
+  const _adminEmails = (import.meta.env.VITE_ADMIN_EMAILS ?? '')
+    .split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean)
+  const isAdmin = computed(() => {
+    const email = _state.value.user?.email?.toLowerCase()
+    return !!email && _adminEmails.includes(email)
+  })
+
   // ── Helpers ──────────────────────────────────────────────────────────────
   function _setUser(u: AuthUser | null): void {
     _state.value = {
@@ -301,6 +308,7 @@ export const useAuthStore = defineStore('core:auth', () => {
     user,
     isLoggedIn,
     isDemoMode,
+    isAdmin,
     tier,
     loading,
     isSupabaseConfigured,

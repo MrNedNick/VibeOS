@@ -24,6 +24,7 @@ import DigestWidget from '../components/DigestWidget.vue'
 import DashboardWidgetCustomizer from '../components/DashboardWidgetCustomizer.vue'
 import { useWidgetsStore, type WidgetId } from '../stores/widgets.store'
 import { useLocale } from '@/core/i18n'
+import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon, UiButton } from '@/ui'
 
 // ── Widget component map (markRaw prevents Vue from making them reactive) ──
@@ -44,6 +45,7 @@ const HABITS_ID       = '__habits__'
 const ACHIEVEMENTS_ID = '__achievements__'
 
 const router = useRouter()
+const auth = useAuthStore()
 const tasksStore = useTasksStore()
 const goalsStore = useGoalsStore()
 const learningStore = useLearningStore()
@@ -334,8 +336,9 @@ const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef,
           <span class="mod-row__name">{{ i18n.t('dashboardToday.navLabel') }}</span>
         </div>
 
-        <!-- All Tasks (overview row) -->
+        <!-- All Tasks (overview row) — admin only -->
         <div
+          v-if="auth.isAdmin"
           class="mod-row mod-row--overview"
           :class="{ 'mod-row--active': selectedId === OVERVIEW_ID }"
           @click="selectedId = OVERVIEW_ID"
@@ -406,8 +409,8 @@ const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef,
           />
         </div>
 
-        <!-- Platform health (compact) ─────────────────────────── -->
-        <div class="health-compact">
+        <!-- Platform health (compact) — admin only ─────────────── -->
+        <div v-if="auth.isAdmin" class="health-compact">
           <p class="health-compact__label">{{ i18n.t('dashboard.health') }}</p>
           <div
             v-for="item in PLATFORM_STATUS"
@@ -439,8 +442,8 @@ const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef,
           <!-- Habits live panel -->
           <HabitsPanel v-else-if="selectedId === HABITS_ID" key="__habits__" />
 
-          <!-- Overview: all tasks aggregated + activity -->
-          <div v-else-if="selectedId === OVERVIEW_ID" key="__overview__" class="overview-panels">
+          <!-- Overview: all tasks aggregated + activity (admin only) -->
+          <div v-else-if="selectedId === OVERVIEW_ID && auth.isAdmin" key="__overview__" class="overview-panels">
             <AllTasksPanel
               :tasks="aggregatedTasks"
               :shipped-tasks="aggregatedShipped"

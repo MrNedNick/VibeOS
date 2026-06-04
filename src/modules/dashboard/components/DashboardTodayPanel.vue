@@ -189,9 +189,13 @@ function priorityLabel(p: string): string {
           :key="habit.id"
           class="today__habit"
           :class="{ 'today__habit--done': habit.doneToday }"
-          @click="habitsStore.toggleToday(habit.id)"
+          @click="router.push('/habits')"
         >
-          <button class="today__check" :class="{ 'today__check--done': habit.doneToday }">
+          <button
+            class="today__check"
+            :class="{ 'today__check--done': habit.doneToday }"
+            @click.stop="habitsStore.toggleToday(habit.id)"
+          >
             <svg v-if="habit.doneToday" width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M2.5 7.5l2.5 2.5 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>

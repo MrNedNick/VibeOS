@@ -16,6 +16,8 @@ import { useInteractionBus } from '@/core/stores/interaction.store'
 import { useHabitNotifications } from '@/core/composables/useHabitNotifications'
 import { useToast } from '@/core/composables/useToast'
 import UiIcon from '@/ui/components/UiIcon.vue'
+import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '@/modules/dashboard/components/AllTasksPanel.vue'
+import { MODULE_DETAILS } from '@/modules/dashboard/data/platform-notes'
 
 const router  = useRouter()
 const uiStore = useUiStore()
@@ -146,6 +148,33 @@ const activeModulesCount = computed(() => toggleableModules.filter(m => isVisibl
 // ── API keys ──────────────────────────────────────────────────────
 const anthropicKey  = useStorage<string>('platform:studio:apikey', '')
 const showAnthropic = ref(false)
+
+// ── Admin panel data ──────────────────────────────────────────────
+const adminTasks = computed<AggregatedTask[]>(() => {
+  const result: AggregatedTask[] = []
+  for (const mod of PLATFORM_MODULES) {
+    const detail = MODULE_DETAILS[mod.id]
+    if (!detail) continue
+    for (const task of (detail.nextTasks ?? [])) {
+      result.push({ label: task.label, priority: task.priority, moduleId: mod.id, moduleLabel: mod.label, moduleIcon: mod.icon })
+    }
+  }
+  return result.sort((a, b) => {
+    const ord = { high: 0, medium: 1, low: 2 } as const
+    return (ord[a.priority] ?? 3) - (ord[b.priority] ?? 3)
+  })
+})
+const adminShipped = computed<AggregatedShipped[]>(() => {
+  const result: AggregatedShipped[] = []
+  for (const mod of PLATFORM_MODULES) {
+    const detail = MODULE_DETAILS[mod.id]
+    if (!detail) continue
+    for (const shipped of detail.shippedTasks) {
+      result.push({ label: shipped.label, date: shipped.date, moduleId: mod.id, moduleLabel: mod.label, moduleIcon: mod.icon })
+    }
+  }
+  return result.sort((a, b) => b.date.localeCompare(a.date))
+})
 
 // ── Data section ──────────────────────────────────────────────────
 const clearConfirm  = ref(false)
@@ -681,6 +710,16 @@ function cancelImport() {
       </div>
     </section>
 
+    <!-- Admin panel — only visible to admin accounts ─────────────── -->
+    <section v-if="auth.isAdmin" class="settings__section settings__section--admin">
+      <h2 class="settings__section-title">
+        <UiIcon name="Shield" :size="16" style="vertical-align: -2px; margin-right: 6px;" />
+        Dev / Admin
+      </h2>
+      <p class="settings__admin-hint">Platform tasks and module status. Only visible to admin accounts.</p>
+      <AllTasksPanel :tasks="adminTasks" :shipped-tasks="adminShipped" />
+    </section>
+
     <!-- Feedback modal — must stay inside the single root element so Transition can animate -->
     <UiFeedbackModal
       v-model:open="feedback.isOpen.value"
@@ -724,6 +763,17 @@ function cancelImport() {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.settings__section--admin {
+  border-color: color-mix(in srgb, var(--color-warning) 40%, var(--color-border));
+}
+
+.settings__admin-hint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: var(--leading-relaxed);
 }
 
 .settings__section-title {
