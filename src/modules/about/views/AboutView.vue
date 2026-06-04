@@ -55,11 +55,11 @@ const VIBEOS_DECISIONS = [
 ]
 
 const LANGUAGES = [
-  { name: 'Ukrainian', level: 'Native',  flag: '🇺🇦' },
-  { name: 'Russian',   level: 'Native',  flag: '🇷🇺' },
-  { name: 'English',   level: 'B2',      flag: '🇬🇧' },
-  { name: 'German',    level: 'B1',      flag: '🇩🇪' },
-  { name: 'Bulgarian', level: 'Heritage',flag: '🇧🇬' },
+  { name: 'Ukrainian', level: 'Native'   },
+  { name: 'Russian',   level: 'Native'   },
+  { name: 'English',   level: 'B2'       },
+  { name: 'German',    level: 'B1'       },
+  { name: 'Bulgarian', level: 'Heritage' },
 ]
 
 const MODULE_DESCS: Record<string, string> = {
@@ -222,7 +222,6 @@ const STATS = computed(() => [
       <h2 class="about__section-title">Languages</h2>
       <div class="about__langs">
         <div v-for="lang in LANGUAGES" :key="lang.name" class="lang-chip">
-          <span class="lang-chip__flag">{{ lang.flag }}</span>
           <span class="lang-chip__name">{{ lang.name }}</span>
           <span class="lang-chip__level">{{ lang.level }}</span>
         </div>
@@ -656,8 +655,6 @@ const STATS = computed(() => [
   transition: border-color var(--t-fast);
 }
 .lang-chip:hover { border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border)); }
-
-.lang-chip__flag { font-size: 16px; line-height: 1; }
 
 .lang-chip__name {
   font-size: var(--text-xs);

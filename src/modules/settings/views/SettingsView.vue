@@ -680,14 +680,14 @@ function cancelImport() {
         </UiButton>
       </div>
     </section>
-  </div>
 
-  <!-- Feedback modal -->
-  <UiFeedbackModal
-    v-model:open="feedback.isOpen.value"
-    @submitted="(score, comment) => feedback.markSubmitted(score, comment)"
-    @dismissed="feedback.markDismissed()"
-  />
+    <!-- Feedback modal — must stay inside the single root element so Transition can animate -->
+    <UiFeedbackModal
+      v-model:open="feedback.isOpen.value"
+      @submitted="(score, comment) => feedback.markSubmitted(score, comment)"
+      @dismissed="feedback.markDismissed()"
+    />
+  </div>
 </template>
 
 <style scoped>
