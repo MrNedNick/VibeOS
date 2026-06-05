@@ -727,7 +727,7 @@ function formatDate(iso: string): string {
         }"
         :title="skin.unlocked ? skin.name : `${skin.name} — reach ${skin.unlock.toLocaleString()} pts`"
         :disabled="!skin.unlocked"
-        @click="if (skin.unlocked) activeSkinId = skin.id"
+        @click="activeSkinId = skin.id"
       >
         <span class="tetris__skin-swatches">
           <span
