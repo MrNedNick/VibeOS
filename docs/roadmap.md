@@ -889,9 +889,11 @@ Cover the stores that own irreplaceable user data, in priority order: **finance*
 
 ---
 
-### T3 — Store unit tests: core + UI stores ⚙️
+### T3 — Store unit tests: core + UI stores ⚙️ 🔄 in progress
 
-Cover `auth.store` (signIn/signOut/session, demo-mode gating — mock Supabase client), `commandPalette.store` (registration, search incl. the B1 "theme keyword" case), `achievements`, `notifications`, `ui`, `widgets`. These guard cross-cutting behavior.
+**Done:** `achievements` + `notifications` + `widgets` (v1.5.2), and **`auth.store`** (v2.7.3) — 19 cases across `auth.store.test.ts` (Supabase client mocked) + `auth.store.unconfigured.test.ts`: demo login/gating, login/register/logout, session restore via `init()`, profile-mutation blocks in demo mode, and **onAuthStateChange demo-immunity** (a Supabase `SIGNED_OUT`/`TOKEN_REFRESHED` must not wipe a local demo session — guards the welcome → demo funnel; the fix + its regression test shipped together). **Remaining:** `commandPalette.store`, `ui`.
+
+Original spec: Cover `auth.store` (signIn/signOut/session, demo-mode gating — mock Supabase client), `commandPalette.store` (registration, search incl. the B1 "theme keyword" case), `achievements`, `notifications`, `ui`, `widgets`. These guard cross-cutting behavior.
 
 ---
 

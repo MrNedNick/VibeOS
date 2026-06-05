@@ -376,6 +376,10 @@ export const useAuthStore = defineStore('core:auth', () => {
 
         // Keep local state in sync with Supabase auth changes (token refresh, etc.)
         sb.auth.onAuthStateChange((_event, newSession) => {
+          // A local demo session is independent of Supabase — never let a
+          // Supabase auth event (SIGNED_OUT/TOKEN_REFRESHED with no session,
+          // fired from another tab or a stale token) wipe the demo user.
+          if (_state.value.user?.provider === 'demo') return
           if (newSession?.user) {
             _setUser({
               id: newSession.user.id,
