@@ -881,17 +881,17 @@ T5 (Learning/Training shared structure) deferred — S17 migration made them div
 
 ---
 
-### T2 — Store unit tests: data-critical modules 🗄️ 🔄 in progress
+### T2 — Store unit tests: data-critical modules 🗄️ ✅ (v2.7.4)
 
 Cover the stores that own irreplaceable user data, in priority order: **finance** (money math, budgets), **habits** (streak/heatmap logic), **notes** (backlinks, soft-delete), **training** + **learning** store (plan/session lifecycle, cascade delete). Mirror the existing `tasks.store.test.ts` style. Target: every data store has add/edit/delete/derived-count coverage.
 
-**Done so far:** `habits.store` + `notes.store` (earlier), and **`finance.store`** (v1.1.0) — 22 cases: expense CRUD + soft-delete, monthly aggregates (`totalThisMonth`/`spentByCategory`), budgets (set/update/remove/`totalBudget`/`activeCategories`), recurring toggle + `addFromRecurring`, `expensesByMonth`/`recentExpenses` cap, and currency conversion (identity / rate+rounding / symbol). Plus **cross-store cascade integration** (`cascade.integration.test.ts`, v2.7.1) — 7 cases covering session/workout → habit → goal end-to-end. **Remaining:** training + learning store per-store depth.
+**Done:** `tasks` / `habits` / `notes` / `goals` / `finance` (v1.1.0) / `learning` / `training` (`*.store.test.ts`), plus **`board.store`** (v2.7.4) — card CRUD, `cardsForColumn`/`cardsForCell`, `moveCard`, `cyclePriority`, `importFromTask` (de-dup), and the card→task cascade (move to Done completes the source task). Plus **cross-store cascade integration** (`cascade.integration.test.ts`, v2.7.1) — session/workout → habit → goal. Every data store now has add/edit/delete/derived-count coverage. (`studio.store` — chat history, lower-criticality — left untested.)
 
 ---
 
-### T3 — Store unit tests: core + UI stores ⚙️ 🔄 in progress
+### T3 — Store unit tests: core + UI stores ⚙️ ✅ (v2.7.3)
 
-**Done:** `achievements` + `notifications` + `widgets` (v1.5.2), and **`auth.store`** (v2.7.3) — 19 cases across `auth.store.test.ts` (Supabase client mocked) + `auth.store.unconfigured.test.ts`: demo login/gating, login/register/logout, session restore via `init()`, profile-mutation blocks in demo mode, and **onAuthStateChange demo-immunity** (a Supabase `SIGNED_OUT`/`TOKEN_REFRESHED` must not wipe a local demo session — guards the welcome → demo funnel; the fix + its regression test shipped together). **Remaining:** `commandPalette.store`, `ui`.
+**Done:** `achievements` + `notifications` + `widgets` (v1.5.2), `commandPalette.store` + `ui.store` (`*.store.test.ts`), and **`auth.store`** (v2.7.3) — 19 cases across `auth.store.test.ts` (Supabase client mocked) + `auth.store.unconfigured.test.ts`: demo login/gating, login/register/logout, session restore via `init()`, profile-mutation blocks in demo mode, and **onAuthStateChange demo-immunity** (a Supabase `SIGNED_OUT`/`TOKEN_REFRESHED` must not wipe a local demo session — guards the welcome → demo funnel; the fix + its regression test shipped together). All core + UI stores now covered. Also added `useFormValidation.test.ts` (v2.7.4) — validators + form state machine guarding the auth forms.
 
 Original spec: Cover `auth.store` (signIn/signOut/session, demo-mode gating — mock Supabase client), `commandPalette.store` (registration, search incl. the B1 "theme keyword" case), `achievements`, `notifications`, `ui`, `widgets`. These guard cross-cutting behavior.
 
