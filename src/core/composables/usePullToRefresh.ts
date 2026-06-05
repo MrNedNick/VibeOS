@@ -52,18 +52,24 @@ export function usePullToRefresh(
     }
   }
 
+  // Capture the attach target at mount so we detach from the SAME element —
+  // `containerRef.value` is null again by onUnmounted (template ref cleared),
+  // which would otherwise leak the element's listeners.
+  let attached: EventTarget | null = null
+
   onMounted(() => {
-    const el = containerRef.value ?? window
-    ;(el as EventTarget).addEventListener('touchstart', onTouchStart as EventListener, { passive: true })
-    ;(el as EventTarget).addEventListener('touchmove',  onTouchMove  as EventListener, { passive: false })
-    ;(el as EventTarget).addEventListener('touchend',   onTouchEnd   as EventListener, { passive: true })
+    attached = containerRef.value ?? window
+    attached.addEventListener('touchstart', onTouchStart as EventListener, { passive: true })
+    attached.addEventListener('touchmove',  onTouchMove  as EventListener, { passive: false })
+    attached.addEventListener('touchend',   onTouchEnd   as EventListener, { passive: true })
   })
 
   onUnmounted(() => {
-    const el = containerRef.value ?? window
-    ;(el as EventTarget).removeEventListener('touchstart', onTouchStart as EventListener)
-    ;(el as EventTarget).removeEventListener('touchmove',  onTouchMove  as EventListener)
-    ;(el as EventTarget).removeEventListener('touchend',   onTouchEnd   as EventListener)
+    if (!attached) return
+    attached.removeEventListener('touchstart', onTouchStart as EventListener)
+    attached.removeEventListener('touchmove',  onTouchMove  as EventListener)
+    attached.removeEventListener('touchend',   onTouchEnd   as EventListener)
+    attached = null
   })
 
   return { isPulling, isRefreshing, pullDistance }

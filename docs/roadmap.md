@@ -1932,7 +1932,9 @@ These are the meaningful improvements to do next — not features for features' 
 
 ---
 
-### T3 — Pull-to-refresh on Dashboard mobile (v1.6.2)
+### T3 — Pull-to-refresh on Dashboard mobile ✅ (v1.6.2; backend-wired + hardened v2.7.2)
+
+**Done:** `usePullToRefresh` composable + Dashboard `.dashboard__ptr` indicator (touchstart/move/end, 72px threshold, RefreshCw spinner). In v2.7.2 it was wired to `useCloudSync().pullAll()` (see S21 T5), the scroll-container read was fixed to target `.app-content`, and a listener-leak on unmount was fixed. Unit-tested in `usePullToRefresh.test.ts`.
 
 **Scope:** `src/core/composables/usePullToRefresh.ts` (new), `DashboardView.vue`
 **Complexity:** medium
@@ -2296,7 +2298,7 @@ T5 (UX polish — last, cosmetic)
 
 **T4 ✅** — `useRealtimeSync` — Supabase Realtime subscription on `user_store` filtered by `user_id`. Wired into auth.store login/init/logout. Cross-device/tab real-time sync for all data.
 
-**T5** — Dashboard pull-to-refresh → deferred (pull-to-refresh gesture not yet implemented).
+**T5 ✅ (v2.7.2)** — Dashboard pull-to-refresh now wired to the backend. `handleRefresh` calls `useCloudSync().pullAll()` (no-op when unconfigured) with a 600ms min-spinner. Fixed two real bugs found while wiring: (1) PTR read `scrollTop` off `.dashboard` instead of the true scroll container `.app-content` — the "only at top" guard was defeated; now resolves `.dashboard`.closest('.app-content'). (2) `usePullToRefresh` detached listeners from `containerRef.value` which is null by `onUnmounted` (template ref cleared) → leaked the element's listeners; now captures the attach target at mount. Covered by `usePullToRefresh.test.ts` (4 cases). Verified live: dashboard mounts clean, scroll container resolves.
 
 ---
 

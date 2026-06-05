@@ -6,11 +6,11 @@
 
 ## Current state
 
-**Version: v2.7.1 — 2026-06-04**
+**Version: v2.7.2 — 2026-06-04**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
-> **Tests: 376 in 28 files.** v2.7.1 added `cascade.integration.test.ts` (7 cases) — the first cross-store regression coverage for the auto-cascade (session/workout → habit → goal). S5 T3 (Habits↔Learning/Training integration) was already shipped — roadmap checkbox corrected.
+> **Tests: 380 in 29 files.** v2.7.1 added `cascade.integration.test.ts` (7 cases — cross-store auto-cascade session/workout→habit→goal). v2.7.2 added `usePullToRefresh.test.ts` (4 cases) and wired Dashboard pull-to-refresh to `pullAll()` (S21 T5), fixing a scroll-container mismatch + a listener leak. Roadmap markers corrected: S5 T3, S19 T3, S21 T5 were all already shipped (docs lagged the code).
 
 | Sprint | Status |
 |--------|--------|

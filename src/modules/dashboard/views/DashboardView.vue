@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, markRaw } from 'vue'
+import { computed, ref, markRaw, onMounted } from 'vue'
 import { usePullToRefresh } from '@/core/composables/usePullToRefresh'
+import { useCloudSync } from '@/core/composables/useCloudSync'
 import { useRouter } from 'vue-router'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { useTasksStore } from '@/modules/task-manager/stores/tasks.store'
@@ -163,11 +164,25 @@ const showOnboarding = computed(() =>
 
 // ── Pull-to-refresh ────────────────────────────────────────────────────
 const dashboardRef = ref<HTMLElement | null>(null)
+// The real scroll container is `.app-content` (AppLayout), not `.dashboard` —
+// PTR must read that element's scrollTop so it only triggers at the true top.
+const scrollRef = ref<HTMLElement | null>(null)
+onMounted(() => {
+  scrollRef.value =
+    (dashboardRef.value?.closest('.app-content') as HTMLElement | null) ??
+    document.querySelector<HTMLElement>('.app-content')
+})
+
+const { pullAll } = useCloudSync()
 async function handleRefresh() {
-  // Reload habit/task counters by forcing a reactive tick — stores are reactive
-  await new Promise(r => setTimeout(r, 600))
+  // Re-pull all data from Supabase (no-op when unconfigured), with a min
+  // spinner time so the gesture feels responsive even on a fast/empty pull.
+  await Promise.all([
+    pullAll().catch(() => {}),
+    new Promise(r => setTimeout(r, 600)),
+  ])
 }
-const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(dashboardRef, handleRefresh)
+const { isRefreshing, isPulling, pullDistance } = usePullToRefresh(scrollRef, handleRefresh)
 </script>
 
 <template>
