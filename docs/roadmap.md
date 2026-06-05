@@ -133,7 +133,7 @@ Order:
 
 1. ✅ **Learning module** — plans, sessions, progress rings, streaks, today strip, plan detail view
 2. ✅ **Training module** — plans, workout logs, feeling emoji, streaks, km tracking, today strip
-3. ⬜ **Habits → Learning + Training integration** — logging session/workout marks associated habit done
+3. ✅ **Habits → Learning + Training integration** — logging a session/workout marks the linked habit done (`learning.store.logSession` + `training.store.logWorkout` auto-toggle `plan.linkedHabitId` via `isCompletedToday` guard); the checked habit then advances its linked goal (`habits.store.toggleToday` → `goals.store.toggleMilestone`). Full cascade chain now regression-tested in `src/__tests__/cascade.integration.test.ts` (7 cases, v2.7.1)
 4. ✅ **Personal Analytics module** — period selector, habit heatmap, task/learning/training charts, goals progress
 5. ✅ **Calendar module** — monthly grid, 5 dot types, click-day detail panel
 6. ✅ **Dashboard life stats strip** — habits today, active goals, learning today, training today
@@ -885,7 +885,7 @@ T5 (Learning/Training shared structure) deferred — S17 migration made them div
 
 Cover the stores that own irreplaceable user data, in priority order: **finance** (money math, budgets), **habits** (streak/heatmap logic), **notes** (backlinks, soft-delete), **training** + **learning** store (plan/session lifecycle, cascade delete). Mirror the existing `tasks.store.test.ts` style. Target: every data store has add/edit/delete/derived-count coverage.
 
-**Done so far:** `habits.store` + `notes.store` (earlier), and **`finance.store`** (v1.1.0) — 22 cases: expense CRUD + soft-delete, monthly aggregates (`totalThisMonth`/`spentByCategory`), budgets (set/update/remove/`totalBudget`/`activeCategories`), recurring toggle + `addFromRecurring`, `expensesByMonth`/`recentExpenses` cap, and currency conversion (identity / rate+rounding / symbol). **Remaining:** training + learning stores.
+**Done so far:** `habits.store` + `notes.store` (earlier), and **`finance.store`** (v1.1.0) — 22 cases: expense CRUD + soft-delete, monthly aggregates (`totalThisMonth`/`spentByCategory`), budgets (set/update/remove/`totalBudget`/`activeCategories`), recurring toggle + `addFromRecurring`, `expensesByMonth`/`recentExpenses` cap, and currency conversion (identity / rate+rounding / symbol). Plus **cross-store cascade integration** (`cascade.integration.test.ts`, v2.7.1) — 7 cases covering session/workout → habit → goal end-to-end. **Remaining:** training + learning store per-store depth.
 
 ---
 

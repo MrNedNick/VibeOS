@@ -6,9 +6,11 @@
 
 ## Current state
 
-**Version: v2.7.0 — 2026-06-04**
+**Version: v2.7.1 — 2026-06-04**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
+
+> **Tests: 376 in 28 files.** v2.7.1 added `cascade.integration.test.ts` (7 cases) — the first cross-store regression coverage for the auto-cascade (session/workout → habit → goal). S5 T3 (Habits↔Learning/Training integration) was already shipped — roadmap checkbox corrected.
 
 | Sprint | Status |
 |--------|--------|
