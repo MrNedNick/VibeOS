@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v2.7.4 — 2026-06-04**
+**Version: v2.7.5 — 2026-06-08**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
@@ -26,7 +26,7 @@
 | S15 — Refactor & De-dup | ✅ complete (v1.4.0) |
 | S16 — Test Coverage | 🔄 T1–T6 ✅ T8 ✅; T7 QA pass pending (live review) |
 | S17 — Component Unification | ✅ complete (v1.3.0) |
-| S18 — Product Analytics & Feedback | ✅ complete (v1.5.5) |
+| S18 — Product Analytics & Feedback | ✅ **fully complete** — T11 Supabase analytics/feedback sync shipped (v2.7.5) |
 | S19 — Mobile Excellence & Account | ✅ complete (v1.9.1) |
 | S20 — Auth Excellence | ✅ complete — 34 E2E tests (v1.9.1) |
 | S21 — Backend Architecture | ✅ complete — user_store JSONB sync, offline queue, real-time (v2.2.1) |
@@ -38,6 +38,11 @@
 | **S27 — Profile & UX Polish** | ✅ **complete** — see v2.4–v2.6 below |
 
 **No active sprints. Next session starts from live review (S13 / S16 T7) or new feature requests.**
+
+## New in v2.7.5 (2026-06-08) — S18 T11 + S3 keep-alive
+
+- **S18 T11 complete**: `analytics_events` + `feedback_entries` Supabase tables (migration 003). `useAnalyticsSync` composable — `syncEvents()` batch-pushes interaction events (tracks `platform:analytics:lastSyncTs`); `pushFeedbackEntry()` pushes feedback immediately. Triggered on login, session restore, and `session:end`. Demo/unauthenticated users unaffected.
+- **S3 keep-alive**: `.github/workflows/keep-alive.yml` — pings Supabase REST endpoint every 3 days (cron `0 12 */3 * *`) to prevent free-tier inactivity pause.
 
 ---
 

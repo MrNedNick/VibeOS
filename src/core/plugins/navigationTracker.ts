@@ -1,6 +1,7 @@
 import type { App } from 'vue'
 import type { Router } from 'vue-router'
 import { useInteractionBus } from '@/core/stores/interaction.store'
+import { useAnalyticsSync } from '@/core/composables/useAnalyticsSync'
 import type { SessionStartEvent, SessionEndEvent, ModuleVisitedEvent, ModuleTimeSpentEvent } from '@/core/events/interaction.types'
 
 const SESSION_GAP_MS = 30 * 60 * 1000  // 30 min inactivity = new session
@@ -50,6 +51,7 @@ export function createNavigationTracker(router: Router) {
         bus.emit(ev)
         sessionId = null
         sessionStarted = null
+        useAnalyticsSync().syncEvents().catch(() => { /* silent — offline or unauthenticated */ })
       }
 
       function emitTimeSpent(module: string, enteredAt: number): void {

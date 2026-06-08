@@ -1144,9 +1144,14 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 
 ### Phase 3 — Lock it in (T11–T12)
 
-**T11 — Supabase schema + sync**
+**T11 — Supabase schema + sync** ✅ (v2.7.5)
 
-Add `analytics_events` and `feedback_entries` tables to `supabase.types.ts`. When S3 (auth) lands, wire `useInteractionBus` to `useCloudSync` so events sync per user. Gate behind `useFeatureGate('cloud-sync')`. Local-only behavior unchanged for unauthenticated users.
+- `supabase/migrations/003_analytics_feedback.sql` — `analytics_events` + `feedback_entries` tables with RLS
+- `supabase.types.ts` — added both table types
+- `src/core/composables/useAnalyticsSync.ts` — `syncEvents()` batch-pushes interaction events to `analytics_events` (tracks `platform:analytics:lastSyncTs`); `pushFeedbackEntry()` upserts a single entry to `feedback_entries`
+- Triggered: on login, on session restore (auth.store), and on `session:end` (navigationTracker)
+- Feedback entries pushed immediately when user submits (feedback.store.addEntry)
+- Local-only behavior unchanged for unauthenticated/demo users
 
 **T12 — Sprint close + documentation** ✅ (v1.5.x)
 
@@ -1155,7 +1160,7 @@ Add `analytics_events` and `feedback_entries` tables to `supabase.types.ts`. Whe
 - ✅ feedback.store + interaction.store tests added (330 total in 24 files, then 369 in 27)
 - ✅ CLAUDE.md updated, S18 marked complete
 - ✅ roadmap.md Sprint Status Overview updated
-- T11 Supabase schema — deferred to S3 unblock (blocked on credentials)
+- ✅ T11 Supabase schema + sync — shipped v2.7.5
 - Version bumped across v1.5.1–v1.5.4
 
 ---

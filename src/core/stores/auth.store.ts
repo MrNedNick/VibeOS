@@ -17,6 +17,7 @@ import { useStorage } from '@/core/composables/useStorage'
 import { getSupabase, isSupabaseConfigured } from '@/core/services/supabase'
 import { useCloudSync } from '@/core/composables/useCloudSync'
 import { useRealtimeSync } from '@/core/composables/useRealtimeSync'
+import { useAnalyticsSync } from '@/core/composables/useAnalyticsSync'
 import { useUiStore } from '@/core/stores/ui.store'
 import { seedDemoData } from '@/core/utils/demoSeed'
 
@@ -126,6 +127,7 @@ export const useAuthStore = defineStore('core:auth', () => {
           await useCloudSync().pullAll()
           useRealtimeSync().subscribe(data.user.id)
           useUiStore().syncSettingsFromCloud()
+          useAnalyticsSync().syncEvents().catch(console.warn)
         }
         return { error: null }
       } catch (err) {
@@ -367,6 +369,7 @@ export const useAuthStore = defineStore('core:auth', () => {
           // Background pull to catch any changes from other devices; subscribe real-time
           useCloudSync().pullAll().catch(console.warn)
           useRealtimeSync().subscribe(session.user.id)
+          useAnalyticsSync().syncEvents().catch(console.warn)
         } else {
           // No valid Supabase session — clear stale local state if it was supabase
           if (_state.value.user?.provider === 'supabase') {

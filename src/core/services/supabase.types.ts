@@ -177,6 +177,35 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['user_settings']['Row'], 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['user_settings']['Insert']>
       }
+      analytics_events: {
+        Row: {
+          id: string
+          user_id: string
+          type: string
+          module: string | null
+          feature: string | null
+          session_id: string | null
+          timestamp: string
+          payload: Json | null
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['analytics_events']['Row'], 'id' | 'created_at'>
+        Update: never
+      }
+      feedback_entries: {
+        Row: {
+          id: string
+          user_id: string
+          score: number
+          comment: string | null
+          timestamp: string
+          session_id: string | null
+          app_version: string | null
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['feedback_entries']['Row'], 'id' | 'created_at'>
+        Update: never
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
+import { useAnalyticsSync } from '@/core/composables/useAnalyticsSync'
 
 export interface FeedbackEntry {
   id: string
@@ -39,6 +40,7 @@ export const useFeedbackStore = defineStore('platform:feedback', () => {
       entries: [...state.value.entries, entry],
       lastSubmittedAt: entry.timestamp,
     }
+    useAnalyticsSync().pushFeedbackEntry(entry).catch(console.warn)
   }
 
   function incrementDismiss(): void {

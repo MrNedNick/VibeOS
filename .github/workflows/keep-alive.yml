@@ -1,0 +1,24 @@
+name: Supabase Keep-Alive
+
+# Ping the Supabase project every 3 days to prevent free-tier inactivity pausing.
+# Supabase pauses projects after 1 week of inactivity — this keeps it awake.
+
+on:
+  schedule:
+    - cron: '0 12 */3 * *'   # every 3 days at noon UTC
+  workflow_dispatch:           # manual trigger for testing
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST endpoint
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}")
+          echo "Supabase ping status: $STATUS"
+          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 500 ]; then
+            echo "Unexpected status $STATUS — project may be paused or unreachable"
+            exit 1
+          fi
