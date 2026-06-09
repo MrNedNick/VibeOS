@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">84.61% </span>
+                <span class="strong">83.6% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>44/52</span>
+                <span class='fraction'>51/61</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">54.16% </span>
+                <span class="strong">57.69% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>13/24</span>
+                <span class='fraction'>15/26</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.88% </span>
+                <span class="strong">85% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>16/18</span>
+                <span class='fraction'>17/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.36% </span>
+                <span class="strong">83.67% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>35/41</span>
+                <span class='fraction'>41/49</span>
             </div>
         
             
@@ -160,7 +160,24 @@
 <a name='L95'></a><a href='#L95'>95</a>
 <a name='L96'></a><a href='#L96'>96</a>
 <a name='L97'></a><a href='#L97'>97</a>
-<a name='L98'></a><a href='#L98'>98</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -169,6 +186,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -257,17 +285,31 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { computed } from 'vue'
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
-import { storageKey } from '@/core/utils/storage'
+import { storageKey, storagGet } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
+import { useBackendSync } from '@/core/composables/useBackendSync'
+import { useSyncBus } from '@/core/composables/useSyncBus'
+import { isSupabaseConfigured } from '@/core/services/supabase'
 import { deriveTitle } from '../types'
 import type { Note, NoteType } from '../types'
 &nbsp;
+const NOTES_KEY = storageKey('notes', 'notes')
+&nbsp;
 export const useNotesStore = defineStore('notes:notes', () =&gt; {
-  const { all: allNotes, items: notes, softDelete } = useSoftDeletable&lt;Note&gt;(storageKey('notes', 'notes'))
+  const { all: allNotes, items: notes, softDelete } = useSoftDeletable&lt;Note&gt;(NOTES_KEY)
   const events = useEventBus()
+&nbsp;
+  const initialized = ref(!isSupabaseConfigured || allNotes.value.length &gt; 0)
+  const syncBus = useSyncBus()
+  watch(syncBus.pullSeq, <span class="fstat-no" title="function not covered" >() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    allNotes.value = storagGet&lt;Note[]&gt;(NOTES_KEY, [])</span>
+<span class="cstat-no" title="statement not covered" >    initialized.value = true</span>
+  })
+  const backendSync = useBackendSync(NOTES_KEY)
+  watch(allNotes, v =&gt; backendSync.push(v), { deep: true })
 &nbsp;
   const sortedNotes = computed(() =&gt;
     [...notes.value].sort((a, b) =&gt; {
@@ -352,7 +394,7 @@ export const useNotesStore = defineStore('notes:notes', () =&gt; {
     return notes.value.filter(n =&gt; n.linkedGoalId === goalId)
   }
 &nbsp;
-  return { notes, sortedNotes, createNote, openOrCreateToday, updateContent, deleteNote, togglePin, setNoteType, setNoteGoal, getNotesForGoal }
+  return { notes, initialized, sortedNotes, createNote, openOrCreateToday, updateContent, deleteNote, togglePin, setNoteType, setNoteGoal, getNotesForGoal }
 })
 &nbsp;</pre></td></tr></table></pre>
 
@@ -361,7 +403,7 @@ export const useNotesStore = defineStore('notes:notes', () =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-03T06:50:57.928Z
+                at 2026-06-05T14:19:46.142Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

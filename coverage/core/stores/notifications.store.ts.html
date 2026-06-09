@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/22</span>
+                <span class='fraction'>22/22</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -130,34 +130,34 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -178,34 +178,34 @@ export interface Notification {
   action?: NotificationAction
 }
 &nbsp;
-const DEFAULT_DURATION = <span class="cstat-no" title="statement not covered" >3500</span>
+const DEFAULT_DURATION = 3500
 &nbsp;
-export const <span class="cstat-no" title="statement not covered" >useNotificationsStore = defineStore('core:notifications', <span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
-  const <span class="cstat-no" title="statement not covered" >items = ref&lt;Notification[]&gt;([])</span>
+export const useNotificationsStore = defineStore('core:notifications', () =&gt; {
+  const items = ref&lt;Notification[]&gt;([])
 &nbsp;
-  function <span class="fstat-no" title="function not covered" >push(</span>
+  function push(
     type: NotificationType,
     message: string,
-    duration = <span class="branch-0 cbranch-no" title="branch not covered" >DEFAULT_DURATION,</span>
+    duration = DEFAULT_DURATION,
     action?: NotificationAction,
   ): string {
-    const <span class="cstat-no" title="statement not covered" >id = generateId()</span>
-<span class="cstat-no" title="statement not covered" >    items.value.push({ id, type, message, duration, action })</span>
-<span class="cstat-no" title="statement not covered" >    if (duration &gt; 0) <span class="cstat-no" title="statement not covered" >setTimeout(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >d</span>ismiss(id), d</span>uration)</span></span>
-<span class="cstat-no" title="statement not covered" >    return id</span>
+    const id = generateId()
+    items.value.push({ id, type, message, duration, action })
+    if (duration &gt; 0) setTimeout(() =&gt; dismiss(id), duration)
+    return id
   }
 &nbsp;
-  function <span class="fstat-no" title="function not covered" >dismiss(i</span>d: string) {
-    const idx = <span class="cstat-no" title="statement not covered" >items.value.findIndex(<span class="fstat-no" title="function not covered" >n =&gt; <span class="cstat-no" title="statement not covered" >n</span>.id === id)</span></span>
-<span class="cstat-no" title="statement not covered" >    if (idx &gt; -1) <span class="cstat-no" title="statement not covered" >items.value.splice(idx, 1)</span></span>
+  function dismiss(id: string) {
+    const idx = items.value.findIndex(n =&gt; n.id === id)
+    if (idx &gt; -1) items.value.splice(idx, 1)
   }
 &nbsp;
-  const success = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(m</span>sg: string) =&gt; <span class="cstat-no" title="statement not covered" >push('success', msg)</span></span>
-  const error   = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(m</span>sg: string) =&gt; <span class="cstat-no" title="statement not covered" >push('error', msg)</span></span>
-  const warning = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(m</span>sg: string) =&gt; <span class="cstat-no" title="statement not covered" >push('warning', msg)</span></span>
-  const info    = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(m</span>sg: string) =&gt; <span class="cstat-no" title="statement not covered" >push('info', msg)</span></span>
+  const success = (msg: string) =&gt; push('success', msg)
+  const error   = (msg: string) =&gt; push('error', msg)
+  const warning = (msg: string) =&gt; push('warning', msg)
+  const info    = (msg: string) =&gt; push('info', msg)
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return { items, push, dismiss, success, error, warning, info }</span>
+  return { items, push, dismiss, success, error, warning, info }
 })
 &nbsp;</pre></td></tr></table></pre>
 
@@ -214,7 +214,7 @@ export const <span class="cstat-no" title="statement not covered" >useNotificati
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-03T06:50:57.928Z
+                at 2026-06-05T14:19:46.142Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

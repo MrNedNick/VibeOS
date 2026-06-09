@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for core/events/index.ts</title>
+    <title>Code coverage report for core/composables/useToast.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">core/events</a> index.ts</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">core/composables</a> useToast.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">11.76% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>6/10</span>
+                <span class='fraction'>2/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">40% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/5</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">15.38% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>6/9</span>
+                <span class='fraction'>2/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -94,68 +94,86 @@
 <a name='L29'></a><a href='#L29'>29</a>
 <a name='L30'></a><a href='#L30'>30</a>
 <a name='L31'></a><a href='#L31'>31</a>
-<a name='L32'></a><a href='#L32'>32</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">140x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">379x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">140x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { defineStore } from 'pinia'
-import { useStorage } from '@/core/composables/useStorage'
-import type { PlatformEvent, PlatformEventType } from './types'
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { reactive } from 'vue'
 &nbsp;
-export type { PlatformEvent, PlatformEventType }
-export * from './types'
+export type ToastType = 'success' | 'error' | 'info' | 'warning'
 &nbsp;
-const MAX_HISTORY = 100
+export interface Toast {
+  id: number
+  type: ToastType
+  message: string
+}
 &nbsp;
-export const useEventBus = defineStore('platform:events', () =&gt; {
-  // Persisted ring buffer of the last MAX_HISTORY events
-  const history = useStorage&lt;PlatformEvent[]&gt;('platform:events:history', [])
+// Module-level state — shared across all components, no Pinia needed
+let _nextId = 0
+const _toasts = reactive&lt;Toast[]&gt;([])
 &nbsp;
-  /** Emit a platform event — appends to history and notifies any listeners. */
-  function emit(event: PlatformEvent): void {
-    history.value = [event, ...history.value].slice(0, MAX_HISTORY)
+export function <span class="fstat-no" title="function not covered" >useToast() {</span>
+  function <span class="fstat-no" title="function not covered" >dismiss(i</span>d: number): void {
+    const i = <span class="cstat-no" title="statement not covered" >_toasts.findIndex(<span class="fstat-no" title="function not covered" >t =&gt; <span class="cstat-no" title="statement not covered" >t</span>.id === id)</span></span>
+<span class="cstat-no" title="statement not covered" >    if (i !== -1) <span class="cstat-no" title="statement not covered" >_toasts.splice(i, 1)</span></span>
   }
 &nbsp;
-  /** Return the last `n` events, optionally filtered by type. */
-  function <span class="fstat-no" title="function not covered" >recent(n</span> = <span class="branch-0 cbranch-no" title="branch not covered" >10, t</span>ype?: PlatformEventType): PlatformEvent[] {
-    const base = <span class="cstat-no" title="statement not covered" >type ? history.value.filter(<span class="fstat-no" title="function not covered" >e =&gt; <span class="cstat-no" title="statement not covered" >e</span>.type === type)</span> : history.value</span>
-<span class="cstat-no" title="statement not covered" >    return base.slice(0, n)</span>
+  function <span class="fstat-no" title="function not covered" >add(t</span>ype: ToastType, message: string, duration = <span class="branch-0 cbranch-no" title="branch not covered" >3500): void {</span>
+    // Cap at 3 visible toasts — drop oldest if over limit
+<span class="cstat-no" title="statement not covered" >    if (_toasts.length &gt;= 3) <span class="cstat-no" title="statement not covered" >_toasts.shift()</span></span>
+    const id = <span class="cstat-no" title="statement not covered" >++_nextId</span>
+<span class="cstat-no" title="statement not covered" >    _toasts.push({ id, type, message })</span>
+<span class="cstat-no" title="statement not covered" >    setTimeout(<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >d</span>ismiss(id), d</span>uration)</span>
   }
 &nbsp;
-  /** Clear all stored history. */
-  function <span class="fstat-no" title="function not covered" >clear(): void {</span>
-<span class="cstat-no" title="statement not covered" >    history.value = []</span>
+<span class="cstat-no" title="statement not covered" >  return {</span>
+    toasts: _toasts,
+    success: <span class="fstat-no" title="function not covered" >(m</span>sg: string, duration?: number) =&gt; <span class="cstat-no" title="statement not covered" >add('success', msg, duration),</span>
+    error:   <span class="fstat-no" title="function not covered" >(m</span>sg: string, duration?: number) =&gt; <span class="cstat-no" title="statement not covered" >add('error',   msg, duration),</span>
+    info:    <span class="fstat-no" title="function not covered" >(m</span>sg: string, duration?: number) =&gt; <span class="cstat-no" title="statement not covered" >add('info',    msg, duration),</span>
+    warning: <span class="fstat-no" title="function not covered" >(m</span>sg: string, duration?: number) =&gt; <span class="cstat-no" title="statement not covered" >add('warning', msg, duration),</span>
+    dismiss,
   }
-&nbsp;
-  return { history, emit, recent, clear }
-})
+}
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
