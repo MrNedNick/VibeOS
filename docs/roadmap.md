@@ -25,7 +25,7 @@
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | ✅ **complete** — T1–T6 ✅ T4 ✅ (hex guard + WelcomeView hex v1.5.1) |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 deferred. T7 QA report refreshed (v1.5.2). |
-| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T3 ✅ T6 ✅ T8 ✅; T4 🔄 (19/22 @/ui); T5 🔄 (started — BoardCard + 2 HabitCard children); remaining: T7 QA pass (needs live review). **541 tests in 49 files** |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T3 ✅ T6 ✅ T8 ✅; T4 🔄 (19/22 @/ui); T5 🔄 (Analytics + Board + Habit + Finance children); remaining: T7 QA pass (needs live review). **555 tests in 51 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
 | **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** (T11 deferred to S3) — T1–T10 ✅ T12 ✅ (docs, tests, UiFeedbackModal in docs-registry). T11 Supabase → blocked on credentials, moves to S3. |
 | **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | 🔄 **active** (2026-06-03) — T10 (auth redirect fix) SHIP FIRST; T1–T9, T11 pending |
@@ -911,7 +911,7 @@ Original spec: Cover `auth.store` (signIn/signOut/session, demo-mode gating — 
 
 After S15 T4 split them, the new child components (FinanceSummary, TransactionList, BoardColumn, BoardCard, Analytics panels) are now testable in isolation. Add focused tests: render with fixture data, key interactions, empty states.
 
-**Progress:** Analytics panels (`analyticsComponents.test.ts`) + **`BoardCard`, `HabitCardCalendar`, `HabitCardLinks`** (v2.7.10 — 36 cases: priority/due/source meta + toggle-expand/delete/drag emits + cyclePriority/moveCard store calls; 14-day grid done/skipped/today states + today-emit vs past-day store call + right-click skip; connect-hint vs chips + picker toggle + Save→updateHabitLink). Remaining children: `FinanceOverview`/`FinanceTransactions`/`FinanceBudgets`, `BoardColumn`/`TimelineGrid`, Studio panes (Studio module lives under `ai-playground`).
+**Progress:** Analytics panels (`analyticsComponents.test.ts`) + `BoardCard`, `HabitCardCalendar`, `HabitCardLinks` (v2.7.10 — 36 cases) + **`FinanceTransactions`, `FinanceBudgets`** (v2.7.11 — 14 cases: empty-state vs list rows, count header, note/category render, recurring toggle, confirm-gated delete (confirmed vs dismissed); budget row per category, Set-limit vs limit/mo, spent label, startBudgetEdit, inline edit input, 3 currency rows + symbol-input store binding). Remaining children: `FinanceOverview` (AI prompt builder — low testable surface), `BoardColumn`/`TimelineGrid`, Studio panes (Studio module lives under `ai-playground`).
 
 ---
 
