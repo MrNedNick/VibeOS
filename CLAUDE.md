@@ -6,11 +6,11 @@
 
 ## Current state
 
-**Version: v2.7.8 — 2026-06-10**
+**Version: v2.7.9 — 2026-06-10**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
-> **Tests: 506 in 44 files.** v2.7.8 added 5 more `@/ui` component test files — `UiFab`, `UiStat`, `UiSectionLabel`, `UiProgressRing`, `UiSkeleton` (33 cases — advances **S16 T4** to 17/22 components). v2.7.7 added 5 `@/ui` component test files — `UiInput`, `UiField`, `UiProgressBar`, `UiBadge`, `UiEmptyState` (43 cases). v2.7.6 added `useAiInsight.test.ts` (8 cases — completes **S16 T1**: both S15 shared composables `useSoftDeletable` + `useAiInsight` now unit-tested; mocks `aiComplete`, pins the silent-failure contract). v2.7.4 added `board.store.test.ts` (Kanban cards + card→task cascade — completes S16 T2 data-store coverage) and `useFormValidation.test.ts` (auth-form validators). S16 T2 + T3 now complete (roadmap markers were stale — commandPalette/ui/learning/training stores were already tested).
+> **Tests: 517 in 46 files.** v2.7.9 added the 2 interaction-heavy teleport modals — `UiConfirmDialog` (useConfirm promise resolution) + `UiFeedbackModal` (mood→comment→thankyou flow) (11 cases — **S16 T4** now 19/22, all interactive primitives covered; remaining 3 are presentational/infra). v2.7.8 added 5 more `@/ui` component test files — `UiFab`, `UiStat`, `UiSectionLabel`, `UiProgressRing`, `UiSkeleton` (33 cases). v2.7.7 added 5 `@/ui` component test files — `UiInput`, `UiField`, `UiProgressBar`, `UiBadge`, `UiEmptyState` (43 cases). v2.7.6 added `useAiInsight.test.ts` (8 cases — completes **S16 T1**: both S15 shared composables `useSoftDeletable` + `useAiInsight` now unit-tested; mocks `aiComplete`, pins the silent-failure contract). v2.7.4 added `board.store.test.ts` (Kanban cards + card→task cascade — completes S16 T2 data-store coverage) and `useFormValidation.test.ts` (auth-form validators). S16 T2 + T3 now complete (roadmap markers were stale — commandPalette/ui/learning/training stores were already tested).
 >
 > **Tests: 399 in 31 files (v2.7.3).** v2.7.1 added `cascade.integration.test.ts` (7 — cross-store auto-cascade). v2.7.2 added `usePullToRefresh.test.ts` (4) + wired Dashboard pull-to-refresh to `pullAll()`. v2.7.3 added **auth.store coverage** (19 cases, Supabase mocked) and fixed a real demo-immunity bug: `onAuthStateChange` cleared ANY user on `SIGNED_OUT`/`TOKEN_REFRESHED`, so a Supabase event could wipe a local demo session (the welcome funnel sends every visitor into demo mode). Now guarded to supabase-provider sessions only.
 >
@@ -278,4 +278,4 @@ Every new component must work at `lg` and `sm` at minimum. Content max-width: `v
 
 ## Testing
 
-Vitest v4 + happy-dom. 506 tests in 44 files. `npm test` = run once. Coverage gate: stmt 35% / branch 22%. Playwright E2E: `e2e/smoke.spec.ts`. For Teleport components (UiModal) → query `document.body`, not `wrapper.find()`.
+Vitest v4 + happy-dom. 517 tests in 46 files. `npm test` = run once. Coverage gate: stmt 35% / branch 22%. Playwright E2E: `e2e/smoke.spec.ts`. For Teleport components (UiModal) → query `document.body`, not `wrapper.find()`.

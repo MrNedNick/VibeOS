@@ -25,7 +25,7 @@
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | ✅ **complete** — T1–T6 ✅ T4 ✅ (hex guard + WelcomeView hex v1.5.1) |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 deferred. T7 QA report refreshed (v1.5.2). |
-| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T3 ✅ T6 ✅ T8 ✅; T4 🔄 (17/22 @/ui components); remaining: T5, T7 QA pass (needs live review). **506 tests in 44 files** |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T3 ✅ T6 ✅ T8 ✅; T4 🔄 (19/22 @/ui — all interactive done); remaining: T5, T7 QA pass (needs live review). **517 tests in 46 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
 | **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** (T11 deferred to S3) — T1–T10 ✅ T12 ✅ (docs, tests, UiFeedbackModal in docs-registry). T11 Supabase → blocked on credentials, moves to S3. |
 | **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | 🔄 **active** (2026-06-03) — T10 (auth redirect fix) SHIP FIRST; T1–T9, T11 pending |
@@ -899,11 +899,11 @@ Original spec: Cover `auth.store` (signIn/signOut/session, demo-mode gating — 
 
 ---
 
-### T4 — Component tests for @/ui primitives 🧩 🔄 (17/22 — v2.7.8)
+### T4 — Component tests for @/ui primitives 🧩 🔄 (19/22 — all interactive covered — v2.7.9)
 
 `@vue/test-utils` is installed but unused. Add render/prop/emit tests for the `@/ui` library (`UiButton`, `UiInput`, `UiField`, `UiFilterChips`, `UiModal`, `UiConfirmDialog`, `UiProgressBar`, `UiSkeleton`, …). These are reused everywhere — one regression breaks the whole app. Start with the interactive ones (emit events, slots, disabled/loading states).
 
-**Progress (17/22 components covered):** `UiButton`, `UiCard`, `UiFilterChips`, `UiIconButton`, `UiModal`, `UiSelect`, `UiTextarea` (S17 Phase 0) + `UiInput`, `UiField`, `UiProgressBar`, `UiBadge`, `UiEmptyState` (v2.7.7) + **`UiFab`, `UiStat`, `UiSectionLabel`, `UiProgressRing`, `UiSkeleton`** (v2.7.8 — 33 cases: click-emit+disabled, value/label/icon/align/size/color modifiers, polymorphic `as` tag + size, svg arc geometry/label/clamp/aria, width-height-rounded-inline). Remaining untested: `UiIcon` (icon resolver), `UiToastContainer` + `UiPlannedView` (composable/router-coupled), `UiFeedbackModal` + `UiConfirmDialog` (interaction-heavy teleport — next priority).
+**Progress (19/22 components covered):** `UiButton`, `UiCard`, `UiFilterChips`, `UiIconButton`, `UiModal`, `UiSelect`, `UiTextarea` (S17 Phase 0) + `UiInput`, `UiField`, `UiProgressBar`, `UiBadge`, `UiEmptyState` (v2.7.7) + `UiFab`, `UiStat`, `UiSectionLabel`, `UiProgressRing`, `UiSkeleton` (v2.7.8) + **`UiConfirmDialog`, `UiFeedbackModal`** (v2.7.9 — teleport-driven: confirm() open/danger/custom-labels + accept→true / cancel→false promise resolution; feedback mood→comment→thankyou flow, `submitted` (score, trimmed comment) emit, empty-comment→undefined, dismiss/auto-close). **All interactive primitives now covered.** Remaining 3 are presentational/infra, low-priority: `UiIcon` (lucide resolver), `UiToastContainer` (toast composable), `UiPlannedView` (router-coupled).
 
 ---
 
