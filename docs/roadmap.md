@@ -25,7 +25,7 @@
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | ✅ **complete** — T1–T6 ✅ T4 ✅ (hex guard + WelcomeView hex v1.5.1) |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 deferred. T7 QA report refreshed (v1.5.2). |
-| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T6 ✅ T8 ✅ (coverage gate); remaining: T7 QA pass. **369 tests in 27 files** |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T6 ✅ T8 ✅ (coverage gate); remaining: T7 QA pass (needs live review). **430 tests in 34 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
 | **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** (T11 deferred to S3) — T1–T10 ✅ T12 ✅ (docs, tests, UiFeedbackModal in docs-registry). T11 Supabase → blocked on credentials, moves to S3. |
 | **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | 🔄 **active** (2026-06-03) — T10 (auth redirect fix) SHIP FIRST; T1–T9, T11 pending |
@@ -875,9 +875,11 @@ T5 (Learning/Training shared structure) deferred — S17 migration made them div
 
 ---
 
-### T1 — Test the S15 shared composables first 🧪
+### T1 — Test the S15 shared composables first 🧪 ✅ (v2.7.6)
 
 `useSoftDeletable` (S15 T1) and `useAiInsight` (S15 T2) are now the backbone of 7 stores and 8 views. Unit-test them directly: tombstone set/restore/GC interaction, add/update/soft-delete; AI insight run/dismiss/cache/error path (mock `aiRequest`). High leverage — one test file covers behavior shared by many modules.
+
+**Done:** `useSoftDeletable.test.ts` (lifecycle + tombstones + independent collections) + **`useAiInsight.test.ts`** (v2.7.6 — 8 cases: initial state, prompt pass-through, synchronous `loading=true`, resolve→result+loading clear, result wiped on re-run, **silent rejection** (no throw, result null, loading clears), and `dismiss()`; mocks `aiComplete`). Both shared composables now covered.
 
 ---
 
