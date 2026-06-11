@@ -138,6 +138,34 @@ const canvasRef  = ref<HTMLCanvasElement>()
 const previewRef = ref<HTMLCanvasElement>()
 const holdRef    = ref<HTMLCanvasElement>()
 
+// ── Record celebration ────────────────────────────────────────────────────
+const isNewRecord = ref(false)
+
+interface ConfettiPiece {
+  left: number; top: number; delay: string; duration: string
+  color: string; rotate: number; width: number
+}
+
+const confettiPieces = ref<ConfettiPiece[]>([])
+
+function generateConfetti(): void {
+  const colors = [
+    'var(--color-accent)',
+    'var(--color-warning)',
+    'var(--color-success, #22c55e)',
+    'var(--color-text-secondary)',
+  ]
+  confettiPieces.value = Array.from({ length: 24 }, (_, i) => ({
+    left: 8 + Math.floor(Math.random() * 84),
+    top: 5 + Math.floor(Math.random() * 55),
+    delay: (Math.random() * 0.7).toFixed(2),
+    duration: (1.4 + Math.random() * 1.0).toFixed(2),
+    color: colors[i % colors.length],
+    rotate: Math.floor(Math.random() * 360),
+    width: 4 + Math.floor(Math.random() * 5),
+  }))
+}
+
 let rafId    = 0
 let lastTime = 0
 let dropAcc  = 0
@@ -341,6 +369,8 @@ function startGame(): void {
   falling.value   = null
   state.value     = 'playing'
   dropAcc = 0
+  isNewRecord.value = false
+  confettiPieces.value = []
   if (!spawnPiece()) return
   lastTime = performance.now()
   rafId = requestAnimationFrame(gameLoop)
@@ -362,6 +392,7 @@ function endGame(): void {
   state.value = 'over'
   cancelAnimationFrame(rafId)
   if (score.value > 0) {
+    isNewRecord.value = score.value > bestScore.value
     const record: ScoreRecord = {
       score: score.value,
       lines: lines.value,
@@ -374,6 +405,9 @@ function endGame(): void {
       .slice(0, 5)
     if (score.value > bestScore.value) bestScore.value = score.value
     checkSkinUnlocks()
+    if (isNewRecord.value) generateConfetti()
+  } else {
+    isNewRecord.value = false
   }
   events.emit({ type: 'games:tetris:gameover', score: score.value, timestamp: new Date().toISOString() } as never)
 }
@@ -623,11 +657,38 @@ function formatDate(iso: string): string {
         </div>
 
         <!-- Overlay: game over -->
-        <div v-else-if="state === 'over'" class="tetris__overlay tetris__overlay--over">
-          <div class="tetris__overlay-content">
+        <div
+          v-else-if="state === 'over'"
+          class="tetris__overlay tetris__overlay--over"
+          :class="{ 'tetris__overlay--record': isNewRecord }"
+        >
+          <!-- Confetti burst on new record (pure CSS, 24 chips) -->
+          <div
+            v-if="isNewRecord"
+            v-for="(chip, i) in confettiPieces"
+            :key="i"
+            class="tetris__confetti"
+            :style="{
+              left: chip.left + '%',
+              top: chip.top + '%',
+              animationDelay: chip.delay + 's',
+              animationDuration: chip.duration + 's',
+              background: chip.color,
+              transform: `rotate(${chip.rotate}deg)`,
+              width: chip.width + 'px',
+              height: chip.width * 2 + 'px',
+            }"
+          />
+
+          <div
+            class="tetris__overlay-content tetris__overlay-content--over"
+            :class="{ 'tetris__overlay-content--glow': isNewRecord }"
+          >
             <div class="tetris__overlay-title">Game over</div>
             <div class="tetris__overlay-score">{{ score }}</div>
-            <div v-if="score >= bestScore && score > 0" class="tetris__overlay-best">New best!</div>
+            <div v-if="isNewRecord" class="tetris__overlay-best tetris__overlay-best--pop">
+              New best!
+            </div>
             <button class="tetris__start-btn" @click="startGame">
               <UiIcon name="RotateCcw" :size="15" />
               Play again
@@ -979,7 +1040,8 @@ function formatDate(iso: string): string {
 }
 
 .tetris__overlay--over {
-  background: color-mix(in srgb, #ef4444 8%, var(--color-bg) 88%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+  backdrop-filter: blur(6px);
 }
 
 .tetris__overlay-content {
@@ -987,6 +1049,17 @@ function formatDate(iso: string): string {
   flex-direction: column;
   align-items: center;
   gap: 14px;
+}
+
+/* Card-wrapped game-over content for legibility over any fallen piece pattern */
+.tetris__overlay-content--over {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  padding: 32px 40px;
+  position: relative;
+  overflow: hidden;
 }
 
 .tetris__overlay-title {
@@ -997,16 +1070,60 @@ function formatDate(iso: string): string {
 }
 
 .tetris__overlay-score {
-  font-size: 36px;
-  font-weight: 800;
+  font-size: 3.5rem;
+  font-weight: 700;
   font-family: var(--font-mono);
-  color: var(--color-accent);
+  color: var(--color-text);
+  letter-spacing: -0.02em;
 }
 
 .tetris__overlay-best {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-accent);
+}
+
+/* Prominent pill badge with pop entrance on new record */
+.tetris__overlay-best--pop {
+  background: var(--color-accent);
+  color: #fff;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  animation: tetrisRecordPop 0.5s var(--ease-smooth, cubic-bezier(.34,1.56,.64,1)) both;
+}
+
+@keyframes tetrisRecordPop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  70%  { transform: scale(1.18); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+/* Card glow that fades out over 2s on new record */
+.tetris__overlay-content--glow {
+  animation: tetrisCardGlow 2s ease-out forwards;
+}
+
+@keyframes tetrisCardGlow {
+  0%   { box-shadow: var(--shadow-3), 0 0 60px color-mix(in srgb, var(--color-accent) 45%, transparent); }
+  100% { box-shadow: var(--shadow-3); }
+}
+
+/* Confetti chip */
+.tetris__confetti {
+  position: absolute;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: tetrisConfettiFall linear both;
+  z-index: 1;
+}
+
+@keyframes tetrisConfettiFall {
+  0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(90px) rotate(360deg); opacity: 0; }
 }
 
 .tetris__start-btn {
