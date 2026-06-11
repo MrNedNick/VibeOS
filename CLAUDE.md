@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v2.7.20 — 2026-06-11**
+**Version: v2.7.21 — 2026-06-11**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
@@ -26,7 +26,7 @@
 | S13 — Design Pass | 🔜 requires live review session |
 | S14 — Quick Wins | ✅ complete (v1.5.5) |
 | S15 — Refactor & De-dup | ✅ complete (v1.4.0) |
-| S16 — Test Coverage | 🔄 T1–T6 ✅ T8 ✅; T7 QA pass pending (live review) — 582 tests in 54 files |
+| S16 — Test Coverage | 🔄 T1–T6 ✅ T8 ✅; T4 ✅ (22/22 @/ui); T5 🔄 (BoardColumn ✅, remaining: FinanceOverview/Studio); T7 QA pass pending (live review) — 613 tests in 58 files |
 | S17 — Component Unification | ✅ complete (v1.3.0) |
 | S18 — Product Analytics & Feedback | ✅ **fully complete** — T11 Supabase analytics/feedback sync shipped (v2.7.5) |
 | S19 — Mobile Excellence & Account | ✅ complete (v1.9.1) |
@@ -302,4 +302,4 @@ Every new component must work at `lg` and `sm` at minimum. Content max-width: `v
 
 ## Testing
 
-Vitest v4 + happy-dom (`sanitizeHtml.test.ts` runs under jsdom via `@vitest-environment` pragma). 582 tests in 54 files. `npm test` = run once. Coverage gate: stmt 35% / branch 22% (via `@vitest/coverage-v8`, runs in CI as `npm run test:coverage`). Playwright E2E: `e2e/smoke.spec.ts` — 5 smoke scenarios (boot, task CRUD, vibe-pak switch, Studio, demo mode). For Teleport components (UiModal) → query `document.body`, not `wrapper.find()`.
+Vitest v4 + happy-dom (`sanitizeHtml.test.ts` runs under jsdom via `@vitest-environment` pragma). 613 tests in 58 files. `npm test` = run once. Coverage gate: stmt 35% / branch 22% (via `@vitest/coverage-v8`, runs in CI as `npm run test:coverage`). Playwright E2E: `e2e/smoke.spec.ts` — 5 smoke scenarios (boot, task CRUD, vibe-pak switch, Studio, demo mode). For Teleport components (UiModal, UiToastContainer, UiConfirmDialog) → mount with `attachTo: document.body` and query `document.body`, not `wrapper.find()`.
