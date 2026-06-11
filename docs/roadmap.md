@@ -25,7 +25,7 @@
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | ✅ **complete** — T1–T6 ✅ T4 ✅ (hex guard + WelcomeView hex v1.5.1) |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 deferred. T7 QA report refreshed (v1.5.2). |
-| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T6 ✅ T8 ✅; T4 ✅ (22/22 @/ui — all components covered); T5 🔄 (BoardColumn ✅; FinanceOverview/Studio panes low-priority); remaining: T7 QA pass (needs live review). **613 tests in 58 files** |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T6 ✅ T8 ✅; T4 ✅ (22/22 @/ui — all components covered); T5 🔄 (BoardColumn ✅, StudioHistorySidebar ✅, StudioModelPicker ✅; remaining: TimelineGrid/FinanceOverview low-priority); T7 QA pass (needs live review). **634 tests in 60 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
 | **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** — T1–T12 ✅ incl. T11 Supabase analytics/feedback sync (v2.7.5) |
 | **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | ✅ **complete** — v1.9.1 |
@@ -917,7 +917,7 @@ All 22 @/ui components now have test coverage.
 
 After S15 T4 split them, the new child components (FinanceSummary, TransactionList, BoardColumn, BoardCard, Analytics panels) are now testable in isolation. Add focused tests: render with fixture data, key interactions, empty states.
 
-**Progress:** Analytics panels (`analyticsComponents.test.ts`) + `BoardCard`, `HabitCardCalendar`, `HabitCardLinks` (v2.7.10 — 36 cases) + **`FinanceTransactions`, `FinanceBudgets`** (v2.7.11 — 14 cases) + **`BoardColumn`** (v2.7.21 — 13 cases: header dot/count, empty state, cards render, add-card emit, drag-enter/drop emits, drag-over class). Remaining: `FinanceOverview` (AI prompt builder — low testable surface), `TimelineGrid`, Studio panes (Studio module lives under `ai-playground`).
+**Progress:** Analytics panels (`analyticsComponents.test.ts`) + `BoardCard`, `HabitCardCalendar`, `HabitCardLinks` (v2.7.10 — 36 cases) + **`FinanceTransactions`, `FinanceBudgets`** (v2.7.11 — 14 cases) + **`BoardColumn`** (v2.7.21 — 13 cases: header dot/count, empty state, cards render, add-card emit, drag-enter/drop emits, drag-over class) + **`StudioHistorySidebar` + `StudioModelPicker`** (v2.7.22 — 21 cases: sidebar empty state, item count/title/date, loadConversation/deleteConversation, confirm-gated clearHistory; model picker chips per provider free/anthropic/groq/gemini/openrouter, API key row visibility). Remaining: `FinanceOverview` (AI prompt builder — low testable surface), `TimelineGrid` (419 LOC, complex drag grid — deferred).
 
 ---
 
