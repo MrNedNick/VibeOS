@@ -54,12 +54,12 @@ export const useFinanceStore = defineStore('finance:main', () => {
 
   const budgetMap = computed(() => {
     const map: Record<string, number> = {}
-    for (const b of budgets.value) map[b.category] = b.monthlyLimit
+    for (const b of budgets.value) { if (!b.deletedAt) map[b.category] = b.monthlyLimit }
     return map as Record<ExpenseCategory, number>
   })
 
   const totalBudget = computed(() =>
-    budgets.value.reduce((sum, b) => sum + b.monthlyLimit, 0)
+    budgets.value.reduce((sum, b) => sum + (b.deletedAt ? 0 : b.monthlyLimit), 0)
   )
 
   // Categories that have at least 1 expense this month OR have a budget set
@@ -75,6 +75,7 @@ export const useFinanceStore = defineStore('finance:main', () => {
       ...data,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
+      updatedAt: Date.now(),
     }
     allExpenses.value.push(expense)
     return expense
@@ -88,6 +89,7 @@ export const useFinanceStore = defineStore('finance:main', () => {
     const e = allExpenses.value.find(x => x.id === id)
     if (!e) return
     Object.assign(e, patch)
+    e.updatedAt = Date.now()
   }
 
   // ── Budgets ────────────────────────────────────────────────────────────
@@ -95,18 +97,23 @@ export const useFinanceStore = defineStore('finance:main', () => {
     const existing = budgets.value.find(b => b.category === category)
     if (existing) {
       existing.monthlyLimit = monthlyLimit
+      existing.updatedAt = Date.now()
+      delete existing.deletedAt
     } else {
-      budgets.value.push({ category, monthlyLimit })
+      budgets.value.push({ category, monthlyLimit, updatedAt: Date.now() })
     }
   }
 
   function removeBudget(category: ExpenseCategory): void {
-    budgets.value = budgets.value.filter(b => b.category !== category)
+    // Tombstone, not removal — a hard delete resurrects on the next cloud
+    // merge because the remote copy still exists (S28 T3)
+    const b = budgets.value.find(x => x.category === category)
+    if (b && !b.deletedAt) b.deletedAt = Date.now()
   }
 
   function toggleRecurring(id: string): void {
     const e = allExpenses.value.find(x => x.id === id)
-    if (e) e.recurring = !e.recurring
+    if (e) { e.recurring = !e.recurring; e.updatedAt = Date.now() }
   }
 
   /** Re-add a recurring expense for today's month */

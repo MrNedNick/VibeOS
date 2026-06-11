@@ -11,15 +11,18 @@ import type { BoardCard, BoardColumnId, CardPriority, SwimlaneRowId } from '../t
 const CARDS_KEY = storageKey('kanban', 'cards')
 
 export const useBoardStore = defineStore('kanban:board', () => {
-  const cards    = useStorage<BoardCard[]>(CARDS_KEY, [])
+  // allCards includes soft-deleted tombstones (they must survive cloud merge);
+  // cards is the live view every query and the UI consume (S28 T3)
+  const allCards = useStorage<BoardCard[]>(CARDS_KEY, [])
+  const cards    = computed(() => allCards.value.filter(c => !c.deletedAt))
   const viewMode = useStorage<'kanban' | 'timeline'>('platform:kanban:viewMode', 'kanban')
   const events   = useEventBus()
 
   // ── Backend sync ──────────────────────────────────────────────────
   const syncBus   = useSyncBus()
   const syncCards = useBackendSync(CARDS_KEY)
-  watch(syncBus.pullSeq, () => { cards.value = storagGet<BoardCard[]>(CARDS_KEY, []) })
-  watch(cards, v => syncCards.push(v), { deep: true })
+  watch(syncBus.pullSeq, () => { allCards.value = storagGet<BoardCard[]>(CARDS_KEY, []) })
+  watch(allCards, v => syncCards.push(v), { deep: true })
 
   // ── Queries ─────────────────────────────────────────────────────
 
@@ -54,13 +57,13 @@ export const useBoardStore = defineStore('kanban:board', () => {
       createdAt:   new Date().toISOString(),
       updatedAt:   new Date().toISOString(),
     }
-    cards.value.push(card)
+    allCards.value.push(card)
     events.emit({ type: 'card:created', cardId: card.id, title: card.title, columnId, timestamp: card.createdAt })
     return card.id
   }
 
   function moveCard(id: string, toColumnId: BoardColumnId, toDueDate?: string | null): void {
-    const card = cards.value.find(c => c.id === id)
+    const card = allCards.value.find(c => c.id === id)
     if (!card) return
     const colChanged  = card.columnId !== toColumnId
     const dateChanged = toDueDate !== undefined && toDueDate !== null
@@ -90,27 +93,32 @@ export const useBoardStore = defineStore('kanban:board', () => {
   }
 
   function setDueDate(id: string, date: string | undefined): void {
-    const card = cards.value.find(c => c.id === id)
+    const card = allCards.value.find(c => c.id === id)
     if (!card) return
     card.dueDate   = date
     card.updatedAt = new Date().toISOString()
   }
 
   function updateCard(id: string, patch: Partial<Pick<BoardCard, 'title' | 'description' | 'priority' | 'dueDate'>>): void {
-    const card = cards.value.find(c => c.id === id)
+    const card = allCards.value.find(c => c.id === id)
     if (!card) return
     Object.assign(card, patch)
     card.updatedAt = new Date().toISOString()
   }
 
   function deleteCard(id: string): void {
-    const idx = cards.value.findIndex(c => c.id === id)
-    if (idx > -1) cards.value.splice(idx, 1)
+    // Tombstone, not removal — a hard delete resurrects on the next cloud
+    // merge because the remote copy still exists (S28 T3)
+    const card = allCards.value.find(c => c.id === id)
+    if (card && !card.deletedAt) {
+      card.deletedAt = Date.now()
+      card.updatedAt = new Date().toISOString()
+    }
   }
 
   function cyclePriority(id: string): void {
     const order: CardPriority[] = ['none', 'low', 'medium', 'high', 'urgent']
-    const card = cards.value.find(c => c.id === id)
+    const card = allCards.value.find(c => c.id === id)
     if (!card) return
     card.priority  = order[(order.indexOf(card.priority) + 1) % order.length]
     card.updatedAt = new Date().toISOString()
@@ -129,7 +137,7 @@ export const useBoardStore = defineStore('kanban:board', () => {
       createdAt:    new Date().toISOString(),
       updatedAt:    new Date().toISOString(),
     }
-    cards.value.push(card)
+    allCards.value.push(card)
   }
 
   return {

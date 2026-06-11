@@ -40,6 +40,7 @@ export interface TrainingPlan {
   notes?: string
   coverEmoji: string
   createdAt: string
+  updatedAt?: number    // epoch ms, stamped on every edit — drives cloud merge conflict resolution
   linkedHabitId?: string  // auto-check this habit when a workout is logged
   resources?: TrainingResource[]
   deletedAt?: number      // soft-delete tombstone (epoch ms) — survives cloud merge
@@ -56,6 +57,7 @@ export interface WorkoutLog {
   feeling: 1 | 2 | 3 | 4 | 5
   notes?: string
   createdAt: string
+  updatedAt?: number    // epoch ms, stamped on every edit — drives cloud merge conflict resolution
   deletedAt?: number      // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 

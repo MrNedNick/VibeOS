@@ -63,20 +63,21 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
 
   function addTask(text: string, priority: TaskPriority = 'none', dueDate?: string, category?: TaskCategory, linkedGoalId?: string) {
     const id = generateId()
-    allTasks.value.push({ id, text: text.trim(), done: false, priority, dueDate, category, linkedGoalId, createdAt: Date.now() })
+    allTasks.value.push({ id, text: text.trim(), done: false, priority, dueDate, category, linkedGoalId, createdAt: Date.now(), updatedAt: Date.now() })
     events.emit({ type: 'task:created', taskId: id, label: text.trim(), timestamp: new Date().toISOString() })
     gate.nudgeWrite()
   }
 
   function setDueDate(id: string, date: string | undefined) {
     const task = allTasks.value.find(t => t.id === id)
-    if (task) task.dueDate = date
+    if (task) { task.dueDate = date; task.updatedAt = Date.now() }
   }
 
   function toggleTask(id: string) {
     const task = allTasks.value.find(t => t.id === id)
     if (!task) return
     task.done = !task.done
+    task.updatedAt = Date.now()
     if (task.done) {
       task.completedAt = new Date().toISOString()
       events.emit({ type: 'task:completed', taskId: id, label: task.text, timestamp: task.completedAt })
@@ -95,7 +96,7 @@ export const useTasksStore = defineStore('task-manager:tasks', () => {
 
   function updateTask(id: string, text: string) {
     const task = allTasks.value.find(t => t.id === id)
-    if (task) task.text = text.trim()
+    if (task) { task.text = text.trim(); task.updatedAt = Date.now() }
   }
 
   function clearDone() {

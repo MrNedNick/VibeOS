@@ -45,6 +45,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
       purpose: purpose?.trim() || undefined,
       category,
       createdAt: new Date().toISOString(),
+      updatedAt: Date.now(),
       completedDates: [],
     })
     gate.nudgeWrite()
@@ -54,6 +55,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     const habit = allHabits.value.find(h => h.id === id)
     if (!habit) return
     const today = todayStr()
+    habit.updatedAt = Date.now()
     const idx = habit.completedDates.indexOf(today)
     if (idx === -1) {
       habit.completedDates.push(today)
@@ -95,6 +97,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     if ('linkedGoalId' in links) habit.linkedGoalId = links.linkedGoalId
     if ('linkedLearningPlanId' in links) habit.linkedLearningPlanId = links.linkedLearningPlanId
     if ('linkedTrainingPlanId' in links) habit.linkedTrainingPlanId = links.linkedTrainingPlanId
+    habit.updatedAt = Date.now()
   }
 
   function updateHabit(id: string, name: string, emoji?: string, purpose?: string): void {
@@ -103,11 +106,12 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     if (name.trim()) habit.name = name.trim()
     if (emoji !== undefined) habit.emoji = emoji.trim() || '⭐'
     if (purpose !== undefined) habit.purpose = purpose.trim() || undefined
+    habit.updatedAt = Date.now()
   }
 
   function updateCategory(id: string, category: HabitCategory | undefined): void {
     const habit = allHabits.value.find(h => h.id === id)
-    if (habit) habit.category = category
+    if (habit) { habit.category = category; habit.updatedAt = Date.now() }
   }
 
   /** Save an optional note for a specific date check-in */
@@ -120,6 +124,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     } else {
       delete habit.checkNotes[date]
     }
+    habit.updatedAt = Date.now()
   }
 
   /** Toggle skip (vacation) for any past/future date (max 30 days back, up to 7 days forward) */
@@ -129,6 +134,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     const limit = new Date(); limit.setDate(limit.getDate() - 30)
     if (date < limit.toISOString().split('T')[0]) return
     if (!habit.skippedDates) habit.skippedDates = []
+    habit.updatedAt = Date.now()
     const idx = habit.skippedDates.indexOf(date)
     if (idx === -1) {
       habit.skippedDates.push(date)
@@ -171,6 +177,7 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     if (date > today) return
     const limit = new Date(); limit.setDate(limit.getDate() - 30)
     if (date < limit.toISOString().split('T')[0]) return
+    habit.updatedAt = Date.now()
     const idx = habit.completedDates.indexOf(date)
     if (idx === -1) {
       habit.completedDates.push(date)

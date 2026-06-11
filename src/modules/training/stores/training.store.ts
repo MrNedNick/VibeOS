@@ -1,15 +1,32 @@
 import { defineStore } from 'pinia'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
-import { storageKey } from '@/core/utils/storage'
+import { storageKey, storagGet } from '@/core/utils/storage'
 import { useEventBus } from '@/core/events'
+import { useBackendSync } from '@/core/composables/useBackendSync'
+import { useSyncBus } from '@/core/composables/useSyncBus'
 import type { TrainingPlan, WorkoutLog, TrainingResource, ResourceType } from '../types'
 import { todayStr, isTrainingDay, calcStreak, calcTotalMinutes, calcTotalKm } from '../types'
 
+const PLANS_KEY = storageKey('training', 'plans')
+const LOGS_KEY  = storageKey('training', 'logs')
+
 export const useTrainingStore = defineStore('training:plans', () => {
-  const { all: allPlans, items: plans, softDelete: softDeletePlan } = useSoftDeletable<TrainingPlan>(storageKey('training', 'plans'))
-  const { all: allLogs, items: logs, softDelete: softDeleteLog } = useSoftDeletable<WorkoutLog>(storageKey('training', 'logs'))
+  const { all: allPlans, items: plans, softDelete: softDeletePlan } = useSoftDeletable<TrainingPlan>(PLANS_KEY)
+  const { all: allLogs, items: logs, softDelete: softDeleteLog } = useSoftDeletable<WorkoutLog>(LOGS_KEY)
   const events = useEventBus()
+
+  // Backend sync (S28 T3): these keys were in SYNC_KEYS but the store was
+  // never wired — local changes never pushed, pulls never became visible.
+  const syncBus = useSyncBus()
+  watch(syncBus.pullSeq, () => {
+    allPlans.value = storagGet<TrainingPlan[]>(PLANS_KEY, [])
+    allLogs.value  = storagGet<WorkoutLog[]>(LOGS_KEY, [])
+  })
+  const syncPlans = useBackendSync(PLANS_KEY)
+  const syncLogs  = useBackendSync(LOGS_KEY)
+  watch(allPlans, v => syncPlans.push(v), { deep: true })
+  watch(allLogs,  v => syncLogs.push(v),  { deep: true })
 
   const activePlans = computed(() => plans.value.filter(p => p.active))
 
@@ -29,7 +46,7 @@ export const useTrainingStore = defineStore('training:plans', () => {
 
   function createPlan(data: Omit<TrainingPlan, 'id' | 'createdAt' | 'active'>): TrainingPlan {
     const id = crypto.randomUUID()
-    const plan: TrainingPlan = { ...data, id, active: true, createdAt: new Date().toISOString() }
+    const plan: TrainingPlan = { ...data, id, active: true, createdAt: new Date().toISOString(), updatedAt: Date.now() }
     allPlans.value.push(plan)
     events.emit({ type: 'training:plan:created', planId: id, title: data.title, timestamp: new Date().toISOString() })
     return plan
@@ -37,7 +54,7 @@ export const useTrainingStore = defineStore('training:plans', () => {
 
   function logWorkout(data: Omit<WorkoutLog, 'id' | 'createdAt'>): void {
     const plan = plans.value.find(p => p.id === data.planId)
-    allLogs.value.push({ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() })
+    allLogs.value.push({ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: Date.now() })
     events.emit({
       type: 'training:workout:logged',
       planId: data.planId ?? null,
@@ -58,7 +75,7 @@ export const useTrainingStore = defineStore('training:plans', () => {
 
   function updatePlanLink(planId: string, habitId: string | undefined): void {
     const plan = plans.value.find(p => p.id === planId)
-    if (plan) plan.linkedHabitId = habitId
+    if (plan) { plan.linkedHabitId = habitId; plan.updatedAt = Date.now() }
   }
 
   function deletePlan(id: string): void {
@@ -107,18 +124,20 @@ export const useTrainingStore = defineStore('training:plans', () => {
       addedAt: new Date().toISOString(),
       done:    false,
     })
+    plan.updatedAt = Date.now()
   }
 
   function deleteResource(planId: string, resourceId: string): void {
     const plan = plans.value.find(p => p.id === planId)
     if (!plan?.resources) return
     plan.resources = plan.resources.filter(r => r.id !== resourceId)
+    plan.updatedAt = Date.now()
   }
 
   function toggleResourceDone(planId: string, resourceId: string): void {
     const plan = plans.value.find(p => p.id === planId)
     const res  = plan?.resources?.find(r => r.id === resourceId)
-    if (res) res.done = !res.done
+    if (res) { res.done = !res.done; plan!.updatedAt = Date.now() }
   }
 
   function getPlanResources(planId: string): TrainingResource[] {

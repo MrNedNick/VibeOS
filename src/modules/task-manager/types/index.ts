@@ -11,6 +11,7 @@ export interface Task {
   dueDate?: string       // 'YYYY-MM-DD'
   linkedGoalId?: string
   createdAt: number
+  updatedAt?: number     // epoch ms, stamped on every edit — drives cloud merge conflict resolution
   completedAt?: string   // ISO timestamp, set when done=true
   deletedAt?: number     // soft-delete tombstone (epoch ms) — survives cloud merge
 }

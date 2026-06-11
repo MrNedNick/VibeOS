@@ -45,6 +45,7 @@ export interface LearningPlan {
   notes?: string
   coverEmoji: string
   createdAt: string
+  updatedAt?: number    // epoch ms, stamped on every edit — drives cloud merge conflict resolution
   linkedHabitId?: string  // auto-check this habit when a session is logged
   resources?: LearningResource[]
   deletedAt?: number      // soft-delete tombstone (epoch ms) — survives cloud merge
@@ -60,6 +61,7 @@ export interface LearningSession {
   topic?: string
   notes?: string
   rating: 1 | 2 | 3 | 4 | 5
+  updatedAt?: number    // epoch ms, stamped on every edit — drives cloud merge conflict resolution
   deletedAt?: number      // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 

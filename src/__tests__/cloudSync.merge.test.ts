@@ -58,6 +58,49 @@ describe('mergeRecords — tombstone-aware merge', () => {
   })
 })
 
+describe('mergeRecords — client updatedAt stamps (S28 T3)', () => {
+  it('a remote record with a newer numeric updatedAt replaces the local one', () => {
+    const local:  MergeableRecord[] = [{ id: 'a', updatedAt: 1000 }]
+    const remote: MergeableRecord[] = [{ id: 'a', updatedAt: 2000 }]
+    expect(mergeRecords(local, remote)[0].updatedAt).toBe(2000)
+  })
+
+  it('a stale remote record does NOT overwrite a newer local edit', () => {
+    const local:  MergeableRecord[] = [{ id: 'a', updatedAt: 3000 }]
+    const remote: MergeableRecord[] = [{ id: 'a', updatedAt: 2000 }]
+    expect(mergeRecords(local, remote)[0].updatedAt).toBe(3000)
+  })
+
+  it('ISO-string updatedAt (notes) is honored', () => {
+    const local:  MergeableRecord[] = [{ id: 'n', updatedAt: iso(1000) }]
+    const remote: MergeableRecord[] = [{ id: 'n', updatedAt: iso(5000) }]
+    expect(mergeRecords(local, remote)[0].updatedAt).toBe(iso(5000))
+  })
+
+  it('legacy records without any stamp keep local (backward compatible)', () => {
+    const local:  MergeableRecord[] = [{ id: 'a' }]
+    const remote: MergeableRecord[] = [{ id: 'a' }]
+    expect(mergeRecords(local, remote)[0]).toBe(local[0])
+  })
+
+  it('budgets (no id) merge per-category instead of collapsing', () => {
+    type Budget = MergeableRecord & { monthlyLimit: number }
+    const local: Budget[] = [
+      { category: 'food', monthlyLimit: 350, updatedAt: 1000 },
+      { category: 'housing', monthlyLimit: 1200, updatedAt: 1000 },
+    ]
+    const remote: Budget[] = [
+      { category: 'food', monthlyLimit: 500, updatedAt: 2000 },
+      { category: 'transport', monthlyLimit: 60, updatedAt: 1000 },
+    ]
+    const merged = mergeRecords(local, remote)
+    expect(merged).toHaveLength(3)
+    expect(merged.find(b => b.category === 'food')?.monthlyLimit).toBe(500)
+    expect(merged.find(b => b.category === 'housing')?.monthlyLimit).toBe(1200)
+    expect(merged.find(b => b.category === 'transport')?.monthlyLimit).toBe(60)
+  })
+})
+
 describe('effectiveTs', () => {
   it('uses the later of updated_at and deletedAt', () => {
     expect(effectiveTs({ id: 'a', updated_at: iso(1000), deletedAt: 2000 })).toBe(2000)

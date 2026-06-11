@@ -15,13 +15,16 @@ export interface Expense {
   note: string
   date: string            // 'YYYY-MM-DD'
   createdAt: string
+  updatedAt?: number    // epoch ms, stamped on every edit — drives cloud merge conflict resolution
   recurring?: boolean     // marks this as a recurring monthly expense
   deletedAt?: number      // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 export interface CategoryBudget {
-  category: ExpenseCategory
+  category: ExpenseCategory   // identity for cloud merge (budgets have no id)
   monthlyLimit: number
+  updatedAt?: number    // epoch ms, stamped on every edit — drives cloud merge conflict resolution
+  deletedAt?: number    // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 export const CATEGORY_META: Record<ExpenseCategory, { label: string; icon: string; color: string }> = {

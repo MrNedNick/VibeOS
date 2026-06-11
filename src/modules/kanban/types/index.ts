@@ -45,6 +45,7 @@ export interface BoardCard {
   sourceTaskId?: string  // set when imported from Tasks module
   createdAt: string
   updatedAt: string
+  deletedAt?: number     // soft-delete tombstone (epoch ms) — survives cloud merge
 }
 
 // ── Date helpers ──────────────────────────────────────────────────

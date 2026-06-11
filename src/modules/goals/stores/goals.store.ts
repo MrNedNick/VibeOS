@@ -46,6 +46,7 @@ export const useGoalsStore = defineStore('goals:goals', () => {
       status: 'active',
       milestones: [],
       createdAt: new Date().toISOString(),
+      updatedAt: Date.now(),
     }
     allGoals.value.push(goal)
     events.emit({ type: 'goal:created', goalId: id, title: data.title, timestamp: new Date().toISOString() })
@@ -62,12 +63,13 @@ export const useGoalsStore = defineStore('goals:goals', () => {
     if (!goal) return
     goal.status = 'completed'
     goal.completedAt = new Date().toISOString()
+    goal.updatedAt = Date.now()
     events.emit({ type: 'goal:completed', goalId: id, title: goal.title, timestamp: new Date().toISOString() })
   }
 
   function updateNotes(id: string, notes: string): void {
     const goal = goals.value.find(g => g.id === id)
-    if (goal) goal.notes = notes
+    if (goal) { goal.notes = notes; goal.updatedAt = Date.now() }
   }
 
   function addMilestone(goalId: string, title: string): void {
@@ -80,6 +82,7 @@ export const useGoalsStore = defineStore('goals:goals', () => {
       order: goal.milestones.length,
     }
     goal.milestones.push(milestone)
+    goal.updatedAt = Date.now()
   }
 
   function toggleMilestone(goalId: string, milestoneId: string): void {
@@ -89,6 +92,7 @@ export const useGoalsStore = defineStore('goals:goals', () => {
     if (!m) return
     m.completed = !m.completed
     m.completedAt = m.completed ? new Date().toISOString() : undefined
+    goal.updatedAt = Date.now()
     if (m.completed) {
       events.emit({
         type: 'goal:milestone:completed',
@@ -103,6 +107,7 @@ export const useGoalsStore = defineStore('goals:goals', () => {
     const goal = goals.value.find(g => g.id === goalId)
     if (!goal) return
     goal.milestones = goal.milestones.filter(m => m.id !== milestoneId)
+    goal.updatedAt = Date.now()
   }
 
   function getGoalById(id: string): Goal | undefined {

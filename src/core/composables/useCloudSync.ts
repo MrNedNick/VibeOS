@@ -27,22 +27,36 @@ export type SyncRecord = Record<string, unknown> & {
 }
 
 export interface MergeableRecord {
-  id: string
+  id?: string
+  /** Budgets carry no id — category is their identity (see _mergeKey) */
+  category?: string
   updated_at?: string
+  /** Client-side edit stamp — epoch ms (stores) or ISO string (notes) */
+  updatedAt?: number | string
   deletedAt?: number
 }
 
+function _ts(v?: string | number): number {
+  if (typeof v === 'number') return v
+  if (!v) return 0
+  const parsed = new Date(v).getTime()
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
 export function effectiveTs(r: MergeableRecord): number {
-  const updatedTs = r.updated_at ? new Date(r.updated_at).getTime() : 0
-  const deletedTs = r.deletedAt ?? 0
-  return Math.max(updatedTs, deletedTs)
+  return Math.max(_ts(r.updated_at), _ts(r.updatedAt), r.deletedAt ?? 0)
+}
+
+function _mergeKey(r: MergeableRecord): string | undefined {
+  return r.id ?? r.category
 }
 
 export function mergeRecords<T extends MergeableRecord>(local: T[], remote: T[]): T[] {
-  const map = new Map(local.map(i => [i.id, i]))
+  const map = new Map(local.map(i => [_mergeKey(i), i]))
   for (const r of remote) {
-    const l = map.get(r.id)
-    if (!l || effectiveTs(r) > effectiveTs(l)) map.set(r.id, r)
+    const key = _mergeKey(r)
+    const l = map.get(key)
+    if (!l || effectiveTs(r) > effectiveTs(l)) map.set(key, r)
   }
   return Array.from(map.values())
 }

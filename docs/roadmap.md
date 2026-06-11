@@ -1194,7 +1194,7 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 - `useBackendSync.push()`: skip when payload serializes identically to the last sent payload.
 - Unit tests proving a no-op pull does not trigger a push.
 
-### T3 — Merge correctness: `updatedAt` stamps + budget identity 🔴 CRITICAL
+### T3 — Merge correctness: `updatedAt` stamps + budget identity 🔴 CRITICAL ✅ (v2.7.14)
 **Bugs:**
 1. `effectiveTs()` reads `updated_at`/`deletedAt` — no synced record type carries either on edit (Task has only `createdAt`), so every non-deleted record has ts=0 → on conflict **local always wins** → cross-device edits never propagate, stale devices resurrect old data and push it back (classic lost update).
 2. Notes stamp `updatedAt` (camelCase ISO) — ignored by `effectiveTs`.
@@ -1204,6 +1204,9 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 - `effectiveTs()`: max of `updated_at` (ISO), `updatedAt` (epoch ms or ISO), `deletedAt`. Legacy records without stamps keep current local-wins behavior (backward compatible).
 - `mergeRecords`: key on `id ?? category` (covers budgets).
 - Merge unit tests: newer remote edit wins, ISO notes stamp honored, budgets merge per-category.
+**Shipped (v2.7.14)** — plus two more bugs found during implementation:
+- **learning + training stores had NO sync wiring at all** (keys in SYNC_KEYS, but no `useBackendSync`/`useSyncBus` — edits never pushed, pulls never visible). Wired both.
+- **hard deletes resurrect on merge**: board `deleteCard` spliced the array and finance `removeBudget` filtered it — the remote copy survives the merge and brings the record back. Both are tombstones now (`deletedAt`), with live-view filtering.
 
 ---
 

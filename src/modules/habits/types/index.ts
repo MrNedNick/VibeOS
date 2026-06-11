@@ -22,6 +22,7 @@ export interface Habit {
   purpose?: string               // optional "why" description shown below habit name
   category?: HabitCategory       // health / productivity / learning / social / other
   createdAt: string
+  updatedAt?: number    // epoch ms, stamped on every edit — drives cloud merge conflict resolution
   completedDates: string[]
   skippedDates?: string[]         // vacation / intentional skip — doesn't break streak
   checkNotes?: Record<string, string>  // date → optional check-in note
