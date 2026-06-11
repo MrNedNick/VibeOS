@@ -157,18 +157,25 @@ export function useCloudSync() {
 
       if (error) throw error
 
+      let changed = false
       if (data?.length) {
         for (const row of data as { key: string; value: unknown }[]) {
           if (!SYNC_KEYS.includes(row.key)) continue
           const local  = storagGet<MergeableRecord[]>(row.key, [])
           const remote = Array.isArray(row.value) ? (row.value as MergeableRecord[]) : []
-          if (remote.length) storageSet(row.key, mergeRecords(local, remote))
+          if (!remote.length) continue
+          const merged = mergeRecords(local, remote)
+          if (JSON.stringify(merged) === JSON.stringify(local)) continue
+          storageSet(row.key, merged)
+          changed = true
         }
       }
 
       lastSyncAt.value = new Date().toISOString()
       syncStatus.value = 'idle'
-      useSyncBus().notifyPulled()
+      // No-op pulls must not notify: store watchers would push identical
+      // data back and feed the realtime echo loop (S28 T2)
+      if (changed) useSyncBus().notifyPulled()
       await drainQueue()
     } catch (err) {
       syncError.value  = err instanceof Error ? err.message : String(err)

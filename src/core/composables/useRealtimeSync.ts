@@ -38,7 +38,11 @@ export function useRealtimeSync() {
           const local  = storagGet<MergeableRecord[]>(row.key, [])
           const remote = Array.isArray(row.value) ? (row.value as MergeableRecord[]) : []
           if (remote.length) {
-            storageSet(row.key, mergeRecords(local, remote))
+            const merged = mergeRecords(local, remote)
+            // Realtime echoes our own pushes back — a no-op merge must not
+            // notify stores, or their watchers push again forever (S28 T2)
+            if (JSON.stringify(merged) === JSON.stringify(local)) return
+            storageSet(row.key, merged)
             useSyncBus().notifyPulled()
           }
         },

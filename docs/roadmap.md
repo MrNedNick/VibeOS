@@ -1187,7 +1187,7 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 - `logout()`: best-effort flush, then clear all `SYNC_KEYS` + sync queue (privacy on shared machines).
 - Unit tests for purge + auth transitions.
 
-### T2 — Kill the realtime sync echo loop 🔴 CRITICAL
+### T2 — Kill the realtime sync echo loop 🔴 CRITICAL ✅ (v2.7.13)
 **Bug:** own push → Supabase realtime event → `storageSet` + `notifyPulled()` → every synced store re-reads localStorage → `watch(…, {deep:true})` fires on the new array reference → `useBackendSync.push()` → upsert → realtime event → … An infinite client↔server loop across all 11 SYNC_KEYS (network/battery/Supabase quota churn) whenever realtime is connected.
 **Fix:**
 - `useRealtimeSync` + `pullAll()`: skip `storageSet`/`notifyPulled` when the merged value deep-equals the local value (serialized compare).
