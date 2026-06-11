@@ -35,6 +35,9 @@
 | **S23 — Tetris Improvements** | Hold piece, line-clear flash animation, score history leaderboard | ✅ **complete** — v2.2.0 |
 | **S25 — Demo Mode Seeding** | Seed tasks/goals/habits/notes/finance/board on demo login for recruiters | ✅ **complete** — v2.2.0 |
 | **S26 — Mobile QA & Fixes** | Full mobile regression pass — layout, touch targets, modals, iOS keyboard, Android nav | ✅ **complete** — v2.2.4 |
+| **S28 — Sync Integrity & Data Safety** | Fix demo-data leak into real accounts, realtime echo loop, lost-update merge, budget merge corruption | 🔥 **CRITICAL — active** (2026-06-11 deep audit) |
+| **S29 — Security Hardening** | Sanitize all `v-html` markdown output (notes, AI chat, docs) | 🔥 **HIGH — after S28** |
+| **S30 — Documentation Integrity** | Refresh stale core docs (architecture/strategy/platform say backend is "paused" — it's LIVE), prune roadmap | **HIGH — after S29** |
 
 ---
 
@@ -1168,6 +1171,57 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 - ✅ roadmap.md Sprint Status Overview updated
 - ✅ T11 Supabase schema + sync — shipped v2.7.5
 - Version bumped across v1.5.1–v1.5.4
+
+---
+
+## S28 — Sync Integrity & Data Safety 🔥 CRITICAL (planned 2026-06-11, deep audit)
+
+> Source: full architecture audit 2026-06-11. These are correctness bugs in the live sync layer —
+> they corrupt or leak user data silently. No minor tasks in this sprint by design.
+
+### T1 — Auth-transition data isolation 🔴 CRITICAL
+**Bug:** The welcome funnel sends every visitor into demo mode → `seedDemoData()` writes fake tasks/habits/goals/finance/board into localStorage. On `register()` the store calls `pushAll()` → **all demo seed data is uploaded into the new real account**. On `login()` demo records survive `mergeRecords` (union) and are pushed back by the debounced store watchers. `logout()` never clears localStorage → on a shared browser the next user inherits (and uploads) the previous user's data.
+**Fix:**
+- `purgeDemoData()` in `demoSeed.ts` — removes seeded records (`id` starts with `demo-`), seeded budgets, and the seed flag; guarded by the seed flag so it runs once.
+- Call it on every demo→supabase transition: `login()` + `register()` (before pull/push) and supabase session restore in `init()`.
+- `logout()`: best-effort flush, then clear all `SYNC_KEYS` + sync queue (privacy on shared machines).
+- Unit tests for purge + auth transitions.
+
+### T2 — Kill the realtime sync echo loop 🔴 CRITICAL
+**Bug:** own push → Supabase realtime event → `storageSet` + `notifyPulled()` → every synced store re-reads localStorage → `watch(…, {deep:true})` fires on the new array reference → `useBackendSync.push()` → upsert → realtime event → … An infinite client↔server loop across all 11 SYNC_KEYS (network/battery/Supabase quota churn) whenever realtime is connected.
+**Fix:**
+- `useRealtimeSync` + `pullAll()`: skip `storageSet`/`notifyPulled` when the merged value deep-equals the local value (serialized compare).
+- `useBackendSync.push()`: skip when payload serializes identically to the last sent payload.
+- Unit tests proving a no-op pull does not trigger a push.
+
+### T3 — Merge correctness: `updatedAt` stamps + budget identity 🔴 CRITICAL
+**Bugs:**
+1. `effectiveTs()` reads `updated_at`/`deletedAt` — no synced record type carries either on edit (Task has only `createdAt`), so every non-deleted record has ts=0 → on conflict **local always wins** → cross-device edits never propagate, stale devices resurrect old data and push it back (classic lost update).
+2. Notes stamp `updatedAt` (camelCase ISO) — ignored by `effectiveTs`.
+3. `CategoryBudget` has **no `id`** → `mergeRecords` keys every budget on `undefined` → a pull collapses all budgets into one record.
+**Fix:**
+- Add optional `updatedAt?: number` to all synced record types; stamp `Date.now()` in every mutating store action (tasks, habits, goals, notes, learning, training, finance, kanban).
+- `effectiveTs()`: max of `updated_at` (ISO), `updatedAt` (epoch ms or ISO), `deletedAt`. Legacy records without stamps keep current local-wins behavior (backward compatible).
+- `mergeRecords`: key on `id ?? category` (covers budgets).
+- Merge unit tests: newer remote edit wins, ISO notes stamp honored, budgets merge per-category.
+
+---
+
+## S29 — Security Hardening 🔥 HIGH (after S28)
+
+### T1 — Sanitize all `v-html` markdown output 🔴 HIGH
+**Bug:** `marked.parse()` output is bound via `v-html` with **no sanitization** in 3 places: `NotePreview.vue` (notes sync from the cloud), `StudioConversation.vue` (**AI responses = untrusted third-party input**), `DocsView.vue`. `marked` passes raw HTML through and does not block `javascript:` hrefs → stored XSS.
+**Fix:** add `dompurify` (written reason: only maintained, audited HTML sanitizer; hand-rolled sanitizers are a known anti-pattern), central `sanitizeHtml()` util in `@/core/utils`, applied at all 3 call sites. Unit tests: `<img onerror>`, `<script>`, `javascript:` href all stripped.
+
+---
+
+## S30 — Documentation Integrity 🔥 HIGH (after S29)
+
+### T1 — Refresh stale core docs 🔴 HIGH
+`architecture.md` (v0.8.0), `strategy.md` (v0.9.3), `platform.md` (v2.2.4) all claim Supabase is "paused / awaiting credentials" — it has been **LIVE since 2026-06-04**. Component lists, pak counts, sprint tables and test counts are several major versions behind. CLAUDE.md's own rule: stale docs silently break future AI sessions. Refresh all four (+ `conventions.md` stamp) to current reality.
+
+### T2 — Roadmap prune 🔴 HIGH
+Remove the stale "NEXT CHAT INSTRUCTIONS" block (frozen at v1.2.10, instructs implementing S11 which shipped in v2.7.0), fix stale sprint markers (S16/S19/S20 rows), keep history compact.
 
 ---
 

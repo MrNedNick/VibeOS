@@ -37,7 +37,7 @@
 | Studio providers | ✅ complete — Groq + Gemini Flash + OpenRouter (v2.3.0) |
 | **S27 — Profile & UX Polish** | ✅ **complete** — see v2.4–v2.6 below |
 
-**No active sprints. Next session starts from live review (S13 / S16 T7) or new feature requests.**
+**Active: S28 — Sync Integrity & Data Safety (CRITICAL), then S29 — Security Hardening, S30 — Documentation Integrity. From the 2026-06-11 deep architecture audit — see `docs/roadmap.md` § S28–S30. After that: live review (S13 / S16 T7).**
 
 ## New in v2.7.5 (2026-06-08) — S18 T11 + S3 keep-alive
 
