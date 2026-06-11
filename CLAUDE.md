@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v2.7.16 — 2026-06-11**
+**Version: v2.7.20 — 2026-06-11**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
@@ -26,7 +26,7 @@
 | S13 — Design Pass | 🔜 requires live review session |
 | S14 — Quick Wins | ✅ complete (v1.5.5) |
 | S15 — Refactor & De-dup | ✅ complete (v1.4.0) |
-| S16 — Test Coverage | 🔄 T1–T6 ✅ T8 ✅; T7 QA pass pending (live review) |
+| S16 — Test Coverage | 🔄 T1–T6 ✅ T8 ✅; T7 QA pass pending (live review) — 582 tests in 54 files |
 | S17 — Component Unification | ✅ complete (v1.3.0) |
 | S18 — Product Analytics & Feedback | ✅ **fully complete** — T11 Supabase analytics/feedback sync shipped (v2.7.5) |
 | S19 — Mobile Excellence & Account | ✅ complete (v1.9.1) |
@@ -41,10 +41,17 @@
 | **S28 — Sync Integrity & Data Safety** | ✅ **complete** — demo-data leak, realtime echo loop, merge correctness (v2.7.12–v2.7.14) |
 | **S29 — Security Hardening** | ✅ **complete** — DOMPurify on all v-html markdown (v2.7.15) |
 | **S30 — Documentation Integrity** | ✅ **complete** — core docs refreshed to reality, roadmap pruned (v2.7.16) |
-| **S31 — UX Fixes & Tetris Polish** | 🔜 **planned** — Sign Up button fix (critical), Sign Out placement, Tetris contrast + record animation |
+| **S31 — UX Fixes & Tetris Polish** | ✅ **complete** — T1 Sign Up race-condition fix (authReady + isRealUser double-gate), T2 Sign Out moved to Profile section, T3+T4 Tetris overlay card + confetti record animation (v2.7.17–v2.7.20) |
 | **S32 — Onboarding Module** | 🔜 **planned** — Replace demo data with interactive new-user tutorial (separate sprint) |
 
-**S31 active (user-reported 2026-06-11). Next session: implement S31 T1–T4, then S16 T6+T8. See roadmap.md § NEXT SESSION INSTRUCTIONS.**
+**S31 complete (2026-06-11). S32 (Onboarding Module) is next — requires design decisions. S16 T7 (manual QA pass) still pending live review.**
+
+## New in v2.7.17–v2.7.20 (2026-06-11) — S31 UX Fixes + S16 T6
+
+- **S31 T1 (v2.7.17)**: Sign Up chip never shows for real Supabase accounts — `init()` now checks Supabase getSession() FIRST before honoring any local demo state. Added `authReady` ref (hides chip during async init window) and `isRealUser` computed as belt-and-suspenders in AppHeader (`v-if="auth.authReady && auth.isDemoMode && !auth.isRealUser"`).
+- **S31 T2 (v2.7.18)**: Sign Out button moved to Profile section in Settings — directly below avatar/name row, visually adjacent to account identity. Removed from Security section.
+- **S31 T3+T4 (v2.7.19)**: Tetris game-over overlay: opacity raised to 90% + blur(6px); content wrapped in surface-2 card (border, shadow-3, 32px padding); score is 3.5rem/700. New record celebration: 24 pure-CSS confetti chips with random positions/delays; "New best!" badge gets accent pill + recordPop entrance animation; card gets 2s accent glow on record. No new dependencies.
+- **S16 T6 (v2.7.20)**: Smoke E2E tests (`e2e/smoke.spec.ts`) updated to 5 required scenarios: boot→dashboard, create task, vibe-pak switch, Studio prompt, demo mode no crash.
 
 ## New in v2.7.12–v2.7.16 (2026-06-11) — Deep audit: S28 + S29 + S30
 
@@ -295,4 +302,4 @@ Every new component must work at `lg` and `sm` at minimum. Content max-width: `v
 
 ## Testing
 
-Vitest v4 + happy-dom (`sanitizeHtml.test.ts` runs under jsdom via `@vitest-environment` pragma). 582 tests in 54 files. `npm test` = run once. Coverage gate: stmt 35% / branch 22%. Playwright E2E: `e2e/smoke.spec.ts`. For Teleport components (UiModal) → query `document.body`, not `wrapper.find()`.
+Vitest v4 + happy-dom (`sanitizeHtml.test.ts` runs under jsdom via `@vitest-environment` pragma). 582 tests in 54 files. `npm test` = run once. Coverage gate: stmt 35% / branch 22% (via `@vitest/coverage-v8`, runs in CI as `npm run test:coverage`). Playwright E2E: `e2e/smoke.spec.ts` — 5 smoke scenarios (boot, task CRUD, vibe-pak switch, Studio, demo mode). For Teleport components (UiModal) → query `document.body`, not `wrapper.find()`.

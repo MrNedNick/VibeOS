@@ -25,7 +25,7 @@
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | ✅ **complete** — T1–T6 ✅ T4 ✅ (hex guard + WelcomeView hex v1.5.1) |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 deferred. T7 QA report refreshed (v1.5.2). |
-| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T3 ✅ T6 ✅ T8 ✅; T4 🔄 (19/22 @/ui); T5 🔄 (Analytics + Board + Habit + Finance children); remaining: T7 QA pass (needs live review). **555 tests in 51 files** |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T6 ✅ T8 ✅; T4 🔄 (19/22 @/ui); T5 🔄 (Analytics + Board + Habit + Finance children); remaining: T7 QA pass (needs live review). **582 tests in 54 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
 | **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** — T1–T12 ✅ incl. T11 Supabase analytics/feedback sync (v2.7.5) |
 | **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | ✅ **complete** — v1.9.1 |
@@ -39,7 +39,7 @@
 | **S28 — Sync Integrity & Data Safety** | Fix demo-data leak into real accounts, realtime echo loop, lost-update merge, budget merge corruption | ✅ **complete** — T1–T3 (v2.7.12–v2.7.14) |
 | **S29 — Security Hardening** | Sanitize all `v-html` markdown output (notes, AI chat, docs) | ✅ **complete** — DOMPurify (v2.7.15) |
 | **S30 — Documentation Integrity** | Refresh stale core docs (architecture/strategy/platform say backend is "paused" — it's LIVE), prune roadmap | ✅ **complete** — v2.7.16 |
-| **S31 — UX Fixes & Tetris Polish** | Sign Up button fix, Sign Out placement, Tetris contrast + record animation | 🔜 planned — user-reported 2026-06-11 |
+| **S31 — UX Fixes & Tetris Polish** | Sign Up button fix, Sign Out placement, Tetris contrast + record animation | ✅ **complete** — T1–T4 all shipped (v2.7.17–v2.7.20) |
 | **S32 — Onboarding Module** | Replace demo seeding with a beautiful interactive tutorial for new users | 🔜 planned (separate module) |
 
 ---
@@ -2725,56 +2725,18 @@ When the user has zero data across all stores (no tasks, no habits, no goals, no
 
 ---
 
-## NEXT SESSION INSTRUCTIONS (2026-06-11)
+## NEXT SESSION INSTRUCTIONS (2026-06-11, updated)
 
-> Implement the items below in order. Read CLAUDE.md + this file before writing any code.
-> Auto-commit + push after each task (see CLAUDE.md § Auto-commit rule).
-> Type-check must pass before every commit: `npm run type-check`.
-> Tests must stay green: `npm test`.
+> S31 T1–T4 and S16 T6+T8 are **complete** — shipped 2026-06-11 (v2.7.17–v2.7.20).
+> The tasks below still require a live review session with the user.
 
-### Priority 1 — S31 (user-reported bugs, implement first)
+### Pending (live review required)
 
-**T1 — Sign Up button fix** (`src/layouts/components/AppHeader.vue`, `src/core/stores/auth.store.ts`)
-Investigate why the "Sign Up Free" demo chip (`v-if="auth.isDemoMode"`) can appear for real Supabase accounts. Root cause: possible race during `init()` session restore where demo state leaks before Supabase `SIGNED_IN` fires. Fix defensively:
-- In `auth.store.ts` `onAuthStateChange` handler: when event is `SIGNED_IN` and session has a real Supabase user, force `_state.value.user.provider = 'supabase'` (overwrite any stale demo provider).
-- In `AppHeader.vue`: add an extra guard — `v-if="auth.isDemoMode && auth.user?.provider === 'demo'"` (double-gate, belt-and-suspenders).
-- Verify: sign in with a real account → header never shows "Sign Up Free" at any point (including during page load / init).
+- **S13 — Design Pass**: module-by-module visual quality pass. User must review the live app on MacBook + iPhone, flag what feels off, then Claude implements.
+- **S16 T7 — Manual QA pass**: re-run `docs/qa-report.md` matrix against v2.7.x across 4 paks, lg + sm, EN/RU. User confirms which bugs survive.
 
-**T2 — Sign Out near profile in Settings** (`src/modules/settings/views/SettingsView.vue`)
-Move the logout/sign-out `UiButton` (danger or ghost-danger) into the Profile section, directly below the first/last name row and email. It should be visually close to the avatar + name, NOT buried at the bottom of the page. Keep the existing sign-out function, just relocate the button in the template.
+### Next autonomous sprint after user input
 
-**T3 — Tetris game-over contrast** (`src/modules/games/views/GameTetrisView.vue`)
-The `.tetris__overlay--over` CSS needs a stronger backdrop (raise opacity to 0.88–0.92). Wrap `.tetris__overlay-content` in a styled card: `background: var(--color-surface-2)`, `border-radius: var(--radius-lg)`, `box-shadow: var(--shadow-3)`, padding `32px 40px`. Make the score large (`font-size: 3.5rem`, `font-weight: 700`, `color: var(--color-text)`). Test all 4 vibe-paks.
+- **S32 — Onboarding Module**: replace demo-data seeding with a beautiful interactive new-user tutorial. Full sprint — requires design decisions first.
 
-**T4 — Tetris new record celebration** (`src/modules/games/views/GameTetrisView.vue`)
-When `score.value > bestScore.value` at game end (`isNewRecord = ref(false)`, set in `endGame()`):
-1. "New best!" badge: bigger, pill-shaped, `background: var(--color-accent)`, `color: #fff`, `font-weight: 700`, entrance animation `@keyframes recordPop { 0%{transform:scale(0.4);opacity:0} 70%{transform:scale(1.2)} 100%{transform:scale(1);opacity:1} }` applied on mount.
-2. Confetti burst: render 24 small `<div>` chips inside the overlay using `v-if="isNewRecord"`, positioned absolute with random inline styles (top/left randomized between 20%–80%), each with a `@keyframes confetti-fall` animation (translateY down + rotate + fadeOut, 1.5–2.5s with random delays). Use 4 accent/warning/success/text colors. Pure CSS, no new deps.
-3. The overlay card itself: brief `box-shadow: 0 0 60px color-mix(in srgb, var(--color-accent) 40%, transparent)` glow — use a CSS animation that adds the glow on enter and fades it out over 2s.
-
----
-
-### Priority 2 — S16 remaining (can do autonomously after S31)
-
-**S16 T6 — Smoke E2E** (`e2e/smoke.spec.ts` — already exists; check Playwright config)
-Run `npx playwright test` first to see current state. If not set up: `npm install -D @playwright/test` + `playwright.config.ts` targeting `http://localhost:5173`. Tests to add (keep it ≤ 10 focused cases):
-1. App boots → Dashboard renders (h1 or life-stats strip visible)
-2. Create a task → appears in list → mark done → done count increments
-3. Switch vibe-pak (Dark → Brutalist) → `data-theme` attribute changes on `<html>`
-4. Open Studio → type a prompt → free AI returns a reply (or error message renders — no uncaught exception)
-5. Demo mode write is NOT blocked (demo writes locally, no sign-up wall — just verify no JS crash)
-
-**S16 T8 — Coverage gate** (`vitest.config.ts` or `vite.config.ts`)
-Add `@vitest/coverage-v8` (if not already in devDeps). Add to `vitest.config.ts`:
-```ts
-coverage: {
-  provider: 'v8',
-  reporter: ['text', 'json-summary'],
-  thresholds: { statements: 35, branches: 22 }
-}
-```
-Wire into CI: in `.github/workflows/deploy.yml`, add `npm run test -- --coverage` step before build. The thresholds are floors (already passing), so CI shouldn't break. Update CLAUDE.md testing section with coverage gate note.
-
----
-
-> S13 (Design Pass) and S16 T7 (Manual QA) still require a live review session with the user — do NOT implement autonomously.
+> S13 and S16 T7 still require a live review session with the user — do NOT implement autonomously.
