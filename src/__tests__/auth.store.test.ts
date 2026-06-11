@@ -41,6 +41,7 @@ vi.mock('@/core/services/supabase', () => ({
 }))
 vi.mock('@/core/composables/useCloudSync', () => ({
   useCloudSync: () => ({ pullAll: h.pullAll, pushAll: h.pushAll }),
+  SYNC_KEYS: ['platform:task-manager:tasks', 'platform:habits:habits'],
 }))
 vi.mock('@/core/composables/useRealtimeSync', () => ({
   useRealtimeSync: () => ({ subscribe: h.subscribe, unsubscribe: h.unsubscribe }),
@@ -48,9 +49,10 @@ vi.mock('@/core/composables/useRealtimeSync', () => ({
 vi.mock('@/core/stores/ui.store', () => ({
   useUiStore: () => ({ syncSettingsFromCloud: vi.fn() }),
 }))
-vi.mock('@/core/utils/demoSeed', () => ({ seedDemoData: vi.fn() }))
+vi.mock('@/core/utils/demoSeed', () => ({ seedDemoData: vi.fn(), purgeDemoData: vi.fn() }))
 
 import { useAuthStore } from '@/core/stores/auth.store'
+import { purgeDemoData } from '@/core/utils/demoSeed'
 
 const SB_USER = {
   id: 'u-1',
@@ -166,6 +168,53 @@ describe('auth.store — Supabase login/register/logout', () => {
     const res = await auth.updateDisplayName('Renamed')
     expect(res.error).toBeNull()
     expect(auth.user?.displayName).toBe('Renamed')
+  })
+})
+
+describe('auth.store — demo→real data isolation (S28 T1)', () => {
+  it('login purges demo seed before pulling cloud data', async () => {
+    h.client.auth.signInWithPassword.mockResolvedValue({ data: { user: SB_USER }, error: null })
+    const auth = useAuthStore()
+    await auth.login('real@example.com', 'password1')
+    const purge = vi.mocked(purgeDemoData)
+    expect(purge).toHaveBeenCalled()
+    expect(purge.mock.invocationCallOrder[0]).toBeLessThan(h.pullAll.mock.invocationCallOrder[0])
+  })
+
+  it('register purges demo seed before pushing local data', async () => {
+    h.client.auth.signUp.mockResolvedValue({
+      data: { user: { id: 'u-2', email: 'new@example.com' }, session: { access_token: 't' } },
+      error: null,
+    })
+    const auth = useAuthStore()
+    await auth.register('new@example.com', 'password1')
+    const purge = vi.mocked(purgeDemoData)
+    expect(purge).toHaveBeenCalled()
+    expect(purge.mock.invocationCallOrder[0]).toBeLessThan(h.pushAll.mock.invocationCallOrder[0])
+  })
+
+  it('session restore purges leftover demo seed', async () => {
+    h.client.auth.getSession.mockResolvedValue({ data: { session: { user: SB_USER } } })
+    const auth = useAuthStore()
+    await auth.init()
+    expect(vi.mocked(purgeDemoData)).toHaveBeenCalled()
+  })
+
+  it('logout clears synced data, the sync queue and the seed flag', async () => {
+    h.client.auth.signInWithPassword.mockResolvedValue({ data: { user: SB_USER }, error: null })
+    const auth = useAuthStore()
+    await auth.login('real@example.com', 'password1')
+    localStorage.setItem('platform:task-manager:tasks', '[{"id":"t1"}]')
+    localStorage.setItem('platform:habits:habits', '[{"id":"h1"}]')
+    localStorage.setItem('platform:sync:queue', '["platform:habits:habits"]')
+    localStorage.setItem('platform:demo:v1:seeded', 'true')
+
+    await auth.logout()
+
+    expect(localStorage.getItem('platform:task-manager:tasks')).toBeNull()
+    expect(localStorage.getItem('platform:habits:habits')).toBeNull()
+    expect(localStorage.getItem('platform:sync:queue')).toBeNull()
+    expect(localStorage.getItem('platform:demo:v1:seeded')).toBeNull()
   })
 })
 

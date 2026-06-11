@@ -19,7 +19,9 @@ import { useCloudSync } from '@/core/composables/useCloudSync'
 import { useRealtimeSync } from '@/core/composables/useRealtimeSync'
 import { useAnalyticsSync } from '@/core/composables/useAnalyticsSync'
 import { useUiStore } from '@/core/stores/ui.store'
-import { seedDemoData } from '@/core/utils/demoSeed'
+import { seedDemoData, purgeDemoData } from '@/core/utils/demoSeed'
+import { SYNC_KEYS } from '@/core/composables/useCloudSync'
+import { storageRemove } from '@/core/utils/storage'
 
 // Resolves when init() finishes — router guard awaits this before checking isLoggedIn
 let _readyResolve!: () => void
@@ -123,6 +125,8 @@ export const useAuthStore = defineStore('core:auth', () => {
             provider: 'supabase',
             tier: (data.user.user_metadata?.tier as AuthUser['tier']) ?? 'free',
           })
+          // Demo seed must never leak into a real account (S28 T1)
+          purgeDemoData()
           // Pull cloud data → merge into localStorage, notify stores via syncBus
           await useCloudSync().pullAll()
           useRealtimeSync().subscribe(data.user.id)
@@ -173,6 +177,8 @@ export const useAuthStore = defineStore('core:auth', () => {
           provider: 'supabase',
           tier: 'free',
         })
+        // Demo seed must never be uploaded into the new real account (S28 T1)
+        purgeDemoData()
         // Push any local data to the new account, then pull to confirm
         const sync = useCloudSync()
         await sync.pushAll(data.user.id)
@@ -201,6 +207,13 @@ export const useAuthStore = defineStore('core:auth', () => {
       }
     }
     _setUser(null)
+    // Private data must not survive logout on a shared browser (S28 T1).
+    // Cloud copy is the source of truth — next login pulls it back.
+    // No syncBus notify: the router redirects to /welcome, and the next
+    // pullAll() re-reads storage; notifying here would push empty arrays.
+    for (const key of SYNC_KEYS) storageRemove(key)
+    storageRemove('platform:sync:queue')
+    storageRemove('platform:demo:v1:seeded')
   }
 
   // ── Update display name ───────────────────────────────────────────────────
@@ -366,6 +379,8 @@ export const useAuthStore = defineStore('core:auth', () => {
             provider: 'supabase',
             tier: (session.user.user_metadata?.tier as AuthUser['tier']) ?? 'free',
           })
+          // Leftover demo seed from before this account existed (S28 T1)
+          purgeDemoData()
           // Background pull to catch any changes from other devices; subscribe real-time
           useCloudSync().pullAll().catch(console.warn)
           useRealtimeSync().subscribe(session.user.id)

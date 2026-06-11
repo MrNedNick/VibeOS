@@ -12,7 +12,7 @@ vi.mock('@/core/services/supabase', () => ({
   isSupabaseConfigured: false,
   getSupabase: () => { throw new Error('not configured') },
 }))
-vi.mock('@/core/utils/demoSeed', () => ({ seedDemoData: vi.fn() }))
+vi.mock('@/core/utils/demoSeed', () => ({ seedDemoData: vi.fn(), purgeDemoData: vi.fn() }))
 
 import { useAuthStore } from '@/core/stores/auth.store'
 

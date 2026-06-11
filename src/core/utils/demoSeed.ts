@@ -1,6 +1,37 @@
-import { storagGet, storageSet, storageKey } from './storage'
+import { storagGet, storageSet, storageRemove, storageKey } from './storage'
 
 const SEED_FLAG = 'platform:demo:v1:seeded'
+const DEMO_ID_PREFIX = 'demo-'
+
+/**
+ * Remove demo-seeded records before a real (Supabase) session takes over the
+ * same localStorage. Without this, register()/login() uploads the fake seed
+ * data into the user's real account. Records the user created during demo
+ * (non `demo-` ids) are kept and carry over. Flag-guarded — runs once.
+ */
+export function purgeDemoData(): void {
+  if (!storagGet(SEED_FLAG, false)) return
+
+  const seededListKeys = [
+    storageKey('task-manager', 'tasks'),
+    storageKey('goals', 'goals'),
+    storageKey('habits', 'habits'),
+    storageKey('notes', 'notes'),
+    storageKey('finance', 'expenses'),
+    storageKey('kanban', 'cards'),
+  ]
+  for (const key of seededListKeys) {
+    const items = storagGet<Array<{ id?: string }>>(key, [])
+    if (!Array.isArray(items)) continue
+    const kept = items.filter(i => !String(i?.id ?? '').startsWith(DEMO_ID_PREFIX))
+    if (kept.length !== items.length) storageSet(key, kept)
+  }
+
+  // Seeded budgets carry no ids, so they can't be told apart from budgets
+  // edited during demo — drop the whole key (demo is a sandbox).
+  storageRemove(storageKey('finance', 'budgets'))
+  storageRemove(SEED_FLAG)
+}
 
 export function seedDemoData(): void {
   if (storagGet(SEED_FLAG, false)) return

@@ -1179,7 +1179,7 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 > Source: full architecture audit 2026-06-11. These are correctness bugs in the live sync layer —
 > they corrupt or leak user data silently. No minor tasks in this sprint by design.
 
-### T1 — Auth-transition data isolation 🔴 CRITICAL
+### T1 — Auth-transition data isolation 🔴 CRITICAL ✅ (v2.7.12)
 **Bug:** The welcome funnel sends every visitor into demo mode → `seedDemoData()` writes fake tasks/habits/goals/finance/board into localStorage. On `register()` the store calls `pushAll()` → **all demo seed data is uploaded into the new real account**. On `login()` demo records survive `mergeRecords` (union) and are pushed back by the debounced store watchers. `logout()` never clears localStorage → on a shared browser the next user inherits (and uploads) the previous user's data.
 **Fix:**
 - `purgeDemoData()` in `demoSeed.ts` — removes seeded records (`id` starts with `demo-`), seeded budgets, and the seed flag; guarded by the seed flag so it runs once.
