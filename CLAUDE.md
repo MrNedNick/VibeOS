@@ -41,8 +41,10 @@
 | **S28 — Sync Integrity & Data Safety** | ✅ **complete** — demo-data leak, realtime echo loop, merge correctness (v2.7.12–v2.7.14) |
 | **S29 — Security Hardening** | ✅ **complete** — DOMPurify on all v-html markdown (v2.7.15) |
 | **S30 — Documentation Integrity** | ✅ **complete** — core docs refreshed to reality, roadmap pruned (v2.7.16) |
+| **S31 — UX Fixes & Tetris Polish** | 🔜 **planned** — Sign Up button fix (critical), Sign Out placement, Tetris contrast + record animation |
+| **S32 — Onboarding Module** | 🔜 **planned** — Replace demo data with interactive new-user tutorial (separate sprint) |
 
-**No active sprints. S28–S30 (2026-06-11 audit) shipped. Next session: live review (S13 / S16 T7) or new feature requests.**
+**S31 active (user-reported 2026-06-11). Next session: implement S31 T1–T4, then S16 T6+T8. See roadmap.md § NEXT SESSION INSTRUCTIONS.**
 
 ## New in v2.7.12–v2.7.16 (2026-06-11) — Deep audit: S28 + S29 + S30
 

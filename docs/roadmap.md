@@ -39,6 +39,8 @@
 | **S28 — Sync Integrity & Data Safety** | Fix demo-data leak into real accounts, realtime echo loop, lost-update merge, budget merge corruption | ✅ **complete** — T1–T3 (v2.7.12–v2.7.14) |
 | **S29 — Security Hardening** | Sanitize all `v-html` markdown output (notes, AI chat, docs) | ✅ **complete** — DOMPurify (v2.7.15) |
 | **S30 — Documentation Integrity** | Refresh stale core docs (architecture/strategy/platform say backend is "paused" — it's LIVE), prune roadmap | ✅ **complete** — v2.7.16 |
+| **S31 — UX Fixes & Tetris Polish** | Sign Up button fix, Sign Out placement, Tetris contrast + record animation | 🔜 planned — user-reported 2026-06-11 |
+| **S32 — Onboarding Module** | Replace demo seeding with a beautiful interactive tutorial for new users | 🔜 planned (separate module) |
 
 ---
 
@@ -1227,6 +1229,102 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 
 ### T2 — Roadmap prune 🔴 HIGH ✅ (v2.7.16)
 Remove the stale "NEXT CHAT INSTRUCTIONS" block (frozen at v1.2.10, instructs implementing S11 which shipped in v2.7.0), fix stale sprint markers (S16/S19/S20 rows), keep history compact.
+
+---
+
+## S31 — UX Fixes & Tetris Polish 🔜 planned (user-reported 2026-06-11)
+
+> Source: live user session 2026-06-11. All items confirmed in-browser by the user.
+> Implement T1 first (critical safety), then T2–T4 in any order.
+
+### T1 — Fix Sign Up button visible for real accounts 🔴 CRITICAL
+
+**Bug (user-reported):** "Я нажал на Sign Up в header и меня выкинуло из аккаунта."
+User was logged into a real Supabase account and saw the "Sign Up Free" chip in the header. Clicking it calls `signUpFromDemo()` → `auth.logout()` → user gets kicked out of their real account.
+
+**Root cause to investigate:** `auth.isDemoMode` (= `user?.provider === 'demo'`) should be `false` for real Supabase sessions, but something is causing the chip to show. Possible: session restore race condition — during `init()` before Supabase session loads, the local demo state leaks through. Or: after demo → register flow, `purgeDemoData()` ran but some localStorage auth state still has `provider='demo'`.
+
+**Fix (defensive, even if root cause is unclear):**
+1. Change the demo chip condition in `AppHeader.vue` from `v-if="auth.isDemoMode"` to `v-if="auth.isDemoMode && !auth.user?.id?.startsWith('demo')"` wait — better: gate on both isDemoMode AND that there is no real Supabase `access_token` in session. The cleanest fix: add a `isRealUser` computed to `auth.store.ts` (`user !== null && user.provider !== 'demo'`), then use `v-if="auth.isDemoMode && !auth.isRealUser"` in the header OR simply `v-if="auth.isDemoMode"` which is already gated — but add a safety escape valve: if `supabase.auth.getSession()` returns a valid session, always override isDemoMode to false in `init()`.
+2. Verify the `purgeDemoData()` + session restore path: after `register()` or `login()`, confirm `_state.value.user.provider` is `'supabase'` not `'demo'`.
+3. Add a check: if `onAuthStateChange` fires a real Supabase `SIGNED_IN` event, always force-set provider to `'supabase'` (in case there's stale demo state in the store's reactive `_state`).
+4. **Verify fix:** log in as real user → sign-out → go incognito → do NOT enter demo mode → log in again → header must NOT show "Sign Up Free" at any point.
+
+**Files:** `src/layouts/components/AppHeader.vue`, `src/core/stores/auth.store.ts`
+
+---
+
+### T2 — Move Sign Out button near user profile in Settings 🟠 HIGH
+
+**Bug (user-reported):** "Sign Out кнопка в Settings должна быть рядом где-то с именем и иконкой."
+Currently the logout button is separated from the profile section (avatar/name/email), making it easy to miss.
+
+**Fix:** In `src/modules/settings/views/SettingsView.vue`, move the "Sign out" / logout `UiButton` (variant `danger` or `ghost`) to the **bottom of the Profile section** — directly below the first name/last name fields, above the Security (password) section. It should sit visually close to the avatar + name row.
+
+Layout target:
+```
+┌──────────────────────────────────────┐
+│  [Avatar]  First name | Last name    │
+│            email@example.com         │
+│                                      │
+│  [Sign out] ← put here, danger style │
+├──────────────────────────────────────┤
+│  Security — Change password          │
+│  ...                                 │
+```
+
+**Files:** `src/modules/settings/views/SettingsView.vue`
+
+---
+
+### T3 — Tetris: game-over overlay contrast 🟠 HIGH
+
+**Bug (user-reported):** "Когда финальный результат высвечивается, цифры не сильно хорошо видно, они сливаются с фоном Tetris."
+The game-over overlay (`state === 'over'`) in `GameTetrisView.vue` renders `.tetris__overlay.tetris__overlay--over` over the board, but the score and text have insufficient contrast against the fallen pieces visible below.
+
+**Fix:** Increase the opacity of `.tetris__overlay--over` background so the board is dimmed enough to not compete with the score text. Also:
+- Make `.tetris__overlay-content` a distinct card: `background: var(--color-surface-2)`, `border: 1px solid var(--color-border)`, `border-radius: var(--radius-lg)`, `box-shadow: var(--shadow-3)`, generous padding.
+- `tetris__overlay-score` font-size should be large and bold with `color: var(--color-accent)` or `color: var(--color-text)` at full opacity.
+- Verify in Dark, Light, Brutalist, CRT themes.
+
+**Files:** `src/modules/games/views/GameTetrisView.vue`
+
+---
+
+### T4 — Tetris: new record celebration animation 🟠 HIGH
+
+**User request:** "Когда бьёшь рекорд, чтобы была какая-то анимация — взрыв или что-то красивое, что ты побил рекорд и приятно было."
+
+**Context:** There is already a `if (score.value > bestScore.value)` check on line 243 and a "New best!" text on line 630. But there's no animation.
+
+**Fix:**
+1. Add a reactive `isNewRecord = ref(false)` that is set to `true` in `endGame()` when `score > bestScore`.
+2. On game-over overlay: if `isNewRecord`, render a **confetti/particle burst** using a CSS keyframe animation (no new dependencies — pure CSS or a small inline canvas burst). Good options:
+   - CSS approach: spawn 20–30 `<div>` confetti chips with `position: absolute` inside the overlay, each with a random direction + color animation using `@keyframes` (rise + fade). Remove them after 3s.
+   - Canvas approach: draw colored dots in `requestAnimationFrame` loop on a small overlay canvas.
+3. The "New best!" badge should pulse/scale in with `@keyframes newRecordPop { 0% {transform: scale(0.5); opacity:0} 70% {transform: scale(1.15)} 100% {transform: scale(1); opacity:1} }` and be styled more prominently: accent background, white text, large font, rounded pill.
+4. Play a CSS-only celebration: the overlay card itself gets a brief `box-shadow: 0 0 40px var(--color-accent)` glow that fades out over 2s.
+
+**Files:** `src/modules/games/views/GameTetrisView.vue`
+
+---
+
+## S32 — Onboarding Module 🔜 planned (separate, post S31)
+
+**User request (2026-06-11):** "Убирай все эти демо-данные, давай лучше какую-то обучалку делай красивую, чем вот эти сразу данные, потому что это пользователей сбивает. Это надо как отдельный модуль."
+
+**Problem:** Currently, every visitor is auto-entered into demo mode which seeds fake tasks/habits/goals/finance/board data. When they register a real account, `purgeDemoData()` (S28 T1) removes the demo records — but the seeding still happens and the experience is confusing. Real users shouldn't see "demo data" at all.
+
+**Direction:**
+- For demo/recruiter visits: keep the live cascade demo on the Welcome page (S11 T2 — already a great experience). Consider making the "Try Demo" path more clearly separate.
+- For new real registrations (first login, empty account): show an **interactive onboarding flow** instead of fake data:
+  - A multi-step welcome modal or dedicated `/onboarding` route
+  - Step 1: "What are you here for?" (quick tasks / habit tracking / goals / all of it) → personalizes first view
+  - Step 2: Creates 1–2 real starter items with the user's input (e.g., "Add your first habit")
+  - Step 3: "Log one thing. Everything updates." — interactive cascade mini-demo with real user data
+  - Skip option always visible
+- Trigger: `auth.register()` success → redirect to `/onboarding` once (tracked by `platform:onboarding:done` localStorage flag); `login()` for existing accounts never redirects there.
+- **This is a full sprint** — requires design decisions. Implement after S31.
 
 ---
 
@@ -2624,3 +2722,59 @@ When the user has zero data across all stores (no tasks, no habits, no goals, no
 | Finance modal clears tab bar (T13) | `UiModal.vue` | Bottom-sheet positioning fix (part of T2) |
 | Learning/Training form audit (T15) | `LearningView.vue`, `TrainingView.vue` | Code-audited: `flex-wrap: wrap` correct, buttons always visible |
 | Board mobile tab touch target (T16) | `BoardView.vue` | `min-height: 44px` on `.board__mobile-tab` |
+
+---
+
+## NEXT SESSION INSTRUCTIONS (2026-06-11)
+
+> Implement the items below in order. Read CLAUDE.md + this file before writing any code.
+> Auto-commit + push after each task (see CLAUDE.md § Auto-commit rule).
+> Type-check must pass before every commit: `npm run type-check`.
+> Tests must stay green: `npm test`.
+
+### Priority 1 — S31 (user-reported bugs, implement first)
+
+**T1 — Sign Up button fix** (`src/layouts/components/AppHeader.vue`, `src/core/stores/auth.store.ts`)
+Investigate why the "Sign Up Free" demo chip (`v-if="auth.isDemoMode"`) can appear for real Supabase accounts. Root cause: possible race during `init()` session restore where demo state leaks before Supabase `SIGNED_IN` fires. Fix defensively:
+- In `auth.store.ts` `onAuthStateChange` handler: when event is `SIGNED_IN` and session has a real Supabase user, force `_state.value.user.provider = 'supabase'` (overwrite any stale demo provider).
+- In `AppHeader.vue`: add an extra guard — `v-if="auth.isDemoMode && auth.user?.provider === 'demo'"` (double-gate, belt-and-suspenders).
+- Verify: sign in with a real account → header never shows "Sign Up Free" at any point (including during page load / init).
+
+**T2 — Sign Out near profile in Settings** (`src/modules/settings/views/SettingsView.vue`)
+Move the logout/sign-out `UiButton` (danger or ghost-danger) into the Profile section, directly below the first/last name row and email. It should be visually close to the avatar + name, NOT buried at the bottom of the page. Keep the existing sign-out function, just relocate the button in the template.
+
+**T3 — Tetris game-over contrast** (`src/modules/games/views/GameTetrisView.vue`)
+The `.tetris__overlay--over` CSS needs a stronger backdrop (raise opacity to 0.88–0.92). Wrap `.tetris__overlay-content` in a styled card: `background: var(--color-surface-2)`, `border-radius: var(--radius-lg)`, `box-shadow: var(--shadow-3)`, padding `32px 40px`. Make the score large (`font-size: 3.5rem`, `font-weight: 700`, `color: var(--color-text)`). Test all 4 vibe-paks.
+
+**T4 — Tetris new record celebration** (`src/modules/games/views/GameTetrisView.vue`)
+When `score.value > bestScore.value` at game end (`isNewRecord = ref(false)`, set in `endGame()`):
+1. "New best!" badge: bigger, pill-shaped, `background: var(--color-accent)`, `color: #fff`, `font-weight: 700`, entrance animation `@keyframes recordPop { 0%{transform:scale(0.4);opacity:0} 70%{transform:scale(1.2)} 100%{transform:scale(1);opacity:1} }` applied on mount.
+2. Confetti burst: render 24 small `<div>` chips inside the overlay using `v-if="isNewRecord"`, positioned absolute with random inline styles (top/left randomized between 20%–80%), each with a `@keyframes confetti-fall` animation (translateY down + rotate + fadeOut, 1.5–2.5s with random delays). Use 4 accent/warning/success/text colors. Pure CSS, no new deps.
+3. The overlay card itself: brief `box-shadow: 0 0 60px color-mix(in srgb, var(--color-accent) 40%, transparent)` glow — use a CSS animation that adds the glow on enter and fades it out over 2s.
+
+---
+
+### Priority 2 — S16 remaining (can do autonomously after S31)
+
+**S16 T6 — Smoke E2E** (`e2e/smoke.spec.ts` — already exists; check Playwright config)
+Run `npx playwright test` first to see current state. If not set up: `npm install -D @playwright/test` + `playwright.config.ts` targeting `http://localhost:5173`. Tests to add (keep it ≤ 10 focused cases):
+1. App boots → Dashboard renders (h1 or life-stats strip visible)
+2. Create a task → appears in list → mark done → done count increments
+3. Switch vibe-pak (Dark → Brutalist) → `data-theme` attribute changes on `<html>`
+4. Open Studio → type a prompt → free AI returns a reply (or error message renders — no uncaught exception)
+5. Demo mode write is NOT blocked (demo writes locally, no sign-up wall — just verify no JS crash)
+
+**S16 T8 — Coverage gate** (`vitest.config.ts` or `vite.config.ts`)
+Add `@vitest/coverage-v8` (if not already in devDeps). Add to `vitest.config.ts`:
+```ts
+coverage: {
+  provider: 'v8',
+  reporter: ['text', 'json-summary'],
+  thresholds: { statements: 35, branches: 22 }
+}
+```
+Wire into CI: in `.github/workflows/deploy.yml`, add `npm run test -- --coverage` step before build. The thresholds are floors (already passing), so CI shouldn't break. Update CLAUDE.md testing section with coverage gate note.
+
+---
+
+> S13 (Design Pass) and S16 T7 (Manual QA) still require a live review session with the user — do NOT implement autonomously.
