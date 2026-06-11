@@ -81,9 +81,11 @@ async function signUpFromDemo() {
     <!-- ── Right: actions ─────────────────────────────── -->
     <div class="header-slot header-slot--right">
 
-      <!-- Demo mode chip -->
+      <!-- Demo mode chip — only shown after init() completes (authReady) and only
+           for genuine demo sessions (!isRealUser). Prevents the chip from flickering
+           during the async Supabase getSession() window on page load. -->
       <button
-        v-if="auth.isDemoMode"
+        v-if="auth.authReady && auth.isDemoMode && !auth.isRealUser"
         class="header-demo-chip"
         title="You're using Demo mode — data is stored locally"
         @click="signUpFromDemo"

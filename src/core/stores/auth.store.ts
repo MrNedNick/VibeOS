@@ -62,12 +62,16 @@ export const useAuthStore = defineStore('core:auth', () => {
 
   // Loading state for async operations
   const loading = ref(false)
+  // Becomes true once init() completes — prevents Sign Up chip from flickering
+  // during the async getSession() window before we know if there's a real session.
+  const authReady = ref(false)
 
   // ── Derived ─────────────────────────────────────────────────────────────
-  const user       = computed(() => _state.value.user)
-  const isLoggedIn = computed(() => _state.value.user !== null)
-  const isDemoMode = computed(() => _state.value.user?.provider === 'demo')
-  const tier       = computed(() => _state.value.user?.tier ?? 'free')
+  const user        = computed(() => _state.value.user)
+  const isLoggedIn  = computed(() => _state.value.user !== null)
+  const isDemoMode  = computed(() => _state.value.user?.provider === 'demo')
+  const isRealUser  = computed(() => _state.value.user !== null && _state.value.user.provider === 'supabase')
+  const tier        = computed(() => _state.value.user?.tier ?? 'free')
 
   const _adminEmails = (import.meta.env.VITE_ADMIN_EMAILS ?? '')
     .split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean)
@@ -359,15 +363,13 @@ export const useAuthStore = defineStore('core:auth', () => {
   // ── Init — restore session on app boot ────────────────────────────────────
   async function init(): Promise<void> {
     try {
-      // Demo mode: already restored from localStorage via useStorage — seed data if needed
-      if (_state.value.user?.provider === 'demo') {
-        seedDemoData()
-        return
-      }
-
-      // Supabase: check for existing session (from previous page load / refresh)
       if (isSupabaseConfigured) {
         const sb = getSupabase()
+        // Always check Supabase first — a real session takes priority over any
+        // stale demo state in localStorage (fixes the race condition where a user
+        // who was previously in demo mode still sees "Sign Up Free" after logging
+        // into a real account, because the demo provider flag was stored locally
+        // and init() used to return early without consulting Supabase).
         const { data: { session } } = await sb.auth.getSession()
 
         if (session?.user) {
@@ -386,8 +388,11 @@ export const useAuthStore = defineStore('core:auth', () => {
           useRealtimeSync().subscribe(session.user.id)
           useAnalyticsSync().syncEvents().catch(console.warn)
         } else {
-          // No valid Supabase session — clear stale local state if it was supabase
-          if (_state.value.user?.provider === 'supabase') {
+          // No valid Supabase session — honor local state
+          if (_state.value.user?.provider === 'demo') {
+            seedDemoData()
+          } else if (_state.value.user?.provider === 'supabase') {
+            // Stale Supabase state with no active session — clear it
             _setUser(null)
           }
         }
@@ -399,6 +404,7 @@ export const useAuthStore = defineStore('core:auth', () => {
           // fired from another tab or a stale token) wipe the demo user.
           if (_state.value.user?.provider === 'demo') return
           if (newSession?.user) {
+            // Force provider to 'supabase' even if stale demo state is present
             _setUser({
               id: newSession.user.id,
               email: newSession.user.email ?? '',
@@ -412,10 +418,17 @@ export const useAuthStore = defineStore('core:auth', () => {
             _setUser(null)
           }
         })
+      } else {
+        // Supabase not configured — demo mode only
+        if (_state.value.user?.provider === 'demo') {
+          seedDemoData()
+        }
       }
     } catch (err) {
       console.warn('[auth] init error:', err)
     } finally {
+      // Mark auth as resolved so the Sign Up chip can appear (only if truly demo)
+      authReady.value = true
       // Always resolve — router guard awaits this regardless of success/failure
       _readyResolve()
     }
@@ -426,10 +439,12 @@ export const useAuthStore = defineStore('core:auth', () => {
     user,
     isLoggedIn,
     isDemoMode,
+    isRealUser,
     isAdmin,
     initials,
     tier,
     loading,
+    authReady,
     isSupabaseConfigured,
     // Resolves when init() finishes — await before checking isLoggedIn in guards
     ready: _readyPromise,
