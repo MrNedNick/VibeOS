@@ -6,11 +6,13 @@
 
 ## Current state
 
-**Version: v2.7.11 — 2026-06-10**
+**Version: v2.7.16 — 2026-06-11**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
-> **Tests: 555 in 51 files.** v2.7.11 continued **S16 T5** — `FinanceTransactions` + `FinanceBudgets` (14 cases: list/empty-state, confirm-gated delete, budget editing, currency binding). v2.7.10 started **S16 T5** (god-component children) — `BoardCard`, `HabitCardCalendar`, `HabitCardLinks` (36 cases: emits + store mutations, props-driven render). v2.7.9 added the 2 interaction-heavy teleport modals — `UiConfirmDialog` (useConfirm promise resolution) + `UiFeedbackModal` (mood→comment→thankyou flow) (11 cases — **S16 T4** now 19/22, all interactive primitives covered; remaining 3 are presentational/infra). v2.7.8 added 5 more `@/ui` component test files — `UiFab`, `UiStat`, `UiSectionLabel`, `UiProgressRing`, `UiSkeleton` (33 cases). v2.7.7 added 5 `@/ui` component test files — `UiInput`, `UiField`, `UiProgressBar`, `UiBadge`, `UiEmptyState` (43 cases). v2.7.6 added `useAiInsight.test.ts` (8 cases — completes **S16 T1**: both S15 shared composables `useSoftDeletable` + `useAiInsight` now unit-tested; mocks `aiComplete`, pins the silent-failure contract). v2.7.4 added `board.store.test.ts` (Kanban cards + card→task cascade — completes S16 T2 data-store coverage) and `useFormValidation.test.ts` (auth-form validators). S16 T2 + T3 now complete (roadmap markers were stale — commandPalette/ui/learning/training stores were already tested).
+> **Tests: 582 in 54 files.** v2.7.12–15 added demo-purge, sync echo-loop, merge-correctness and sanitizer suites (S28/S29).
+>
+> **Tests (older note): 555 in 51 files.** v2.7.11 continued **S16 T5** — `FinanceTransactions` + `FinanceBudgets` (14 cases: list/empty-state, confirm-gated delete, budget editing, currency binding). v2.7.10 started **S16 T5** (god-component children) — `BoardCard`, `HabitCardCalendar`, `HabitCardLinks` (36 cases: emits + store mutations, props-driven render). v2.7.9 added the 2 interaction-heavy teleport modals — `UiConfirmDialog` (useConfirm promise resolution) + `UiFeedbackModal` (mood→comment→thankyou flow) (11 cases — **S16 T4** now 19/22, all interactive primitives covered; remaining 3 are presentational/infra). v2.7.8 added 5 more `@/ui` component test files — `UiFab`, `UiStat`, `UiSectionLabel`, `UiProgressRing`, `UiSkeleton` (33 cases). v2.7.7 added 5 `@/ui` component test files — `UiInput`, `UiField`, `UiProgressBar`, `UiBadge`, `UiEmptyState` (43 cases). v2.7.6 added `useAiInsight.test.ts` (8 cases — completes **S16 T1**: both S15 shared composables `useSoftDeletable` + `useAiInsight` now unit-tested; mocks `aiComplete`, pins the silent-failure contract). v2.7.4 added `board.store.test.ts` (Kanban cards + card→task cascade — completes S16 T2 data-store coverage) and `useFormValidation.test.ts` (auth-form validators). S16 T2 + T3 now complete (roadmap markers were stale — commandPalette/ui/learning/training stores were already tested).
 >
 > **Tests: 399 in 31 files (v2.7.3).** v2.7.1 added `cascade.integration.test.ts` (7 — cross-store auto-cascade). v2.7.2 added `usePullToRefresh.test.ts` (4) + wired Dashboard pull-to-refresh to `pullAll()`. v2.7.3 added **auth.store coverage** (19 cases, Supabase mocked) and fixed a real demo-immunity bug: `onAuthStateChange` cleared ANY user on `SIGNED_OUT`/`TOKEN_REFRESHED`, so a Supabase event could wipe a local demo session (the welcome funnel sends every visitor into demo mode). Now guarded to supabase-provider sessions only.
 >
@@ -36,8 +38,19 @@
 | S26 — Mobile QA & Fixes | ✅ complete — keyboard/layout/scroll/FAB/modal/touch fixes (v2.2.4) |
 | Studio providers | ✅ complete — Groq + Gemini Flash + OpenRouter (v2.3.0) |
 | **S27 — Profile & UX Polish** | ✅ **complete** — see v2.4–v2.6 below |
+| **S28 — Sync Integrity & Data Safety** | ✅ **complete** — demo-data leak, realtime echo loop, merge correctness (v2.7.12–v2.7.14) |
+| **S29 — Security Hardening** | ✅ **complete** — DOMPurify on all v-html markdown (v2.7.15) |
+| **S30 — Documentation Integrity** | ✅ **complete** — core docs refreshed to reality, roadmap pruned (v2.7.16) |
 
-**Active: S28 — Sync Integrity & Data Safety (CRITICAL), then S29 — Security Hardening, S30 — Documentation Integrity. From the 2026-06-11 deep architecture audit — see `docs/roadmap.md` § S28–S30. After that: live review (S13 / S16 T7).**
+**No active sprints. S28–S30 (2026-06-11 audit) shipped. Next session: live review (S13 / S16 T7) or new feature requests.**
+
+## New in v2.7.12–v2.7.16 (2026-06-11) — Deep audit: S28 + S29 + S30
+
+- **S28 T1 (v2.7.12)**: demo seed never leaks into real accounts — `purgeDemoData()` on login/register/restore; `logout()` clears `SYNC_KEYS` + queue + seed flag.
+- **S28 T2 (v2.7.13)**: realtime echo loop killed — identical payloads never re-pushed; no-op merges never notify the sync bus.
+- **S28 T3 (v2.7.14)**: merge correctness — `updatedAt` stamps in every mutating store action; `effectiveTs` honors epoch + ISO stamps; budgets merge by `category`; **learning/training stores wired to sync (they never were)**; board cards + budgets use `deletedAt` tombstones instead of hard deletes.
+- **S29 (v2.7.15)**: all 3 `v-html` sites sanitized via `sanitizeHtml()` (DOMPurify). New deps: `dompurify` (runtime), `jsdom@22` (dev, sanitizer tests only — pinned, see conventions).
+- **S30 (v2.7.16)**: architecture/strategy/platform/conventions/qa-report refreshed to v2.7.x reality (backend LIVE, 22 ui components, 4 paks); roadmap's stale "NEXT CHAT INSTRUCTIONS" block pruned. **Sync invariants documented in `docs/architecture.md` § Sync invariants — read before touching sync code.**
 
 ## New in v2.7.5 (2026-06-08) — S18 T11 + S3 keep-alive
 
@@ -207,6 +220,8 @@ src/
 
 ## Backend sync — SYNC_KEYS
 
+> ⚠️ **Sync invariants (S28) live in `docs/architecture.md` § Sync invariants.** Key rules: stamp `updatedAt` on every mutation, tombstones not hard deletes, new SYNC_KEYS need store wiring, identical payloads are never re-pushed.
+
 All keys synced to `user_store` Supabase table (one JSONB row per key per user):
 
 ```
@@ -278,4 +293,4 @@ Every new component must work at `lg` and `sm` at minimum. Content max-width: `v
 
 ## Testing
 
-Vitest v4 + happy-dom. 555 tests in 51 files. `npm test` = run once. Coverage gate: stmt 35% / branch 22%. Playwright E2E: `e2e/smoke.spec.ts`. For Teleport components (UiModal) → query `document.body`, not `wrapper.find()`.
+Vitest v4 + happy-dom (`sanitizeHtml.test.ts` runs under jsdom via `@vitest-environment` pragma). 582 tests in 54 files. `npm test` = run once. Coverage gate: stmt 35% / branch 22%. Playwright E2E: `e2e/smoke.spec.ts`. For Teleport components (UiModal) → query `document.body`, not `wrapper.find()`.

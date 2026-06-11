@@ -1,7 +1,15 @@
 # Conventions
 
-> Updated 2026-05-31. Reflects v0.9.3.
+> Updated 2026-06-11. Reflects v2.7.16.
 > ⚠️ **Keep this file current.** If you add a new convention or @/ui component, update this doc in the same commit.
+
+## Sync & security conventions (S28/S29 — mandatory)
+
+- **Synced stores stamp `updatedAt`** (`Date.now()`) in every mutating action — the cloud merge resolves conflicts by it. A mutation without a stamp silently loses cross-device edits.
+- **Never hard-delete synced records.** Use `deletedAt` tombstones (`useSoftDeletable` or manual) — removed array items resurrect on the next merge.
+- **New synced keys need wiring**: adding a key to `SYNC_KEYS` requires `useBackendSync(KEY)` push-watch + `useSyncBus().pullSeq` re-read in the owning store (learning/training were silently unsynced for weeks because of this).
+- **All `v-html` must go through `sanitizeHtml()`** from `@/core/utils/sanitizeHtml` (DOMPurify). Markdown output is untrusted input — AI responses and cloud-synced notes especially.
+- **Dependency register:** `dompurify` (runtime — audited HTML sanitizer, never hand-roll one); `jsdom@22` (dev — only for `sanitizeHtml.test.ts`, DOMPurify is broken under happy-dom; pinned to 22 because newer majors crash on Node 20 ESM require).
 
 
 ## Naming

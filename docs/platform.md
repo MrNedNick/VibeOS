@@ -1,6 +1,6 @@
 # VibeOS — Platform Overview
 
-> Updated 2026-06-04. Reflects shipped state at v2.2.4.
+> Updated 2026-06-11. Reflects shipped state at v2.7.16.
 > ⚠️ **Keep this file current.** After every sprint or significant feature, update the version, state table, and module list in the same commit that ships the work. Stale docs break future AI sessions.
 
 
@@ -14,12 +14,12 @@ It also functions as a portfolio anchor: the "personal life OS" concept is more 
 
 | Field | Value |
 |-------|-------|
-| **Version** | 2.2.4 |
+| **Version** | 2.7.16 |
 | **Live URL** | https://mrnednick.github.io/VibeOS |
 | **GitHub** | https://github.com/MrNedNick/VibeOS |
 | **TypeScript** | ✅ Strict mode, 0 errors (enforced on every commit) |
-| **Tests** | ✅ 369 Vitest unit tests in 27 files + Playwright E2E smoke (5 scenarios) |
-| **Backend** | ⏸ Supabase code complete, awaiting user setup (see S3 status) |
+| **Tests** | ✅ 582 Vitest unit tests in 54 files + Playwright E2E (auth suite + smoke) |
+| **Backend** | ✅ Supabase LIVE (2026-06-04) — auth, user_store JSONB sync, realtime, analytics/feedback; S28 sync-integrity fixes (v2.7.12–14) |
 | **Storage** | ✅ localStorage-first, full offline operation |
 | **AI** | ✅ Free tier (Pollinations.ai `openai-fast`, no key) + Claude API (user key) |
 | **Deployment** | ✅ GitHub Actions → GitHub Pages on every push to `main` |

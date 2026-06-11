@@ -1,6 +1,6 @@
 # VibeOS — Strategy & Vision
 
-> Updated 2026-05-31 (v5). Reflects shipped state at v0.9.3 — S8 Design System complete, S9 Phase 1–3 complete.
+> Updated 2026-06-11 (v6). Reflects shipped state at v2.7.16 — backend LIVE, S1–S30 closed except S13/S16-T7 (live review). Sprint truth lives in `docs/roadmap.md`; this file owns positioning + architecture decisions only.
 > ⚠️ **Keep this file current.** Any change to product positioning, module direction, or architecture decisions must be reflected here in the same session.
 
 > See `docs/privacy-security.md` for the public/private/auth plan.
@@ -107,7 +107,7 @@ The same task entity can be shown as:
 
 This avoids the trap of building many disconnected apps.
 
-### Core modules (all shipped as of v0.9.3)
+### Core modules (all shipped)
 
 | Module | Status | Purpose |
 |--------|--------|---------|
@@ -220,8 +220,8 @@ Key constraint: always user-provided API key. Never auto-call. Show cost estimat
 ### Tagline update
 S1 Identity pass must update all copy from "developer workspace" to "personal life OS" framing.
 
-### Vibe-paks (6 shipped)
-Six packs: Dark (default), Light, Synthwave, Brutalist, Soft Glass, CRT Retro. Visual signature and portfolio hook — keep them. S8 will add a full design system overhaul with `/ui-kit` component library.
+### Vibe-paks (4 shipped)
+Four packs since S10 consolidation: Dark (default), Light, Brutalist, CRT Retro (Synthwave removed, Soft Glass merged into Light). Visual signature and portfolio hook. The `/docs/ui-kit` catalogue ships with the design system (S8/S17).
 
 ### Icons
 Lucide icons (planned S1) — include icons for new life modules: `Target` (goals), `Dumbbell` (training), `BookOpen` (learning), `BarChart2` (analytics).
@@ -335,19 +335,9 @@ Becomes the life command center. Replaces dev metrics with life metrics. Panels:
 
 ---
 
-## 9. Sprint Plan (Current)
+## 9. Sprint Plan
 
-| Sprint | Goal | Status |
-|--------|------|--------|
-| **S1 — Identity** | Life OS first impression | ✅ Closed |
-| **S2 — Command Center** | Dashboard becomes daily-useful | ✅ Mostly done (⌘K, Settings, Dashboard panels) |
-| **S3 — Backend + Auth** | Real product, private data | ⏸ Paused — code complete, awaiting Supabase credentials |
-| **S4 — Core Life Modules** | Goals + Task unification | ✅ Done |
-| **S5 — Life Depth** | Learning + Training + Analytics | ✅ Done |
-| **S6 — AI Integration** | AI as planning layer | ✅ Done (all 9 items shipped) |
-| **S7 — Polish** | Credibility + reliability | 🔜 Partially (error boundaries done; Vitest pending) |
-| **S8 — Design System** | Component library + unified UI | 🔜 Next sprint — skeleton loaders, widget customization, `/ui-kit`, unified `@/ui` architecture |
-| **S9 — Full Redesign** | Revolut-style visual overhaul | 🔜 After S8 — requires unified component system first |
+**Single source of truth: `docs/roadmap.md` § Sprint status overview.** Summary as of 2026-06-11: S1–S12, S14–S30 ✅ complete (incl. S3 Backend LIVE, S21 sync architecture, S28 sync integrity, S29 XSS hardening). Open: S13 Design Pass + S16 T7 manual QA — both need a live review session with the user.
 
 ---
 

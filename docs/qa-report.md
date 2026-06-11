@@ -1,6 +1,6 @@
 # VibeOS QA Report
 
-> **v1.5.2 — 2026-06-03.** Refreshed from the stale v0.5.5 report. A full live-review QA pass (S16 T7) is still pending — that pass will replace this document with a dated manual-testing matrix.
+> **v2.7.16 — 2026-06-11.** Counts refreshed during the S30 docs pass. A full live-review QA pass (S16 T7) is still pending — that pass will replace this document with a dated manual-testing matrix.
 
 ---
 
@@ -8,10 +8,10 @@
 
 | Metric | Value |
 |--------|-------|
-| Version | v1.5.2 |
+| Version | v2.7.16 |
 | Shipped modules | 16 |
 | Vibe-paks | 4 — Dark, Light, Brutalist, CRT Retro |
-| Test count | 367 tests in 27 files |
+| Test count | 582 tests in 54 files |
 | Coverage gate | v8 — stmt 35% / branch 22% / fn 40% / lines 35% |
 | CI gate | type-check + tests + hex-guard must pass before deploy |
 
@@ -60,9 +60,7 @@
 | B6 Notes preview markdown — re-test needed | Visual | Low |
 | B7 Mobile stat label truncation — re-test needed | Responsive | Low |
 | `widgets.store` DEFAULT_CONFIGS mutation via Vue proxy | Bug | Low — affects tests, not prod UX |
-| S16 T6 E2E smoke tests — not yet added | Test gap | Medium |
 | S16 T7 Manual QA pass — not yet done | QA gap | High |
-| S11 T2 Welcome page redesign (cascade demo) — pending | Feature | — |
 
 ---
 

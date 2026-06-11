@@ -1,10 +1,10 @@
 # Architecture
 
-> Updated 2026-05-31. Reflects v0.8.0.
+> Updated 2026-06-11. Reflects v2.7.16.
 
 ## Overview
 
-VibeOS is a Vue 3 single-page application built as a modular platform. Each life module is a self-contained feature area sharing common infrastructure (`core/`, `ui/`). All state is localStorage-first via `useStorage()`. Supabase sync is implemented but awaiting credentials (S3).
+VibeOS is a Vue 3 single-page application built as a modular platform. Each life module is a self-contained feature area sharing common infrastructure (`core/`, `ui/`). All state is localStorage-first via `useStorage()`. **Supabase backend is LIVE** (since 2026-06-04): auth, per-key JSONB sync (`user_store`), realtime, analytics/feedback sync.
 
 ---
 
@@ -50,7 +50,10 @@ Available to all modules. Never imports from `modules/`.
 | `useAsync(fn)` | Wraps async calls with loading/error/data state |
 | `useConfirm()` | Promise-based confirm dialog (UiConfirmDialog.vue) |
 | `useAI()` / `aiComplete(prompt)` | Pollinations.ai wrapper — all 8 AI features use this |
-| `useCloudSync()` | Supabase sync (offline-first, dual-write on auth) |
+| `useCloudSync()` | pullAll/pushAll/pushKey via `user_store`; merge engine + offline queue |
+| `useBackendSync(key)` | Debounced (800ms) per-store push; skips payloads identical to last sent |
+| `useSyncBus()` | `pullSeq` counter — stores re-read localStorage after a pull merges data |
+| `useRealtimeSync()` | Supabase Realtime on `user_store`; ignores no-op echo events |
 | `useFeatureGate()` | Free/demo/pro tier logic |
 | `useModuleVisibility()` | Per-module show/hide in sidebar |
 | `useEventBus` (store) | Typed PlatformEvent ring buffer (last 100 events) |
@@ -68,9 +71,7 @@ Each module is self-contained. Dependencies allowed: `@/core/*` and `@/ui/*` onl
 
 Presentational-only, no business logic, no store access.
 
-**Current components:** `UiButton`, `UiBadge`, `UiInput`, `UiProgressRing`, `UiIcon`, `UiConfirmDialog`
-
-**Planned (S8 — next sprint):** `UiCard`, `UiSkeleton`, `UiEmptyState`, `UiStat`, `UiProgressBar`, `UiFilterChips`, `UiField`, `UiModal`, `UiSectionLabel` — see `docs/roadmap.md § S8` for full implementation order.
+**Current components (22):** UiButton, UiCard, UiBadge, UiInput, UiField, UiSectionLabel, UiStat, UiProgressBar, UiProgressRing, UiFilterChips, UiEmptyState, UiSkeleton, UiConfirmDialog, UiPlannedView, UiIcon, UiModal, UiIconButton, UiSelect, UiTextarea, UiToastContainer, UiFab, UiFeedbackModal.
 
 ### `layouts/` — Application Shell
 
@@ -182,15 +183,21 @@ platform:events:history
 
 ---
 
-## Supabase Backend (S3 — code complete, paused)
+## Supabase Backend (LIVE since 2026-06-04)
 
-All Supabase code is written and deployed. Waiting on user to:
-1. Create Supabase project and add `.env.local`
-2. Run `supabase/migrations/001_init.sql`
-3. Add secrets to GitHub Actions
+Migrations 001 (per-entity tables + RLS, superseded for data by 002), 002 (`user_store` KV JSONB), 003 (`analytics_events` + `feedback_entries`) are applied. Credentials live in `.env.local` + GitHub Actions secrets. A keep-alive workflow pings REST every 3 days.
 
 Files:
-- `src/core/services/supabase.ts` — lazy client singleton
-- `src/core/stores/auth.store.ts` — signIn/signOut/getSession
-- `src/core/composables/useCloudSync.ts` — offline-first sync
-- `supabase/migrations/001_init.sql` — full schema + RLS
+- `src/core/services/supabase.ts` — lazy client singleton, `isSupabaseConfigured`
+- `src/core/stores/auth.store.ts` — login/register/logout/reset/avatar/email-change + demo mode
+- `src/core/composables/useCloudSync.ts` — merge engine + offline queue (see invariants below)
+- `supabase/migrations/*.sql` — schema + RLS
+
+### Sync invariants (S28 — do not break these)
+
+1. **Records carry `updatedAt`** (epoch ms; notes/board use ISO strings) stamped on every mutation. `effectiveTs()` = max(`updated_at`, `updatedAt`, `deletedAt`); the newer record wins the merge. Legacy unstamped records fall back to local-wins.
+2. **Deletes are tombstones** (`deletedAt`), never array removal — a hard delete resurrects on the next merge because the remote copy survives. Budgets and board cards included. `gcTombstones()` clears tombstones older than 30 days.
+3. **Budgets have no `id`** — merge keys on `id ?? category`.
+4. **No echo loops:** `useBackendSync` never re-pushes an identical payload; `pullAll()` and the realtime handler skip no-op merges and only then notify the sync bus.
+5. **Auth transitions isolate data:** `purgeDemoData()` strips `demo-` seeded records before any login/register/restore push or pull; `logout()` clears all `SYNC_KEYS` + queue (shared-browser privacy).
+6. **Every `v-html` goes through `sanitizeHtml()`** (`@/core/utils`, DOMPurify) — markdown output is untrusted (AI responses, cloud-synced notes).

@@ -1,6 +1,6 @@
 # Roadmap
 
-> Re-planned v2 2026-05-27 · … · v15 2026-06-03 (v1.5.6–v1.5.15): Phase 2 responsive batch (10 tasks). · **v16 2026-06-03 (v1.5.16): S19–S22 sprint plans added — Mobile/Account, Auth Excellence, Backend Architecture, UX Action Prominence. Critical auth redirect bug identified (S19 T10). 4 new sprints, 30+ tasks fully spec'd and ready for autonomous execution.**
+> Re-planned v2 2026-05-27 · … · v16 2026-06-03 (S19–S22 plans) · **v17 2026-06-11: deep architecture audit → S28–S30 (sync integrity, XSS hardening, docs refresh) — all shipped same day (v2.7.12–v2.7.16). Stale "NEXT CHAT INSTRUCTIONS" block pruned.**
 > ⚠️ **Keep this file current.** Mark sprint items done the moment they ship. Add Phase 4+ specs before the session that implements them. A roadmap that lags the code is useless.
 > See `docs/strategy.md` for product context · `docs/privacy-security.md` for auth plan.
 
@@ -27,17 +27,18 @@
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 deferred. T7 QA report refreshed (v1.5.2). |
 | **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T3 ✅ T6 ✅ T8 ✅; T4 🔄 (19/22 @/ui); T5 🔄 (Analytics + Board + Habit + Finance children); remaining: T7 QA pass (needs live review). **555 tests in 51 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
-| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** (T11 deferred to S3) — T1–T10 ✅ T12 ✅ (docs, tests, UiFeedbackModal in docs-registry). T11 Supabase → blocked on credentials, moves to S3. |
-| **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | 🔄 **active** (2026-06-03) — T10 (auth redirect fix) SHIP FIRST; T1–T9, T11 pending |
-| **S20 — Auth Excellence** | Auth flow bulletproof: callback route, central validation, security, E2E tests | 🔜 **HIGH PRIORITY** — after S19 T10 |
+| **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** — T1–T12 ✅ incl. T11 Supabase analytics/feedback sync (v2.7.5) |
+| **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | ✅ **complete** — v1.9.1 |
+| **S20 — Auth Excellence** | Auth flow bulletproof: callback route, central validation, security, E2E tests | ✅ **complete** — 34 E2E tests (v1.9.1) |
 | **S21 — Backend Data Architecture** | Supabase-first data layer, no layout shift, real-time, proper skeletons | ✅ complete — v2.2.1 |
 | **S22 — UX Action Prominence** | FAB + primary CTAs in 8 modules, empty state audit, Dashboard onboarding | ✅ **complete** — v2.0.0 |
 | **S23 — Tetris Improvements** | Hold piece, line-clear flash animation, score history leaderboard | ✅ **complete** — v2.2.0 |
 | **S25 — Demo Mode Seeding** | Seed tasks/goals/habits/notes/finance/board on demo login for recruiters | ✅ **complete** — v2.2.0 |
 | **S26 — Mobile QA & Fixes** | Full mobile regression pass — layout, touch targets, modals, iOS keyboard, Android nav | ✅ **complete** — v2.2.4 |
-| **S28 — Sync Integrity & Data Safety** | Fix demo-data leak into real accounts, realtime echo loop, lost-update merge, budget merge corruption | 🔥 **CRITICAL — active** (2026-06-11 deep audit) |
-| **S29 — Security Hardening** | Sanitize all `v-html` markdown output (notes, AI chat, docs) | 🔥 **HIGH — after S28** |
-| **S30 — Documentation Integrity** | Refresh stale core docs (architecture/strategy/platform say backend is "paused" — it's LIVE), prune roadmap | **HIGH — after S29** |
+| **S27 — Profile & UX Polish** | Admin gating, avatar/email change, Tetris skins, feedback redesign, finance/board sync | ✅ **complete** — v2.4–v2.6 |
+| **S28 — Sync Integrity & Data Safety** | Fix demo-data leak into real accounts, realtime echo loop, lost-update merge, budget merge corruption | ✅ **complete** — T1–T3 (v2.7.12–v2.7.14) |
+| **S29 — Security Hardening** | Sanitize all `v-html` markdown output (notes, AI chat, docs) | ✅ **complete** — DOMPurify (v2.7.15) |
+| **S30 — Documentation Integrity** | Refresh stale core docs (architecture/strategy/platform say backend is "paused" — it's LIVE), prune roadmap | ✅ **complete** — v2.7.16 |
 
 ---
 
@@ -1221,141 +1222,11 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 
 ## S30 — Documentation Integrity 🔥 HIGH (after S29)
 
-### T1 — Refresh stale core docs 🔴 HIGH
+### T1 — Refresh stale core docs 🔴 HIGH ✅ (v2.7.16)
 `architecture.md` (v0.8.0), `strategy.md` (v0.9.3), `platform.md` (v2.2.4) all claim Supabase is "paused / awaiting credentials" — it has been **LIVE since 2026-06-04**. Component lists, pak counts, sprint tables and test counts are several major versions behind. CLAUDE.md's own rule: stale docs silently break future AI sessions. Refresh all four (+ `conventions.md` stamp) to current reality.
 
-### T2 — Roadmap prune 🔴 HIGH
+### T2 — Roadmap prune 🔴 HIGH ✅ (v2.7.16)
 Remove the stale "NEXT CHAT INSTRUCTIONS" block (frozen at v1.2.10, instructs implementing S11 which shipped in v2.7.0), fix stale sprint markers (S16/S19/S20 rows), keep history compact.
-
----
-
-## ── NEXT CHAT INSTRUCTIONS ────────────────────────────────────────────
-
-> Актуально на **v1.2.10 (2026-06-02)**. Промпты в порядке приоритета.
-> S17 ✅ полностью завершён (Phase 0+1+T14). S12 ✅ complete. Следующий главный спринт — S11.
-
----
-
-**[СЛЕДУЮЩИЙ] Session: S11 — Welcome Page & Positioning**
-
-```
-Сессия — S11: Welcome Page redesign + Positioning update
-
-Прочитай перед началом:
-1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
-2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S11 описан там (T1+T2)
-3. /Users/test/Documents/Work/AIProjects/VibeOS/docs/strategy.md  ← текущее позиционирование
-4. src/modules/welcome/WelcomeView.vue  ← текущая страница (читай полностью)
-
-Контекст: S8/S12/S17 ✅ complete. Версия: v1.2.10. 274 теста в 21 файле.
-
-ВСЕ COPY-РЕШЕНИЯ ПРИНЯТЫ (репозиционирование 2026-06-01) — сразу реализуй.
-Позиционирование: "простой Notion для жизни, где всё связано". НЕ "accelerator".
-Главная аудитория — сам пользователь + друзья; рекрутёр — бонус.
-
-Eyebrow: "A simpler Notion — for your life"
-Headline: "Log one thing. Everything updates."
-Subheadline: "Habits, tasks, goals, learning — in one light, no-setup place.
-              Check off a habit and your goal moves on its own."
-CTA buttons: "Open VibeOS" (primary) + "View on GitHub" (ghost → github.com/mrnednick/VibeOS)
-3 Pillars:
-  1. Link2 icon — "Everything connected"
-     "Log a workout, the habit checks off and the goal advances — automatically. No manual linking."
-  2. Feather icon — "Light by design"
-     "No databases to configure, no templates to wrestle. Open it and use it."
-  3. Sparkles icon — "AI that knows your data"
-     "Ask anything — your goals, habits, and tasks are already loaded. Free, no key required."
-Proof strip: "16 modules" · "No setup needed" · "100% local-first" · "No subscription. Ever."
-
-Структура новой страницы (сверху вниз):
-1. NAV — logo + GitHub link + "Sign in" + "Open VibeOS" CTA
-2. HERO — 2 колонки: [LEFT] eyebrow → headline → sub → CTAs
-   [RIGHT] ⭐ ЖИВОЙ ИНТЕРАКТИВНЫЙ КАСКАД (ключевой элемент, сделать хорошо):
-   кликабельная строка привычки → при клике кольцо прогресса связанной цели
-   реально дёргается вверх. Seeded fake data. Caption: "Go ahead — check it off."
-   ЭТО НЕ статичная анимированная карточка статов — она должна реально реагировать.
-   Это единственная вещь, которая показывает фишку вместо того чтобы про неё заявлять.
-3. PROOF STRIP — 4 bordered stat chips
-4. PILLARS — 3 карточки (Connected / Light / AI)
-5. MODULE GRID — 12 cards, 4-col (переиспользуй логику из текущей страницы)
-6. VIBE-PAKS — 4 pak карточки: name + accent swatch + bg color preview
-7. FINAL CTA — "Your data stays in your browser. Always." + "Open VibeOS" button
-8. FOOTER — stack pills + GitHub + version
-
-Что удалить из текущей страницы:
-- Terminal preview tab (welcome__preview-section целиком)
-- "OS-first thinking" и "Vibe-paks" pillars
-- "Your data, only yours" standalone pillar
-- Захардкоженный hex (#4f8ef7, массив MODULES.color) → var(--color-accent) / module accent vars
-
-Что обновить помимо welcome:
-- docs/strategy.md §3 — новое позиционирование
-- README.md — tagline + "What it is" секция
-- index.html — <title> и <meta name="description">
-
-Визуальные правила: S9 tokens, color-mix, --shadow-*, no hardcoded hex.
-Правила: type-check → 0, npm test → 274 pass, коммит + push после каждого блока.
-Версии: +patch за каждый блок.
-```
-
----
-
-**Session: S15 T4 — Decompose god-components (fill-in, no user decisions)**
-
-```
-Сессия — S15 T4: декомпозиция god-компонентов
-
-Прочитай перед началом:
-1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
-2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S15 T4 описан там
-
-Контекст: v1.2.10. S15 T1/T2/T3/T6/T7/T8 ✅ done. S17 ✅ done. 274 теста.
-
-Измерь LOC каждого файла перед началом (wc -l) — после S17 миграций они уже меньше.
-Приоритет декомпозиции (biggest pain first):
-1. FinanceView.vue — извлечь FinanceSummary, TransactionList, BudgetList
-2. BoardView.vue — извлечь BoardColumn, BoardCard; drag-логику в composable
-3. AnalyticsView.vue — извлечь per-section panels
-4. StudioView.vue — split conversation pane / model picker / history sidebar
-5. HabitCard.vue — ТОЛЬКО если всё ещё > 800 LOC; паттерны, НЕ реструктурировать streak
-
-Правила (жёсткие):
-- Behavior-preserving only. До и после — один и тот же экран, те же данные.
-- Один компонент = один коммит = один patch bump.
-- type-check → 0, npm test → все зелёные после каждого.
-- Если extraction делает call site длиннее или менее понятным — не делать.
-
-Правила: auto-commit + push после каждого блока.
-```
-
----
-
-**Session: S13 — Design Pass (начинать только после live review)**
-
-```
-Сессия — S13: Design Pass
-
-⚠️ ЭТОТ ПРОМПТ ИСПОЛЬЗОВАТЬ ТОЛЬКО ПОСЛЕ того как ты (пользователь) прошёлся
-по живому приложению и написал конкретные замечания по каждому модулю.
-Без конкретики от тебя — сессия не имеет смысла.
-
-Прочитай перед началом:
-1. /Users/test/Documents/Work/AIProjects/VibeOS/CLAUDE.md
-2. /Users/test/Documents/Work/AIProjects/VibeOS/docs/roadmap.md  ← S13 описан там
-3. /Users/test/Documents/Work/AIProjects/VibeOS/docs/conventions.md  ← S9 visual rules
-
-Контекст: S12 ✅. Версия: актуальная.
-
-[ЗАПОЛНИ ПЕРЕД ИСПОЛЬЗОВАНИЕМ]
-Твои замечания по модулям (из live review на MacBook + iPhone):
-- Finance: ???
-- Board: ???
-- Studio: ???
-- Analytics: ???
-- Другое: ???
-
-Правила: S9 visual rules, коммит + push после каждого модуля, type-check → 0.
-```
 
 ---
 
