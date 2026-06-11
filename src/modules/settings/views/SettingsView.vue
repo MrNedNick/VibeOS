@@ -444,6 +444,15 @@ function cancelImport() {
           Exit demo
         </UiButton>
       </div>
+
+      <!-- Sign out — placed here so it's visually adjacent to name/avatar -->
+      <div v-if="!auth.isDemoMode" class="profile-signout-row">
+        <UiButton variant="danger" size="sm" @click="handleLogout">
+          <UiIcon name="LogOut" :size="14" />
+          Sign out
+        </UiButton>
+        <p class="profile-signout-hint">Ends your current session on this device.</p>
+      </div>
     </section>
 
     <!-- ── Security ──────────────────────────────────────── -->
@@ -528,17 +537,6 @@ function cancelImport() {
         </div>
       </Transition>
 
-      <!-- Sign out -->
-      <div class="settings__row settings__row--danger">
-        <div>
-          <span class="settings__row-name">Sign out</span>
-          <p class="settings__row-hint">End your current session on this device.</p>
-        </div>
-        <UiButton variant="danger" @click="handleLogout">
-          <UiIcon name="LogOut" :size="14" />
-          Sign out
-        </UiButton>
-      </div>
     </section>
 
     <!-- ── Email ──────────────────────────────────────────── -->
@@ -1331,6 +1329,19 @@ function cancelImport() {
   color: var(--color-text-secondary);
   margin: 0;
   line-height: var(--leading-relaxed);
+}
+
+.profile-signout-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.profile-signout-hint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
 }
 
 /* ── Security section ───────────────────────────────────────────── */
