@@ -1,6 +1,6 @@
 {
   "name": "vibeos",
-  "version": "2.7.19",
+  "version": "2.7.20",
   "type": "module",
   "scripts": {
     "dev": "vite",
