@@ -2,6 +2,7 @@
 import { computed, ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { marked } from 'marked'
+import { sanitizeHtml } from '@/core/utils/sanitizeHtml'
 import { useDocs } from '../composables/useDocs'
 import DocsSidebar from '../components/DocsSidebar.vue'
 import { UiIcon, UiButton } from '@/ui'
@@ -35,7 +36,7 @@ marked.use({
 const renderedHtml = computed<string>(() => {
   if (!currentContent.value) return ''
   const result = marked.parse(currentContent.value)
-  return typeof result === 'string' ? result : ''
+  return typeof result === 'string' ? sanitizeHtml(result) : ''
 })
 
 // Copy buttons for code blocks

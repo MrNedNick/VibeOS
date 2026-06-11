@@ -1212,9 +1212,10 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 
 ## S29 — Security Hardening 🔥 HIGH (after S28)
 
-### T1 — Sanitize all `v-html` markdown output 🔴 HIGH
+### T1 — Sanitize all `v-html` markdown output 🔴 HIGH ✅ (v2.7.15)
 **Bug:** `marked.parse()` output is bound via `v-html` with **no sanitization** in 3 places: `NotePreview.vue` (notes sync from the cloud), `StudioConversation.vue` (**AI responses = untrusted third-party input**), `DocsView.vue`. `marked` passes raw HTML through and does not block `javascript:` hrefs → stored XSS.
 **Fix:** add `dompurify` (written reason: only maintained, audited HTML sanitizer; hand-rolled sanitizers are a known anti-pattern), central `sanitizeHtml()` util in `@/core/utils`, applied at all 3 call sites. Unit tests: `<img onerror>`, `<script>`, `javascript:` href all stripped.
+**Shipped (v2.7.15):** `dompurify` added (runtime), `sanitizeHtml()` in `@/core/utils`, applied in NotePreview/StudioConversation/DocsView. 8 unit tests run under **jsdom** (`@vitest-environment` pragma — DOMPurify is broken under happy-dom; `jsdom@22` dev-only, pinned: newer majors crash on Node 20 ESM require). Verified live: planted XSS note neutralized, legit markdown intact.
 
 ---
 

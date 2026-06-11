@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { marked } from 'marked'
+import { sanitizeHtml } from '@/core/utils/sanitizeHtml'
 import { useStudioStore } from '../stores/studio.store'
 import { STUDIO_MODELS, FREE_MODELS, GROQ_MODELS, GEMINI_MODELS } from '../types'
 import { UiIcon, UiButton } from '@/ui'
@@ -11,7 +12,7 @@ import { useLearningStore } from '@/modules/learning/stores/learning.store'
 import { useTrainingStore } from '@/modules/training/stores/training.store'
 
 marked.setOptions({ breaks: true })
-function renderMarkdown(content: string): string { return marked.parse(content) as string }
+function renderMarkdown(content: string): string { return sanitizeHtml(marked.parse(content) as string) }
 
 const store         = useStudioStore()
 const goalsStore    = useGoalsStore()

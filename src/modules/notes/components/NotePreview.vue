@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { marked } from 'marked'
+import { sanitizeHtml } from '@/core/utils/sanitizeHtml'
 import hljs from 'highlight.js/lib/core'
 import javascript from 'highlight.js/lib/languages/javascript'
 import typescript from 'highlight.js/lib/languages/typescript'
@@ -60,7 +61,7 @@ marked.use({
 const rendered = computed<string>(() => {
   if (!props.content.trim()) return ''
   const result = marked.parse(props.content)
-  return typeof result === 'string' ? result : ''
+  return typeof result === 'string' ? sanitizeHtml(result) : ''
 })
 
 function handleClick(e: MouseEvent) {
