@@ -280,6 +280,10 @@ onMounted(() => inputEl.value?.focus())
           </p>
           <p v-else-if="msg.role === 'user'" class="sc-bubble-text">{{ msg.content }}</p>
           <div v-else class="sc-bubble-text sc-md" v-html="renderMarkdown(msg.content)" />
+          <div v-if="msg.role === 'user'" class="sc-bubble-meta sc-bubble-meta--user">
+            <span class="sc-meta-time">{{ fmtTime(msg.timestamp) }}</span>
+            <UiButton variant="ghost" size="sm" @click="copyMessage(msg.id, msg.content)">{{ copiedId === msg.id ? 'Copied!' : 'Copy' }}</UiButton>
+          </div>
           <div v-if="msg.role === 'assistant'" class="sc-bubble-meta">
             <span v-if="msg.model && !msg.error" class="sc-meta-model" :style="{ color: modelColor(msg.model) }">{{ modelLabel(msg.model) }}</span>
             <span v-if="msg.durationMs" class="sc-meta-dur">{{ fmtDuration(msg.durationMs) }}</span>
@@ -359,6 +363,7 @@ onMounted(() => inputEl.value?.focus())
 .sc-msg--user .sc-bubble-text { color: #fff; }
 .sc-err-row { display: flex; align-items: center; gap: 6px; color: var(--color-danger); }
 .sc-bubble-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.sc-bubble-meta--user { justify-content: flex-end; }
 .sc-meta-model { font-size: 10px; font-weight: 600; }
 .sc-meta-dur, .sc-meta-time { font-size: 10px; color: var(--color-text-muted); font-family: var(--font-mono); }
 .sc-md :deep(p) { margin: 0 0 8px; } .sc-md :deep(p:last-child) { margin-bottom: 0; }

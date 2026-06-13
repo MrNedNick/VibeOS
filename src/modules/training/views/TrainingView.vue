@@ -152,6 +152,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 const todayLabel = computed(() =>
   new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }),
 )
+
+const weekSummary = computed(() => {
+  const now = new Date()
+  const dow = now.getDay()
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - ((dow + 6) % 7))
+  monday.setHours(0, 0, 0, 0)
+  const weekLogs = store.logs.filter(l => {
+    const d = new Date(l.date + 'T00:00:00')
+    return d >= monday && d <= now
+  })
+  if (weekLogs.length === 0) return null
+  const totalMinutes = weekLogs.reduce((s, l) => s + (l.actualDuration ?? 0), 0)
+  const totalKm = weekLogs.reduce((s, l) => s + (l.actualDistance ?? 0), 0)
+  return { workoutsThisWeek: weekLogs.length, totalMinutes, totalKm }
+})
 </script>
 
 <template>
@@ -248,6 +264,15 @@ const todayLabel = computed(() =>
           <span v-else class="training__today-check">✓</span>
         </div>
       </div>
+    </div>
+
+    <!-- Weekly summary -->
+    <div v-if="weekSummary && weekSummary.workoutsThisWeek > 0" class="training__week-summary">
+      <span class="training__week-summary-text">
+        {{ weekSummary.workoutsThisWeek }} workout{{ weekSummary.workoutsThisWeek !== 1 ? 's' : '' }} this week
+        <template v-if="weekSummary.totalMinutes > 0"> · {{ weekSummary.totalMinutes }}min</template>
+        <template v-if="weekSummary.totalKm > 0"> · {{ weekSummary.totalKm.toFixed(1) }}km</template>
+      </span>
     </div>
 
     <!-- Active plans grid -->
@@ -423,6 +448,19 @@ const todayLabel = computed(() =>
 .training__today-freq { font-size: var(--text-xs); color: var(--color-text-muted); flex-shrink: 0; }
 
 .training__today-check { font-size: var(--text-sm); color: var(--color-success); font-weight: 600; flex-shrink: 0; }
+
+/* Weekly summary strip */
+.training__week-summary {
+  padding: 8px 14px;
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
+  border-radius: var(--radius);
+}
+.training__week-summary-text {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
 
 /* Grid */
 .training__grid {

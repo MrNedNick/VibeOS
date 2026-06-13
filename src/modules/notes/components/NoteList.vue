@@ -32,6 +32,7 @@ defineExpose({ focusSearch: () => searchRef.value?.focus() })
       <UiIconButton
         name="Plus"
         aria-label="New note (⌘N)"
+        title="New note (⌘N)"
         size="sm"
         @click="emit('new')"
       />
@@ -44,6 +45,7 @@ defineExpose({ focusSearch: () => searchRef.value?.focus() })
         :model-value="searchQuery"
         placeholder="Search…"
         type="search"
+        title="Search notes (⌘F)"
         @update:model-value="emit('update:searchQuery', $event)"
       />
     </div>

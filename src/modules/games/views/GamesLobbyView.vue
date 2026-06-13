@@ -9,8 +9,19 @@ const i18n = useLocale()
 
 const bestMinesweeper = useStorage<number>('platform:games:minesweeper:best', 0)
 const bestMemoryEasy = useStorage<number>('platform:games:memory:easy:time', 0)
+const memoryWins = useStorage<number>('platform:games:memory:wins', 0)
 const bestSnake = useStorage<number>('platform:games:snake:best', 0)
 const bestTetris = useStorage<number>('platform:games:tetris:best', 0)
+const sudokuSolved = useStorage<number>('platform:games:sudoku:solved', 0)
+
+const memoryStat = computed(() => {
+  const best = bestMemoryEasy.value
+  const wins = memoryWins.value
+  if (best > 0 && wins > 0) return `Best: ${(best / 1000).toFixed(1)}s, ${wins} wins`
+  if (best > 0) return `Best: ${(best / 1000).toFixed(1)}s`
+  if (wins > 0) return `${wins} wins`
+  return null
+})
 
 const games = computed(() => [
   {
@@ -26,7 +37,7 @@ const games = computed(() => [
     label: i18n.t('games.memoryName'),
     desc: i18n.t('games.memoryDesc'),
     path: '/games/memory',
-    stat: bestMemoryEasy.value > 0 ? `Best: ${(bestMemoryEasy.value / 1000).toFixed(1)}s` : null,
+    stat: memoryStat.value,
     color: '#8b5cf6',
   },
   {
@@ -42,7 +53,7 @@ const games = computed(() => [
     label: i18n.t('games.sudokuName'),
     desc: i18n.t('games.sudokuDesc'),
     path: '/games/sudoku',
-    stat: null,
+    stat: sudokuSolved.value > 0 ? `${sudokuSolved.value} solved` : null,
     color: '#f59e0b',
   },
   {

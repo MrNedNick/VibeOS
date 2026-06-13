@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v2.8.0 — 2026-06-13**
+**Version: v2.9.0 — 2026-06-13**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
@@ -45,6 +45,18 @@
 | **S32 — Onboarding Module** | 🔜 **planned** — Replace demo data with interactive new-user tutorial (separate sprint) |
 
 **S31 complete (2026-06-11). S32 (Onboarding Module) is next — requires design decisions. S16 T7 (manual QA pass) still pending live review.**
+
+## New in v2.9.0 (2026-06-13) — UX Polish Batch II
+
+- **Games lobby stats**: Sudoku card shows `N solved` (from `platform:games:sudoku:solved`); Memory card shows `Best: Xs, N wins` combining best time + wins count (`platform:games:memory:wins`).
+- **Finance trend chip**: Header "spent" stat now shows `↑X%` or `↓X% vs Mon` vs prev month (green ↓ = spending less, red ↑ = spending more). Hidden when no prev month data.
+- **Training weekly summary**: Strip above plan grid shows "X workouts this week · Ymin · Zkm" (km omitted when 0) based on current ISO week logs.
+- **Goals sort**: `UiSelect` after category filter chips — sort by Created / Progress ↑ / Progress ↓ / Due date. Null due dates sort last.
+- **Habits Export CSV**: `exportCsv()` on habits store; Export CSV button (ghost, sm) in header next to Patterns. CSV columns: Name, Category, Current Streak, Total Check-ins, Age (days), Completion %.
+- **Studio copy user messages**: User bubble now has `.sc-bubble-meta--user` with Copy button + timestamp; meta row is `justify-content: flex-end`.
+- **PWA manifest**: `public/manifest.webmanifest` created; `<link rel="manifest">` added to index.html.
+- **FinanceWidget prev month**: Dashboard widget shows `↑X%` or `↓X% vs Mon` below total row when prev month data exists.
+- **Notes keyboard hints**: title attrs on New note (⌘N), Search (⌘F), Toggle preview (⌘⇧P) buttons; compact `⌘N new · ⌘F search · ⌘⇧P preview` strip at bottom of editor column when note selected.
 
 ## New in v2.8.0 (2026-06-13) — UX Polish Batch
 

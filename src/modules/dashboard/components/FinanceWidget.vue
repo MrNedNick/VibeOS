@@ -37,6 +37,19 @@ const budgetPct = computed(() => {
 })
 
 const isEmpty = computed(() => store.thisMonthExpenses.length === 0)
+
+const prevMonthChip = computed(() => {
+  if (isEmpty.value) return null
+  const [y, m] = currentMonthKey().split('-').map(Number)
+  const prevDate = new Date(y, m - 2, 1)
+  const prevKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+  const prevTotal = store.expensesByMonth(prevKey).reduce((s, e) => s + e.amount, 0)
+  if (prevTotal <= 0) return null
+  const currentTotal = total.value
+  const pct = Math.round(((currentTotal - prevTotal) / prevTotal) * 100)
+  const prevMonth = prevDate.toLocaleDateString('en-GB', { month: 'short' })
+  return { pct, up: pct > 0, label: `${pct > 0 ? '↑' : '↓'}${Math.abs(pct)}% vs ${prevMonth}` }
+})
 </script>
 
 <template>
@@ -71,6 +84,11 @@ const isEmpty = computed(() => store.thisMonthExpenses.length === 0)
           <UiIcon name="AlertTriangle" :size="11" />
           {{ overBudgetCount }} over
         </span>
+      </div>
+
+      <!-- Prev month comparison -->
+      <div v-if="prevMonthChip" class="fin-widget__prev-month" :class="prevMonthChip.up ? 'fin-widget__prev-month--up' : 'fin-widget__prev-month--down'">
+        {{ prevMonthChip.label }}
       </div>
 
       <!-- Budget progress bar -->
@@ -205,6 +223,18 @@ const isEmpty = computed(() => store.thisMonthExpenses.length === 0)
   font-weight: 600;
   color: var(--color-danger);
   margin-left: auto;
+}
+
+.fin-widget__prev-month {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+.fin-widget__prev-month--up {
+  color: color-mix(in srgb, var(--color-danger) 80%, var(--color-text-muted));
+}
+.fin-widget__prev-month--down {
+  color: color-mix(in srgb, var(--color-success) 80%, var(--color-text-muted));
 }
 
 .fin-widget__budget-bar {

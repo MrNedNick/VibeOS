@@ -40,6 +40,7 @@
 | **S29 — Security Hardening** | Sanitize all `v-html` markdown output (notes, AI chat, docs) | ✅ **complete** — DOMPurify (v2.7.15) |
 | **S30 — Documentation Integrity** | Refresh stale core docs (architecture/strategy/platform say backend is "paused" — it's LIVE), prune roadmap | ✅ **complete** — v2.7.16 |
 | **S31 — UX Fixes & Tetris Polish** | Sign Up button fix, Sign Out placement, Tetris contrast + record animation | ✅ **complete** — T1–T4 all shipped (v2.7.17–v2.7.20) |
+| **S33 — UX Polish Batch II** | Module stats, trend chips, CSV exports, PWA manifest, keyboard hints | ✅ **complete** — 10 tasks (v2.9.0) |
 | **S32 — Onboarding Module** | Replace demo seeding with a beautiful interactive tutorial for new users | 🔜 planned (separate module) |
 
 ---
@@ -1306,6 +1307,25 @@ The game-over overlay (`state === 'over'`) in `GameTetrisView.vue` renders `.tet
 4. Play a CSS-only celebration: the overlay card itself gets a brief `box-shadow: 0 0 40px var(--color-accent)` glow that fades out over 2s.
 
 **Files:** `src/modules/games/views/GameTetrisView.vue`
+
+---
+
+## S33 — UX Polish Batch II ✅ complete (v2.9.0, 2026-06-13)
+
+10 independent polish tasks shipped in one batch:
+
+| Task | What shipped |
+|------|-------------|
+| Games lobby stats | Sudoku: `N solved` stat from localStorage; Memory: `Best: Xs, N wins` combining best time + wins |
+| Finance trend chip | `↑X%`/`↓X% vs Mon` chip in header "spent" stat vs previous month (green ↓, red ↑) |
+| Training weekly summary | "X workouts · Ymin · Zkm" strip above plan grid, based on current ISO week logs |
+| Goals sort | `UiSelect` (Created / Progress ↑ / Progress ↓ / Due date) after category filter, null due dates last |
+| Habits Export CSV | `exportCsv()` in store; Export CSV button in header; columns: Name, Category, Streak, Check-ins, Age, Completion% |
+| Studio copy user messages | User bubble gets `.sc-bubble-meta--user` with Copy button + timestamp (`flex-end`) |
+| PWA manifest | `public/manifest.webmanifest` + `<link rel="manifest">` in index.html |
+| FinanceWidget prev month | Dashboard widget: `↑X%`/`↓X% vs Mon` row below total, color-mix tokens |
+| Notes keyboard hints | `title` attrs on New note/Search/Toggle preview; `⌘N · ⌘F · ⌘⇧P` hint strip at editor bottom |
+| Studio timestamps on user messages | User bubble meta row shows `fmtTime(msg.timestamp)` |
 
 ---
 

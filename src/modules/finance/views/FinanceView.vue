@@ -15,6 +15,18 @@ const store = useFinanceStore()
 const { track } = useTrack()
 const toast = useToast()
 
+const trendChip = computed(() => {
+  const [y, m] = store.selectedMonth.split('-').map(Number)
+  const prevDate = new Date(y, m - 2, 1)
+  const prevKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+  const prevTotal = store.expensesByMonth(prevKey).reduce((s, e) => s + e.amount, 0)
+  if (prevTotal <= 0) return null
+  const current = store.viewTotal
+  const pct = Math.round(((current - prevTotal) / prevTotal) * 100)
+  const prevMonth = prevDate.toLocaleDateString('en-GB', { month: 'short' })
+  return { pct, up: pct > 0, label: `${pct > 0 ? '↑' : '↓'}${Math.abs(pct)}% vs ${prevMonth}` }
+})
+
 type Tab = 'overview' | 'transactions' | 'budgets'
 const activeTab = ref<Tab>('overview')
 
@@ -66,6 +78,11 @@ onMounted(() => store.fetchRates())
             class="finance__header-stat-converted"
           >≈ {{ store.displaySymbol }}{{ store.convertAmount(store.viewTotal).toLocaleString() }}</span>
           <span class="finance__header-stat-label">spent</span>
+          <span
+            v-if="trendChip"
+            class="finance__trend-chip"
+            :class="trendChip.up ? 'finance__trend-chip--up' : 'finance__trend-chip--down'"
+          >{{ trendChip.label }}</span>
         </div>
         <div v-if="store.totalBudget > 0 && store.isViewingCurrentMonth" class="finance__header-stat">
           <span
@@ -199,6 +216,23 @@ onMounted(() => store.fetchRates())
 .finance__header-stat-value { font-size: 20px; font-weight: 700; font-family: var(--font-mono); color: var(--color-text); }
 .finance__header-stat-converted { font-size: 12px; color: var(--color-text-muted); font-family: var(--font-mono); }
 .finance__header-stat-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.finance__trend-chip {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+.finance__trend-chip--up {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+.finance__trend-chip--down {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
 
 .finance__over-badge {
   display: flex;

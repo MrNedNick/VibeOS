@@ -161,6 +161,35 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     allHabits.value = arr
   }
 
+  function exportCsv(): void {
+    const today = todayStr()
+    const rows = [...habits.value]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(h => {
+        const createdMs = new Date(h.createdAt).getTime()
+        const ageMs = Date.now() - createdMs
+        const ageDays = Math.max(1, Math.round(ageMs / 86_400_000))
+        const streak = computeStreak(h.completedDates, h.skippedDates)
+        const totalCheckIns = h.completedDates.length
+        const completionPct = Math.round((totalCheckIns / ageDays) * 100)
+        const fields = [
+          `"${h.name.replace(/"/g, '""')}"`,
+          `"${h.category ?? ''}"`,
+          streak,
+          totalCheckIns,
+          ageDays,
+          completionPct,
+        ]
+        return fields.join(',')
+      })
+    const csv = ['Name,Category,Current Streak,Total Check-ins,Age (days),Completion %', ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url  = URL.createObjectURL(blob)
+    const a    = Object.assign(document.createElement('a'), { href: url, download: `habits-${today}.csv` })
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   function isCompletedToday(id: string): boolean {
     const habit = allHabits.value.find(h => h.id === id)
     return habit ? habit.completedDates.includes(todayStr()) : false
@@ -202,5 +231,6 @@ export const useHabitsStore = defineStore('habits:habits', () => {
     reorderHabits,
     deleteHabit,
     isCompletedToday,
+    exportCsv,
   }
 })

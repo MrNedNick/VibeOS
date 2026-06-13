@@ -183,6 +183,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             :key="m"
             class="notes-toolbar__mode"
             :class="{ 'notes-toolbar__mode--active': mode === m }"
+            :title="m === 'preview' ? 'Toggle preview (⌘⇧P)' : undefined"
             @click="mode = m"
           >{{ m }}</button>
         </div>
@@ -279,6 +280,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <p class="notes-ai-card__text">{{ aiResult }}</p>
         </div>
       </Transition>
+
+      <!-- Keyboard shortcut hints -->
+      <div v-if="selectedNote" class="notes-kbd-hints">
+        <kbd>⌘N</kbd> new · <kbd>⌘F</kbd> search · <kbd>⌘⇧P</kbd> preview
+      </div>
 
       <!-- Backlinks bar — bespoke navigation widget -->
       <div v-if="selectedNote" class="notes-backlinks">
@@ -488,6 +494,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .ai-fade-leave-active { transition: opacity 0.2s ease; }
 .ai-fade-enter-from   { opacity: 0; transform: translateY(-8px); }
 .ai-fade-leave-to     { opacity: 0; }
+
+/* ── Keyboard hints ─────────────────────────────────────────── */
+.notes-kbd-hints {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.notes-kbd-hints kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
 
 /* ── Backlinks ───────────────────────────────────────────────── */
 .notes-backlinks {

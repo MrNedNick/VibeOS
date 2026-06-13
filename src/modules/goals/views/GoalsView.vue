@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useGoalsStore } from '../stores/goals.store'
 import GoalCard from '../components/GoalCard.vue'
 import type { GoalCategory } from '../types'
-import { CATEGORY_EMOJI, CATEGORY_LABEL } from '../types'
+import { CATEGORY_EMOJI, CATEGORY_LABEL, calcProgress } from '../types'
 import { UiIcon, UiFilterChips, UiButton, UiInput, UiSelect, UiField, UiFab } from '@/ui'
 import type { FilterChipOption, SelectOption } from '@/ui'
 
@@ -56,9 +56,24 @@ function onFormKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') cancelForm()
 }
 
-// ── Filter ───────────────────────────────────────────────────────────
+// ── Filter & Sort ────────────────────────────────────────────────────
 const showCompleted    = ref(false)
 const activeCategory   = ref<GoalCategory | 'all'>('all')
+
+type SortMode = 'created' | 'progress-asc' | 'progress-desc' | 'due'
+const sortMode = ref<SortMode>('created')
+
+const SORT_OPTIONS: SelectOption[] = [
+  { value: 'created',      label: 'Created' },
+  { value: 'progress-asc', label: 'Progress ↑' },
+  { value: 'progress-desc',label: 'Progress ↓' },
+  { value: 'due',          label: 'Due date' },
+]
+
+const sortModeStr = computed({
+  get: () => sortMode.value as string,
+  set: (v: string | number) => { sortMode.value = String(v) as SortMode },
+})
 
 const activeCategoriesInUse = computed<GoalCategory[]>(() => {
   const cats = new Set(store.activeGoals.map(g => g.category))
@@ -79,8 +94,23 @@ const activeCategoryStr = computed({
 })
 
 const filteredActiveGoals = computed(() => {
-  if (activeCategory.value === 'all') return store.activeGoals
-  return store.activeGoals.filter(g => g.category === activeCategory.value)
+  const base = activeCategory.value === 'all'
+    ? store.activeGoals
+    : store.activeGoals.filter(g => g.category === activeCategory.value)
+
+  if (sortMode.value === 'created') return base
+
+  return [...base].sort((a, b) => {
+    if (sortMode.value === 'progress-asc') return calcProgress(a) - calcProgress(b)
+    if (sortMode.value === 'progress-desc') return calcProgress(b) - calcProgress(a)
+    if (sortMode.value === 'due') {
+      if (!a.targetDate && !b.targetDate) return 0
+      if (!a.targetDate) return 1
+      if (!b.targetDate) return -1
+      return a.targetDate < b.targetDate ? -1 : 1
+    }
+    return 0
+  })
 })
 
 // ── Keyboard shortcut ────────────────────────────────────────────────
@@ -142,13 +172,16 @@ const todayLabel = computed(() =>
       </div>
     </div>
 
-    <!-- Category filter bar -->
-    <UiFilterChips
-      v-if="activeCategoriesInUse.length > 1"
-      v-model="activeCategoryStr"
-      :options="categoryOptions"
-      variant="pills"
-    />
+    <!-- Category filter bar + sort -->
+    <div v-if="store.activeGoals.length > 1" class="goals__filter-row">
+      <UiFilterChips
+        v-if="activeCategoriesInUse.length > 1"
+        v-model="activeCategoryStr"
+        :options="categoryOptions"
+        variant="pills"
+      />
+      <UiSelect v-model="sortModeStr" :options="SORT_OPTIONS" size="sm" class="goals__sort-select" />
+    </div>
 
     <!-- Active goals grid -->
     <div v-if="filteredActiveGoals.length > 0" class="goals__grid">
@@ -246,6 +279,15 @@ const todayLabel = computed(() =>
   transition: border-color var(--t-fast);
 }
 .goals__input--emoji:focus { border-color: var(--color-accent); }
+
+.goals__filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.goals__sort-select { margin-left: auto; flex-shrink: 0; }
 
 .goals__cat-empty {
   font-size: var(--text-sm);

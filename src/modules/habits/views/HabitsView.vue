@@ -240,6 +240,15 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           :title="aiLoading ? 'Thinking…' : 'AI: find patterns in your check-ins'"
           @click="askInsights"
         >{{ aiLoading ? '✦ …' : '✦ Patterns' }}</UiButton>
+        <UiButton
+          v-if="store.habits.length > 0"
+          variant="ghost"
+          size="sm"
+          title="Export habits as CSV"
+          @click="store.exportCsv()"
+        >
+          Export CSV
+        </UiButton>
         <UiButton :title="i18n.t('habits.addBtn') + ' (N)'" @click="openForm">
           {{ i18n.t('habits.addBtn') }}
         </UiButton>
