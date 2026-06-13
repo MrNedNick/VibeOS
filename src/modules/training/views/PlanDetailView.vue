@@ -47,6 +47,18 @@ function submitLog(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {
   analyzeWorkout(data)
 }
 
+// ── Activity strip ───────────────────────────────────────────────────
+const last7 = computed(() => {
+  const today = new Date()
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today); d.setDate(today.getDate() - (6 - i))
+    const dateStr = d.toISOString().slice(0, 10)
+    const log = store.logs.find(l => l.planId === plan.value?.id && l.date === dateStr)
+    return { dateStr, mins: log?.actualDuration ?? 0, dayLabel: d.toLocaleDateString('en', { weekday: 'short' }) }
+  })
+})
+const maxMins = computed(() => Math.max(...last7.value.map(d => d.mins), 1))
+
 const { confirm } = useConfirm()
 
 async function askDelete() {
@@ -162,6 +174,23 @@ function safeDomain(url: string): string {
         Analyzing your workout…
       </div>
       <p v-else class="tdetail__ai-text">{{ aiAnalysis }}</p>
+    </div>
+
+    <div v-if="last7.some(d => d.mins > 0)" class="pd-activity">
+      <span class="pd-activity__label">Last 7 days</span>
+      <div class="pd-activity__bars">
+        <div v-for="day in last7" :key="day.dateStr" class="pd-activity__col">
+          <div
+            class="pd-activity__bar"
+            :style="{
+              height: day.mins > 0 ? Math.max(4, Math.round((day.mins / maxMins) * 40)) + 'px' : '2px',
+              background: day.mins > 0 ? 'var(--color-accent)' : 'var(--color-border)',
+            }"
+            :title="day.mins > 0 ? `${day.mins} min` : 'No workout'"
+          />
+          <span class="pd-activity__day">{{ day.dayLabel }}</span>
+        </div>
+      </div>
     </div>
 
     <div class="tdetail__history">
@@ -499,6 +528,14 @@ function safeDomain(url: string): string {
 .tdetail__ai-spinner { animation: spin-tai 1s linear infinite; }
 .tdetail__ai-loading { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-muted); }
 .tdetail__ai-text { font-size: var(--text-sm); line-height: 1.65; color: var(--color-text-secondary); margin: 0; }
+
+/* ── Activity strip ──────────────────────────────────────────────── */
+.pd-activity { display: flex; align-items: flex-end; gap: 12px; padding: 12px 0; }
+.pd-activity__label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--color-text-muted); white-space: nowrap; }
+.pd-activity__bars { display: flex; align-items: flex-end; gap: 4px; }
+.pd-activity__col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.pd-activity__bar { width: 18px; border-radius: 3px 3px 0 0; transition: height .3s; min-height: 2px; }
+.pd-activity__day { font-size: 9px; color: var(--color-text-muted); }
 
 @media (max-width: 767px) {
   .tdetail__title { font-size: var(--text-2xl, 22px); }

@@ -106,6 +106,20 @@ function downloadNote() {
 const noteListRef = ref<InstanceType<typeof NoteList>>()
 const mobileShowEditor = ref(false)
 
+const savedFlash = ref(false)
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+watch(
+  () => selectedNote.value?.content,
+  () => {
+    if (!selectedNote.value) return
+    if (saveTimer) clearTimeout(saveTimer)
+    saveTimer = setTimeout(() => {
+      savedFlash.value = true
+      setTimeout(() => { savedFlash.value = false }, 1500)
+    }, 800)
+  },
+)
+
 function onContentUpdate(value: string) {
   if (selectedId.value) debouncedSave(selectedId.value, value)
 }
@@ -192,6 +206,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <span v-if="selectedNote && wordCount > 0" class="notes-toolbar__stats">
             {{ wordCount }} words · {{ readingTime }} min
           </span>
+          <Transition name="fade">
+            <span v-if="savedFlash" class="notes-saved">
+              <UiIcon name="Check" :size="12" />Saved
+            </span>
+          </Transition>
 
           <!-- AI actions -->
           <template v-if="canAnalyse">
@@ -494,6 +513,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .ai-fade-leave-active { transition: opacity 0.2s ease; }
 .ai-fade-enter-from   { opacity: 0; transform: translateY(-8px); }
 .ai-fade-leave-to     { opacity: 0; }
+
+/* Saved flash indicator */
+.notes-saved {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-success);
+  font-weight: 600;
+}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
 /* ── Keyboard hints ─────────────────────────────────────────── */
 .notes-kbd-hints {

@@ -87,7 +87,7 @@ const showTaskPanel = ref(false)
 const importableTasks = computed(() => tasksStore.tasks.filter(t => !t.done))
 
 // ── Search + filter ──────────────────────────────────────────────────
-const searchQuery    = ref('')
+const cardSearch     = ref('')
 const priorityFilter = ref<CardPriority | 'all'>('all')
 
 const PRIORITY_OPTS: { val: CardPriority | 'all'; label: string }[] = [
@@ -97,9 +97,11 @@ const PRIORITY_OPTS: { val: CardPriority | 'all'; label: string }[] = [
 
 function filteredCardsForColumn(colId: BoardColumnId) {
   let cards = store.cardsForColumn(colId)
-  const q = searchQuery.value.trim().toLowerCase()
-  if (q) cards = cards.filter(c => c.title.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q))
   if (priorityFilter.value !== 'all') cards = cards.filter(c => c.priority === priorityFilter.value)
+  if (cardSearch.value.trim()) {
+    const q = cardSearch.value.toLowerCase()
+    cards = cards.filter(c => c.title.toLowerCase().includes(q))
+  }
   return cards
 }
 
@@ -140,19 +142,17 @@ function colLabel(colId: BoardColumnId): string {
 
     <!-- Search + filter bar -->
     <div v-if="store.cards.length > 0" class="board__filter-bar">
-      <div class="board__search-wrap">
-        <svg class="board__search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.4"/>
-          <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-        </svg>
-        <input v-model="searchQuery" class="board__search-input" placeholder="Search cards…" autocomplete="off" />
-        <UiIconButton v-if="searchQuery" name="X" aria-label="Clear search" size="sm" @click="searchQuery = ''" />
-      </div>
+      <UiInput
+        v-model="cardSearch"
+        placeholder="Search cards…"
+        style="max-width: 200px;"
+      />
+      <UiIconButton v-if="cardSearch" name="X" aria-label="Clear search" size="sm" @click="cardSearch = ''" />
       <div class="board__priority-chips">
         <button v-for="opt in PRIORITY_OPTS" :key="opt.val" class="board__pri-chip" :class="{ 'board__pri-chip--active': priorityFilter === opt.val }" @click="priorityFilter = opt.val">{{ opt.label }}</button>
       </div>
-      <span v-if="searchQuery || priorityFilter !== 'all'" class="board__filter-count">
-        {{ filteredTotal }} card{{ filteredTotal !== 1 ? 's' : '' }}
+      <span v-if="cardSearch || priorityFilter !== 'all'" class="board__filter-count">
+        {{ cardSearch ? `${filteredTotal} of ${totalCards} cards` : `${filteredTotal} card${filteredTotal !== 1 ? 's' : ''}` }}
       </span>
     </div>
 
@@ -313,21 +313,6 @@ function colLabel(colId: BoardColumnId): string {
   padding: 6px 0 2px;
   flex-shrink: 0;
 }
-.board__search-wrap {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 10px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  flex: 0 1 220px;
-  transition: border-color var(--t-fast);
-}
-.board__search-wrap:focus-within { border-color: var(--color-accent); }
-.board__search-icon { color: var(--color-text-muted); flex-shrink: 0; }
-.board__search-input { flex: 1; font-size: 13px; color: var(--color-text); background: transparent; border: none; outline: none; min-width: 0; }
-.board__search-input::placeholder { color: var(--color-text-muted); }
 .board__priority-chips { display: flex; gap: 4px; flex-wrap: wrap; }
 .board__pri-chip {
   padding: 4px 10px;

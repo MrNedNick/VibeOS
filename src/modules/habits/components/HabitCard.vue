@@ -13,6 +13,8 @@ import { useConfirm } from '@/core/composables/useConfirm'
 const props = defineProps<{
   habit: Habit
   doneToday: boolean
+  gridYear?: number
+  gridMonth?: number
 }>()
 
 const emit = defineEmits<{
@@ -310,6 +312,8 @@ const habitsStore = useHabitsStore()
         v-if="showPastDays"
         :habit="habit"
         :done-today="doneToday"
+        :grid-year="gridYear"
+        :grid-month="gridMonth"
         @toggle="emit('toggle', $event)"
       />
     </Transition>

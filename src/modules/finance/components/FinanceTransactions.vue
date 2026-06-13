@@ -1,13 +1,23 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useFinanceStore } from '../stores/finance.store'
 import { CATEGORY_META, formatAmount } from '../types'
-import { UiButton, UiIconButton, UiIcon } from '@/ui'
+import { UiButton, UiIconButton, UiIcon, UiInput } from '@/ui'
 import { useConfirm } from '@/core/composables/useConfirm'
 import { useToast } from '@/core/composables/useToast'
 
 const store = useFinanceStore()
 const { confirm } = useConfirm()
 const toast = useToast()
+
+const searchQuery = ref('')
+
+const visibleExpenses = computed(() => {
+  const base = store.viewExpenses
+  if (!searchQuery.value.trim()) return base
+  const q = searchQuery.value.toLowerCase()
+  return base.filter(e => e.note?.toLowerCase().includes(q))
+})
 
 async function deleteExpense(id: string): Promise<void> {
   const ok = await confirm({
@@ -28,6 +38,10 @@ async function deleteExpense(id: string): Promise<void> {
   </div>
 
   <template v-else>
+    <div class="ft__search-wrap">
+      <UiInput v-model="searchQuery" placeholder="Search expenses…" />
+    </div>
+
     <div class="ft-header">
       <span class="ft-count">{{ store.viewExpenses.length }} transaction{{ store.viewExpenses.length !== 1 ? 's' : '' }}</span>
       <UiButton variant="ghost" size="sm" title="Export as CSV" @click="store.exportTransactionsCSV()">
@@ -54,7 +68,7 @@ async function deleteExpense(id: string): Promise<void> {
     </div>
 
     <div class="ft-list">
-      <div v-for="expense in store.viewExpenses" :key="expense.id" class="txn">
+      <div v-for="expense in visibleExpenses" :key="expense.id" class="txn">
         <div class="txn__icon">{{ CATEGORY_META[expense.category].icon }}</div>
         <div class="txn__body">
           <div class="txn__note">{{ expense.note || CATEGORY_META[expense.category].label }}</div>
@@ -168,4 +182,9 @@ async function deleteExpense(id: string): Promise<void> {
 }
 .txn:hover .txn__recurring { opacity: 0.6; }
 .txn__recurring--active { opacity: 1 !important; filter: none; }
+
+.ft__search-wrap {
+  max-width: 560px;
+  margin-bottom: 12px;
+}
 </style>

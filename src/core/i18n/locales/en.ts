@@ -176,6 +176,7 @@ export const en = {
     themeLight: 'Light',
     themeBrutalist: 'Brutalist',
     themeCrt: 'CRT Retro',
+    themeSystem: 'System',
     vibePaks: 'Vibe-paks',
     vibePaksSub: 'Choose a visual identity for your OS.',
     langLabel: 'Language',

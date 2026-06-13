@@ -8,7 +8,7 @@ import TaskProgress from '../components/TaskProgress.vue'
 import PomodoroPanel from '../components/PomodoroPanel.vue'
 import HabitHeatmap from '@/modules/habits/components/HabitHeatmap.vue'
 import { useLocale } from '@/core/i18n'
-import { UiButton, UiSectionLabel, UiFilterChips, UiIconButton, UiSelect, UiFab, UiSkeleton } from '@/ui'
+import { UiButton, UiSectionLabel, UiFilterChips, UiIconButton, UiSelect, UiFab, UiSkeleton, UiInput, UiIcon } from '@/ui'
 import type { FilterChipOption, SelectOption } from '@/ui'
 import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { useAiInsight } from '@/core/composables/useAiInsight'
@@ -41,6 +41,14 @@ const goalOptions = computed<SelectOption[]>(() => [
   { value: '', label: '— none —' },
   ...goalsStore.activeGoals.map(g => ({ value: g.id, label: `${g.coverEmoji} ${g.title}` })),
 ])
+
+const searchQuery  = ref('')
+
+const filteredBySearch = computed(() => {
+  if (!searchQuery.value.trim()) return store.filteredTasks
+  const q = searchQuery.value.toLowerCase()
+  return store.filteredTasks.filter(t => t.text.toLowerCase().includes(q))
+})
 
 const focusedId    = ref<string | null>(null)
 const taskInputRef = ref<InstanceType<typeof TaskInput>>()
@@ -218,6 +226,13 @@ function focusTaskInput() {
       :done-count="store.doneCount"
     />
 
+    <!-- Search -->
+    <div class="tm__search-wrap">
+      <UiIcon name="Search" :size="14" class="tm__search-icon" />
+      <UiInput v-model="searchQuery" placeholder="Search tasks…" class="tm__search-input" />
+      <UiIconButton v-if="searchQuery" name="X" aria-label="Clear search" size="sm" @click="searchQuery = ''" />
+    </div>
+
     <!-- Status filters -->
     <TaskFilters
       v-model="store.filter"
@@ -262,7 +277,7 @@ function focusTaskInput() {
     <!-- List -->
     <TaskList
       v-else
-      :tasks="store.filteredTasks"
+      :tasks="filteredBySearch"
       :focused-id="focusedId"
       @toggle="store.toggleTask"
       @delete="removeTask"
@@ -445,5 +460,23 @@ function focusTaskInput() {
 
 @media (max-width: 767px) {
   .tm-view__goal-wrap { max-width: 100%; }
+}
+
+/* Search */
+.tm__search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.tm__search-icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.tm__search-input {
+  flex: 1;
+  max-width: 360px;
 }
 </style>

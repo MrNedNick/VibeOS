@@ -9,7 +9,7 @@ import { useGoalsStore } from '@/modules/goals/stores/goals.store'
 import { calcProgress, daysUntil } from '@/modules/goals/types'
 import { useLocale } from '@/core/i18n'
 import { useNotesStore } from '@/modules/notes/stores/notes.store'
-import { UiSectionLabel } from '@/ui'
+import { UiSectionLabel, UiIcon } from '@/ui'
 import { deriveTitle } from '@/modules/notes/types'
 
 const router       = useRouter()
@@ -32,6 +32,14 @@ const todayTasks = computed(() =>
       const ord = { urgent: 0, high: 1, medium: 2, low: 3, none: 4 } as const
       return (ord[a.priority] ?? 4) - (ord[b.priority] ?? 4)
     })
+)
+
+// ── Overdue tasks ──────────────────────────────────────────────────
+const overdueTasks = computed(() =>
+  tasksStore.tasks
+    .filter(t => !t.done && !!t.dueDate && t.dueDate < todayStr.value)
+    .sort((a, b) => a.dueDate! < b.dueDate! ? -1 : 1)
+    .slice(0, 5)
 )
 const tasksDone  = computed(() => todayTasks.value.filter(t => t.done).length)
 
@@ -122,6 +130,41 @@ function priorityLabel(p: string): string {
       <p class="today__empty-title">{{ i18n.t('dashboardToday.emptyTitle') }}</p>
       <p class="today__empty-desc">{{ i18n.t('dashboardToday.emptyDesc') }}</p>
     </div>
+
+    <!-- ── Overdue tasks ─────────────────────────────────────── -->
+    <section v-if="overdueTasks.length > 0" class="today__section">
+      <div class="today__section-header">
+        <UiIcon name="AlertCircle" :size="14" style="color: var(--color-danger); flex-shrink: 0;" />
+        <span class="today__overdue-label">Overdue · {{ overdueTasks.length }}</span>
+        <button class="today__open-btn" @click="router.push('/tasks')">
+          {{ i18n.t('dashboardToday.openBtn') }} →
+        </button>
+      </div>
+      <div class="today__list">
+        <div
+          v-for="task in overdueTasks"
+          :key="task.id"
+          class="today__task today__task--overdue"
+          :class="{ 'today__task--done': task.done }"
+          @click="tasksStore.toggleTask(task.id)"
+        >
+          <button
+            class="today__check"
+            :class="{ 'today__check--done': task.done }"
+            @click.stop="tasksStore.toggleTask(task.id)"
+          >
+            <svg v-if="task.done" width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2.5 7.5l2.5 2.5 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <span v-if="task.priority !== 'none'" class="today__badge" :class="PRIORITY_CLASS[task.priority]">
+            {{ priorityLabel(task.priority) }}
+          </span>
+          <span class="today__task-text">{{ task.text }}</span>
+          <span class="today__overdue-date">{{ task.dueDate }}</span>
+        </div>
+      </div>
+    </section>
 
     <!-- ── Tasks (always visible) ─────────────────────────────── -->
     <section class="today__section">
@@ -638,6 +681,26 @@ function priorityLabel(p: string): string {
 .today__note:hover { border-color: var(--color-accent); }
 
 .today__note-pin   { font-size: 14px; flex-shrink: 0; }
+
+/* Overdue section */
+.today__overdue-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-danger);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.today__task--overdue {
+  border-left: 3px solid var(--color-danger);
+}
+
+.today__overdue-date {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-danger);
+  flex-shrink: 0;
+}
 
 .today__note-title {
   font-size: 14px;

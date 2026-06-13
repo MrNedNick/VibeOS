@@ -210,6 +210,7 @@ const VIBE_PAKS: VibePak[] = [
   { id: 'light',     nameKey: 'settings.themeLight',     swatches: ['#eef1f7', '#2563eb', '#0d1117'], label: 'Frosted'  },
   { id: 'brutalist', nameKey: 'settings.themeBrutalist', swatches: ['#f0ede8', '#000000', '#000000'], label: 'Stark'    },
   { id: 'crt',       nameKey: 'settings.themeCrt',       swatches: ['#091209', '#52c46a', '#a8d8a8'], label: 'Terminal' },
+  { id: 'system',    nameKey: 'settings.themeSystem',    swatches: ['#0a0a0a', '#eef1f7', '#5c7cfa'], label: 'Auto'     },
 ]
 
 // ── Module visibility ─────────────────────────────────────────────

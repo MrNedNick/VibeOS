@@ -178,6 +178,7 @@ export const ru: Messages = {
     themeLight: 'Светлая',
     themeBrutalist: 'Брутализм',
     themeCrt: 'CRT Ретро',
+    themeSystem: 'Системная',
     vibePaks: 'Вайб-паки',
     vibePaksSub: 'Выберите визуальную идентичность системы.',
     langLabel: 'Язык',

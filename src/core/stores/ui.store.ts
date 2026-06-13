@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { storagGet, storageSet } from '@/core/utils/storage'
 import { getSupabase, isSupabaseConfigured } from '@/core/services/supabase'
 
-export type Theme = 'dark' | 'light' | 'brutalist' | 'crt'
+export type Theme = 'dark' | 'light' | 'brutalist' | 'crt' | 'system'
 
 const THEME_KEY = 'platform:ui:theme'
 const SIDEBAR_KEY = 'platform:ui:sidebar'
@@ -13,13 +13,17 @@ export const useUiStore = defineStore('core:ui', () => {
   const sidebarOpen = ref<boolean>(storagGet<boolean>(SIDEBAR_KEY, true))
   const mobileSidebarOpen = ref<boolean>(false)
 
-  const isDark = computed(() => theme.value === 'dark' || theme.value === 'crt')
+  const isDark = computed(() => theme.value === 'dark' || theme.value === 'crt' || theme.value === 'system')
 
   function applyTheme() {
-    document.documentElement.setAttribute(
-      'data-theme',
-      theme.value === 'dark' ? '' : theme.value,
-    )
+    let effective: string
+    if (theme.value === 'system') {
+      const prefersDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+      effective = prefersDark ? '' : 'light'
+    } else {
+      effective = theme.value === 'dark' ? '' : theme.value
+    }
+    document.documentElement.setAttribute('data-theme', effective)
   }
 
   async function _pushSettingsToCloud(): Promise<void> {
@@ -41,6 +45,12 @@ export const useUiStore = defineStore('core:ui', () => {
     storageSet(THEME_KEY, value)
     applyTheme()
     _pushSettingsToCloud()
+  }
+
+  if (typeof window !== 'undefined') {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (theme.value === 'system') applyTheme()
+    })
   }
 
   function toggleTheme() {
@@ -82,11 +92,15 @@ export const useUiStore = defineStore('core:ui', () => {
     else applyTheme()
   }
 
+  function toggleThemeSystem() {
+    setTheme(theme.value === 'system' ? (isDark.value ? 'dark' : 'light') : 'system')
+  }
+
   return {
     theme, isDark,
     sidebarOpen, setSidebar, toggleSidebar,
     mobileSidebarOpen, openMobileDrawer, closeMobileDrawer, toggleMobileDrawer,
-    setTheme, toggleTheme,
+    setTheme, toggleTheme, toggleThemeSystem,
     syncSettingsFromCloud,
     init,
   }

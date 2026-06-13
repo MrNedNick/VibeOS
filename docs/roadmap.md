@@ -41,6 +41,7 @@
 | **S30 — Documentation Integrity** | Refresh stale core docs (architecture/strategy/platform say backend is "paused" — it's LIVE), prune roadmap | ✅ **complete** — v2.7.16 |
 | **S31 — UX Fixes & Tetris Polish** | Sign Up button fix, Sign Out placement, Tetris contrast + record animation | ✅ **complete** — T1–T4 all shipped (v2.7.17–v2.7.20) |
 | **S33 — UX Polish Batch II** | Module stats, trend chips, CSV exports, PWA manifest, keyboard hints | ✅ **complete** — 10 tasks (v2.9.0) |
+| **S34 — UX Polish Batch III** | Overdue tasks, search in 3 modules, system theme, autosave, habits calendar nav, sync indicator, activity strip | ✅ **complete** — 10 tasks (v2.10.0) |
 | **S32 — Onboarding Module** | Replace demo seeding with a beautiful interactive tutorial for new users | 🔜 planned (separate module) |
 
 ---
@@ -1326,6 +1327,25 @@ The game-over overlay (`state === 'over'`) in `GameTetrisView.vue` renders `.tet
 | FinanceWidget prev month | Dashboard widget: `↑X%`/`↓X% vs Mon` row below total, color-mix tokens |
 | Notes keyboard hints | `title` attrs on New note/Search/Toggle preview; `⌘N · ⌘F · ⌘⇧P` hint strip at editor bottom |
 | Studio timestamps on user messages | User bubble meta row shows `fmtTime(msg.timestamp)` |
+
+---
+
+## S34 — UX Polish Batch III ✅ complete (v2.10.0, 2026-06-13)
+
+10 independent polish tasks shipped in one batch:
+
+| Task | File(s) | What shipped |
+|------|---------|-------------|
+| T1 — Dashboard overdue tasks | `DashboardTodayPanel.vue` | `overdueTasks` computed (up to 5, sorted by dueDate); red-bordered cards above today section with `AlertCircle` header |
+| T2 — Task Manager search | `TaskManagerView.vue` | `UiInput` + `UiIcon Search` above filters; `filteredBySearch` computed; clear button |
+| T3 — Finance transaction search | `FinanceTransactions.vue` | `UiInput` above transaction list; filters current-month expenses by `note` field |
+| T4 — Finance CSV export | `finance.store.ts`, `FinanceView.vue` | `exportCsv()` exports all expenses; Export CSV ghost button shown when month has data |
+| T5 — System theme | `ui.store.ts`, `SettingsView.vue`, `en.ts`, `ru.ts` | `'system'` theme follows OS `prefers-color-scheme`; media query listener; 5th vibe-pak card |
+| T6 — Notes autosave indicator | `NotesView.vue` | 800ms debounce → 1.5s "✓ Saved" flash; CSS `fade` transition |
+| T7 — Habits calendar nav | `HabitsView.vue`, `HabitCard.vue`, `HabitCardCalendar.vue` | Month nav chevrons above grid; full-month calendar when `gridYear`/`gridMonth` props passed |
+| T8 — AppHeader sync indicator | `useCloudSync.ts`, `AppHeader.vue` | `isSyncing` module-level ref; spinning `RefreshCw` fades in/out for real users |
+| T9 — Training activity strip | `PlanDetailView.vue` | 7-day bar chart above workout history; proportional heights; hidden when no data |
+| T10 — Kanban card search | `BoardView.vue` | `cardSearch` ref + `UiInput` (200px) replaces raw input; title-only filter; "X of Y cards" count |
 
 ---
 

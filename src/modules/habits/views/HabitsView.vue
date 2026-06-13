@@ -189,6 +189,32 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key === 'n' || e.key === 'N') openForm()
 }
 
+// ── Grid month navigation ─────────────────────────────────────────────
+const gridYear  = ref(new Date().getFullYear())
+const gridMonth = ref(new Date().getMonth()) // 0-based
+
+const gridMonthLabel = computed(() =>
+  new Date(gridYear.value, gridMonth.value, 1)
+    .toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+)
+
+function prevGridMonth() {
+  if (gridMonth.value === 0) { gridMonth.value = 11; gridYear.value-- }
+  else gridMonth.value--
+}
+
+function nextGridMonth() {
+  const now = new Date()
+  if (gridYear.value === now.getFullYear() && gridMonth.value === now.getMonth()) return
+  if (gridMonth.value === 11) { gridMonth.value = 0; gridYear.value++ }
+  else gridMonth.value++
+}
+
+const isCurrentGridMonth = computed(() => {
+  const now = new Date()
+  return gridYear.value === now.getFullYear() && gridMonth.value === now.getMonth()
+})
+
 // ── Drag-to-reorder ───────────────────────────────────────────────────
 const draggingId = ref<string | null>(null)
 const dragOverId = ref<string | null>(null)
@@ -354,6 +380,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       </button>
     </div>
 
+    <!-- Month navigation for grid calendar -->
+    <div v-if="store.habits.length > 0" class="habits__grid-nav">
+      <UiIconButton name="ChevronLeft" aria-label="Previous month" size="sm" @click="prevGridMonth" />
+      <span class="habits__grid-month">{{ gridMonthLabel }}</span>
+      <UiIconButton name="ChevronRight" aria-label="Next month" size="sm" :disabled="isCurrentGridMonth" @click="nextGridMonth" />
+    </div>
+
     <!-- Skeleton: first load while Supabase pull is in progress -->
     <div v-if="!store.initialized" class="habits__skeleton">
       <UiSkeleton v-for="n in 3" :key="n" height="80px" rounded="md" style="margin-bottom: 8px" />
@@ -379,6 +412,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <HabitCard
           :habit="habit"
           :done-today="store.isCompletedToday(habit.id)"
+          :grid-year="gridYear"
+          :grid-month="gridMonth"
           class="habits__card-inner"
           @toggle="store.toggleToday"
           @delete="onDeleteHabit"
@@ -563,6 +598,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 }
 
 /* Weekly summary */
+/* Grid month navigation */
+.habits__grid-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.habits__grid-month {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 120px;
+  text-align: center;
+}
+
 .habits__weekly {
   display: flex;
   align-items: center;

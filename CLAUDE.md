@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v2.9.0 — 2026-06-13**
+**Version: v2.10.0 — 2026-06-13**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
@@ -45,6 +45,19 @@
 | **S32 — Onboarding Module** | 🔜 **planned** — Replace demo data with interactive new-user tutorial (separate sprint) |
 
 **S31 complete (2026-06-11). S32 (Onboarding Module) is next — requires design decisions. S16 T7 (manual QA pass) still pending live review.**
+
+## New in v2.10.0 (2026-06-13) — S34 UX Polish Batch III
+
+- **Dashboard overdue tasks**: `DashboardTodayPanel` shows up to 5 overdue tasks above today's tasks, sorted by due date, with red left border (`--color-danger`) and `AlertCircle` icon header.
+- **Task Manager search**: text search input with `UiIcon Search` above `<TaskFilters>`; clears via `UiIconButton X`; filters `store.filteredTasks` by case-insensitive title match.
+- **Finance transaction search**: `UiInput` above transaction list filters current month's expenses by `note` field (case-insensitive).
+- **Finance CSV export**: `exportCsv()` on finance store downloads all expenses as date-sorted CSV (Date/Description/Amount/Category/Recurring); Export CSV button (ghost, sm) shown when month has expenses.
+- **System theme**: new `'system'` theme option auto-follows OS `prefers-color-scheme`; `applyTheme()` and `isDark` updated; media query listener reacts to OS changes; 5th vibe-pak card in Settings; i18n keys added (EN + RU).
+- **Notes autosave indicator**: 800ms debounce after content change → 1.5s "✓ Saved" flash (green, `--color-success`) with `UiIcon Check`; CSS `fade` transition.
+- **Habits grid month navigation**: `UiIconButton` chevrons above habit grid to browse any past month; current month nav arrow disabled; full-month calendar in `HabitCardCalendar` when `gridYear`/`gridMonth` props passed.
+- **AppHeader sync indicator**: `isSyncing` ref added to `useCloudSync` (module-level, set true/false in `pullAll`/`pushAll` finally blocks); spinning `RefreshCw` icon fades in/out for real users while sync is active.
+- **Training activity strip**: 7-day bar chart above workout history in `PlanDetailView`; bar heights proportional to workout duration; hidden when no workouts in the period.
+- **Kanban card search**: `cardSearch` ref + `UiInput` (max-width 200px) in filter bar replaces raw input; title-only filter; shows "X of Y cards" count when search is active.
 
 ## New in v2.9.0 (2026-06-13) — UX Polish Batch II
 

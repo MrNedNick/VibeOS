@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUiStore } from '@/core/stores/ui.store'
 import { useCommandPaletteStore } from '@/core/stores/commandPalette.store'
 import { useAuthStore } from '@/core/stores/auth.store'
+import { useCloudSync } from '@/core/composables/useCloudSync'
 import { useLocale } from '@/core/i18n'
 import { PLATFORM_MODULES } from '@/core/registry/modules'
 import { UiIcon } from '@/ui'
@@ -14,6 +15,7 @@ const uiStore = useUiStore()
 const palette = useCommandPaletteStore()
 const auth = useAuthStore()
 const i18n = useLocale()
+const cloudSync = useCloudSync()
 
 const currentModule = computed(() =>
   PLATFORM_MODULES.find(m =>
@@ -115,6 +117,17 @@ async function signUpFromDemo() {
       >
         <span class="header-locale-label">{{ i18n.t('header.langToggle') }}</span>
       </button>
+
+      <!-- Sync indicator — only for real logged-in users -->
+      <Transition name="fade">
+        <span
+          v-if="auth.isRealUser && cloudSync.isSyncing"
+          class="header__sync-dot"
+          title="Syncing…"
+        >
+          <UiIcon name="RefreshCw" :size="13" class="header__sync-spin" />
+        </span>
+      </Transition>
 
       <!-- User avatar button (authenticated only) -->
       <button
@@ -428,5 +441,27 @@ async function signUpFromDemo() {
   object-fit: cover;
   border-radius: inherit;
 }
+
+/* ── Sync indicator ─────────────────────────────────────────────────── */
+.header__sync-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+.header__sync-spin {
+  animation: sync-spin 1s linear infinite;
+}
+@keyframes sync-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.fade-enter-active,
+.fade-leave-active { transition: opacity 0.25s; }
+.fade-enter-from,
+.fade-leave-to     { opacity: 0; }
 
 </style>

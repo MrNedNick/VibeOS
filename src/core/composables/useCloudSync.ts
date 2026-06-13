@@ -109,6 +109,7 @@ function _dequeue(key: string): void {
 const syncStatus = ref<SyncStatus>(isSupabaseConfigured ? 'idle' : 'unconfigured')
 const lastSyncAt = ref<string | null>(null)
 const syncError  = ref<string | null>(null)
+const isSyncing  = ref(false)
 
 // ── Composable ────────────────────────────────────────────────────────────
 export function useCloudSync() {
@@ -156,6 +157,7 @@ export function useCloudSync() {
 
   async function pullAll(): Promise<void> {
     if (!isSupabaseConfigured) return
+    isSyncing.value  = true
     syncStatus.value = 'syncing'
     syncError.value  = null
 
@@ -195,11 +197,14 @@ export function useCloudSync() {
       syncError.value  = err instanceof Error ? err.message : String(err)
       syncStatus.value = 'error'
       console.error('[sync] pullAll error:', err)
+    } finally {
+      isSyncing.value = false
     }
   }
 
   async function pushAll(userId: string): Promise<void> {
     if (!isSupabaseConfigured) return
+    isSyncing.value  = true
     syncStatus.value = 'syncing'
     syncError.value  = null
 
@@ -225,6 +230,8 @@ export function useCloudSync() {
       syncError.value  = err instanceof Error ? err.message : String(err)
       syncStatus.value = 'error'
       console.error('[sync] pushAll error:', err)
+    } finally {
+      isSyncing.value = false
     }
   }
 
@@ -237,6 +244,7 @@ export function useCloudSync() {
     syncStatus: readonly(syncStatus),
     lastSyncAt:  readonly(lastSyncAt),
     syncError:   readonly(syncError),
+    isSyncing:   readonly(isSyncing),
     pullAll,
     pushAll,
     pushKey,

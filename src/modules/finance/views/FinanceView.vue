@@ -96,10 +96,15 @@ onMounted(() => store.fetchRates())
           {{ store.viewOverBudgetCount }} over budget
         </div>
       </div>
-      <UiButton @click="addExpense()">
-        <UiIcon name="Plus" :size="15" />
-        Add expense
-      </UiButton>
+      <div class="finance__header-btns">
+        <UiButton v-if="store.thisMonthExpenses.length > 0" variant="ghost" size="sm" @click="store.exportCsv()">
+          Export CSV
+        </UiButton>
+        <UiButton @click="addExpense()">
+          <UiIcon name="Plus" :size="15" />
+          Add expense
+        </UiButton>
+      </div>
     </div>
 
     <!-- Tabs -->
@@ -200,6 +205,7 @@ onMounted(() => store.fetchRates())
   flex-wrap: wrap;
 }
 .finance__title-group { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.finance__header-btns { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .finance__title { font-size: 27px; font-weight: 700; color: var(--color-text); margin: 0; }
 
 .finance__month-nav { display: flex; align-items: center; gap: 4px; }

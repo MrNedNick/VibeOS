@@ -289,7 +289,25 @@ export const useFinanceStore = defineStore('finance:main', () => {
     showAddForm.value = false
   }
 
-  // ── CSV export ───────────────────────────────────────────────────────────
+  // ── CSV export (all expenses) ────────────────────────────────────────────
+  function exportCsv(): void {
+    const rows = [['Date', 'Description', 'Amount', 'Category', 'Recurring']]
+    const sorted = [...expenses.value].sort((a, b) => a.date < b.date ? 1 : -1)
+    for (const e of sorted) {
+      rows.push([e.date, e.note ?? '', String(e.amount), e.category, e.recurring ? 'yes' : 'no'])
+    }
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = Object.assign(document.createElement('a'), {
+      href: url,
+      download: `expenses-${new Date().toISOString().slice(0, 10)}.csv`,
+    })
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // ── CSV export (current view) ────────────────────────────────────────────
   function exportTransactionsCSV(): void {
     if (!viewExpenses.value.length) return
     const rows = ['Date,Category,Note,Amount']
@@ -363,6 +381,7 @@ export const useFinanceStore = defineStore('finance:main', () => {
     formError,
     openAddForm,
     submitExpense,
+    exportCsv,
     exportTransactionsCSV,
   }
 })

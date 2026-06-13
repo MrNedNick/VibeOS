@@ -7,6 +7,8 @@ import { UiIcon } from '@/ui'
 const props = defineProps<{
   habit: Habit
   doneToday: boolean
+  gridYear?: number
+  gridMonth?: number
 }>()
 
 const emit = defineEmits<{ toggle: [id: string] }>()
@@ -14,14 +16,27 @@ const emit = defineEmits<{ toggle: [id: string] }>()
 const habitsStore = useHabitsStore()
 
 const pastDays = computed(() => {
-  const now = new Date()
+  const letters = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+  const todayIso = new Date().toISOString().split('T')[0]
   const days: { date: string; dayLetter: string; dayNum: number; isToday: boolean }[] = []
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date(now)
-    d.setDate(now.getDate() - i)
-    const iso = d.toISOString().split('T')[0]
-    const letters = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-    days.push({ date: iso, dayLetter: letters[d.getDay()], dayNum: d.getDate(), isToday: i === 0 })
+
+  if (props.gridYear !== undefined && props.gridMonth !== undefined) {
+    // Show the selected month's days
+    const daysInMonth = new Date(props.gridYear, props.gridMonth + 1, 0).getDate()
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dt = new Date(props.gridYear, props.gridMonth, d)
+      const iso = dt.toISOString().split('T')[0]
+      days.push({ date: iso, dayLetter: letters[dt.getDay()], dayNum: dt.getDate(), isToday: iso === todayIso })
+    }
+  } else {
+    // Fall back to last 14 days
+    const now = new Date()
+    for (let i = 13; i >= 0; i--) {
+      const dt = new Date(now)
+      dt.setDate(now.getDate() - i)
+      const iso = dt.toISOString().split('T')[0]
+      days.push({ date: iso, dayLetter: letters[dt.getDay()], dayNum: dt.getDate(), isToday: i === 0 })
+    }
   }
   return days
 })
