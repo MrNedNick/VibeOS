@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v2.7.23 — 2026-06-11**
+**Version: v2.8.0 — 2026-06-13**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
@@ -45,6 +45,18 @@
 | **S32 — Onboarding Module** | 🔜 **planned** — Replace demo data with interactive new-user tutorial (separate sprint) |
 
 **S31 complete (2026-06-11). S32 (Onboarding Module) is next — requires design decisions. S16 T7 (manual QA pass) still pending live review.**
+
+## New in v2.8.0 (2026-06-13) — UX Polish Batch
+
+- **CI hex-guard baseline** lowered to 180 (was 215) — reflects actual current hex count.
+- **Studio planning actions**: empty-state shows 3 context-aware quick-action buttons ("Plan my week", "Review my goals", "Suggest a workout") when user has life data (goals/tasks/habits/learning/training). Always injects full project context.
+- **Studio model descriptions**: all model chips now show a two-line format with speed/quality/best-for desc (e.g. "Best quality · Deep reasoning").
+- **Studio token counter**: topbar shows `~Nt` estimated token count for current conversation (4 chars/token heuristic), visible only when messages exist.
+- **Learning CSV export**: Export CSV button in Learning module header; `exportSessionsCsv(planId?)` on learning store downloads date-sorted sessions as CSV.
+- **Training CSV export**: Export CSV button in Training module header; `exportWorkoutsCsv(planId?)` on training store downloads date-sorted workouts as CSV.
+- **Minesweeper skins**: already fully implemented (Classic/Dark/Retro/Neon, unlock by best time). No changes needed.
+- **Studio mobile sidebar**: sidebar on mobile now collapses via `max-height` transition instead of `width: 0` (which breaks in column flex layout) — sidebar fully disappears when closed on phone.
+- **Goals detail view mobile**: section headers wrap on overflow, task input row wraps to keep Add button accessible, header gap tightened for narrow screens.
 
 ## New in v2.7.17–v2.7.20 (2026-06-11) — S31 UX Fixes + S16 T6
 

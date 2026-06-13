@@ -28,38 +28,46 @@ const keyProvider = computed(() => {
       <template v-if="store.provider === 'free'">
         <button
           v-for="m in FREE_MODELS" :key="m.id"
-          class="sp-chip" :class="{ 'sp-chip--active': store.freeModel === m.id }"
+          class="sp-chip sp-chip--desc" :class="{ 'sp-chip--active': store.freeModel === m.id }"
           :style="store.freeModel === m.id ? { '--chip-color': m.color } : {}"
-          :title="m.desc"
           @click="store.freeModel = m.id"
-        >{{ m.label }}</button>
+        >
+          <span class="sp-chip-label">{{ m.label }}</span>
+          <span class="sp-chip-desc">{{ m.desc }}</span>
+        </button>
       </template>
       <template v-else-if="store.provider === 'anthropic'">
         <button
           v-for="m in STUDIO_MODELS" :key="m.id"
-          class="sp-chip" :class="{ 'sp-chip--active': store.model === m.id }"
+          class="sp-chip sp-chip--desc" :class="{ 'sp-chip--active': store.model === m.id }"
           :style="store.model === m.id ? { '--chip-color': m.color } : {}"
-          :title="m.desc"
           @click="store.model = m.id"
-        >{{ m.label }}</button>
+        >
+          <span class="sp-chip-label">{{ m.label }}</span>
+          <span class="sp-chip-desc">{{ m.desc }}</span>
+        </button>
       </template>
       <template v-else-if="store.provider === 'groq'">
         <button
           v-for="m in GROQ_MODELS" :key="m.id"
-          class="sp-chip" :class="{ 'sp-chip--active': store.groqModel === m.id }"
+          class="sp-chip sp-chip--desc" :class="{ 'sp-chip--active': store.groqModel === m.id }"
           :style="store.groqModel === m.id ? { '--chip-color': m.color } : {}"
-          :title="m.desc"
           @click="store.groqModel = m.id"
-        >{{ m.label }}</button>
+        >
+          <span class="sp-chip-label">{{ m.label }}</span>
+          <span class="sp-chip-desc">{{ m.desc }}</span>
+        </button>
       </template>
       <template v-else-if="store.provider === 'gemini'">
         <button
           v-for="m in GEMINI_MODELS" :key="m.id"
-          class="sp-chip" :class="{ 'sp-chip--active': store.geminiModel === m.id }"
+          class="sp-chip sp-chip--desc" :class="{ 'sp-chip--active': store.geminiModel === m.id }"
           :style="store.geminiModel === m.id ? { '--chip-color': m.color } : {}"
-          :title="m.desc"
           @click="store.geminiModel = m.id"
-        >{{ m.label }}</button>
+        >
+          <span class="sp-chip-label">{{ m.label }}</span>
+          <span class="sp-chip-desc">{{ m.desc }}</span>
+        </button>
       </template>
       <!-- OpenRouter: free-text model input -->
       <template v-else-if="store.provider === 'openrouter'">
@@ -137,6 +145,10 @@ const keyProvider = computed(() => {
   cursor: pointer;
   transition: border-color var(--t-fast), color var(--t-fast), background var(--t-fast);
 }
+.sp-chip--desc { padding: 5px 11px; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.sp-chip-label { font-size: 12px; font-weight: 500; }
+.sp-chip-desc { font-size: 10px; font-weight: 400; color: var(--color-text-muted); }
+.sp-chip--active .sp-chip-desc { color: color-mix(in srgb, var(--chip-color, var(--color-accent)) 70%, var(--color-text-muted)); }
 .sp-chip:hover { color: var(--color-text); border-color: var(--color-text-muted); }
 .sp-chip--active {
   border-color: var(--chip-color, var(--color-accent));

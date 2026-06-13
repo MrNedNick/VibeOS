@@ -159,7 +159,13 @@ async function generateWithAI() {
         <h1 class="learning__title">Learning</h1>
         <p class="learning__date">{{ todayLabel }}</p>
       </div>
-      <UiButton @click="openForm">+ Add Plan</UiButton>
+      <div class="learning__header-actions">
+        <UiButton v-if="store.sessions.length > 0" variant="ghost" size="sm" title="Export all sessions as CSV" @click="store.exportSessionsCsv()">
+          <UiIcon name="Download" :size="14" />
+          Export CSV
+        </UiButton>
+        <UiButton @click="openForm">+ Add Plan</UiButton>
+      </div>
     </div>
 
     <!-- Create plan form -->
@@ -327,6 +333,7 @@ async function generateWithAI() {
   justify-content: space-between;
   gap: 16px;
 }
+.learning__header-actions { display: flex; align-items: center; gap: 8px; }
 
 .learning__title {
   font-size: var(--text-3xl);

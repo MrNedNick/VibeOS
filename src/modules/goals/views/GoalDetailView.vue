@@ -582,5 +582,15 @@ function onTaskKeydown(e: KeyboardEvent) {
 
   /* Danger zone gets less top spacing */
   .gdetail__danger      { padding-top: 4px; }
+
+  /* Header: let title wrap, keep pct visible */
+  .gdetail__header      { align-items: flex-start; gap: 10px; }
+
+  /* Section headers: wrap button to next line when section label is long */
+  .gdetail__section-header { flex-wrap: wrap; gap: 6px; }
+
+  /* Task input row: allow wrapping so Add button stays accessible */
+  .gdetail__task-input-row { flex-wrap: wrap; }
+  .gdetail__task-input-row > *:first-child { flex: 1; min-width: 0; }
 }
 </style>

@@ -1798,7 +1798,7 @@ Next candidates: Tetris, 15-Puzzle, Wordle-clone.
 
 **More skins for all games (planned):**
 - **Snake** — already has 5 skins; add more milestone-gated skins (e.g. Neon, Retro, Ocean, Rainbow)
-- **Minesweeper** — add board themes: Classic, Dark, Retro, Neon; unlock by best time
+- ✅ **Minesweeper** — Classic, Dark, Retro, Neon themes; unlock by best time (shipped v2.8.0)
 - **Memory** — add card themes: Animals, Emoji, Symbols, Abstract; unlock by win count
 - **Sudoku** — add color themes: Classic, Dark, Pastel; unlock by puzzles solved
 Each game should persist `activeSkinId` + `unlockedSkins` in localStorage, matching Snake's pattern.
@@ -1844,10 +1844,10 @@ These are the meaningful improvements to do next — not features for features' 
 - ✅ **OpenRouter** — free-text model input (e.g. `meta-llama/llama-3.1-8b-instruct:free`); `sk-or-v1-…` key
 - ✅ All tabs: per-provider empty state title/subtitle; `canSend` checks the correct key per provider
 
-**Remaining:**
-- Free AI model descriptions tooltip (speed, quality, best-for)
-- **AI planning actions** (S6) — "Plan my week", "Review my goals", "Suggest a workout" — pre-built prompt templates that inject context automatically
-- Token count display for long conversations
+**Remaining:** *(all shipped v2.8.0)*
+- ✅ Free AI model descriptions — two-line chip format with speed/quality/best-for desc
+- ✅ **AI planning actions** — "Plan my week", "Review my goals", "Suggest a workout" with auto-injected context
+- ✅ Token count display in topbar (~Nt, 4 chars/token heuristic)
 
 ### External data widgets (future)
 - **Weather widget** — OpenWeatherMap free tier (60 calls/min, no credit card); Dashboard widget; API key in Settings — partially planned in S5

@@ -70,6 +70,32 @@ const QUICK_PROMPTS = [
   'Explain the Pomodoro technique',
 ]
 
+const PLANNING_ACTIONS = [
+  {
+    label: 'Plan my week',
+    icon: 'CalendarDays',
+    prompt: `Based on my current goals, tasks, habits, learning and training plans, suggest a realistic and balanced weekly schedule. Group by day, be specific about which tasks and habits to prioritize, and explain the reasoning briefly. Keep it actionable.`,
+  },
+  {
+    label: 'Review my goals',
+    icon: 'Target',
+    prompt: `Review my active goals and their progress. For each goal: assess whether I'm on track, identify what's blocking progress, and suggest 1-2 concrete next actions. Be honest and direct.`,
+  },
+  {
+    label: 'Suggest a workout',
+    icon: 'Dumbbell',
+    prompt: `Based on my training plans and what I've logged today, suggest the best workout or training activity for me right now. Consider my current plans, streaks, and anything not yet done today. Be specific about what to do.`,
+  },
+]
+
+const hasLifeData = computed(() =>
+  goalsStore.activeGoals.length > 0 ||
+  tasksStore.tasks.filter(t => !t.done).length > 0 ||
+  habitsStore.habits.length > 0 ||
+  learningStore.activePlans.length > 0 ||
+  trainingStore.activePlans.length > 0
+)
+
 function buildProjectContext(): string {
   const today = new Date().toISOString().split('T')[0]
   const lines: string[] = [
@@ -128,6 +154,13 @@ async function useQuickPrompt(text: string): Promise<void> {
   await nextTick()
   if (inputEl.value) { inputEl.value.style.height = 'auto'; inputEl.value.style.height = Math.min(inputEl.value.scrollHeight, 180) + 'px' }
   await send()
+}
+async function usePlanningAction(prompt: string): Promise<void> {
+  if (!canSend.value && !isFree.value) return
+  if (store.loading) return
+  const ctx = buildProjectContext()
+  inputText.value = ''
+  await store.sendMessage(prompt, ctx)
 }
 function onKeydown(e: KeyboardEvent): void {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
@@ -213,6 +246,21 @@ onMounted(() => inputEl.value?.focus())
         <UiIcon name="AlertCircle" :size="14" />
         Add your {{ providerKeyName() }} API key in the bar above to start chatting.
       </div>
+      <div v-if="(isFree || activeKey) && hasLifeData" class="sc-planning">
+        <p class="sc-quick-label">Plan with your data:</p>
+        <div class="sc-planning-grid">
+          <button
+            v-for="action in PLANNING_ACTIONS"
+            :key="action.label"
+            class="sc-planning-btn"
+            :disabled="store.loading"
+            @click="usePlanningAction(action.prompt)"
+          >
+            <UiIcon :name="action.icon" :size="16" class="sc-planning-icon" />
+            <span>{{ action.label }}</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <template v-else>
@@ -280,6 +328,19 @@ onMounted(() => inputEl.value?.focus())
 .sc-quick-btn:hover { background: var(--color-surface-elevated); color: var(--color-text); border-color: var(--color-accent); }
 .sc-quick-arrow { color: var(--color-accent); flex-shrink: 0; }
 .sc-no-key { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-text-muted); }
+.sc-planning { width: 100%; max-width: 380px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.sc-planning-grid { display: flex; flex-direction: column; gap: 6px; }
+.sc-planning-btn {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  font-size: 13px; font-weight: 500; font-family: inherit;
+  color: var(--color-text); background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
+  border-radius: var(--radius-sm); cursor: pointer; text-align: left;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+}
+.sc-planning-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface)); border-color: var(--color-accent); }
+.sc-planning-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.sc-planning-icon { color: var(--color-accent); flex-shrink: 0; }
 
 .sc-msg { display: flex; }
 .sc-msg--user { justify-content: flex-end; }

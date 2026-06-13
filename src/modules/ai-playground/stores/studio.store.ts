@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useStorage } from '@/core/composables/useStorage'
 import { useEventBus } from '@/core/events'
@@ -360,6 +360,14 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
     }
   }
 
+  // Rough token estimate: ~4 chars per token (common heuristic for English)
+  const estimatedTokens = computed(() => {
+    const totalChars = messages.value
+      .filter(m => !m.error)
+      .reduce((sum, m) => sum + m.content.length, 0)
+    return Math.round(totalChars / 4)
+  })
+
   function pushError(msg: string): void {
     error.value = msg
     messages.value.push({
@@ -421,7 +429,7 @@ export const useStudioStore = defineStore('ai-playground:studio', () => {
     apiKey, groqApiKey, geminiApiKey, openrouterApiKey,
     model, freeModel, groqModel, geminiModel, openrouterModel,
     provider, system, includeContext,
-    messages, loading, error,
+    messages, loading, error, estimatedTokens,
     savedConversations,
     sendMessage, newConversation, loadConversation, deleteConversation, clearHistory,
     exportConversation,

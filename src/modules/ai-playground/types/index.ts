@@ -46,24 +46,24 @@ export interface GeminiModelMeta {
 }
 
 export const STUDIO_MODELS: StudioModelMeta[] = [
-  { id: 'claude-opus-4-6',            label: 'Opus',   desc: 'Most capable',  color: '#8b5cf6' },
-  { id: 'claude-sonnet-4-6',          label: 'Sonnet', desc: 'Balanced',      color: '#f59e0b' },
-  { id: 'claude-haiku-4-5-20251001',  label: 'Haiku',  desc: 'Fastest',       color: '#10b981' },
+  { id: 'claude-opus-4-6',            label: 'Opus',   desc: 'Best quality · Deep reasoning',  color: '#8b5cf6' },
+  { id: 'claude-sonnet-4-6',          label: 'Sonnet', desc: 'Balanced · Speed & quality',     color: '#f59e0b' },
+  { id: 'claude-haiku-4-5-20251001',  label: 'Haiku',  desc: 'Fastest · Quick tasks',          color: '#10b981' },
 ]
 
 export const FREE_MODELS: FreeModelMeta[] = [
-  { id: 'openai-fast', label: 'GPT-OSS 20B', desc: 'Free · No key',  color: '#10b981' },
+  { id: 'openai-fast', label: 'GPT-OSS 20B', desc: 'Free, no key · Good for most tasks', color: '#10b981' },
 ]
 
 export const GROQ_MODELS: GroqModelMeta[] = [
-  { id: 'llama-3.1-8b-instant',    label: 'Llama 3.1 8B',  desc: 'Fastest',        color: '#f97316' },
-  { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B', desc: 'Most capable',   color: '#ef4444' },
-  { id: 'mixtral-8x7b-32768',      label: 'Mixtral 8x7B',  desc: 'Large context',  color: '#a855f7' },
+  { id: 'llama-3.1-8b-instant',    label: 'Llama 3.1 8B',  desc: 'Fastest · Simple tasks',        color: '#f97316' },
+  { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B', desc: 'Best quality · Complex tasks',  color: '#ef4444' },
+  { id: 'mixtral-8x7b-32768',      label: 'Mixtral 8x7B',  desc: '32k context · Long documents',  color: '#a855f7' },
 ]
 
 export const GEMINI_MODELS: GeminiModelMeta[] = [
-  { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', desc: 'Fast & capable',  color: '#3b82f6' },
-  { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', desc: 'Proven stable',   color: '#6366f1' },
+  { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', desc: 'Fast & capable · Recommended',  color: '#3b82f6' },
+  { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', desc: 'Proven stable · 1M context',    color: '#6366f1' },
 ]
 
 export interface StudioRun {

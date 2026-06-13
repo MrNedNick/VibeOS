@@ -144,6 +144,37 @@ export const useTrainingStore = defineStore('training:plans', () => {
     return plans.value.find(p => p.id === planId)?.resources ?? []
   }
 
+  function exportWorkoutsCsv(planId?: string): void {
+    const target = planId ? logs.value.filter(l => l.planId === planId) : logs.value
+    const rows = target.filter(l => !l.deletedAt).sort((a, b) => b.date.localeCompare(a.date))
+    if (!rows.length) return
+
+    const headers = ['Date', 'Plan', 'Title', 'Sport', 'Duration min', 'Distance km', 'Feeling', 'Notes']
+    const lines = [
+      headers.join(','),
+      ...rows.map(l => {
+        const plan = plans.value.find(p => p.id === l.planId)
+        return [
+          l.date,
+          `"${(plan?.title ?? '').replace(/"/g, '""')}"`,
+          `"${l.title.replace(/"/g, '""')}"`,
+          l.sportType,
+          l.actualDuration ?? '',
+          l.actualDistance ?? '',
+          l.feeling,
+          `"${(l.notes ?? '').replace(/"/g, '""')}"`,
+        ].join(',')
+      }),
+    ]
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `workouts-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
   return {
     plans, logs,
     activePlans, todayItems, recentLogs,
@@ -151,5 +182,6 @@ export const useTrainingStore = defineStore('training:plans', () => {
     getPlanById, getPlanLogs,
     getStreak, getTotalMinutes, getTotalKm, isLoggedToday,
     addResource, deleteResource, toggleResourceDone, getPlanResources,
+    exportWorkoutsCsv,
   }
 })

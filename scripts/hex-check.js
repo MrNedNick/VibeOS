@@ -4,7 +4,7 @@
  * Counts hardcoded hex colors in src/**\/*.{vue,ts} (excluding test files and main.css).
  * Fails if the count exceeds MAX_ALLOWED, preventing new violations from being added.
  *
- * Current baseline: 212 (measured 2026-06-03).
+ * Current baseline: 180 (measured 2026-06-13, down from 212 via S9/S11 cleanup).
  * To reduce: replace hex with CSS vars (e.g. #f59e0b → var(--color-warning)).
  * To raise the ceiling: update MAX_ALLOWED with a comment explaining why.
  */
@@ -12,7 +12,7 @@ import { execSync } from 'child_process'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
-const MAX_ALLOWED = 215  // baseline 212 + 3 tolerance
+const MAX_ALLOWED = 185  // baseline 180 (2026-06-13) + 5 tolerance
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 

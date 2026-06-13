@@ -162,7 +162,13 @@ const todayLabel = computed(() =>
         <h1 class="training__title">Training</h1>
         <p class="training__date">{{ todayLabel }}</p>
       </div>
-      <UiButton @click="openForm">+ Add Plan</UiButton>
+      <div class="training__header-actions">
+        <UiButton v-if="store.logs.length > 0" variant="ghost" size="sm" title="Export all workouts as CSV" @click="store.exportWorkoutsCsv()">
+          <UiIcon name="Download" :size="14" />
+          Export CSV
+        </UiButton>
+        <UiButton @click="openForm">+ Add Plan</UiButton>
+      </div>
     </div>
 
     <!-- Create plan form -->
@@ -319,6 +325,7 @@ const todayLabel = computed(() =>
   justify-content: space-between;
   gap: 16px;
 }
+.training__header-actions { display: flex; align-items: center; gap: 8px; }
 
 .training__title {
   font-size: var(--text-3xl);

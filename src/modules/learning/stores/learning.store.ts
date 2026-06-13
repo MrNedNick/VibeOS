@@ -169,6 +169,39 @@ export const useLearningStore = defineStore('learning:plans', () => {
     return plans.value.find(p => p.id === planId)?.resources ?? []
   }
 
+  function exportSessionsCsv(planId?: string): void {
+    const target = planId
+      ? sessions.value.filter(s => s.planId === planId)
+      : sessions.value
+    const rows = target.filter(s => !s.deletedAt).sort((a, b) => b.date.localeCompare(a.date))
+    if (!rows.length) return
+
+    const headers = ['Date', 'Plan', 'Status', 'Planned min', 'Actual min', 'Rating', 'Topic', 'Notes']
+    const lines = [
+      headers.join(','),
+      ...rows.map(s => {
+        const plan = plans.value.find(p => p.id === s.planId)
+        return [
+          s.date,
+          `"${(plan?.title ?? s.planId).replace(/"/g, '""')}"`,
+          s.status,
+          s.plannedMinutes,
+          s.actualMinutes,
+          s.rating,
+          `"${(s.topic ?? '').replace(/"/g, '""')}"`,
+          `"${(s.notes ?? '').replace(/"/g, '""')}"`,
+        ].join(',')
+      }),
+    ]
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `learning-sessions-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
   return {
     plans,
     sessions,
@@ -190,5 +223,6 @@ export const useLearningStore = defineStore('learning:plans', () => {
     deleteResource,
     toggleResourceDone,
     getPlanResources,
+    exportSessionsCsv,
   }
 })

@@ -50,6 +50,9 @@ const TABS = [
             <span v-if="tab.badge" class="studio__tab-badge">{{ tab.badge }}</span>
           </button>
         </div>
+        <span v-if="store.messages.length > 0" class="studio__token-count" title="Estimated token count for current conversation">
+          ~{{ store.estimatedTokens.toLocaleString() }}t
+        </span>
         <UiButton variant="ghost" size="sm" :disabled="!store.messages.length" title="Export conversation as markdown" @click="store.exportConversation()">
           <UiIcon name="Download" :size="14" />
           <span class="studio__btn-label">Export</span>
@@ -153,10 +156,21 @@ const TABS = [
 .studio__tab-label { min-width: 0; }
 .studio__sidebar-toggle--active { color: var(--color-accent); }
 .studio__btn-label { white-space: nowrap; }
+.studio__token-count { font-size: 11px; color: var(--color-text-muted); font-family: var(--font-mono); white-space: nowrap; flex-shrink: 0; }
 
 @media (max-width: 767px) {
   .studio--with-sidebar { flex-direction: column; }
-  .studio--sidebar-open .studio__sidebar { width: 100%; max-height: 200px; border-right: none; border-bottom: 1px solid var(--color-border); }
+  .studio__sidebar {
+    width: 100%;
+    max-height: 0;
+    border-right-width: 0;
+    transition: max-height 0.22s ease, border-width 0.22s ease;
+  }
+  .studio--sidebar-open .studio__sidebar {
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
   .studio__tab-label { display: none; }
   .studio__btn-label { display: none; }
 }
