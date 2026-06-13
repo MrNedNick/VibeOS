@@ -35,6 +35,7 @@ export interface AuthUser {
   email: string
   displayName?: string
   avatarUrl?: string
+  emailConfirmedAt?: string | null
   provider: AuthProvider
   tier: 'free' | 'demo' | 'pro'
 }
@@ -67,11 +68,12 @@ export const useAuthStore = defineStore('core:auth', () => {
   const authReady = ref(false)
 
   // ── Derived ─────────────────────────────────────────────────────────────
-  const user        = computed(() => _state.value.user)
-  const isLoggedIn  = computed(() => _state.value.user !== null)
-  const isDemoMode  = computed(() => _state.value.user?.provider === 'demo')
-  const isRealUser  = computed(() => _state.value.user !== null && _state.value.user.provider === 'supabase')
-  const tier        = computed(() => _state.value.user?.tier ?? 'free')
+  const user           = computed(() => _state.value.user)
+  const isLoggedIn     = computed(() => _state.value.user !== null)
+  const isDemoMode     = computed(() => _state.value.user?.provider === 'demo')
+  const isRealUser     = computed(() => _state.value.user !== null && _state.value.user.provider === 'supabase')
+  const tier           = computed(() => _state.value.user?.tier ?? 'free')
+  const emailConfirmed = computed(() => !!_state.value.user?.emailConfirmedAt)
 
   const _adminEmails = (import.meta.env.VITE_ADMIN_EMAILS ?? '')
     .split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean)
@@ -126,6 +128,7 @@ export const useAuthStore = defineStore('core:auth', () => {
             email: data.user.email ?? email,
             displayName: data.user.user_metadata?.display_name as string | undefined,
             avatarUrl: data.user.user_metadata?.avatar_url as string | undefined,
+            emailConfirmedAt: data.user.email_confirmed_at ?? null,
             provider: 'supabase',
             tier: (data.user.user_metadata?.tier as AuthUser['tier']) ?? 'free',
           })
@@ -360,6 +363,46 @@ export const useAuthStore = defineStore('core:auth', () => {
     }
   }
 
+  // ── Resend email confirmation ─────────────────────────────────────────────
+  async function resendConfirmation(email: string): Promise<{ error: string | null }> {
+    if (!isSupabaseConfigured) return { error: 'Not configured.' }
+    try {
+      const sb = getSupabase()
+      const { error } = await sb.auth.resend({ type: 'signup', email })
+      return { error: error?.message ?? null }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Failed to resend' }
+    }
+  }
+
+  // ── Refresh local user state from an active Supabase session ─────────────
+  // Called by AuthCallbackView after email confirmation to avoid race condition
+  // where router guard runs before onAuthStateChange fires.
+  async function refreshSession(): Promise<void> {
+    if (!isSupabaseConfigured) return
+    try {
+      const sb = getSupabase()
+      const { data: { session } } = await sb.auth.getSession()
+      if (session?.user) {
+        _setUser({
+          id: session.user.id,
+          email: session.user.email ?? '',
+          displayName: session.user.user_metadata?.display_name as string | undefined,
+          avatarUrl: session.user.user_metadata?.avatar_url as string | undefined,
+          emailConfirmedAt: session.user.email_confirmed_at ?? null,
+          provider: 'supabase',
+          tier: (session.user.user_metadata?.tier as AuthUser['tier']) ?? 'free',
+        })
+        purgeDemoData()
+        useCloudSync().pullAll().catch(console.warn)
+        useRealtimeSync().subscribe(session.user.id)
+        useAnalyticsSync().syncEvents().catch(console.warn)
+      }
+    } catch (err) {
+      console.warn('[auth] refreshSession error:', err)
+    }
+  }
+
   // ── Init — restore session on app boot ────────────────────────────────────
   async function init(): Promise<void> {
     try {
@@ -378,6 +421,7 @@ export const useAuthStore = defineStore('core:auth', () => {
             email: session.user.email ?? '',
             displayName: session.user.user_metadata?.display_name as string | undefined,
             avatarUrl: session.user.user_metadata?.avatar_url as string | undefined,
+            emailConfirmedAt: session.user.email_confirmed_at ?? null,
             provider: 'supabase',
             tier: (session.user.user_metadata?.tier as AuthUser['tier']) ?? 'free',
           })
@@ -410,6 +454,7 @@ export const useAuthStore = defineStore('core:auth', () => {
               email: newSession.user.email ?? '',
               displayName: newSession.user.user_metadata?.display_name as string | undefined,
               avatarUrl: newSession.user.user_metadata?.avatar_url as string | undefined,
+              emailConfirmedAt: newSession.user.email_confirmed_at ?? null,
               provider: 'supabase',
               tier: (newSession.user.user_metadata?.tier as AuthUser['tier']) ?? 'free',
             })
@@ -443,6 +488,7 @@ export const useAuthStore = defineStore('core:auth', () => {
     isAdmin,
     initials,
     tier,
+    emailConfirmed,
     loading,
     authReady,
     isSupabaseConfigured,
@@ -455,6 +501,8 @@ export const useAuthStore = defineStore('core:auth', () => {
     logout,
     sendPasswordReset,
     requestEmailChange,
+    resendConfirmation,
+    refreshSession,
     updateAvatar,
     updateDisplayName,
     updatePassword,

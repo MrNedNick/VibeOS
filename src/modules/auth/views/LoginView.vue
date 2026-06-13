@@ -17,6 +17,8 @@ const APP_VERSION = __APP_VERSION__
 const email    = ref('')
 const password = ref('')
 const serverError = ref<string | null>(null)
+const emailNotConfirmed = computed(() => !!serverError.value?.toLowerCase().includes('email not confirmed'))
+const resendingConfirm  = ref(false)
 
 // Rate limit state
 const rateLimitCooldown = ref(0)
@@ -83,6 +85,20 @@ function tryDemo() {
   track('auth:demo-activated')
   auth.loginDemo()
   router.replace('/')
+}
+
+async function resendConfirmation() {
+  const addr = email.value.trim()
+  if (!addr) return
+  resendingConfirm.value = true
+  const result = await auth.resendConfirmation(addr)
+  resendingConfirm.value = false
+  if (result.error) {
+    toast.error(result.error)
+  } else {
+    serverError.value = null
+    toast.success('Confirmation email resent — check your inbox.')
+  }
 }
 
 async function sendReset() {
@@ -226,7 +242,20 @@ function onKeydown(e: KeyboardEvent) {
             </span>
           </div>
 
-          <div v-if="serverError" class="auth-error">
+          <!-- Soft warning when email hasn't been confirmed yet -->
+          <div v-if="emailNotConfirmed" class="auth-notice auth-notice--warn">
+            <UiIcon name="Mail" :size="14" style="flex-shrink:0;margin-top:1px" />
+            <div class="auth-notice-body">
+              <span>Please confirm your email before signing in.</span>
+              <button
+                class="auth-text-btn auth-text-btn--small"
+                :disabled="resendingConfirm || !email.trim()"
+                @click="resendConfirmation"
+              >{{ resendingConfirm ? 'Sending…' : 'Resend confirmation email' }}</button>
+            </div>
+          </div>
+          <!-- All other server errors -->
+          <div v-else-if="serverError" class="auth-error">
             <UiIcon name="AlertCircle" :size="14" />
             {{ serverError }}
           </div>
@@ -331,6 +360,16 @@ function onKeydown(e: KeyboardEvent) {
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   line-height: 1.5;
+}
+.auth-notice--warn {
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+  color: var(--color-text-secondary);
+}
+.auth-notice-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 /* Success */

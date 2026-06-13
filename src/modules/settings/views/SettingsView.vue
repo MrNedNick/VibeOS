@@ -41,6 +41,18 @@ function clearAnalyticsData(): void {
   track('data:analytics-cleared')
 }
 
+// ── Email confirmation banner ────────────────────────────────────
+const confirmResending = ref(false)
+
+async function resendEmailConfirmation() {
+  if (!auth.user?.email) return
+  confirmResending.value = true
+  const result = await auth.resendConfirmation(auth.user.email)
+  confirmResending.value = false
+  if (result.error) toast.error(result.error)
+  else toast.success('Confirmation email sent — check your inbox.')
+}
+
 // ── Avatar upload ─────────────────────────────────────────────────
 const avatarInputRef  = ref<HTMLInputElement>()
 const avatarUploading = ref(false)
@@ -428,6 +440,19 @@ function cancelImport() {
             <p class="profile-email">{{ auth.user?.email }}</p>
           </template>
         </div>
+      </div>
+
+      <!-- Email confirmation banner — shown only when email hasn't been verified yet -->
+      <div v-if="auth.isRealUser && !auth.emailConfirmed" class="profile-confirm-banner">
+        <UiIcon name="Mail" :size="15" class="profile-confirm-banner__icon" />
+        <div class="profile-confirm-banner__body">
+          <span class="profile-confirm-banner__title">Confirm your email</span>
+          <p class="profile-confirm-banner__text">Check your inbox for a confirmation link to verify your address.</p>
+        </div>
+        <UiButton variant="ghost" size="sm" :disabled="confirmResending" @click="resendEmailConfirmation">
+          <UiIcon v-if="confirmResending" name="Loader2" :size="13" class="spin" />
+          <span v-else>Resend</span>
+        </UiButton>
       </div>
 
       <!-- Demo CTA -->
@@ -1312,6 +1337,35 @@ function cancelImport() {
   gap: 5px;
   font-size: 12px;
   color: var(--color-danger);
+}
+
+.profile-confirm-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
+  border-radius: var(--radius);
+}
+.profile-confirm-banner__icon {
+  color: var(--color-warning);
+  flex-shrink: 0;
+}
+.profile-confirm-banner__body {
+  flex: 1;
+  min-width: 0;
+}
+.profile-confirm-banner__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.profile-confirm-banner__text {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 2px 0 0;
+  line-height: 1.4;
 }
 
 .profile-demo-cta {

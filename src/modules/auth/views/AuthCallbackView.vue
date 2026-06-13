@@ -2,9 +2,11 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSupabase, isSupabaseConfigured } from '@/core/services/supabase'
+import { useAuthStore } from '@/core/stores/auth.store'
 import { UiIcon, UiButton } from '@/ui'
 
 const router = useRouter()
+const auth   = useAuthStore()
 const failed = ref(false)
 
 onMounted(async () => {
@@ -25,6 +27,11 @@ onMounted(async () => {
           failed.value = true
           return
         }
+      }
+      // Sync session into the auth store before navigating so the router guard
+      // sees isLoggedIn = true and doesn't redirect back to /login.
+      if (!isRecovery) {
+        await auth.refreshSession()
       }
     }
 
