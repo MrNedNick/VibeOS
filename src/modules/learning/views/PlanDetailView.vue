@@ -1,28 +1,31 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
 import { useLearningStore } from '../stores/learning.store'
 import ProgressRing from '../components/ProgressRing.vue'
 import SessionLogForm from '../components/SessionLogForm.vue'
-import type { LearningSession, ResourceType } from '../types'
+import type { LearningSession, LearningPlan, ResourceType } from '../types'
 import { estimateTargetDate, todayStr, RESOURCE_META, RESOURCE_TYPES } from '../types'
 import { UiIcon, UiSectionLabel, UiProgressBar, UiStat, UiButton, UiIconButton, UiInput, UiSelect } from '@/ui'
-import type { SelectOption } from '@/ui'
-import { useHabitsStore } from '@/modules/habits/stores/habits.store'
-import { useConfirm } from '@/core/composables/useConfirm'
-import { useAiInsight } from '@/core/composables/useAiInsight'
+import { usePlanDetailPage } from '@/core/composables/usePlanDetailPage'
 
-const route = useRoute()
-const router = useRouter()
 const store = useLearningStore()
 
-const planId = computed(() => route.params.id as string)
-const plan = computed(() => store.getPlanById(planId.value))
-
-// Redirect if plan not found
-if (!plan.value) {
-  router.replace('/learning')
-}
+const {
+  router, planId, plan,
+  aiAnalysis, aiAnalyzing, runAiAnalysis, dismissAiAnalysis,
+  askDelete, formatDate,
+  linkedHabitId, saveHabitLink, habitOptions,
+  resources, showAddResource, newResUrl, newResTitle, newResType, submitResource,
+  safeDomain,
+} = usePlanDetailPage<LearningPlan, ResourceType>({
+  listRoute: '/learning',
+  getPlanById: (id) => store.getPlanById(id),
+  updatePlanLink: (id, habitId) => store.updatePlanLink(id, habitId),
+  deletePlan: (id) => store.deletePlan(id),
+  resourceStore: store,
+  defaultResourceType: 'article',
+  deleteConfirmBody: 'All session history will be permanently removed.',
+})
 
 const progress = computed(() => store.getProgress(planId.value))
 const streak = computed(() => store.getStreak(planId.value))
@@ -35,9 +38,6 @@ const targetDate = computed(() => plan.value ? estimateTargetDate(plan.value) : 
 // ── Session log modal ────────────────────────────────────────────────
 const showLog = ref(false)
 
-// ── AI post-log analysis ─────────────────────────────────────────────
-const { result: aiAnalysis, loading: aiAnalyzing, run: runAiAnalysis, dismiss: dismissAiAnalysis } = useAiInsight()
-
 function analyzeSession(data: Omit<LearningSession, 'id'>) {
   if (!plan.value) return
   runAiAnalysis(`I just completed a ${data.actualMinutes}-min learning session for "${plan.value.title}". ${data.topic ? 'Topic: ' + data.topic + '.' : ''} ${data.notes ? 'Notes: ' + data.notes + '.' : ''} Current progress: ${progress.value}% of ${plan.value.targetHours}h goal. What 2-3 things should I focus on in my NEXT session? Be specific and brief (3 sentences max).`)
@@ -47,31 +47,6 @@ function submitLog(data: Omit<LearningSession, 'id'>) {
   store.logSession(data)
   showLog.value = false
   analyzeSession(data)
-}
-
-// ── Confirm delete ───────────────────────────────────────────────────
-const { confirm } = useConfirm()
-
-async function askDelete() {
-  const ok = await confirm({
-    title:        'Delete this plan?',
-    body:         'All session history will be permanently removed.',
-    danger:       true,
-    confirmLabel: 'Delete plan',
-  })
-  if (ok) {
-    store.deletePlan(planId.value)
-    router.replace('/learning')
-  }
-}
-
-// ── Formatting helpers ───────────────────────────────────────────────
-function formatDate(iso: string): string {
-  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  })
 }
 
 function formatShortDate(iso: string): string {
@@ -86,47 +61,6 @@ function ratingStars(r: number): string {
 }
 
 const today = todayStr()
-
-// ── Linked habit ─────────────────────────────────────────────────────
-const habitsStore = useHabitsStore()
-const linkedHabitId = ref(plan.value?.linkedHabitId ?? '')
-
-watch(() => plan.value?.linkedHabitId, (v) => { linkedHabitId.value = v ?? '' })
-
-function saveHabitLink() {
-  store.updatePlanLink(planId.value, linkedHabitId.value || undefined)
-}
-
-const habitOptions = computed<SelectOption[]>(() => [
-  { value: '', label: '— none —' },
-  ...habitsStore.habits.map(h => ({ value: h.id, label: h.name })),
-])
-
-// ── Resources ────────────────────────────────────────────────────────
-const resources = computed(() => store.getPlanResources(planId.value))
-
-const showAddResource = ref(false)
-const newResUrl   = ref('')
-const newResTitle = ref('')
-const newResType  = ref<ResourceType>('article')
-
-function submitResource() {
-  if (!newResUrl.value.trim()) return
-  store.addResource(planId.value, {
-    url:   newResUrl.value.trim(),
-    title: newResTitle.value.trim() || newResUrl.value.trim(),
-    type:  newResType.value,
-  })
-  newResUrl.value   = ''
-  newResTitle.value = ''
-  newResType.value  = 'article'
-  showAddResource.value = false
-}
-
-function safeDomain(url: string): string {
-  try { return new URL(url).hostname.replace('www.', '') }
-  catch { return url }
-}
 </script>
 
 <template>
