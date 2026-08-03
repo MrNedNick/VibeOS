@@ -1,24 +1,30 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
 import { useTrainingStore } from '../stores/training.store'
 import WorkoutLogForm from '../components/WorkoutLogForm.vue'
-import type { WorkoutLog, ResourceType } from '../types'
+import type { WorkoutLog, TrainingPlan, ResourceType } from '../types'
 import { FEELING_EMOJI, todayStr, RESOURCE_META, RESOURCE_TYPES } from '../types'
 import { UiIcon, UiSectionLabel, UiStat, UiButton, UiIconButton, UiInput, UiSelect } from '@/ui'
-import type { SelectOption } from '@/ui'
-import { useHabitsStore } from '@/modules/habits/stores/habits.store'
-import { useConfirm } from '@/core/composables/useConfirm'
-import { useAiInsight } from '@/core/composables/useAiInsight'
+import { usePlanDetailPage } from '@/core/composables/usePlanDetailPage'
 
-const route = useRoute()
-const router = useRouter()
 const store = useTrainingStore()
 
-const planId = computed(() => route.params.id as string)
-const plan = computed(() => store.getPlanById(planId.value))
-
-if (!plan.value) router.replace('/training')
+const {
+  router, planId, plan,
+  aiAnalysis, aiAnalyzing, runAiAnalysis, dismissAiAnalysis,
+  askDelete, formatDate,
+  linkedHabitId, saveHabitLink, habitOptions,
+  resources, showAddResource, newResUrl, newResTitle, newResType, submitResource,
+  safeDomain,
+} = usePlanDetailPage<TrainingPlan, ResourceType>({
+  listRoute: '/training',
+  getPlanById: (id) => store.getPlanById(id),
+  updatePlanLink: (id, habitId) => store.updatePlanLink(id, habitId),
+  deletePlan: (id) => store.deletePlan(id),
+  resourceStore: store,
+  defaultResourceType: 'article',
+  deleteConfirmBody: 'All workout history will be permanently removed.',
+})
 
 const streak = computed(() => store.getStreak(planId.value))
 const totalMinutes = computed(() => store.getTotalMinutes(planId.value))
@@ -29,9 +35,6 @@ const loggedToday = computed(() => store.isLoggedToday(planId.value))
 const today = todayStr()
 
 const showLog = ref(false)
-
-// ── AI post-log analysis ─────────────────────────────────────────────
-const { result: aiAnalysis, loading: aiAnalyzing, run: runAiAnalysis, dismiss: dismissAiAnalysis } = useAiInsight()
 
 function analyzeWorkout(data: Omit<WorkoutLog, 'id' | 'createdAt'>) {
   if (!plan.value) return
@@ -58,66 +61,6 @@ const last7 = computed(() => {
   })
 })
 const maxMins = computed(() => Math.max(...last7.value.map(d => d.mins), 1))
-
-const { confirm } = useConfirm()
-
-async function askDelete() {
-  const ok = await confirm({
-    title:        'Delete this plan?',
-    body:         'All workout history will be permanently removed.',
-    danger:       true,
-    confirmLabel: 'Delete plan',
-  })
-  if (ok) {
-    store.deletePlan(planId.value)
-    router.replace('/training')
-  }
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', {
-    weekday: 'short', day: 'numeric', month: 'short',
-  })
-}
-
-// ── Linked habit ─────────────────────────────────────────────────────
-const habitsStore = useHabitsStore()
-const linkedHabitId = ref(plan.value?.linkedHabitId ?? '')
-
-watch(() => plan.value?.linkedHabitId, (v) => { linkedHabitId.value = v ?? '' })
-
-function saveHabitLink() {
-  store.updatePlanLink(planId.value, linkedHabitId.value || undefined)
-}
-
-const habitOptions = computed<SelectOption[]>(() => [
-  { value: '', label: '— none —' },
-  ...habitsStore.habits.map(h => ({ value: h.id, label: h.name })),
-])
-
-// ── Resources ────────────────────────────────────────────────────────
-const resources = computed(() => store.getPlanResources(planId.value))
-
-const showAddResource = ref(false)
-const newResUrl   = ref('')
-const newResTitle = ref('')
-const newResType  = ref<ResourceType>('article')
-
-function submitResource() {
-  if (!newResUrl.value.trim()) return
-  store.addResource(planId.value, {
-    url:   newResUrl.value.trim(),
-    title: newResTitle.value.trim() || newResUrl.value.trim(),
-    type:  newResType.value,
-  })
-  newResUrl.value = ''; newResTitle.value = ''; newResType.value = 'article'
-  showAddResource.value = false
-}
-
-function safeDomain(url: string): string {
-  try { return new URL(url).hostname.replace('www.', '') }
-  catch { return url }
-}
 </script>
 
 <template>

@@ -1,10 +1,8 @@
 import { defineStore } from 'pinia'
-import { computed, watch } from 'vue'
-import { useSoftDeletable } from '@/core/composables/useSoftDeletable'
-import { storageKey, storagGet } from '@/core/utils/storage'
+import { computed } from 'vue'
+import { storageKey } from '@/core/utils/storage'
+import { usePlanModule } from '@/core/composables/usePlanModule'
 import { useEventBus } from '@/core/events'
-import { useBackendSync } from '@/core/composables/useBackendSync'
-import { useSyncBus } from '@/core/composables/useSyncBus'
 import type { TrainingPlan, WorkoutLog, TrainingResource, ResourceType } from '../types'
 import { todayStr, isTrainingDay, calcStreak, calcTotalMinutes, calcTotalKm } from '../types'
 
@@ -12,23 +10,13 @@ const PLANS_KEY = storageKey('training', 'plans')
 const LOGS_KEY  = storageKey('training', 'logs')
 
 export const useTrainingStore = defineStore('training:plans', () => {
-  const { all: allPlans, items: plans, softDelete: softDeletePlan } = useSoftDeletable<TrainingPlan>(PLANS_KEY)
-  const { all: allLogs, items: logs, softDelete: softDeleteLog } = useSoftDeletable<WorkoutLog>(LOGS_KEY)
-  const events = useEventBus()
-
-  // Backend sync (S28 T3): these keys were in SYNC_KEYS but the store was
-  // never wired — local changes never pushed, pulls never became visible.
-  const syncBus = useSyncBus()
-  watch(syncBus.pullSeq, () => {
-    allPlans.value = storagGet<TrainingPlan[]>(PLANS_KEY, [])
-    allLogs.value  = storagGet<WorkoutLog[]>(LOGS_KEY, [])
+  const mod = usePlanModule<TrainingPlan, WorkoutLog>({
+    plansKey: PLANS_KEY,
+    logsKey: LOGS_KEY,
+    planCreatedEvent: 'training:plan:created',
   })
-  const syncPlans = useBackendSync(PLANS_KEY)
-  const syncLogs  = useBackendSync(LOGS_KEY)
-  watch(allPlans, v => syncPlans.push(v), { deep: true })
-  watch(allLogs,  v => syncLogs.push(v),  { deep: true })
-
-  const activePlans = computed(() => plans.value.filter(p => p.active))
+  const { plans, logs, activePlans, createPlan, updatePlanLink, deletePlan, getPlanById } = mod
+  const events = useEventBus()
 
   const todayItems = computed(() => {
     const today = todayStr()
@@ -44,17 +32,9 @@ export const useTrainingStore = defineStore('training:plans', () => {
     [...logs.value].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 10),
   )
 
-  function createPlan(data: Omit<TrainingPlan, 'id' | 'createdAt' | 'active'>): TrainingPlan {
-    const id = crypto.randomUUID()
-    const plan: TrainingPlan = { ...data, id, active: true, createdAt: new Date().toISOString(), updatedAt: Date.now() }
-    allPlans.value.push(plan)
-    events.emit({ type: 'training:plan:created', planId: id, title: data.title, timestamp: new Date().toISOString() })
-    return plan
-  }
-
   function logWorkout(data: Omit<WorkoutLog, 'id' | 'createdAt'>): void {
     const plan = plans.value.find(p => p.id === data.planId)
-    allLogs.value.push({ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: Date.now() })
+    mod.allLogs.value.push({ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: Date.now() })
     events.emit({
       type: 'training:workout:logged',
       planId: data.planId ?? null,
@@ -71,24 +51,6 @@ export const useTrainingStore = defineStore('training:plans', () => {
         }
       })
     }
-  }
-
-  function updatePlanLink(planId: string, habitId: string | undefined): void {
-    const plan = plans.value.find(p => p.id === planId)
-    if (plan) { plan.linkedHabitId = habitId; plan.updatedAt = Date.now() }
-  }
-
-  function deletePlan(id: string): void {
-    // Soft-delete the plan and cascade tombstones to its logs so the removal
-    // survives a cross-device merge.
-    softDeletePlan(id)
-    for (const l of allLogs.value) {
-      if (l.planId === id && !l.deletedAt) softDeleteLog(l.id)
-    }
-  }
-
-  function getPlanById(id: string): TrainingPlan | undefined {
-    return plans.value.find(p => p.id === id)
   }
 
   function getPlanLogs(planId: string): WorkoutLog[] {
@@ -111,48 +73,28 @@ export const useTrainingStore = defineStore('training:plans', () => {
     return logs.value.some(l => l.planId === planId && l.date === todayStr())
   }
 
-  // ── Resources ───────────────────────────────────────────────────────
   function addResource(planId: string, data: { url: string; title: string; type: ResourceType }): void {
-    const plan = plans.value.find(p => p.id === planId)
-    if (!plan) return
-    if (!plan.resources) plan.resources = []
-    plan.resources.push({
-      id:      crypto.randomUUID(),
-      url:     data.url.trim(),
-      title:   data.title.trim() || data.url.trim(),
-      type:    data.type,
-      addedAt: new Date().toISOString(),
-      done:    false,
-    })
-    plan.updatedAt = Date.now()
+    mod.addResource(planId, data)
   }
 
   function deleteResource(planId: string, resourceId: string): void {
-    const plan = plans.value.find(p => p.id === planId)
-    if (!plan?.resources) return
-    plan.resources = plan.resources.filter(r => r.id !== resourceId)
-    plan.updatedAt = Date.now()
+    mod.deleteResource(planId, resourceId)
   }
 
   function toggleResourceDone(planId: string, resourceId: string): void {
-    const plan = plans.value.find(p => p.id === planId)
-    const res  = plan?.resources?.find(r => r.id === resourceId)
-    if (res) { res.done = !res.done; plan!.updatedAt = Date.now() }
+    mod.toggleResourceDone(planId, resourceId)
   }
 
   function getPlanResources(planId: string): TrainingResource[] {
-    return plans.value.find(p => p.id === planId)?.resources ?? []
+    return mod.getPlanResources<ResourceType>(planId)
   }
 
   function exportWorkoutsCsv(planId?: string): void {
-    const target = planId ? logs.value.filter(l => l.planId === planId) : logs.value
-    const rows = target.filter(l => !l.deletedAt).sort((a, b) => b.date.localeCompare(a.date))
-    if (!rows.length) return
-
-    const headers = ['Date', 'Plan', 'Title', 'Sport', 'Duration min', 'Distance km', 'Feeling', 'Notes']
-    const lines = [
-      headers.join(','),
-      ...rows.map(l => {
+    mod.exportCsv({
+      filenamePrefix: 'workouts',
+      headers: ['Date', 'Plan', 'Title', 'Sport', 'Duration min', 'Distance km', 'Feeling', 'Notes'],
+      rowsFor: (id) => (id ? logs.value.filter(l => l.planId === id) : logs.value),
+      toRow: (l) => {
         const plan = plans.value.find(p => p.id === l.planId)
         return [
           l.date,
@@ -163,16 +105,9 @@ export const useTrainingStore = defineStore('training:plans', () => {
           l.actualDistance ?? '',
           l.feeling,
           `"${(l.notes ?? '').replace(/"/g, '""')}"`,
-        ].join(',')
-      }),
-    ]
-
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `workouts-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(a.href)
+        ]
+      },
+    }, planId)
   }
 
   return {
