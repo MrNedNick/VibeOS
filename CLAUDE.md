@@ -6,7 +6,7 @@
 
 ## Current state
 
-**Version: v2.10.0 — 2026-06-13**
+**Version: v2.10.2 — 2026-08-03**
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 
@@ -25,7 +25,7 @@
 | S12 — AI Depth | ✅ complete (v1.1.0) |
 | S13 — Design Pass | 🔜 requires live review session |
 | S14 — Quick Wins | ✅ complete (v1.5.5) |
-| S15 — Refactor & De-dup | ✅ complete (v1.4.0) |
+| S15 — Refactor & De-dup | ✅ complete — T5 (Learning/Training shared structure) shipped (v2.10.2) |
 | S16 — Test Coverage | 🔄 T1–T6 ✅ T8 ✅; T4 ✅ (22/22 @/ui); T5 🔄 (BoardColumn ✅, Studio panes ✅, FinanceOverview ✅; remaining: TimelineGrid deferred); T7 QA pass pending (live review) — 664 tests in 62 files |
 | S17 — Component Unification | ✅ complete (v1.3.0) |
 | S18 — Product Analytics & Feedback | ✅ **fully complete** — T11 Supabase analytics/feedback sync shipped (v2.7.5) |
@@ -45,6 +45,12 @@
 | **S32 — Onboarding Module** | 🔜 **planned** — Replace demo data with interactive new-user tutorial (separate sprint) |
 
 **S31 complete (2026-06-11). S32 (Onboarding Module) is next — requires design decisions. S16 T7 (manual QA pass) still pending live review.**
+
+## New in v2.10.2 (2026-08-03) — S15 T5: Learning/Training shared structure
+
+- **`usePlanModule` composable** (`src/core/composables/usePlanModule.ts`): shared store skeleton behind `training.store.ts` and `learning.store.ts` — sync wiring (backend push + pull-bus re-read), `activePlans`, `createPlan`, `updatePlanLink`, `deletePlan` (soft-delete + log/session cascade), resources CRUD, generic CSV export. Domain-only pieces (workout minutes/km/streak vs study progress/hours/archive) stay as extra methods on each store.
+- **`usePlanDetailPage` composable** (`src/core/composables/usePlanDetailPage.ts`): shared script skeleton behind both `PlanDetailView.vue` — route/plan resolution + redirect-if-missing, confirm-delete flow, linked-habit editing, resource-add form state, `formatDate`/`safeDomain` helpers. Stats row, "today" card, AI-insight prompt text, activity strip vs progress ring, and all templates/CSS stayed untouched (real domain differences, per S15 T5's own conservative-unification rule).
+- Verified: full test suite green (664 tests), manual smoke of both modules (create plan → log → resources → linked habit → delete cascade → AI insight) in the running app.
 
 ## New in v2.10.0 (2026-06-13) — S34 UX Polish Batch III
 

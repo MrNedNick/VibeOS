@@ -822,13 +822,13 @@ All 5: behavior-preserving, type-check clean, 274 tests green after each commit.
 
 ---
 
-### T5 — Collapse Learning/Training shared structure 🔁
+### T5 — Collapse Learning/Training shared structure ✅ (v2.10.2)
 
 **Problem:** Learning and Training are "nearly identical" (noted in `refactor-guide.md`): parallel stores, parallel `PlanDetailView.vue` (865 LOC) and list views, parallel AI plan-generation. Two copies of the same plan/session model drift independently.
 
-**Fix:** extract the shared "timed-plan-with-sessions" shape — a `usePlanModule` composable or a shared `PlanDetail` base component parameterized by domain labels/icons. Be conservative: only unify what is *provably* identical; divergent bits (workout volume vs study minutes) stay separate.
+**Fix:** extracted the shared "timed-plan-with-sessions" shape into two composables: `usePlanModule` (`src/core/composables/usePlanModule.ts`) covers the store skeleton — sync wiring, `activePlans`, `createPlan`, `updatePlanLink`, `deletePlan` cascade, resources CRUD, CSV export; `usePlanDetailPage` (`src/core/composables/usePlanDetailPage.ts`) covers the `PlanDetailView.vue` script skeleton — route/plan resolution + redirect, confirm-delete, linked-habit editing, resource-add form, `formatDate`/`safeDomain`. Kept conservative: domain-only fields (workout minutes/km/streak calcs vs study progress/hours, the AI-insight prompt text, activity strip vs progress ring, templates and CSS) stay in each module untouched.
 
-**Verify:** `learning.types.test.ts` passes; manual smoke of both modules.
+**Verified:** `learning.types.test.ts` and the full suite (664 tests) pass; manual smoke of both modules — create/log/resources/linked-habit/delete-cascade/AI-insight all exercised live in both Training and Learning.
 
 ---
 
@@ -869,7 +869,7 @@ All 5: behavior-preserving, type-check clean, 274 tests green after each commit.
 | Shared composables | 3 | 5 (`useSoftDeletable`, `useAiInsight` added) |
 | ESLint enforcement | none | `vue/no-restricted-html-elements` (S17 T14) |
 
-T5 (Learning/Training shared structure) deferred — S17 migration made them diverge enough that forced unification adds risk without measurable benefit. T9 closes S15.
+T5 (Learning/Training shared structure) was deferred at the time this table was written, then revisited and shipped in v2.10.2 — see T5 above. T9 closes S15.
 
 ---
 
