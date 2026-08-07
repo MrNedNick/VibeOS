@@ -6,7 +6,9 @@
 
 ## Current state
 
-**Version: v2.10.3 — 2026-09-01**
+**Version: v2.11.0 — 2026-08-07**
+
+> **v2.11.0**: real offline app shell via `vite-plugin-pwa` (workbox `generateSW`, `registerType: 'autoUpdate'`) — precaches JS/CSS/HTML/icons, SPA `navigateFallback` to `index.html` so client-side routes resolve offline, `cleanupOutdatedCaches` + `skipWaiting`/`clientsClaim` (autoUpdate default) so a reload always lands on the latest deploy instead of sticking to a stale cached version. Registered in `main.ts` via `virtual:pwa-register`, with an hourly `updateSW()` poll for tabs left open across a deploy. API calls (Supabase) are not cached — they stay live-network-only; the existing offline write queue (`useCloudSync`) already covers writes made while offline. `public/manifest.webmanifest` was already in place from S3 (v2.9.0) and is left as the hand-authored manifest (`manifest: false` in the plugin config) rather than plugin-generated.
 
 > **v2.10.3**: fixed `vue/no-use-v-if-with-v-for` lint error in `GameTetrisView.vue` (confetti burst) — the CI lint step had been failing for several pushes, blocking the GitHub Pages deploy. `v-if="isNewRecord"` moved onto a wrapping `<template>` around the `v-for` confetti chips; rendering behavior unchanged.
 

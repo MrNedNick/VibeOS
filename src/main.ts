@@ -7,7 +7,20 @@ import { useAuthStore } from './core/stores/auth.store'
 import { gcTombstones, useCloudSync } from './core/composables/useCloudSync'
 import { createNavigationTracker } from './core/plugins/navigationTracker'
 import { registerTrackDirective } from './core/directives/vTrack'
+import { registerSW } from 'virtual:pwa-register'
 import './assets/styles/main.css'
+
+// Offline app shell: a new deploy activates immediately (autoUpdate) instead of
+// leaving an open tab stuck on the previous cached version.
+if ('serviceWorker' in navigator) {
+  const updateSW = registerSW({
+    onNeedRefresh() {
+      updateSW(true)
+    },
+  })
+  // Catch deploys that land while the tab has been open for a while.
+  setInterval(() => updateSW(), 60 * 60 * 1000)
+}
 
 // Reclaim space from soft-deleted records older than the merge window (S14 T3).
 gcTombstones()
