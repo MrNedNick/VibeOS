@@ -4,7 +4,7 @@
 
 Live → **https://mrnednick.github.io/VibeOS**
 
-![Bundle Size](https://img.shields.io/badge/initial_JS-46_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-297_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square)
+![Bundle Size](https://img.shields.io/badge/initial_JS-46_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-664_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square)
 
 ---
 
@@ -12,7 +12,7 @@ Live → **https://mrnednick.github.io/VibeOS**
 
 VibeOS is a light, no-setup daily tool for the parts of life Notion makes you build by hand — habits, tasks, goals, learning, training, notes — in one place where **everything is connected**. Check off a habit and its linked goal advances on its own. Log a workout and the habit checks itself off. One action cascades across modules; nothing to wire up.
 
-No databases to configure, no templates to wrestle. Open the link and use it. Your data stays in your browser (versioned localStorage today; Supabase sync is coded and waiting on credentials). And the built-in AI already knows your data — ask it anything, free, no key required.
+No databases to configure, no templates to wrestle. Open the link and use it. Your data stays in your browser by default (versioned localStorage), and signing in syncs it across devices through Supabase — auth, row-level security, offline queue and real-time merge are live. And the built-in AI already knows your data — ask it anything, free, no key required.
 
 ---
 
@@ -50,7 +50,8 @@ No databases to configure, no templates to wrestle. Open the link and use it. Yo
 - **marked** — Markdown → HTML in Notes
 - **highlight.js** — syntax highlighting (lazy-loaded chunk)
 - **No CSS framework** — scoped component CSS + design tokens in `main.css`
-- **Supabase** — auth + RLS + sync (code complete, awaiting project setup)
+- **Supabase** — auth + row-level security + JSONB key-value sync, offline queue, real-time merge (live)
+- **Vitest + Playwright** — 664 unit tests in 62 files, plus E2E smoke and auth suites
 
 ---
 
@@ -79,7 +80,8 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # production build → dist/
 npm run type-check # vue-tsc --noEmit
-npm test           # vitest run (297 tests, happy-dom)
+npm test           # vitest run (664 tests, happy-dom)
+npm run test:e2e   # playwright E2E
 ```
 
 ---
@@ -90,7 +92,7 @@ npm test           # vitest run (297 tests, happy-dom)
 |--------|------|--------|
 | S1 — Identity | Life OS first impression, vibe-paks, landing | ✅ complete |
 | S2 — Command Center | Dashboard panels, ⌘K command palette, sidebar | ✅ complete |
-| S3 — Backend + Auth | Supabase auth + RLS + offline sync | ⏸ paused — code done, awaiting Supabase credentials |
+| S3 — Backend + Auth | Supabase auth + RLS + offline sync | ✅ complete — live |
 | S4 — Core Life Modules | Goals, Tasks life categories, Habits→Goals | ✅ complete |
 | S5 — Life Depth | Learning, Training, Analytics | ✅ complete |
 | S6 — AI Integration | AI in 9 modules | ✅ complete |
@@ -98,14 +100,19 @@ npm test           # vitest run (297 tests, happy-dom)
 | S8 — Design System | @/ui component library + /ui-kit showcase page | ✅ complete |
 | S9 — Full Redesign | Revolut/Linear premium visual identity | ✅ complete |
 | S10 — Vibe-pak Consolidation | 4 clean paks: Dark, Light, Brutalist, CRT Retro | ✅ complete |
-| S11 — Welcome & Positioning | New welcome page + "everything connected" cascade | 🔜 next |
+| S11 — Welcome & Positioning | New welcome page + "everything connected" cascade | ✅ complete |
 | S12 — AI Depth | AI in every data module — Analytics report, Habits insights, Notes summarise, Finance analysis | ✅ complete |
 | S13 — Design Pass | Module-by-module quality pass | 🔜 planned |
-| S14 — Quick Wins | Lazy routes, soft-delete, AI provider seam | 🔄 active |
+| S14 — Quick Wins | Lazy routes, soft-delete, AI provider seam | ✅ complete |
 | S15 — Refactor & De-dup | Extract shared composables, split god-components | ✅ complete |
-| S16 — Test Coverage | 297 tests in 22 files — stores, components, composables | 🔄 active |
+| S16 — Test Coverage | 664 tests in 62 files — stores, components, composables | ✅ complete |
 | S17 — Component Unification | All modules migrated to @/ui; ESLint enforcement | ✅ complete |
-| S18 — Product Analytics & Feedback | Interaction tracking, NPS modal, Usage tab, Privacy settings | 🔄 active |
+| S18 — Product Analytics & Feedback | Interaction tracking, feedback modal, Usage tab, Privacy settings | ✅ complete |
+| S19–S22 — Mobile, Auth & UX | Mobile excellence, auth hardening, `user_store` sync layer, FAB + empty states | ✅ complete |
+| S23–S27 — Games, Demo & Profile | Tetris skins, demo seeding, mobile QA, avatar upload, Studio providers | ✅ complete |
+| S28 — Sync Integrity | Demo-data leak fix, realtime echo loop, merge correctness, tombstones | ✅ complete |
+| S29 — Security Hardening | DOMPurify sanitising on all `v-html` markdown paths | ✅ complete |
+| S32 — Onboarding Module | Replace demo data with an interactive new-user tutorial | 🔜 planned |
 
 ---
 

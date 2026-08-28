@@ -47,7 +47,7 @@ describe('StudioModelPicker — free provider', () => {
     const wrapper = mount(StudioModelPicker)
     const chips = wrapper.findAll('.sp-chip')
     expect(chips).toHaveLength(FREE_MODELS.length)
-    expect(chips[0].text()).toBe(FREE_MODELS[0].label)
+    expect(chips[0].find('.sp-chip-label').text()).toBe(FREE_MODELS[0].label)
   })
 
   it('does not show the API key row for free provider', () => {
@@ -61,7 +61,7 @@ describe('StudioModelPicker — anthropic provider', () => {
     const wrapper = mount(StudioModelPicker)
     const chips = wrapper.findAll('.sp-chip')
     expect(chips).toHaveLength(STUDIO_MODELS.length)
-    expect(chips.map(c => c.text())).toEqual(STUDIO_MODELS.map(m => m.label))
+    expect(chips.map(c => c.find('.sp-chip-label').text())).toEqual(STUDIO_MODELS.map(m => m.label))
   })
 
   it('shows the API key row for anthropic provider', () => {
@@ -76,7 +76,7 @@ describe('StudioModelPicker — groq provider', () => {
     const wrapper = mount(StudioModelPicker)
     const chips = wrapper.findAll('.sp-chip')
     expect(chips).toHaveLength(GROQ_MODELS.length)
-    expect(chips.map(c => c.text())).toEqual(GROQ_MODELS.map(m => m.label))
+    expect(chips.map(c => c.find('.sp-chip-label').text())).toEqual(GROQ_MODELS.map(m => m.label))
   })
 
   it('shows the API key row for groq provider', () => {
@@ -91,7 +91,7 @@ describe('StudioModelPicker — gemini provider', () => {
     const wrapper = mount(StudioModelPicker)
     const chips = wrapper.findAll('.sp-chip')
     expect(chips).toHaveLength(GEMINI_MODELS.length)
-    expect(chips.map(c => c.text())).toEqual(GEMINI_MODELS.map(m => m.label))
+    expect(chips.map(c => c.find('.sp-chip-label').text())).toEqual(GEMINI_MODELS.map(m => m.label))
   })
 })
 
