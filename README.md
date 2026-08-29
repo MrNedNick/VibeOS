@@ -4,7 +4,7 @@
 
 Live → **https://mrnednick.github.io/VibeOS**
 
-![Bundle Size](https://img.shields.io/badge/initial_JS-46_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-664_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square)
+![Bundle Size](https://img.shields.io/badge/initial_JS-114_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-664_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square)
 
 ---
 
@@ -64,7 +64,7 @@ No databases to configure, no templates to wrestle. Open the link and use it. Yo
 | Soft-delete tombstones on all synced entities | Merge conflicts resolve correctly when Supabase sync lands |
 | Typed `PlatformEvent` union on event bus | Cross-module communication without coupling; powers Dashboard digest |
 | Single AI provider seam (`provider.ts`) | Swap endpoint/model via env vars — 8 call sites untouched |
-| Lazy `import()` for all module routes | Initial JS 46 kB gzip; module code loads on demand |
+| Lazy `import()` for all module routes | Initial JS 114 kB gzip (entry chunk); module code loads on demand |
 | Tasks unified with Board cards | One entity, multiple views — list, kanban, timeline, dashboard widget |
 | Vibe-paks via `[data-theme]` attribute | Zero JS theme switching; each pak is a pure CSS variable override |
 
