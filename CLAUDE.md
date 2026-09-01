@@ -6,7 +6,9 @@
 
 ## Current state
 
-**Version: v2.10.2 — 2026-08-03**
+**Version: v2.10.3 — 2026-09-01**
+
+> **v2.10.3**: fixed `vue/no-use-v-if-with-v-for` lint error in `GameTetrisView.vue` (confetti burst) — the CI lint step had been failing for several pushes, blocking the GitHub Pages deploy. `v-if="isNewRecord"` moved onto a wrapping `<template>` around the `v-for` confetti chips; rendering behavior unchanged.
 
 > **Backend is LIVE.** Supabase credentials connected (user confirmed 2026-06-04). `.env.local` + GitHub Actions secrets set. S3 is no longer blocked — auth, sync, real-time all run against the live project.
 

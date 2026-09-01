@@ -663,22 +663,23 @@ function formatDate(iso: string): string {
           :class="{ 'tetris__overlay--record': isNewRecord }"
         >
           <!-- Confetti burst on new record (pure CSS, 24 chips) -->
-          <div
-            v-if="isNewRecord"
-            v-for="(chip, i) in confettiPieces"
-            :key="i"
-            class="tetris__confetti"
-            :style="{
-              left: chip.left + '%',
-              top: chip.top + '%',
-              animationDelay: chip.delay + 's',
-              animationDuration: chip.duration + 's',
-              background: chip.color,
-              transform: `rotate(${chip.rotate}deg)`,
-              width: chip.width + 'px',
-              height: chip.width * 2 + 'px',
-            }"
-          />
+          <template v-if="isNewRecord">
+            <div
+              v-for="(chip, i) in confettiPieces"
+              :key="i"
+              class="tetris__confetti"
+              :style="{
+                left: chip.left + '%',
+                top: chip.top + '%',
+                animationDelay: chip.delay + 's',
+                animationDuration: chip.duration + 's',
+                background: chip.color,
+                transform: `rotate(${chip.rotate}deg)`,
+                width: chip.width + 'px',
+                height: chip.width * 2 + 'px',
+              }"
+            />
+          </template>
 
           <div
             class="tetris__overlay-content tetris__overlay-content--over"
