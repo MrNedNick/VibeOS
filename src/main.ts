@@ -25,8 +25,12 @@ if ('serviceWorker' in navigator) {
 // Reclaim space from soft-deleted records older than the merge window (S14 T3).
 gcTombstones()
 
-// Drain offline write queue when network reconnects.
-window.addEventListener('online', () => useCloudSync().drainQueue())
+// Reconcile with the server when network reconnects: pull + merge remote
+// changes (by updatedAt) into localStorage *before* draining the offline
+// write queue, so a queued push can't blindly clobber a newer edit made
+// from another tab/device while this one was offline. pullAll() already
+// calls drainQueue() itself once the merge is done.
+window.addEventListener('online', () => useCloudSync().pullAll())
 
 const app = createApp(App)
 app.use(createPinia())

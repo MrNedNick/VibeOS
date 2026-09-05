@@ -6,7 +6,9 @@
 
 ## Current state
 
-**Version: v2.11.0 — 2026-08-07**
+**Version: v2.11.2 — 2026-09-05**
+
+> **v2.11.2**: offline write queue no longer risks clobbering a newer edit on reconnect — the `online` handler in `main.ts` now calls `pullAll()` (merges remote into local by `updatedAt`, notifies stores) instead of calling `drainQueue()` directly; `pullAll()` already drains the queue itself once the merge lands, so a queued push now carries the merged/superseding value rather than the stale pre-merge local one. Covered by `src/__tests__/offlineQueueReconnect.test.ts` (665 tests, 63 files).
 
 > **v2.11.0**: real offline app shell via `vite-plugin-pwa` (workbox `generateSW`, `registerType: 'autoUpdate'`) — precaches JS/CSS/HTML/icons, SPA `navigateFallback` to `index.html` so client-side routes resolve offline, `cleanupOutdatedCaches` + `skipWaiting`/`clientsClaim` (autoUpdate default) so a reload always lands on the latest deploy instead of sticking to a stale cached version. Registered in `main.ts` via `virtual:pwa-register`, with an hourly `updateSW()` poll for tabs left open across a deploy. API calls (Supabase) are not cached — they stay live-network-only; the existing offline write queue (`useCloudSync`) already covers writes made while offline. `public/manifest.webmanifest` was already in place from S3 (v2.9.0) and is left as the hand-authored manifest (`manifest: false` in the plugin config) rather than plugin-generated.
 
@@ -351,4 +353,4 @@ Every new component must work at `lg` and `sm` at minimum. Content max-width: `v
 
 ## Testing
 
-Vitest v4 + happy-dom (`sanitizeHtml.test.ts` runs under jsdom via `@vitest-environment` pragma). 664 tests in 62 files. `npm test` = run once. Coverage gate: stmt 35% / branch 22% (via `@vitest/coverage-v8`, runs in CI as `npm run test:coverage`). Playwright E2E: `e2e/smoke.spec.ts` — 5 smoke scenarios (boot, task CRUD, vibe-pak switch, Studio, demo mode). For Teleport components (UiModal, UiToastContainer, UiConfirmDialog) → mount with `attachTo: document.body` and query `document.body`, not `wrapper.find()`.
+Vitest v4 + happy-dom (`sanitizeHtml.test.ts` runs under jsdom via `@vitest-environment` pragma). 665 tests in 63 files. `npm test` = run once. Coverage gate: stmt 35% / branch 22% (via `@vitest/coverage-v8`, runs in CI as `npm run test:coverage`). Playwright E2E: `e2e/smoke.spec.ts` — 5 smoke scenarios (boot, task CRUD, vibe-pak switch, Studio, demo mode). For Teleport components (UiModal, UiToastContainer, UiConfirmDialog) → mount with `attachTo: document.body` and query `document.body`, not `wrapper.find()`.
