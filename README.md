@@ -69,7 +69,9 @@ No databases to configure, no templates to wrestle. Open the link and use it. Yo
 | Vibe-paks via `[data-theme]` attribute | Zero JS theme switching; each pak is a pure CSS variable override |
 
 Full decision log: [`docs/roadmap.md`](docs/roadmap.md)  
-Coding conventions: [`docs/conventions.md`](docs/conventions.md)
+Coding conventions: [`docs/conventions.md`](docs/conventions.md)  
+Build, environment and release process: [`docs/deployment.md`](docs/deployment.md)  
+What changed and when: [`CHANGELOG.md`](CHANGELOG.md)
 
 ---
 
