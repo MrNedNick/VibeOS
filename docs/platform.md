@@ -1,7 +1,7 @@
 # VibeOS — Platform Overview
 
 > Updated 2026-06-11. Reflects shipped state at v2.7.16.
-> ⚠️ **Keep this file current.** After every sprint or significant feature, update the version, state table, and module list in the same commit that ships the work. Stale docs break future AI sessions.
+> ⚠️ **Keep this file current.** After every sprint or significant feature, update the version, state table, and module list in the same commit that ships the work. Documentation that no longer matches the code is worse than none.
 
 
 **VibeOS** is a personal life operating system — a real daily-use app that tracks everything that matters: goals, habits, tasks, learning, training, finances, and more. Built in Vue 3, TypeScript, and Vite. Used every day by its creator.

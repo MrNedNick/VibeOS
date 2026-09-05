@@ -216,7 +216,7 @@ Order:
    - Extract each to `@/ui` with typed props: `UiCard`, `UiSectionLabel`, `UiStat`, `UiProgressBar`, `UiFilterChips`, `UiEmptyState`, `UiField`, `UiModal`
    - Refactor modules to use `@/ui` imports (one module per session to keep sessions short)
    - Goal: changing a component style = editing one file in `@/ui`
-   - **Before starting:** use Claude in Chrome to scan all views and catalog every unique one-off pattern
+   - **Before starting:** go through every view and catalogue each one-off pattern
    - **✅ Phase 3 complete (v0.8.4):** Analytics, Finance, Tasks, Goals, Learning, Training, Dashboard, Habits all migrated — section labels → UiSectionLabel, progress bars → UiProgressBar, stats → UiStat, filter chips → UiFilterChips, card containers → UiCard
 
 4. **UI Kit component library** ✅ complete (v1.0.12), **moved under Docs + made public (v1.2.0)**
@@ -230,7 +230,7 @@ Order:
    - Theme switcher at top: preview all 6 vibe-paks at once
    - Categories: Colors, Typography, Spacing, Shadows/Elevation, Motion, Inputs, Feedback, Data Display, Navigation, Layout
    - Documents every `@/ui` component + all design tokens
-   - **Reference:** `docs/design-system-reference.md` — use Claude in Chrome to analyze the reference before implementation; plan the exact structure before writing code
+   - **Reference:** `docs/design-system-reference.md` — study it before implementation and plan the exact structure before writing code
    - **✅ Reference analysis complete** — see `docs/ui-kit-plan.md` for full sidebar structure, component card pattern, prop table format, implementation sequence, and technical notes
    - **Prerequisite:** items 1–3 should be done first so there are components to document
 
@@ -579,7 +579,7 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 **Architecture:** `useAI()` composable already exists (`src/core/composables/useAI.ts`). Pattern: user-initiated button → loading state → dismissable result card. Free via Pollinations.ai, no key needed.
 
-**Pre-session analysis required** — Claude must read each module's store + view before implementing. The AI prompt must be grounded in real data structures.
+**Read before writing** — each module's store and view have to be understood before the action is implemented, so the prompt is grounded in the real data structures rather than in guesses.
 
 ---
 
@@ -675,7 +675,7 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 1. User opens the live app on MacBook (lg breakpoint) and iPhone (sm breakpoint)
 2. User notes which modules feel visually weak or inconsistent
 3. User brings specific screenshots or descriptions to the session
-4. Claude implements the agreed changes
+4. Implement the agreed changes
 
 **Candidate modules (likely need work):**
 - **Finance** — known UX issues from roadmap backlog; dense layout
@@ -686,7 +686,7 @@ T4 needs the analysis conversation first — user chooses palette direction, the
 
 **Constraint:** all changes must follow S9 visual rules (color-mix, --shadow-*, --leading-*, UiCard for containers). No new CSS primitives.
 
-> ⚠️ **Start this sprint with a live review conversation, not with code.** User provides direction, Claude implements. Wrong order = wrong result.
+> ⚠️ **Start this sprint with a live review of the app, not with code.** Decide what feels off first; implementing before that produces the wrong result.
 
 ---
 
@@ -937,7 +937,7 @@ Re-run the `qa-report.md` matrix against v1.x across the **4 current paks** (Dar
 
 ### T8 — Coverage gate + sprint close 🏁
 
-Add `vitest --coverage` (c8/v8) reporting; set a *floor* (not 100%) on stores/composables in the CI gate so coverage can't regress. Record final test count + coverage % here. Bump minor version. Update `CLAUDE.md` testing section.
+Add `vitest --coverage` (c8/v8) reporting; set a *floor* (not 100%) on stores/composables in the CI gate so coverage can't regress. Record the final test count and coverage percentage here, and bump the minor version.
 
 ---
 
@@ -1172,7 +1172,7 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 - ✅ `docs/conventions.md` — `useTrack` and `v-track` usage rules documented
 - ✅ `/docs/ui-kit/feedbackmodal` showcase added to docs-registry
 - ✅ feedback.store + interaction.store tests added (330 total in 24 files, then 369 in 27)
-- ✅ CLAUDE.md updated, S18 marked complete
+- ✅ Docs updated, S18 marked complete
 - ✅ roadmap.md Sprint Status Overview updated
 - ✅ T11 Supabase schema + sync — shipped v2.7.5
 - Version bumped across v1.5.1–v1.5.4
@@ -1227,7 +1227,7 @@ New "Privacy & Data" section in SettingsView: analytics opt-out toggle (platform
 ## S30 — Documentation Integrity 🔥 HIGH (after S29)
 
 ### T1 — Refresh stale core docs 🔴 HIGH ✅ (v2.7.16)
-`architecture.md` (v0.8.0), `strategy.md` (v0.9.3), `platform.md` (v2.2.4) all claim Supabase is "paused / awaiting credentials" — it has been **LIVE since 2026-06-04**. Component lists, pak counts, sprint tables and test counts are several major versions behind. CLAUDE.md's own rule: stale docs silently break future AI sessions. Refresh all four (+ `conventions.md` stamp) to current reality.
+`architecture.md` (v0.8.0), `strategy.md` (v0.9.3), `platform.md` (v2.2.4) all claim Supabase is "paused / awaiting credentials" — it has been **LIVE since 2026-06-04**. Component lists, pak counts, sprint tables and test counts are several major versions behind. Documentation that lies is worse than none: the next person to open it starts from the wrong picture. Refresh all four (+ `conventions.md` stamp) to current reality.
 
 ### T2 — Roadmap prune 🔴 HIGH ✅ (v2.7.16)
 Remove the stale "NEXT CHAT INSTRUCTIONS" block (frozen at v1.2.10, instructs implementing S11 which shipped in v2.7.0), fix stale sprint markers (S16/S19/S20 rows), keep history compact.
@@ -1619,7 +1619,7 @@ The game-over overlay (`state === 'over'`) in `GameTetrisView.vue` renders `.tet
 - **RecentActivityPanel** — handles all new event types: learning, training, goals, milestones
 - **Goals sorted by target date** — nearest due date shown first in active goals list
 - **package.json renamed** — `frontend-platform` → `vibeos`
-- **Version bump rule + push rule** — documented in CLAUDE.md: always push after commit to trigger GitHub Pages deploy
+- **Version bump and push** — see `docs/deployment.md`: a push to `main` is what triggers the Pages deploy
 
 ### 2026-05-27 (session 3 — fast wins)
 - **README.md** — complete portfolio README: modules table, tech stack, architecture decisions, keyboard shortcuts, sprint plan, run instructions
@@ -2772,7 +2772,7 @@ When the user has zero data across all stores (no tasks, no habits, no goals, no
 
 ### Pending (live review required)
 
-- **S13 — Design Pass**: module-by-module visual quality pass. User must review the live app on MacBook + iPhone, flag what feels off, then Claude implements.
+- **S13 — Design Pass**: module-by-module visual quality pass. Review the live app on a laptop and a phone, flag what feels off, then implement.
 - **S16 T7 — Manual QA pass**: re-run `docs/qa-report.md` matrix against v2.7.x across 4 paks, lg + sm, EN/RU. User confirms which bugs survive.
 
 ### Next autonomous sprint after user input

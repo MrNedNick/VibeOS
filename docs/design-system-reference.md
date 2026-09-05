@@ -37,10 +37,10 @@ This shows a working example of:
 
 ## How to use this reference
 
-1. Open the URL in Claude in Chrome before starting the `/ui-kit` sprint
-2. Use Claude to analyse the structure: what sections exist, how components are organised, how the catalogue navigation works
-3. Screenshot key pages to reference during implementation
-4. Build VibeOS `/ui-kit` following the same structural patterns, adapted to Vue 3
+1. Open the URL before starting work on `/ui-kit`
+2. Work out the structure first: what sections exist, how components are organised, how the catalogue navigation works
+3. Screenshot the key pages to refer to during implementation
+4. Build the VibeOS `/ui-kit` on the same structural patterns, adapted to Vue 3
 
 ---
 

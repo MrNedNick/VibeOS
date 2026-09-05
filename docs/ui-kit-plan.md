@@ -2,7 +2,7 @@
 
 > Reference analysis completed: 2026-05-31  
 > Reference site: `https://8b8d8a1d.xovi-ai.pages.dev/#catalog/colors` (XOVI AI Design System)  
-> Analysis method: Visual inspection via Claude in Chrome (full browse of all sections + screenshots) + JS bundle extraction for navigation structure
+> Analysis method: visual inspection in the browser (every section browsed and screenshotted) plus JS bundle extraction for the navigation structure
 
 ---
 

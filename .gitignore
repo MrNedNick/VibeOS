@@ -40,3 +40,7 @@ lerna-debug.log*
 
 # ── Type checking cache ─────────────────────────────────────────
 *.tsbuildinfo
+
+# Local tooling config (kept out of the repository)
+CLAUDE.md
+.claude/
