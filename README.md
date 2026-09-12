@@ -51,7 +51,7 @@ No databases to configure, no templates to wrestle. Open the link and use it. Yo
 - **highlight.js** — syntax highlighting (lazy-loaded chunk)
 - **No CSS framework** — scoped component CSS + design tokens in `main.css`
 - **Supabase** — auth + row-level security + JSONB key-value sync, offline queue, real-time merge (live)
-- **Vitest + Playwright** — 664 unit tests in 62 files, plus E2E smoke and auth suites
+- **Vitest + Playwright** — 665 unit tests in 63 files, plus E2E smoke and auth suites
 
 ---
 
@@ -82,7 +82,7 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # production build → dist/
 npm run type-check # vue-tsc --noEmit
-npm test           # vitest run (664 tests, happy-dom)
+npm test           # vitest run (665 tests, happy-dom)
 npm run test:e2e   # playwright E2E
 ```
 
@@ -107,7 +107,7 @@ npm run test:e2e   # playwright E2E
 | S13 — Design Pass | Module-by-module quality pass | 🔜 planned |
 | S14 — Quick Wins | Lazy routes, soft-delete, AI provider seam | ✅ complete |
 | S15 — Refactor & De-dup | Extract shared composables, split god-components | ✅ complete |
-| S16 — Test Coverage | 664 tests in 62 files — stores, components, composables | ✅ complete |
+| S16 — Test Coverage | 665 tests in 63 files — stores, components, composables | ✅ complete |
 | S17 — Component Unification | All modules migrated to @/ui; ESLint enforcement | ✅ complete |
 | S18 — Product Analytics & Feedback | Interaction tracking, feedback modal, Usage tab, Privacy settings | ✅ complete |
 | S19–S22 — Mobile, Auth & UX | Mobile excellence, auth hardening, `user_store` sync layer, FAB + empty states | ✅ complete |

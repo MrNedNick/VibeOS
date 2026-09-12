@@ -25,7 +25,7 @@
 | **S13 — Design Pass** | Module-by-module quality pass | 🔜 planned — requires live review with user |
 | **S14 — Quick Wins** | Lazy routes, README refresh, soft-delete before sync, hex cleanup | ✅ **complete** — T1–T6 ✅ T4 ✅ (hex guard + WelcomeView hex v1.5.1) |
 | **S15 — Refactor & De-dup** | Remove duplication, extract shared composables, split god-components | ✅ **complete** — T1–T4 ✅ T6–T9 ✅ (v1.4.0). T5 deferred. T7 QA report refreshed (v1.5.2). |
-| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T6 ✅ T8 ✅; T4 ✅ (22/22 @/ui — all components covered); T5 🔄 (all god-component children tested ✅ except TimelineGrid deferred); T7 QA pass (needs live review). **664 tests in 62 files** |
+| **S16 — Test Coverage** | Store/composable unit tests, component tests, smoke E2E, manual QA pass | 🔄 active — T1–T6 ✅ T8 ✅; T4 ✅ (22/22 @/ui — all components covered); T5 🔄 (all god-component children tested ✅ except TimelineGrid deferred); T7 QA pass (needs live review). **665 tests in 63 files** |
 | **S17 — Component Unification** | Every reusable UI element comes from `@/ui` only — change a component once, it changes everywhere | ✅ **complete** — Phase 0 (v1.2.1) + Phase 1 T6–T13 (v1.2.2–v1.2.6) + T14 ESLint (v1.2.10) + T15 sprint close (v1.3.0) |
 | **S18 — Product Analytics & Feedback** | Behavioral tracking, NPS feedback, Usage tab in Analytics | ✅ **complete** — T1–T12 ✅ incl. T11 Supabase analytics/feedback sync (v2.7.5) |
 | **S19 — Mobile Excellence & Account** | Full account management, mobile UX overhaul, nav reliability | ✅ **complete** — v1.9.1 |
