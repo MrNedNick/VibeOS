@@ -1,8 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-export const MODULE_ID   = 'goals'
-export const MODULE_PATH = '/goals'
-export const MODULE_LABEL = 'Goals'
+const MODULE_ID   = 'goals'
+const MODULE_PATH = '/goals'
+const MODULE_LABEL = 'Goals'
 
 export const goalsRoutes: RouteRecordRaw[] = [
   {

@@ -1,8 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-export const MODULE_ID    = 'analytics'
-export const MODULE_PATH  = '/analytics'
-export const MODULE_LABEL = 'Analytics'
+const MODULE_ID    = 'analytics'
+const MODULE_PATH  = '/analytics'
+const MODULE_LABEL = 'Analytics'
 
 export const analyticsRoutes: RouteRecordRaw[] = [
   {

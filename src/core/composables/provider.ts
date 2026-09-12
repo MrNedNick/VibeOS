@@ -18,10 +18,10 @@
  * if the provider is down the app still fully works.
  */
 
-export const AI_ENDPOINT =
+const AI_ENDPOINT =
   (import.meta.env.VITE_AI_ENDPOINT as string | undefined) ?? 'https://text.pollinations.ai/'
 
-export const AI_MODEL =
+const AI_MODEL =
   (import.meta.env.VITE_AI_MODEL as string | undefined) ?? 'openai-fast'
 
 export interface AIOptions {

@@ -1,8 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-export const MODULE_ID    = 'dashboard'
-export const MODULE_PATH  = '/'
-export const MODULE_LABEL = 'Dashboard'
+const MODULE_ID    = 'dashboard'
+const MODULE_LABEL = 'Dashboard'
 
 export const dashboardRoutes: RouteRecordRaw[] = [
   {

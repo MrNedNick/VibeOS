@@ -1,8 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-export const MODULE_ID    = 'calendar'
-export const MODULE_PATH  = '/calendar'
-export const MODULE_LABEL = 'Calendar'
+const MODULE_ID    = 'calendar'
+const MODULE_PATH  = '/calendar'
+const MODULE_LABEL = 'Calendar'
 
 export const calendarRoutes: RouteRecordRaw[] = [
   {

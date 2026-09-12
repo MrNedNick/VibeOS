@@ -1,8 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-export const MODULE_ID    = 'docs'
-export const MODULE_PATH  = '/docs'
-export const MODULE_LABEL = 'Documentation'
+const MODULE_ID    = 'docs'
+const MODULE_LABEL = 'Documentation'
 
 export const docsRoutes: RouteRecordRaw[] = [
   {

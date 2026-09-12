@@ -1,8 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-export const MODULE_ID    = 'task-manager'
-export const MODULE_PATH  = '/tasks'
-export const MODULE_LABEL = 'Task Manager'
+const MODULE_ID    = 'task-manager'
+const MODULE_LABEL = 'Task Manager'
 
 export const taskManagerRoutes: RouteRecordRaw[] = [
   {

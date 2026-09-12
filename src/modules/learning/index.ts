@@ -1,8 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-export const MODULE_ID    = 'learning'
-export const MODULE_PATH  = '/learning'
-export const MODULE_LABEL = 'Learning'
+const MODULE_ID    = 'learning'
+const MODULE_PATH  = '/learning'
+const MODULE_LABEL = 'Learning'
 
 export const learningRoutes: RouteRecordRaw[] = [
   {

@@ -1,11 +1,6 @@
 import { ref } from 'vue'
-import { aiRequest, AI_ENDPOINT, AI_MODEL } from './provider'
+import { aiRequest } from './provider'
 import type { AIOptions } from './provider'
-
-// Re-exported for backwards compatibility — the single fetch now lives in
-// provider.ts (endpoint/model from env). See S14 T5.
-export { AI_ENDPOINT, AI_MODEL }
-export type { AIOptions }
 
 /**
  * Low-level helper — just the request, no reactive state.

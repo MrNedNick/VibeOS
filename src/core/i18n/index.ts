@@ -9,7 +9,7 @@ export type LocaleCode = 'en' | 'ru'
 const LOCALES: Record<LocaleCode, Messages> = { en, ru }
 
 // ── Store ─────────────────────────────────────────────────────────────
-export const useLocaleStore = defineStore('locale', () => {
+const useLocaleStore = defineStore('locale', () => {
   const locale = useStorage<LocaleCode>('platform:locale', 'en')
 
   const messages = computed<Messages>(() => LOCALES[locale.value] ?? en)

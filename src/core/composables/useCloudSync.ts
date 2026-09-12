@@ -76,9 +76,6 @@ export const SYNC_KEYS: string[] = [
   'platform:kanban:cards',
 ]
 
-// Alias for backward compat (gcTombstones import in main.ts)
-export const TOMBSTONE_KEYS = SYNC_KEYS
-
 export function gcTombstones(maxAgeDays = 30): void {
   const cutoff = Date.now() - maxAgeDays * 86_400_000
   for (const key of SYNC_KEYS) {

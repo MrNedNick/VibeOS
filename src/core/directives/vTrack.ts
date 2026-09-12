@@ -9,7 +9,7 @@ function getModule(): string {
   return pathSeg || 'unknown'
 }
 
-export const vTrack = {
+const vTrack = {
   mounted(el: HTMLElement, binding: DirectiveBinding<TrackValue>) {
     const handler = () => {
       const bus = useInteractionBus()

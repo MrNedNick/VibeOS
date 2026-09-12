@@ -33,5 +33,3 @@ export { default as UiFab } from './components/UiFab.vue'
 
 // ── S24 — Toast system ───────────────────────────────────────────────────
 export { default as UiToastContainer } from './components/UiToastContainer.vue'
-export { useToast } from '@/core/composables/useToast'
-export type { Toast, ToastType } from '@/core/composables/useToast'
