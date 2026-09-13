@@ -74,7 +74,8 @@ router.onError((err) => {
 router.beforeEach(async (to) => {
   const needsAuth  = to.matched.some(r => r.meta.auth === 'required')
   const isGuestOnly = to.matched.some(r => r.meta.auth === 'guest')
-  if (!needsAuth && !isGuestOnly) return
+  const wantsDemoLink = to.query.demo === '1'
+  if (!needsAuth && !isGuestOnly && !wantsDemoLink) return
 
   // useAuthStore() is safe here: Pinia is installed before any navigation fires.
   // Static import avoids a dynamic-import microtask on every navigation.
@@ -82,6 +83,15 @@ router.beforeEach(async (to) => {
 
   // Wait for Supabase session check to finish before deciding
   await auth.ready
+
+  // A shared "?demo=1" link (portfolio, resume) drops a fresh visitor straight
+  // into the seeded product — no signup. A real session is never clobbered by
+  // one of these links landing on it, so this only fires for logged-out visits.
+  if (wantsDemoLink && !auth.isLoggedIn) {
+    auth.loginDemo()
+    const { demo: _demo, ...query } = to.query
+    return { path: to.path === '/welcome' ? '/' : to.path, query }
+  }
 
   if (needsAuth && !auth.isLoggedIn) return '/welcome'
   // Demo users can access /login and /register to create a real account
