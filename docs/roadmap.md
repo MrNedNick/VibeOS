@@ -840,6 +840,23 @@ All 5: behavior-preserving, type-check clean, 274 tests green after each commit.
 
 **Verify:** `npm test` still runs on happy-dom; `npm run build` clean.
 
+**Repeat pass (2026-09-12, v2.11.2):** `jsdom` itself turned out to still be a
+deliberate, documented dependency (pinned for `sanitizeHtml.test.ts` since
+S29) — nothing to remove there. A fresh `knip` run against the current tree
+found new cruft accumulated since the original pass: 3 view files orphaned by
+the `views/` subfolder migration, 2 unused dashboard components, 2 unused
+composable/type files, and a dozen exports (module ID/path/label constants,
+a stale AI-provider back-compat re-export, a dead sync-key alias, a dead
+`@/ui` barrel re-export) that nothing outside their own file imports —
+all removed or unexported, no behavior change, 665 tests stayed green.
+Also pinned `vue-eslint-parser` as an explicit devDependency (`eslint.config.js`
+imports it directly but it only ever resolved via hoisting). Left alone:
+~30 unused *exported types* (composable/store public-API surface, lower risk
+tolerance for a mechanical sweep) and a few unused data constants
+(`TECH_DEBT`, `TOTAL_DOC_PAGES`, `nextMilestone`, learning's `CATEGORY_EMOJI`)
+that look like never-wired features rather than leftover cruft — worth a
+second look if this sweep repeats again.
+
 ---
 
 ### T7 — Refresh stale planning docs 📄
