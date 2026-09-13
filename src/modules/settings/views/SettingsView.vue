@@ -15,6 +15,7 @@ import { useFeedbackStore } from '@/core/stores/feedback.store'
 import { useInteractionBus } from '@/core/stores/interaction.store'
 import { useHabitNotifications } from '@/core/composables/useHabitNotifications'
 import { useToast } from '@/core/composables/useToast'
+import { SYNC_KEYS } from '@/core/composables/useCloudSync'
 import UiIcon from '@/ui/components/UiIcon.vue'
 import AllTasksPanel, { type AggregatedTask, type AggregatedShipped } from '@/modules/dashboard/components/AllTasksPanel.vue'
 import { MODULE_DETAILS } from '@/modules/dashboard/data/platform-notes'
@@ -258,6 +259,47 @@ const importPayload = ref<Record<string, unknown> | null>(null)
 const fileInputRef  = ref<HTMLInputElement>()
 let clearTimer: ReturnType<typeof setTimeout> | null = null
 
+// Friendly labels for the module keys this backup format can carry.
+// Anything outside this list still gets imported (settings, games, API keys, …)
+// but is only ever summarized as "other data" in the preview — see below.
+const DATA_KEY_LABELS: Record<string, string> = {
+  'platform:task-manager:tasks': 'settings.dataTasks',
+  'platform:habits:habits': 'settings.dataHabits',
+  'platform:goals:goals': 'settings.dataGoals',
+  'platform:notes:notes': 'settings.dataNotes',
+  'platform:learning:plans': 'settings.dataLearningPlans',
+  'platform:learning:sessions': 'settings.dataLearningSessions',
+  'platform:training:plans': 'settings.dataTrainingPlans',
+  'platform:training:logs': 'settings.dataTrainingLogs',
+  'platform:finance:expenses': 'settings.dataFinanceExpenses',
+  'platform:finance:budgets': 'settings.dataFinanceBudgets',
+  'platform:kanban:cards': 'settings.dataBoardCards',
+}
+
+interface ImportSummaryRow {
+  label: string
+  count: number
+}
+
+const importSummary = computed<ImportSummaryRow[]>(() => {
+  const payload = importPayload.value
+  if (!payload) return []
+  const rows: ImportSummaryRow[] = []
+  for (const key of SYNC_KEYS) {
+    if (!(key in payload)) continue
+    const value = payload[key]
+    const count = Array.isArray(value) ? value.length : (value === null ? 0 : 1)
+    rows.push({ label: i18n.t(DATA_KEY_LABELS[key]), count })
+  }
+  return rows
+})
+
+const importOtherKeyCount = computed(() => {
+  const payload = importPayload.value
+  if (!payload) return 0
+  return Object.keys(payload).filter(key => !(key in DATA_KEY_LABELS)).length
+})
+
 function exportData() {
   const snapshot: Record<string, unknown> = {}
   for (let i = 0; i < localStorage.length; i++) {
@@ -309,13 +351,22 @@ function onFileChange(e: Event) {
   reader.onload = (ev) => {
     try {
       const data = JSON.parse(ev.target?.result as string)
-      if (typeof data !== 'object' || data === null) throw new Error('Not an object')
-      importPayload.value = data as Record<string, unknown>
+      if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+        throw new Error('Not a backup object')
+      }
+      const payload = data as Record<string, unknown>
+      const hasKnownData = SYNC_KEYS.some(key => key in payload)
+      if (!hasKnownData) {
+        toast.error(i18n.t('settings.importUnrecognized'))
+        return
+      }
+      importPayload.value = payload
       importConfirm.value = true
     } catch {
-      alert('Invalid backup file — expected a VibeOS JSON export.')
+      toast.error(i18n.t('settings.importInvalid'))
     }
   }
+  reader.onerror = () => toast.error(i18n.t('settings.importInvalid'))
   reader.readAsText(file)
 }
 
@@ -766,13 +817,25 @@ function cancelImport() {
             />
           </template>
           <template v-else>
-            <span class="settings__danger-confirm">{{ i18n.t('settings.importConfirm') }}</span>
-            <UiButton variant="danger" @click="confirmImport">
-              {{ i18n.t('settings.importYes') }}
-            </UiButton>
-            <UiButton variant="ghost" @click="cancelImport">
-              {{ i18n.t('settings.importNo') }}
-            </UiButton>
+            <div class="settings__import-preview">
+              <span class="settings__danger-confirm">{{ i18n.t('settings.importConfirm') }}</span>
+              <ul v-if="importSummary.length" class="settings__import-summary">
+                <li v-for="row in importSummary" :key="row.label">
+                  {{ row.label }} — {{ row.count }}
+                </li>
+                <li v-if="importOtherKeyCount">
+                  {{ i18n.t('settings.importOtherKeys', { count: importOtherKeyCount }) }}
+                </li>
+              </ul>
+              <div class="settings__import-buttons">
+                <UiButton variant="danger" @click="confirmImport">
+                  {{ i18n.t('settings.importYes') }}
+                </UiButton>
+                <UiButton variant="ghost" @click="cancelImport">
+                  {{ i18n.t('settings.importNo') }}
+                </UiButton>
+              </div>
+            </div>
           </template>
         </div>
       </div>
@@ -1077,6 +1140,30 @@ function cancelImport() {
   font-size: 13px;
   color: var(--color-danger);
   font-weight: 500;
+}
+
+.settings__import-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 320px;
+}
+
+.settings__import-summary {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.settings__import-buttons {
+  display: flex;
+  gap: 8px;
 }
 
 /* API Key rows */
