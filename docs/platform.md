@@ -14,7 +14,7 @@ It also functions as a portfolio anchor: the "personal life OS" concept is more 
 
 | Field | Value |
 |-------|-------|
-| **Version** | 2.7.16 |
+| **Version** | 2.13.1 |
 | **Live URL** | https://mrnednick.github.io/VibeOS |
 | **GitHub** | https://github.com/MrNedNick/VibeOS |
 | **TypeScript** | ✅ Strict mode, 0 errors (enforced on every commit) |

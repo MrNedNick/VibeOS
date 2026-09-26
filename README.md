@@ -4,7 +4,7 @@
 
 Live → **https://mrnednick.github.io/VibeOS**
 
-![Bundle Size](https://img.shields.io/badge/initial_JS-114_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-664_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square)
+![Bundle Size](https://img.shields.io/badge/initial_JS-114_kB_gzip-informational?style=flat-square) ![Tests](https://img.shields.io/badge/tests-669_passing-brightgreen?style=flat-square) ![Lighthouse Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen?style=flat-square) ![Lighthouse Performance](https://img.shields.io/badge/performance-82%2F100-yellowgreen?style=flat-square) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square)
 
 ---
 
@@ -51,7 +51,7 @@ No databases to configure, no templates to wrestle. Open the link and use it. Yo
 - **highlight.js** — syntax highlighting (lazy-loaded chunk)
 - **No CSS framework** — scoped component CSS + design tokens in `main.css`
 - **Supabase** — auth + row-level security + JSONB key-value sync, offline queue, real-time merge (live)
-- **Vitest + Playwright** — 665 unit tests in 63 files, plus E2E smoke and auth suites
+- **Vitest + Playwright** — 669 unit tests in 63 files, plus E2E smoke and auth suites
 
 ---
 
@@ -82,7 +82,7 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # production build → dist/
 npm run type-check # vue-tsc --noEmit
-npm test           # vitest run (665 tests, happy-dom)
+npm test           # vitest run (669 tests, happy-dom)
 npm run test:e2e   # playwright E2E
 ```
 
@@ -107,7 +107,7 @@ npm run test:e2e   # playwright E2E
 | S13 — Design Pass | Module-by-module quality pass | 🔜 planned |
 | S14 — Quick Wins | Lazy routes, soft-delete, AI provider seam | ✅ complete |
 | S15 — Refactor & De-dup | Extract shared composables, split god-components | ✅ complete |
-| S16 — Test Coverage | 665 tests in 63 files — stores, components, composables | 🔄 active — manual QA pass pending |
+| S16 — Test Coverage | 669 tests in 63 files — stores, components, composables | 🔄 active — manual QA pass pending |
 | S17 — Component Unification | All modules migrated to @/ui; ESLint enforcement | ✅ complete |
 | S18 — Product Analytics & Feedback | Interaction tracking, feedback modal, Usage tab, Privacy settings | ✅ complete |
 | S19–S22 — Mobile, Auth & UX | Mobile excellence, auth hardening, `user_store` sync layer, FAB + empty states | ✅ complete |

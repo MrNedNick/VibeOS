@@ -15,8 +15,9 @@ export const useNotesStore = defineStore('notes:notes', () => {
   const { all: allNotes, items: notes, softDelete } = useSoftDeletable<Note>(NOTES_KEY)
   const events = useEventBus()
 
-  const initialized = ref(!isSupabaseConfigured || allNotes.value.length > 0)
   const syncBus = useSyncBus()
+  const initialized = ref(!isSupabaseConfigured || syncBus.settled.value || allNotes.value.length > 0)
+  watch(syncBus.settled, () => { initialized.value = true })
   watch(syncBus.pullSeq, () => {
     allNotes.value = storagGet<Note[]>(NOTES_KEY, [])
     initialized.value = true

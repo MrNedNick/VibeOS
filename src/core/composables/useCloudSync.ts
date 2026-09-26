@@ -196,6 +196,7 @@ export function useCloudSync() {
       console.error('[sync] pullAll error:', err)
     } finally {
       isSyncing.value = false
+      useSyncBus().markSettled()
     }
   }
 

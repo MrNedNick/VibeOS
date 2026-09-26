@@ -17,12 +17,13 @@ export const useHabitsStore = defineStore('habits:habits', () => {
   const events = useEventBus()
   const gate = useFeatureGate()
 
+  const syncBus = useSyncBus()
   // initialized = true when we have the best available data
-  // false only when localStorage is empty AND Supabase might have data (new login)
-  const initialized = ref(!isSupabaseConfigured || allHabits.value.length > 0)
+  // false only while localStorage is empty AND the first Supabase pull is still running
+  const initialized = ref(!isSupabaseConfigured || syncBus.settled.value || allHabits.value.length > 0)
+  watch(syncBus.settled, () => { initialized.value = true })
 
   // Re-read from localStorage after Supabase pull merges fresh data
-  const syncBus = useSyncBus()
   watch(syncBus.pullSeq, () => {
     allHabits.value = storagGet<Habit[]>(HABITS_KEY, [])
     initialized.value = true

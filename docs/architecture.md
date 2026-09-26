@@ -52,7 +52,7 @@ Available to all modules. Never imports from `modules/`.
 | `useAI()` / `aiComplete(prompt)` | Pollinations.ai wrapper — all 8 AI features use this |
 | `useCloudSync()` | pullAll/pushAll/pushKey via `user_store`; merge engine + offline queue |
 | `useBackendSync(key)` | Debounced (800ms) per-store push; skips payloads identical to last sent |
-| `useSyncBus()` | `pullSeq` counter — stores re-read localStorage after a pull merges data |
+| `useSyncBus()` | `pullSeq` counter — stores re-read localStorage after a pull merges data; `settled` flips once the first pull finishes (merged, unchanged or failed) or no pull is coming, and ends the stores' `initialized` skeleton wait |
 | `useRealtimeSync()` | Supabase Realtime on `user_store`; ignores no-op echo events |
 | `useFeatureGate()` | Free/demo/pro tier logic |
 | `useModuleVisibility()` | Per-module show/hide in sidebar |

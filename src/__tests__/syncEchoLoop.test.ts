@@ -35,7 +35,7 @@ const h = vi.hoisted(() => {
       })),
     })),
   }
-  return { state, client, notifyPulled: vi.fn() }
+  return { state, client, notifyPulled: vi.fn(), markSettled: vi.fn() }
 })
 
 vi.mock('@/core/services/supabase', () => ({
@@ -43,7 +43,7 @@ vi.mock('@/core/services/supabase', () => ({
   getSupabase: () => h.client,
 }))
 vi.mock('@/core/composables/useSyncBus', () => ({
-  useSyncBus: () => ({ notifyPulled: h.notifyPulled }),
+  useSyncBus: () => ({ notifyPulled: h.notifyPulled, markSettled: h.markSettled }),
 }))
 
 import { useBackendSync } from '@/core/composables/useBackendSync'
@@ -88,6 +88,15 @@ describe('pullAll — no-op pulls do not notify the sync bus', () => {
 
     await useCloudSync().pullAll()
     expect(h.notifyPulled).not.toHaveBeenCalled()
+    // …but it still settles, so module skeletons don't wait for a bump that never comes
+    expect(h.markSettled).toHaveBeenCalled()
+  })
+
+  it('a failed pull settles too', async () => {
+    h.state.selectResult = { data: [], error: new Error('Failed to fetch') }
+    await useCloudSync().pullAll()
+    expect(h.notifyPulled).not.toHaveBeenCalled()
+    expect(h.markSettled).toHaveBeenCalled()
   })
 
   it('notifies when the merge brings new data', async () => {

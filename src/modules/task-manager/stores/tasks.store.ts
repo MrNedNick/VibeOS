@@ -15,8 +15,9 @@ const STORAGE_KEY = storageKey('task-manager', 'tasks')
 export const useTasksStore = defineStore('task-manager:tasks', () => {
   const { all: allTasks, items: tasks, softDelete } = useSoftDeletable<Task>(STORAGE_KEY)
 
-  const initialized = ref(!isSupabaseConfigured || allTasks.value.length > 0)
   const syncBus = useSyncBus()
+  const initialized = ref(!isSupabaseConfigured || syncBus.settled.value || allTasks.value.length > 0)
+  watch(syncBus.settled, () => { initialized.value = true })
   watch(syncBus.pullSeq, () => {
     allTasks.value = storagGet<Task[]>(STORAGE_KEY, [])
     initialized.value = true

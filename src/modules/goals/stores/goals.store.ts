@@ -17,8 +17,9 @@ export const useGoalsStore = defineStore('goals:goals', () => {
   const events = useEventBus()
   const gate = useFeatureGate()
 
-  const initialized = ref(!isSupabaseConfigured || allGoals.value.length > 0)
   const syncBus = useSyncBus()
+  const initialized = ref(!isSupabaseConfigured || syncBus.settled.value || allGoals.value.length > 0)
+  watch(syncBus.settled, () => { initialized.value = true })
   watch(syncBus.pullSeq, () => {
     allGoals.value = storagGet<Goal[]>(GOALS_KEY, [])
     initialized.value = true

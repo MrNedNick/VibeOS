@@ -233,6 +233,48 @@ describe('auth.store — init + session restore', () => {
     await auth.init()
     expect(auth.isLoggedIn).toBe(false)
   })
+
+  it('a stale session is cleared when Supabase answers with no session', async () => {
+    localStorage.setItem('platform:auth:state', JSON.stringify({
+      user: { id: 'u-1', email: 'real@example.com', provider: 'supabase', tier: 'free' },
+      loggedInAt: '2026-09-01T00:00:00.000Z',
+    }))
+    const auth = useAuthStore()
+    await auth.init()
+    expect(auth.isLoggedIn).toBe(false)
+  })
+
+  it('an unreachable backend does not sign the user out', async () => {
+    localStorage.setItem('platform:auth:state', JSON.stringify({
+      user: { id: 'u-1', email: 'real@example.com', provider: 'supabase', tier: 'free' },
+      loggedInAt: '2026-09-01T00:00:00.000Z',
+    }))
+    const netErr = Object.assign(new Error('Failed to fetch'), { name: 'AuthRetryableFetchError' })
+    h.client.auth.getSession.mockResolvedValue({ data: { session: null }, error: netErr })
+    const auth = useAuthStore()
+    await auth.init()
+    expect(auth.isLoggedIn).toBe(true)
+    expect(auth.user?.id).toBe('u-1')
+  })
+
+  it('does not hold the first screen while the session check hangs', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.resetModules()
+      const fresh = await import('@/core/stores/auth.store')
+      h.client.auth.getSession.mockReturnValue(new Promise(() => {}))
+      const auth = fresh.useAuthStore()
+      void auth.init()
+      expect(auth.authReady).toBe(false)
+      let ready = false
+      void auth.ready.then(() => { ready = true })
+      await vi.advanceTimersByTimeAsync(4000)
+      expect(ready).toBe(true)
+      expect(auth.authReady).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
 
 describe('auth.store — onAuthStateChange demo immunity', () => {

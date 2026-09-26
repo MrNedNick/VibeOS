@@ -21,11 +21,18 @@ import { useAnalyticsSync } from '@/core/composables/useAnalyticsSync'
 import { useUiStore } from '@/core/stores/ui.store'
 import { seedDemoData, purgeDemoData } from '@/core/utils/demoSeed'
 import { SYNC_KEYS } from '@/core/composables/useCloudSync'
+import { useSyncBus } from '@/core/composables/useSyncBus'
 import { storageRemove } from '@/core/utils/storage'
 
 // Resolves when init() finishes — router guard awaits this before checking isLoggedIn
 let _readyResolve!: () => void
 const _readyPromise = new Promise<void>(resolve => { _readyResolve = resolve })
+
+// A stored session with an expired token makes getSession() refresh it over the
+// network, and supabase-js keeps retrying a failed refresh for ~30-60 s. The
+// router guard awaits `ready`, so without a cap an unreachable backend means a
+// blank first screen for that long. Past the cap the app opens on local state.
+const BOOT_SESSION_TIMEOUT_MS = 4000
 
 // ── Types ─────────────────────────────────────────────────────────────────
 export type AuthProvider = 'supabase' | 'demo' | null
@@ -404,7 +411,19 @@ export const useAuthStore = defineStore('core:auth', () => {
   }
 
   // ── Init — restore session on app boot ────────────────────────────────────
+  function _markReady(): void {
+    // Mark auth as resolved so the Sign Up chip can appear (only if truly demo)
+    authReady.value = true
+    // Resolving twice is a no-op — the timeout and the finally below may both fire
+    _readyResolve()
+  }
+
   async function init(): Promise<void> {
+    const bootCap = setTimeout(() => {
+      _markReady()
+      useSyncBus().markSettled()
+    }, BOOT_SESSION_TIMEOUT_MS)
+    let restored = false
     try {
       if (isSupabaseConfigured) {
         const sb = getSupabase()
@@ -413,9 +432,10 @@ export const useAuthStore = defineStore('core:auth', () => {
         // who was previously in demo mode still sees "Sign Up Free" after logging
         // into a real account, because the demo provider flag was stored locally
         // and init() used to return early without consulting Supabase).
-        const { data: { session } } = await sb.auth.getSession()
+        const { data: { session }, error } = await sb.auth.getSession()
 
         if (session?.user) {
+          restored = true
           _setUser({
             id: session.user.id,
             email: session.user.email ?? '',
@@ -435,8 +455,10 @@ export const useAuthStore = defineStore('core:auth', () => {
           // No valid Supabase session — honor local state
           if (_state.value.user?.provider === 'demo') {
             seedDemoData()
-          } else if (_state.value.user?.provider === 'supabase') {
-            // Stale Supabase state with no active session — clear it
+          } else if (_state.value.user?.provider === 'supabase' && error?.name !== 'AuthRetryableFetchError') {
+            // Stale Supabase state with no active session — clear it. A network
+            // failure is not a sign-out: the app is local-first, so the user
+            // keeps their local data and sync resumes once the backend answers.
             _setUser(null)
           }
         }
@@ -472,10 +494,11 @@ export const useAuthStore = defineStore('core:auth', () => {
     } catch (err) {
       console.warn('[auth] init error:', err)
     } finally {
-      // Mark auth as resolved so the Sign Up chip can appear (only if truly demo)
-      authReady.value = true
+      clearTimeout(bootCap)
+      // Without a restored session no pull is coming — let module screens render
+      if (!restored) useSyncBus().markSettled()
       // Always resolve — router guard awaits this regardless of success/failure
-      _readyResolve()
+      _markReady()
     }
   }
 

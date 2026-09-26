@@ -36,7 +36,7 @@ vi.mock('@/core/services/supabase', () => ({
   getSupabase: () => h.client,
 }))
 vi.mock('@/core/composables/useSyncBus', () => ({
-  useSyncBus: () => ({ notifyPulled: vi.fn() }),
+  useSyncBus: () => ({ notifyPulled: vi.fn(), markSettled: vi.fn() }),
 }))
 
 import { useCloudSync } from '@/core/composables/useCloudSync'
