@@ -14,7 +14,7 @@ never committed; in CI they are repository secrets.
 |---|---|
 | `VITE_SUPABASE_URL` | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key |
-| `VITE_ADMIN_EMAILS` | Comma-separated list of addresses that get admin screens |
+| `VITE_ADMIN_EMAILS` | Comma-separated list of addresses that get admin screens (CI passes the secret as `ADMIN_EMAILS`) |
 
 Set the secrets under **Settings → Secrets and variables → Actions** in the
 repository.
@@ -25,8 +25,10 @@ first-time visitor takes, so it is worth keeping working.
 
 ## Admin access
 
-`auth.isAdmin` compares the signed-in user's email against `VITE_ADMIN_EMAILS`
-(comma-separated, lower-cased). An admin additionally sees:
+`auth.isAdmin` compares the SHA-256 hash of the signed-in user's email against the
+hashes of `VITE_ADMIN_EMAILS` (comma-separated, lower-cased). `vite.config.ts` hashes
+the list at build time, so the addresses themselves never reach the bundle. An admin
+additionally sees:
 
 - a Dev/Admin section in Settings, with the full task panel and platform data;
 - All Tasks and Platform Health in the dashboard sidebar.

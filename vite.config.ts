@@ -1,11 +1,20 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
 import { readFileSync } from 'fs'
+import { createHash } from 'crypto'
 
 const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'))
 const base = process.env.GITHUB_PAGES ? '/VibeOS/' : '/'
+
+// Admin addresses never reach the bundle — only their SHA-256 hashes do.
+const env = { ...loadEnv('', __dirname, ''), ...process.env }
+const adminEmailHashes = (env.ADMIN_EMAILS ?? env.VITE_ADMIN_EMAILS ?? '')
+  .split(',')
+  .map(e => e.trim().toLowerCase())
+  .filter(Boolean)
+  .map(e => createHash('sha256').update(e).digest('hex'))
 
 export default defineConfig({
   plugins: [
@@ -30,6 +39,7 @@ export default defineConfig({
   base,
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __ADMIN_EMAIL_HASHES__: JSON.stringify(adminEmailHashes),
   },
   resolve: {
     alias: {

@@ -12,7 +12,7 @@
  */
 
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useStorage } from '@/core/composables/useStorage'
 import { getSupabase, isSupabaseConfigured } from '@/core/services/supabase'
 import { useCloudSync } from '@/core/composables/useCloudSync'
@@ -82,12 +82,17 @@ export const useAuthStore = defineStore('core:auth', () => {
   const tier           = computed(() => _state.value.user?.tier ?? 'free')
   const emailConfirmed = computed(() => !!_state.value.user?.emailConfirmedAt)
 
-  const _adminEmails = (import.meta.env.VITE_ADMIN_EMAILS ?? '')
-    .split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean)
-  const isAdmin = computed(() => {
-    const email = _state.value.user?.email?.toLowerCase()
-    return !!email && _adminEmails.includes(email)
-  })
+  // The build ships SHA-256 hashes of the admin addresses, not the addresses.
+  const _adminHashes: string[] = typeof __ADMIN_EMAIL_HASHES__ !== 'undefined' ? __ADMIN_EMAIL_HASHES__ : []
+  const _isAdmin = ref(false)
+  watch(() => _state.value.user?.email, async (email) => {
+    const normalized = email?.trim().toLowerCase()
+    if (!normalized || _adminHashes.length === 0) { _isAdmin.value = false; return }
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized))
+    const hex = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('')
+    _isAdmin.value = _state.value.user?.email?.trim().toLowerCase() === normalized && _adminHashes.includes(hex)
+  }, { immediate: true })
+  const isAdmin = computed(() => _isAdmin.value)
 
   const initials = computed(() => {
     const name = _state.value.user?.displayName

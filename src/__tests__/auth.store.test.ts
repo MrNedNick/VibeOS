@@ -109,6 +109,23 @@ describe('auth.store — demo mode', () => {
 })
 
 describe('auth.store — Supabase login/register/logout', () => {
+  it('isAdmin matches the hashed admin list, case-insensitively', async () => {
+    h.client.auth.signInWithPassword.mockResolvedValue({
+      data: { user: { ...SB_USER, email: 'Admin@Example.com' } }, error: null,
+    })
+    const auth = useAuthStore()
+    await auth.login('Admin@Example.com', 'password1')
+    await vi.waitFor(() => expect(auth.isAdmin).toBe(true))
+  })
+
+  it('isAdmin stays false for an address outside the admin list', async () => {
+    h.client.auth.signInWithPassword.mockResolvedValue({ data: { user: SB_USER }, error: null })
+    const auth = useAuthStore()
+    await auth.login('real@example.com', 'password1')
+    await new Promise(r => setTimeout(r, 0))
+    expect(auth.isAdmin).toBe(false)
+  })
+
   it('login success sets a supabase user and pulls cloud data', async () => {
     h.client.auth.signInWithPassword.mockResolvedValue({ data: { user: SB_USER }, error: null })
     const auth = useAuthStore()
