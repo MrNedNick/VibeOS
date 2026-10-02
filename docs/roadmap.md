@@ -230,7 +230,7 @@ Order:
    - Theme switcher at top: preview all 6 vibe-paks at once
    - Categories: Colors, Typography, Spacing, Shadows/Elevation, Motion, Inputs, Feedback, Data Display, Navigation, Layout
    - Documents every `@/ui` component + all design tokens
-   - **Reference:** `docs/design-system-reference.md` — study it before implementation and plan the exact structure before writing code
+   - **Reference:** the catalogue structure recorded in `docs/ui-kit-plan.md` — plan the exact structure before writing code
    - **✅ Reference analysis complete** — see `docs/ui-kit-plan.md` for full sidebar structure, component card pattern, prop table format, implementation sequence, and technical notes
    - **Prerequisite:** items 1–3 should be done first so there are components to document
 
@@ -1506,7 +1506,7 @@ The game-over overlay (`state === 'over'`) in `GameTetrisView.vue` renders `.tet
 - Name: "Nikita Nedyalkov" (full name)
 - Title: "App Developer" (was "Frontend Developer")
 - Experience: "6+ years"
-- Removed company (XOVI GmbH) and location (Cologne, Germany)
+- Removed company and location
 - Bio rewritten as broader app developer (UI to backend architecture, Vue 3 + React + TypeScript)
 
 **Studio — Clear History confirmation:**
@@ -1725,7 +1725,7 @@ Redesign `/about` from info card to a proper personal portfolio/selling page.
 **Goal:** a recruiter landing here should understand in 10 seconds: who you are, what you build, why you're worth hiring.
 
 **Structure:**
-1. **Hero** — name, title, current role (XOVI GmbH), 2-line positioning statement ("I build full-stack products..."), LinkedIn + GitHub CTA buttons
+1. **Hero** — name, title, current role, 2-line positioning statement ("I build full-stack products..."), LinkedIn + GitHub CTA buttons
 2. **What I'm good at** — 3-4 skill groups as visual cards, not bullet lists (Frontend Systems, TypeScript, Vue Ecosystem, Product Thinking)
 3. **VibeOS itself** — "This is what I built" — module count, lines of code approx, key decisions explained (auth, data model, AI layer)
 4. **Timeline / career story** — horizontal scrollable timeline or vertical scroll; each role has a 1-line impact statement

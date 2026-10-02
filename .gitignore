@@ -44,3 +44,6 @@ lerna-debug.log*
 # Local tooling config (kept out of the repository)
 CLAUDE.md
 .claude/
+
+# ── Test coverage reports ───────────────────────────────────────
+coverage/

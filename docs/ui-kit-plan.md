@@ -1,14 +1,13 @@
 # VibeOS /ui-kit — Implementation Plan
 
 > Reference analysis completed: 2026-05-31  
-> Reference site: `https://8b8d8a1d.xovi-ai.pages.dev/#catalog/colors` (XOVI AI Design System)  
-> Analysis method: visual inspection in the browser (every section browsed and screenshotted) plus JS bundle extraction for the navigation structure
+> Reference: a component-catalogue layout (tokens, typography, components, elevation) used as a structural model
 
 ---
 
 ## 1. Reference Site — Full Sidebar Navigation (Confirmed Visually)
 
-The sidebar has a header "Xovi AI — Catalog" + "← Back to app" link, then **4 collapsible groups**:
+The sidebar has a header "Catalog" + "← Back to app" link, then **4 collapsible groups**:
 
 ### Group: Tokens
 | Sidebar label | Route key |
